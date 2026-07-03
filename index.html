@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JustKM — 個人知識庫</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131826;
+      --bg-card: #1a2138;
+      --border: #2a3454;
+      --text-primary: #e8ecf4;
+      --text-secondary: #9aa3b8;
+      --text-muted: #6b7390;
+      --accent-blue: #4f9eff;
+      --accent-purple: #a855f7;
+      --accent-green: #00d68f;
+      --gradient-hero: linear-gradient(135deg, #4f9eff 0%, #a855f7 50%, #ff4d6d 100%);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    .hero {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px 32px;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--gradient-hero);
+    }
+    .hero h1 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+    .hero .tagline {
+      color: var(--text-secondary);
+      font-size: 15px;
+    }
+    .search-bar {
+      margin-top: 24px;
+      padding: 14px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-primary);
+      width: 100%;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .search-bar:focus { outline: none; border-color: var(--accent-blue); }
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .topic-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 20px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s ease;
+      display: block;
+    }
+    .topic-card:hover {
+      border-color: var(--accent-blue);
+      transform: translateY(-2px);
+    }
+    .topic-icon { font-size: 32px; margin-bottom: 8px; }
+    .topic-name {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .topic-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .topic-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    .empty {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 40px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="hero">
+    <h1>🗂️ JustKM</h1>
+    <p class="tagline">個人知識庫 · 統一的收納入口</p>
+    <input
+      type="search"
+      class="search-bar"
+      id="search"
+      placeholder="🔍 搜尋主題（例：交易、Python、稅務...）"
+      autocomplete="off">
+  </div>
+
+  <h2 class="section-title">📚 知識主題</h2>
+  <div class="grid" id="topics">
+
+    <a class="topic-card" data-tags="美股 投資 交易 教學 daytrading swingtrading 風險管理 稅務 vwap ema rsi" href="./invest/course.html">
+      <div class="topic-icon">📈</div>
+      <div class="topic-name">美股交易教學</div>
+      <div class="topic-meta">8 章 · 速查表 · 風險管理</div>
+      <div class="topic-desc">日內交易 × 波段交易 完整教學，含每日 SOP、券商設定、模擬交易 7 步 SOP</div>
+    </a>
+
+  </div>
+
+  <p class="empty" id="empty" style="display:none;">沒有符合的結果</p>
+
+  <div class="footer">
+    JustKM · 由 <a href="https://github.com/RinRyanJi/JustKM" style="color:var(--accent-blue);text-decoration:none;">GitHub Pages</a> 提供<br>
+    建立於 2026-07-03
+  </div>
+
+</div>
+
+<script>
+  const search = document.getElementById('search');
+  const cards = document.querySelectorAll('.topic-card');
+  const empty = document.getElementById('empty');
+  search.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    let visible = 0;
+    cards.forEach(c => {
+      const tags = c.dataset.tags.toLowerCase();
+      const text = c.textContent.toLowerCase();
+      const match = !q || tags.includes(q) || text.includes(q);
+      c.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    empty.style.display = visible === 0 ? '' : 'none';
+  });
+</script>
+</body>
+</html>
