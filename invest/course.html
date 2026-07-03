@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>美股交易入門：日內交易 × 波段交易 完整教學</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131826;
+      --bg-card: #1a2138;
+      --bg-card-hover: #222a45;
+      --border: #2a3454;
+      --text-primary: #e8ecf4;
+      --text-secondary: #9aa3b8;
+      --text-muted: #6b7390;
+      --accent-blue: #4f9eff;
+      --accent-cyan: #00d4ff;
+      --accent-green: #00d68f;
+      --accent-red: #ff4d6d;
+      --accent-yellow: #ffb84d;
+      --accent-purple: #a855f7;
+      --gradient-hero: linear-gradient(135deg, #4f9eff 0%, #a855f7 50%, #ff4d6d 100%);
+      --tag-principle: #00d68f;
+      --tag-current: #ffb84d;
+    }
+
+    /* ============ TIME-SENSITIVITY TAGS ============ */
+    .tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .tag-principle {
+      background: rgba(0, 214, 143, 0.12);
+      color: var(--tag-principle);
+      border: 1px solid rgba(0, 214, 143, 0.3);
+    }
+    .tag-current {
+      background: rgba(255, 184, 77, 0.12);
+      color: var(--tag-current);
+      border: 1px solid rgba(255, 184, 77, 0.3);
+    }
+    .tag-legend {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 20px 0 0;
+      flex-wrap: wrap;
+    }
+    .tag-legend .tag { margin-left: 0; }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ============ NAV ============ */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(10, 14, 26, 0.85);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .nav-logo {
+      font-weight: 700;
+      font-size: 16px;
+      background: var(--gradient-hero);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent-cyan); }
+
+    /* ============ HERO ============ */
+    .hero {
+      padding: 140px 24px 80px;
+      text-align: center;
+      background:
+        radial-gradient(ellipse at top, rgba(79, 158, 255, 0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at bottom, rgba(168, 85, 247, 0.1) 0%, transparent 60%);
+    }
+    .hero-badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--accent-cyan);
+      margin-bottom: 24px;
+      letter-spacing: 0.5px;
+    }
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      background: var(--gradient-hero);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 20px;
+    }
+    .hero-sub {
+      font-size: clamp(16px, 2vw, 20px);
+      color: var(--text-secondary);
+      max-width: 700px;
+      margin: 0 auto 40px;
+    }
+    .hero-meta {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    .hero-meta span strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* ============ TOC ============ */
+    .toc {
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 24px;
+    }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 24px;
+    }
+    .toc-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      transition: all 0.25s;
+      text-decoration: none;
+      color: var(--text-primary);
+      display: block;
+    }
+    .toc-card:hover {
+      background: var(--bg-card-hover);
+      transform: translateY(-2px);
+      border-color: var(--accent-blue);
+    }
+    .toc-num {
+      font-size: 12px;
+      color: var(--accent-cyan);
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+    .toc-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+    .toc-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ============ SECTIONS ============ */
+    main { max-width: 900px; margin: 0 auto; padding: 0 24px 100px; }
+
+    section {
+      margin-top: 80px;
+      scroll-margin-top: 80px;
+    }
+    .section-num {
+      font-size: 14px;
+      color: var(--accent-cyan);
+      font-weight: 600;
+      letter-spacing: 2px;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 700;
+      letter-spacing: -0.8px;
+      margin: 8px 0 16px;
+    }
+    .section-lede {
+      font-size: 17px;
+      color: var(--text-secondary);
+      max-width: 720px;
+    }
+
+    h3 {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 48px 0 16px;
+      letter-spacing: -0.3px;
+    }
+    h4 {
+      font-size: 17px;
+      font-weight: 600;
+      margin: 28px 0 12px;
+      color: var(--text-primary);
+    }
+
+    p { color: var(--text-secondary); margin-bottom: 14px; }
+
+    /* ============ CALLOUTS ============ */
+    .callout {
+      border-left: 3px solid var(--accent-blue);
+      background: rgba(79, 158, 255, 0.06);
+      padding: 18px 20px;
+      border-radius: 0 8px 8px 0;
+      margin: 24px 0;
+    }
+    .callout.warn { border-left-color: var(--accent-yellow); background: rgba(255, 184, 77, 0.06); }
+    .callout.danger { border-left-color: var(--accent-red); background: rgba(255, 77, 109, 0.06); }
+    .callout.tip { border-left-color: var(--accent-green); background: rgba(0, 214, 143, 0.06); }
+    .callout-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      margin-bottom: 6px;
+    }
+    .callout.warn .callout-title { color: var(--accent-yellow); }
+    .callout.danger .callout-title { color: var(--accent-red); }
+    .callout.tip .callout-title { color: var(--accent-green); }
+    .callout p:last-child { margin-bottom: 0; }
+
+    /* ============ STRATEGY BOX ============ */
+    .strategy {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 28px 0;
+    }
+    .strategy-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .strategy-name {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .strategy-tag {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(79, 158, 255, 0.15);
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+    .strategy ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    .strategy li {
+      padding: 8px 0 8px 24px;
+      position: relative;
+      color: var(--text-secondary);
+    }
+    .strategy li::before {
+      content: "▸";
+      position: absolute;
+      left: 4px;
+      color: var(--accent-cyan);
+    }
+    .strategy li strong { color: var(--text-primary); }
+
+    /* ============ TABLE ============ */
+    .table-wrap { overflow-x: auto; margin: 24px 0; border-radius: 10px; border: 1px solid var(--border); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    thead {
+      background: var(--bg-secondary);
+    }
+    th {
+      text-align: left;
+      padding: 14px 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 13px;
+      letter-spacing: 0.3px;
+    }
+    td {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* ============ CODE ============ */
+    code {
+      font-family: "SF Mono", Menlo, Monaco, "Courier New", monospace;
+      font-size: 13px;
+      background: var(--bg-secondary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--accent-cyan);
+    }
+    pre {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      overflow-x: auto;
+      margin: 20px 0;
+      line-height: 1.55;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      color: var(--text-primary);
+      font-size: 13px;
+    }
+
+    /* ============ GRID ============ */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+      margin: 28px 0;
+    }
+    .grid-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px;
+    }
+    .grid-card h4 {
+      margin: 0 0 10px;
+      color: var(--accent-cyan);
+    }
+    .grid-card p { margin: 0; font-size: 14px; }
+
+    /* ============ FOOTER ============ */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    footer strong { color: var(--text-secondary); }
+
+    /* ============ DISCLAIMER ============ */
+    .disclaimer {
+      max-width: 900px;
+      margin: 100px auto 0;
+      padding: 24px;
+      background: rgba(255, 77, 109, 0.05);
+      border: 1px solid rgba(255, 77, 109, 0.2);
+      border-radius: 12px;
+    }
+    .disclaimer h4 { color: var(--accent-red); margin-bottom: 8px; }
+    .disclaimer p { font-size: 14px; margin-bottom: 0; }
+
+    /* ============ PRINT ============ */
+    @media print {
+      nav { display: none; }
+      .hero { padding: 40px 24px; background: none; }
+      body { background: white; color: black; }
+      section { break-inside: avoid; }
+    }
+
+    @media (max-width: 600px) {
+      .nav-links { display: none; }
+      .hero { padding: 100px 20px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">AutoInvest · 交易教學</div>
+    <ul class="nav-links">
+      <li><a href="#sec1">日內交易</a></li>
+      <li><a href="#sec2">波段交易</a></li>
+      <li><a href="#sec3">比較</a></li>
+      <li><a href="#sec4">風險管理</a></li>
+      <li><a href="#sec5">工具</a></li>
+      <li><a href="#sec6">行動計畫</a></li>
+      <li><a href="#sec7">每日SOP</a></li>
+      <li><a href="#sec8">券商設定</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero">
+  <span class="hero-badge">📈 美股交易入門 · 2026 修訂版</span>
+  <h1>日內交易 × 波段交易<br>完整教學</h1>
+  <p class="hero-sub">兩種主流交易風格的策略、進出場規則、風險管理與工具鏈——一篇搞懂你要走哪條路</p>
+  <div class="hero-meta">
+    <span><strong>8</strong> 個章節</span>
+    <span><strong>30+</strong> 個實戰策略</span>
+    <span><strong>5</strong> 個免費工具</span>
+    <span>⏱️ 閱讀時間約 <strong>25 分鐘</strong></span>
+  </div>
+  <div class="tag-legend">
+    <span><span class="tag tag-principle">原則</span> 5-10 年仍適用的普世概念</span>
+    <span><span class="tag tag-current">2024-2026</span> 平台 / 工具 / 法規現況</span>
+  </div>
+</header>
+
+<div class="toc">
+  <div class="toc-grid">
+    <a class="toc-card" href="#sec1">
+      <div class="toc-num">CHAPTER 01</div>
+      <div class="toc-title">日內交易入門</div>
+      <div class="toc-desc">時間窗口、適用標的、核心策略</div>
+    </a>
+    <a class="toc-card" href="#sec2">
+      <div class="toc-num">CHAPTER 02</div>
+      <div class="toc-title">波段交易入門</div>
+      <div class="toc-desc">趨勢判讀、回撤進場、持倉節奏</div>
+    </a>
+    <a class="toc-card" href="#sec3">
+      <div class="toc-num">CHAPTER 03</div>
+      <div class="toc-title">兩者比較</div>
+      <div class="toc-desc">資金、時間、心理素質門檻</div>
+    </a>
+    <a class="toc-card" href="#sec4">
+      <div class="toc-num">CHAPTER 04</div>
+      <div class="toc-title">風險管理鐵律</div>
+      <div class="toc-desc">部位規模、停損、心理控管</div>
+    </a>
+    <a class="toc-card" href="#sec5">
+      <div class="toc-num">CHAPTER 05</div>
+      <div class="toc-title">工具與平台</div>
+      <div class="toc-desc">券商、圖表、篩選器、回測</div>
+    </a>
+    <a class="toc-card" href="#sec6">
+      <div class="toc-num">CHAPTER 06</div>
+      <div class="toc-title">30 天行動計畫</div>
+      <div class="toc-desc">從模擬交易到實盤的漸進路線</div>
+    </a>
+    <a class="toc-card" href="#sec7">
+      <div class="toc-num">CHAPTER 07</div>
+      <div class="toc-title">每日例行 SOP</div>
+      <div class="toc-desc">盤前 / 盤中 / 收盤 + 週末例行</div>
+    </a>
+    <a class="toc-card" href="#sec8">
+      <div class="toc-num">CHAPTER 08</div>
+      <div class="toc-title">券商開戶 & 模擬交易</div>
+      <div class="toc-desc">IBKR / Webull / Schwab 首次設定</div>
+    </a>
+  </div>
+</div>
+
+<main>
+
+<!-- ============================ CH1 ============================ -->
+<section id="sec1">
+  <div class="section-num">CHAPTER 01</div>
+  <h2 class="section-title">日內交易 (Day Trading)</h2>
+  <p class="section-lede">同一交易日內開倉、平倉，不持倉過夜。目標是捕捉數分鐘到數小時內的價格波動，靠「高勝率 + 嚴格停損」累積小利。</p>
+
+  <h3>📅 時間窗口</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>時段</th><th>美東時間</th><th>台灣時間</th><th>特性</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Pre-market</td><td>04:00 - 09:30</td><td>16:00 - 21:30</td><td>流動性低、跳空風險高、僅限經驗者</td></tr>
+        <tr><td>Regular Hours</td><td>09:30 - 16:00</td><td>21:30 - 04:00</td><td>主要戰場，流動性最佳</td></tr>
+        <tr><td>After Hours</td><td>16:00 - 20:00</td><td>04:00 - 08:00</td><td>價差擴大，不建議新手</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>🎯 適合的標的</h3>
+  <ul>
+    <li><strong>高流動性</strong>：平均日成交量 &gt; 1000 萬股</li>
+    <li><strong>窄價差</strong>：買賣價差 (bid-ask spread) ≤ $0.01 - 0.02</li>
+    <li><strong>高波動</strong>：日內 ATR &gt; 3%，才有空間獲利</li>
+    <li><strong>常見標的</strong>：SPY/QQQ/IWM 等大 ETF、AAPL/MSFT/NVDA/TSLA 等大盤股、SQQQ/TQQQ 等槓桿 ETF（⚠️ 高風險）</li>
+  </ul>
+
+  <h3>🔥 五種核心策略</h3>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">1️⃣ Momentum 動能策略</span>
+      <span class="strategy-tag">新手友善</span>
+    </div>
+    <p>順著強勢方向進場，等動能耗盡出場。</p>
+    <ul>
+      <li><strong>進場</strong>：突破前高 + 量能放大 2x 以上 + VWAP 之上</li>
+      <li><strong>出場</strong>：跌破 VWAP 或固定 % 停損</li>
+      <li><strong>勝率</strong>：40-50%，靠大賺小賠</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">2️⃣ Scalping 剝頭皮</span>
+      <span class="strategy-tag">高頻</span>
+    </div>
+    <p>每筆只賺 0.1-0.3%，靠極高勝率（70%+）與大量交易次數。</p>
+    <ul>
+      <li><strong>標的</strong>：QQQ、SPY 等流動性最高的標的</li>
+      <li><strong>指標</strong>：1 分 K + 訂單流 (Order Flow) + Level 2 報價</li>
+      <li><strong>風險</strong>：手續費 + 滑價吃掉利潤，需折扣券商</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">3️⃣ Breakout 突破策略</span>
+      <span class="strategy-tag">盤整後</span>
+    </div>
+    <p>盤整區間結束時，順突破方向進場。</p>
+    <ul>
+      <li><strong>識別</strong>：股價在狹窄區間震盪，ATR 收斂</li>
+      <li><strong>進場</strong>：放量突破區間上緣 / 下緣</li>
+      <li><strong>陷阱</strong>：假突破 (fakeout) 頻繁，需要回測確認</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">4️⃣ Reversal 反轉策略</span>
+      <span class="strategy-tag">逆勢·高難度</span>
+    </div>
+    <p>抓超買超賣的反轉點，逆勢進場。</p>
+    <ul>
+      <li><strong>指標</strong>：RSI &gt; 70 或 &lt; 30、出現吞沒型態 (engulfing)、pin bar</li>
+      <li><strong>注意</strong>：「接刀子」風險高，需嚴格停損</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">5️⃣ Mean Reversion 均值回歸</span>
+      <span class="strategy-tag">統計型</span>
+    </div>
+    <p>假設價格會回到平均值，過度延伸時反向操作。</p>
+    <ul>
+      <li><strong>指標</strong>：布林通道 (Bollinger Bands)、距離 SMA20 超過 2 個標準差</li>
+      <li><strong>標的</strong>：低 Beta 股票、ETF 較適合</li>
+    </ul>
+  </div>
+
+  <h3>📊 必備指標組合</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>指標</th><th>參數</th><th>用途</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>VWAP</td><td>當日累計</td><td>機構平均成本，多空分界</td></tr>
+        <tr><td>EMA</td><td>9 / 21</td><td>短期動能交叉訊號</td></tr>
+        <tr><td>RSI</td><td>14</td><td>超買超賣 (&gt;70 / &lt;30)</td></tr>
+        <tr><td>Volume</td><td>vs 20日均量</td><td>確認突破有效性</td></tr>
+        <tr><td>ATR</td><td>14</td><td>設定停損距離 (1-2x ATR)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-title">⚠️ Pattern Day Trader 規則</div>
+    <p>美國證監會規定：5 個交易日內有 4 次以上的「日內買賣」（day trade），帳戶權益必須 ≥ $25,000 USD。違規會被禁止開新倉 90 天。<strong>新手建議：帳戶低於 25k 請專注波段交易。</strong></p>
+  </div>
+
+  <h3>🚪 實戰進出場範例</h3>
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">📌 EMA 9/21 黃金交叉 + VWAP 確認</span>
+      <span class="strategy-tag">做多範例</span>
+    </div>
+    <ul>
+      <li><strong>09:35</strong>：開盤 5 分鐘後觀察，股價站上 VWAP</li>
+      <li><strong>09:42</strong>：EMA9 由下穿越 EMA21 → 進場訊號</li>
+      <li><strong>確認</strong>：成交量為 5 分鐘均量的 1.5x 以上</li>
+      <li><strong>進場價</strong>：$100.50，買 100 股 = $10,050</li>
+      <li><strong>停損</strong>：$99.50（-1%，風險 $100 = 帳戶 1%）</li>
+      <li><strong>目標 1</strong>：$102.00（+1.5%，風險報酬比 1.5:1）→ 平倉一半</li>
+      <li><strong>目標 2</strong>：$103.50（+3%）→ 移動停損到 $101.50，剩餘倉位 trailing</li>
+      <li><strong>時間停損</strong>：若 14:00 前未達標，強制平倉不抱過夜</li>
+      <li><strong>當日總停損</strong>：當日虧損達帳戶 2-3% → <strong>立即關機</strong>，當日不再交易</li>
+    </ul>
+  </div>
+
+  <h3>🧠 反 FOMO 具體規則</h3>
+  <div class="callout danger">
+    <div class="callout-title">🚫 寫進你的交易日誌</div>
+    <p><strong>規則 1 — 不追漲幅 &gt; 5% 的標的</strong>：再好的標的，錯過進場點就是錯過。預先寫好 watchlist，只交易符合規則的訊號。</p>
+    <p><strong>規則 2 — 連虧 2 筆 → 強制休息 30 分鐘</strong>：離開螢幕、起來走動、看窗外。情緒未平復不交易。</p>
+    <p><strong>規則 3 — 每日最多 3-5 筆高品質交易</strong>：不是越多越好，手續費 + 滑價會吃掉獲利。</p>
+    <p><strong>規則 4 — 進場前必看 SPY/QQQ 大盤</strong>：逆勢做多個股，下場通常是被拖著跌。</p>
+  </div>
+</section>
+
+<!-- ============================ CH2 ============================ -->
+<section id="sec2">
+  <div class="section-num">CHAPTER 02</div>
+  <h2 class="section-title">波段交易 (Swing Trading)</h2>
+  <p class="section-lede">持倉數天到數週，捕捉中期趨勢的「波段」。心理壓力較小，時間投入較低，是多數兼職交易者能長期存活的風格。</p>
+
+  <h3>🎯 適合的標的</h3>
+  <ul>
+    <li><strong>中大型股</strong>：市值 &gt; 50 億美元，波動穩定</li>
+    <li><strong>ETF</strong>：SPY、QQQ、VOO、SOXL 等（避免槓桿型給新手）</li>
+    <li><strong>有明確趨勢</strong>的個股：避免盤整過久的股票</li>
+  </ul>
+
+  <h3>🔥 五種核心策略</h3>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">1️⃣ Trend Following 順勢交易</span>
+      <span class="strategy-tag">最推薦新手</span>
+    </div>
+    <p>「趨勢是你的朋友」—— 只在日線/週線均線之上做多，之下做空。</p>
+    <ul>
+      <li><strong>確認</strong>：價格 &gt; SMA50 且 SMA50 &gt; SMA200（多頭排列）</li>
+      <li><strong>進場</strong>：回測 SMA50 不破 + 出現反轉 K 線</li>
+      <li><strong>出場</strong>：跌破 SMA200 或 SMA50 反轉向下</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">2️⃣ Pullback 回撤進場</span>
+      <span class="strategy-tag">順勢中的低買</span>
+    </div>
+    <p>主升趨勢中，等待短期回調到支撐位再進場。</p>
+    <ul>
+      <li><strong>識別</strong>：週線上升趨勢 + 日線連續 3-5 根紅 K → 出現回調</li>
+      <li><strong>進場</strong>：回測前低、SMA20/50、斐波那契 0.382/0.5</li>
+      <li><strong>確認</strong>：出現錘子線、晨星、吞沒等反轉型態</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">3️⃣ Breakout 突破（波段版）</span>
+      <span class="strategy-tag">盤整後爆發</span>
+    </div>
+    <p>股價盤整數週後突破重要壓力位，通常伴隨基本面催化劑（財報、新產品）。</p>
+    <ul>
+      <li><strong>識別</strong>：日線在 $X ± 5% 區間震盪 20+ 天</li>
+      <li><strong>進場</strong>：放量突破 $X + 1.5%</li>
+      <li><strong>停損</strong>：$X 下方 2-3%</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">4️⃣ Mean Reversion 均值回歸</span>
+      <span class="strategy-tag">逆勢佈局</span>
+    </div>
+    <p>強勢股超跌時佈局，等待均值回歸。</p>
+    <ul>
+      <li><strong>識別</strong>：RSI &lt; 30 + 接近重要支撐</li>
+      <li><strong>風險</strong>：「價值陷阱」—— 公司基本面轉差時不該撿</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">5️⃣ Fundamental + Technical 雙驅動</span>
+      <span class="strategy-tag">高手進階</span>
+    </div>
+    <p>用基本面（EPS 成長、毛利率、產業趨勢）圈出候選股，再用技術面找進場點。</p>
+    <ul>
+      <li><strong>範例</strong>：AI 趨勢 → 篩 NVDA/AMD/AVGO → 等回測 50 日均線進場</li>
+      <li><strong>資料源</strong>：Finviz、TradingView screener、券商研究報告</li>
+    </ul>
+  </div>
+
+  <h3>📊 必備指標組合</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>指標</th><th>時間框架</th><th>用途</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>SMA 50 / 200</td><td>日線 / 週線</td><td>判斷多空頭排列</td></tr>
+        <tr><td>EMA 21</td><td>日線</td><td>短期趨勢 + 進場訊號</td></tr>
+        <tr><td>RSI 14</td><td>日線</td><td>超買超賣確認進場時機</td></tr>
+        <tr><td>MACD (12,26,9)</td><td>日線</td><td>趨勢動能轉折</td></tr>
+        <tr><td>Volume</td><td>日線</td><td>確認突破 / 跌破有效性</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>🚪 實戰進出場範例</h3>
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">📌 週線多頭 + 日線回測 SMA50 進場</span>
+      <span class="strategy-tag">做多範例</span>
+    </div>
+    <ul>
+      <li><strong>週線確認</strong>：QQQ 價格 &gt; SMA50 且 SMA50 &gt; SMA200 → 多頭格局</li>
+      <li><strong>日線訊號</strong>：連續上漲 8 天 → RSI 升至 75（超買）→ 開始回調</li>
+      <li><strong>等待 5 天</strong>：股價跌回 SMA50 = $450，RSI 回到 50 附近</li>
+      <li><strong>反轉型態</strong>：當日出現錘子線（下影線長於實體 2x）</li>
+      <li><strong>進場</strong>：$451，買 20 股 = $9,020</li>
+      <li><strong>停損</strong>：$442（-2%，風險 $180 = 帳戶 1.8%）</li>
+      <li><strong>目標</strong>：$478（前高，+6%，風險報酬 3:1）</li>
+      <li><strong>追蹤</strong>：達 $470 後停損移到 $460</li>
+      <li><strong>持倉時間</strong>：5-15 天</li>
+      <li><strong>時間停損</strong>：若 10 個交易日仍未達標，重新評估是否出場（避免資金被綁住）</li>
+      <li><strong>事件出場</strong>：財報前 1 天若未達利潤目標，先出場避開跳空風險</li>
+    </ul>
+  </div>
+
+  <h3>🧬 組合風險：別抱 3 檔「其實是同一檔」的科技股</h3>
+  <div class="callout warn">
+    <div class="callout-title">⚠️ 相關性陷阱</div>
+    <p>很多人覺得「同時持有 NVDA + AMD + AVGO 是分散風險」，實際上這三檔在 AI 半導體週期中 <strong>相關係數 &gt; 0.85</strong>，本質上是同一檔股票 × 3 倍槓桿。一旦產業逆風，三檔一起跌，組合熱度瞬間飆破上限。</p>
+    <p><strong>組合熱度 (Portfolio Heat) 公式</strong>：所有持倉的「最大可能虧損」加總 ÷ 帳戶淨值。<br>
+       <strong>上限 6%</strong>。超過 → 立刻縮減部位。</p>
+    <p><strong>範例</strong>：$100k 帳戶持 4 筆，每筆風險 $2,500 → 總風險 $10,000 = <strong>10%（超標）</strong>，需砍掉 1 筆或縮小部位。</p>
+  </div>
+</section>
+
+<!-- ============================ CH3 ============================ -->
+<section id="sec3">
+  <div class="section-num">CHAPTER 03</div>
+  <h2 class="section-title">日內 vs 波段：如何選擇？</h2>
+  <p class="section-lede">兩種風格沒有優劣，但適合不同人格、時間、資金。誠實評估自己，再選邊站。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>面向</th><th>日內交易</th><th>波段交易</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>持倉時間</strong></td><td>幾秒 ~ 幾小時</td><td>幾天 ~ 幾週</td></tr>
+        <tr><td><strong>每日時間投入</strong></td><td>2-6 小時盯盤</td><td>30 分鐘 - 1 小時</td></tr>
+        <tr><td><strong>建議資金</strong></td><td>≥ $25,000（避 PDT）</td><td>$5,000+ 即可</td></tr>
+        <tr><td><strong>勝率 vs 賠率</strong></td><td>高勝率 (60%+) + 小賺小賠</td><td>中等勝率 (40-50%) + 大賺小賠</td></tr>
+        <tr><td><strong>手續費/稅務</strong></td><td>高（頻繁交易）</td><td>低</td></tr>
+        <tr><td><strong>心理壓力</strong></td><td>極高</td><td>中等</td></tr>
+        <tr><td><strong>磨練曲線</strong></td><td>陡峭（90% 新手 6 個月內虧損）</td><td>較緩</td></tr>
+        <tr><td><strong>Wash Sale 風險</strong></td><td>高（同標的反覆買賣）</td><td>低</td></tr>
+        <tr><td><strong>兼職可行</strong></td><td>❌ 幾乎不可能</td><td>✅ 可行</td></tr>
+        <tr><td><strong>適合人格</strong></td><td>紀律極強、快速決策、抗壓</td><td>耐心、研究型、長線思考</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>🎯 選擇決策樹</h3>
+  <div class="callout">
+    <div class="callout-title">💡 自我評估三問</div>
+    <p><strong>1. 你一天能投入多少時間？</strong><br>
+       &lt; 1 小時 → 波段<br>
+       2-6 小時 + 可彈性安排 → 日內可考慮</p>
+    <p><strong>2. 你的帳戶規模？</strong><br>
+       &lt; $25,000 → 波段（避 PDT 規則）<br>
+       ≥ $25,000 → 兩者皆可</p>
+    <p><strong>3. 你的情緒特質？</strong><br>
+       快速決策、抗壓 → 日內<br>
+       耐心、研究型、能容忍帳戶波動 → 波段</p>
+  </div>
+
+  <h3>💰 美國稅務必懂：Wash Sale 與 Section 475<span class="tag tag-current">2024-2026</span></h3>
+  <p>多數中文投資者只看技術面就開倉，卻忘了「怎麼報稅」會直接影響淨獲利。兩個關鍵觀念：</p>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">Wash Sale 規則（30 天陷阱）</span>
+      <span class="strategy-tag">波段必懂</span>
+    </div>
+    <p>賣出虧損標的後，<strong>30 天內（含當日）</strong>買回「實質相同」的標的，虧損<strong>不能抵稅</strong>，且會加到新部位的 cost basis。</p>
+    <ul>
+      <li><strong>範例</strong>：$100 買 AAPL → 跌到 $90 賣出（虧 $10）→ 5 天後 $92 重新買入 → 這 $10 虧損<strong>不能抵稅</strong>，新 AAPL 成本基礎變成 $102。</li>
+      <li><strong>日內交易不受影響</strong>（不留倉，沒機會 wash sale）。</li>
+      <li><strong>波段玩家最容易踩</strong>：每個月同一檔進進出出，年底發現虧損都「不算虧」。</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">Section 475 Mark-to-Market（交易商身份）</span>
+      <span class="strategy-tag">進階·日內重玩家</span>
+    </div>
+    <p>若你符合 IRS 對 <strong>「Trader in Securities」</strong> 的認定（頻繁、大量、短時間買賣），可在 Form 3115 申請 Section 475 選擇，將所有交易視為<strong>一般業務損益</strong>。</p>
+    <ul>
+      <li><strong>好處</strong>：Wash sale 不適用（不會被卡 30 天）、可用業務虧損抵一般所得</li>
+      <li><strong>代價</strong>：報稅更複雜、需會計師協助（成本約 $500-1500/年）、自雇稅可能影響</li>
+      <li><strong>資格門檻</strong>（IRS 模糊但參考用）：每日大量交易、持倉時間極短、像經營事業一樣交易</li>
+      <li><strong>不適合</strong>：兼職波段玩家（用不上、也過不了認定）</li>
+    </ul>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-title">⚠️ 稅務規則會變</div>
+    <p>稅法與 IRS 解釋會變動，本節為 2024-2026 現況。實際申報請諮詢美國執業 CPA，不要只看網路文章就自己決定。</p>
+  </div>
+</section>
+
+<!-- ============================ CH4 ============================ -->
+<section id="sec4">
+  <div class="section-num">CHAPTER 04</div>
+  <h2 class="section-title">風險管理鐵律</h2>
+  <p class="section-lede">真正決定你能不能活下去的，不是賺多少，而是虧多少。</p>
+
+  <h3>🛡️ 三大鐵律</h3>
+  <div class="grid-2">
+    <div class="grid-card">
+      <h4>1️⃣ 每筆風險 ≤ 帳戶 1-2%</h4>
+      <p>帳戶 $10,000 → 單筆最多虧 $100-200。<br>即使連虧 10 筆，帳戶仍剩 80%+。</p>
+    </div>
+    <div class="grid-card">
+      <h4>2️⃣ 部位規模公式</h4>
+      <p>股數 = (帳戶 × 風險%) ÷ (進場價 − 停損價)<br>例：$10k × 1% / ($100 − $99) = 100 股</p>
+    </div>
+    <div class="grid-card">
+      <h4>3️⃣ 每日最大虧損 = 停機</h4>
+      <p>當日虧損達帳戶 2-3% → 關掉軟體，<br>明天再來。不要報復性交易。</p>
+    </div>
+    <div class="grid-card">
+      <h4>4️⃣ Portfolio Heat ≤ 6%</h4>
+      <p>同時持倉的所有部位的「總停損」<br>加總不能超過帳戶的 6%。</p>
+    </div>
+  </div>
+
+  <h3>🧠 心理控管常見陷阱</h3>
+  <div class="callout danger">
+    <div class="callout-title">🚫 五大致命陷阱</div>
+    <p><strong>FOMO</strong>：看到別人賺錢衝動進場 → 嚴格只在「自己系統」出現訊號時交易</p>
+    <p><strong>報復性交易</strong>：虧錢後想馬上賺回來 → 當日虧損達上限就停機</p>
+    <p><strong>Hold Loser, Cut Winner</strong>：抱住虧損、賣掉獲利 → 反過來，止損要快、讓獲利奔跑</p>
+    <p><strong>過度槓桿</strong>：margin 用滿 → 震盪就被 call，沒翻盤機會</p>
+    <p><strong>頻繁改系統</strong>：虧錢就換策略 → 給系統至少 100 筆樣本再評估</p>
+  </div>
+
+  <h3>📓 交易日記必填欄位</h3>
+  <pre><code>📅 日期：
+🎯 標的：
+📊 進場理由（哪個訊號？哪個時間框架？）：
+🚪 進場價 / 停損價 / 目標價：
+💰 部位規模：
+😤 進場時的情緒（1-10）：
+📈 結果：
+📝 檢討（如果重來會怎麼做）：</code></pre>
+  <p>沒有寫日記的交易者，遲早會重複犯同樣的錯。</p>
+</section>
+
+<!-- ============================ CH5 ============================ -->
+<section id="sec5">
+  <div class="section-num">CHAPTER 05</div>
+  <h2 class="section-title">工具與平台</h2>
+  <p class="section-lede">好工具不會讓你賺錢，但爛工具會讓你虧錢。</p>
+
+  <h3>🏦 券商（2026 現況）<span class="tag tag-current">2024-2026</span></h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>券商</th><th>股票/期權手續費</th><th>強項</th><th>適合誰</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Interactive Brokers (IBKR Pro)</strong></td><td>$0 股票；期權 $0.65/張</td><td>API 強、全球市場、margin 利率最低 (~6%)</td><td>程式交易、認真玩家、海外投資</td></tr>
+        <tr><td><strong>Charles Schwab</strong></td><td>$0 股票；期權 $0.65/張</td><td>thinkorswim 平台（業界最強）、研究資源豐富</td><td>波段、研究型、技術分析愛好者</td></tr>
+        <tr><td><strong>TradeStation</strong></td><td>$0 股票；期權 $0.60/張</td><td>EasyLanguage 程式交易、回測工具強</td><td>日內交易、量化、技術派</td></tr>
+        <tr><td><strong>Webull</strong></td><td>$0</td><td>介面友善、模擬交易、社群</td><td>新手、兼職玩家</td></tr>
+        <tr><td><strong>Robinhood</strong></td><td>$0</td><td>介面簡單、零手續費</td><td>⚠️ 純新手可考慮，但功能陽春、客服爭議多、PFOF 模式曾受監管質疑</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">🇹🇼 台灣人開美股帳戶怎麼選？</div>
+    <p><strong>首選 IBKR（盈透證券）</strong>：在台灣有辦事處、中文支援佳、台灣人最常開的海外券商。IBKR Lite 帳戶零手續費，API 串接最容易。</p>
+    <p><strong>次選 Schwab</strong>：需 SSN 或 ITIN；沒有的話開戶流程較慢。</p>
+    <p><strong>本土複委託</strong>（元大、凱基、富邦、群益等）：可用台幣交割、手續費較高（每筆 0.15-0.25%）、不能保證拿到最佳成交價。適合新手試水溫或偶爾交易。</p>
+  </div>
+
+  <h3>📈 圖表與分析</h3>
+  <ul>
+    <li><strong>TradingView</strong>：最普及的網頁版圖表，免費版已夠用，付費版 $12.95/月（2026 價）</li>
+    <li><strong>Finviz</strong>：股票篩選器，看熱力圖與基本面</li>
+    <li><strong>Thinkorswim</strong>：Schwab 旗下，進階圖表 + 期權鏈免費用</li>
+  </ul>
+
+  <h3>🔍 篩選器</h3>
+  <ul>
+    <li><strong>Finviz Screener</strong><span class="tag tag-current">2024-2026</span>：免費版基本篩選；<strong>Finviz Elite $24.96/月</strong> 提供即時數據 + 進階回測</li>
+    <li><strong>TradingView Screener</strong><span class="tag tag-current">2024-2026</span>：整合圖表帳戶，無需額外付費；<strong>Plus $12.95/月</strong> 起解鎖自訂指標</li>
+    <li><strong>Unusual Whales</strong><span class="tag tag-current">2024-2026</span>：看選擇權異動（高手進階，月費 $30+）</li>
+  </ul>
+
+  <h3>🧪 回測工具</h3>
+  <ul>
+    <li><strong>TradingView Pine Script</strong>：入門友善，視覺化</li>
+    <li><strong>Backtrader (Python)</strong>：開源、彈性高（你的 Alpaca 專案就是用這個）</li>
+    <li><strong>QuantConnect / Lean</strong>：雲端回測 + 部署</li>
+  </ul>
+
+  <h3>📰 新聞與資訊</h3>
+  <ul>
+    <li><strong>Bloomberg / Reuters</strong>：總經新聞</li>
+    <li><strong>券商內建研究</strong>：免費但品質參差</li>
+    <li><strong>Seeking Alpha</strong>：分析師與社群觀點（注意：觀點 ≠ 建議）</li>
+    <li><strong>財報日曆</strong>：earningswhispers.com、券商行事曆</li>
+  </ul>
+</section>
+
+<!-- ============================ CH6 ============================ -->
+<section id="sec6">
+  <div class="section-num">CHAPTER 06</div>
+  <h2 class="section-title">30 天行動計畫</h2>
+  <p class="section-lede">從零到可以實盤的漸進路線。不要跳級。</p>
+
+  <h3>📅 Week 1：知識吸收 + 開戶</h3>
+  <ul>
+    <li>☑️ 讀完本教學 1-3 章</li>
+    <li>☑️ 開券商帳戶（IBKR / Schwab / Webull）</li>
+    <li>☑️ 同時開模擬交易帳戶（券商內建或 TradingView paper trading）</li>
+    <li>☑️ 每天看 1 小時圖表，標註你看到的 pattern</li>
+  </ul>
+
+  <h3>📅 Week 2：選定一個策略 + 回測</h3>
+  <ul>
+    <li>☑️ 從上文 10 種策略選 1 個最符合個性的</li>
+    <li>☑️ 用 TradingView 或 Backtrader 回測至少 100 筆樣本</li>
+    <li>☑️ 計算勝率、平均獲利、平均虧損、最大回撤</li>
+    <li>☑️ 寫下「進場 5 條件 + 出場 3 規則」白紙黑字</li>
+  </ul>
+
+  <h3>📅 Week 3：模擬交易至少 50 筆</h3>
+  <ul>
+    <li>☑️ 嚴格遵守策略規則，不臨場改</li>
+    <li>☑️ 每天寫交易日記（不要跳過）</li>
+    <li>☑️ 統計：勝率、平均獲利/虧損、最大連虧、最大回撤</li>
+    <li>☑️ <strong>未滿 50 筆不下結論</strong>：樣本太少看不出策略真實表現</li>
+    <li>☑️ 若 50 筆後整體虧損 → 回到 Week 2 重新檢視策略，不是加碼重試</li>
+  </ul>
+
+  <div class="callout">
+    <div class="callout-title">💡 給新手的學習順序建議</div>
+    <p><strong>先學波段，再碰日內</strong>。波段門檻低、心理壓力小、學習曲線緩。直接跳日內的 9 成會在 6 個月內爆倉。當波段連續 3 個月穩定獲利、且資金 ≥ $25,000，再考慮日內。</p>
+  </div>
+
+  <h3>📅 Week 4：實盤最小部位</h3>
+  <ul>
+    <li>☑️ 開實盤，**但只用你能虧光也不心疼的金額**（建議 $500-1000 起手）</li>
+    <li>☑️ 部位規模嚴守風險管理章節</li>
+    <li>☑️ 第 30 天做總體檢視：勝率、損益、最大連虧</li>
+    <li>☑️ 若 30 天後仍穩定獲利 → 考慮加碼</li>
+    <li>☑️ 若 30 天後虧損超過 20% → 退回模擬，找出問題</li>
+  </ul>
+
+  <div class="callout warn">
+    <div class="callout-title">⚠️ 不要做的事</div>
+    <p>❌ 沒有策略就開實盤<br>❌ 用生活費 / 急用錢交易<br>❌ All-in 單一標的<br>❌ 借錢 / 開 margin 給自己加壓<br>❌ 聽「明牌」進場</p>
+  </div>
+</section>
+
+<section id="sec7">
+  <div class="section-num">CHAPTER 07</div>
+  <h2 class="section-title">每日例行 SOP<span class="tag tag-current">2024-2026</span></h2>
+  <p class="section-lede">交易不是「盤中隨緣」，而是 90% 在盤外準備、10% 在盤中執行。本章給你一套每日 / 每週可重複的 SOP。</p>
+
+  <h3>🌅 盤前 30 分鐘（美東 09:00 前，台灣 21:00 前）</h3>
+  <p>盤前要做的事不是「看線圖」，而是建立<strong>今日作戰地圖</strong>。完成後開盤你只剩「執行」一件事。</p>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">① 檢查「今日財報日曆」</span>
+      <span class="strategy-tag">必做</span>
+    </div>
+    <ul>
+      <li><strong>做什麼</strong>：列出今日公布財報的公司，確認是否有你持有的、自選的、或同板塊連動的標的</li>
+      <li><strong>為什麼</strong>：財報日波動率是平常 2-3 倍，未避開會被公告後跳空打到</li>
+      <li><strong>工具位置</strong>：TradingView <strong>Economic Calendar → 篩 Earnings</strong>、Yahoo Finance <code>/calendar/earnings</code>、券商內建 Calendar</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">② 掃大盤指數 + 期貨盤前</span>
+      <span class="strategy-tag">必做</span>
+    </div>
+    <ul>
+      <li><strong>看什麼</strong>：SPX、NDX、INDU、RUT + 期貨 ES/NQ/YM/RTY、VIX、DXY、US10Y 殖利率</li>
+      <li><strong>為什麼</strong>：四大指數定調當日多空；VIX &gt; 20 → 當沖縮量、停損更緊；US10Y 大變動直接打成長股</li>
+      <li><strong>工具位置</strong>：TradingView <code>/markets/</code> 跨市場頁面、券商 watchlist 加入指數代號</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">③ 掃「持倉新聞」</span>
+      <span class="strategy-tag">必做</span>
+    </div>
+    <ul>
+      <li><strong>做什麼</strong>：逐檔點開持倉，看近 24 小時是否有 FDA、訴訟、升降評、CEO 變動、SEC 調查等重大公告</li>
+      <li><strong>為什麼</strong>：80% 的持倉災難都是「事前看新聞就不會進場」，盤中看到已來不及</li>
+      <li><strong>工具位置</strong>：IBKR Portfolio → 右鍵 → News、Webull Portfolio → 點個股 → News、TOS 圖表下方 News 子視窗</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">④ 查「經濟數據日曆」</span>
+      <span class="strategy-tag">必做</span>
+    </div>
+    <ul>
+      <li><strong>看什麼</strong>：今日是否有 FOMC 官員談話、CPI / PPI / NFP / 失業率 / 零售銷售 / ISM 等</li>
+      <li><strong>為什麼</strong>：巨集數據公布前 30 分鐘市場會自動「縮單縮量」，錯誤單幾乎一定被掃；公布前 30 分鐘必須平倉或避開</li>
+      <li><strong>工具位置</strong>：<strong>TradingView Economic Calendar</strong>（最強，推薦）、ForexFactory、券商內建日曆</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">⑤ 跑「自選股掃描」</span>
+      <span class="strategy-tag">必做</span>
+    </div>
+    <ul>
+      <li><strong>做什麼</strong>：用掃描器抓出符合今日交易邏輯的標的（突破、爆量、回踩均線、RSI 背離）</li>
+      <li><strong>為什麼</strong>：盤前你不會有時間盯 500 支股票；縮到 10-20 支候選，盤中才有餘裕決策</li>
+      <li><strong>工具位置</strong>：Webull Discover → Screener、<strong>TOS Scan → Stock Hacker</strong>（業界最強免費）、Finviz 網頁版</li>
+    </ul>
+  </div>
+
+  <h3>🕘 盤中（美東 09:30 – 16:00）</h3>
+  <p>盤中你唯一要做的事就是<strong>執行</strong>，不要臨時改規則。</p>
+
+  <div class="grid-2">
+    <div class="grid-card">
+      <h4>① 照「作戰地圖」執行</h4>
+      <p>盤前決定好進場點、停損、停利；非計畫內訊號<strong>一律不接</strong>。<br>盤中臨時起意的 FOMO 是最大虧損來源。</p>
+    </div>
+    <div class="grid-card">
+      <h4>② 每 30-60 分鐘刷新持倉</h4>
+      <p>看未實現損益、停損/停利警示觸發與否、新聞。<br>當沖 80% 爆倉來自「忘了看」，機械式檢查是基本功。</p>
+    </div>
+    <div class="grid-card">
+      <h4>③ 收盤前 30 分鐘（15:30 ET）評估留倉</h4>
+      <p>決定今日未平倉部位：(a) 盤中平倉 (b) 留倉過夜 (c) 提早收單。<br>留倉要評估「隔夜風險」（半夜財報、ADR、匯率、地緣政治）。</p>
+    </div>
+  </div>
+
+  <h3>🌆 收盤後（美東 16:00 – 17:00）</h3>
+  <div class="grid-2">
+    <div class="grid-card">
+      <h4>① 寫「交易日誌」</h4>
+      <p>記錄每筆的進場理由、進出場價、停損停利、結果、截圖。<br>沒寫日誌的交易者永遠不會進步；3 個月回頭看，80% 虧損來自同一個錯誤。</p>
+    </div>
+    <div class="grid-card">
+      <h4>② 盤後掃「明日觀察名單」</h4>
+      <p>把今日盤中觀察到但沒進場的標的、隔日財報、技術形態到位的股票加入「明日待辦」。</p>
+    </div>
+    <div class="grid-card">
+      <h4>③ 確認帳戶狀態 + 現金部位</h4>
+      <p>看 Buying Power、未實現損益、保證金使用率。<br>融資維持率不足會被 margin call，半夜被電話叫醒。</p>
+    </div>
+  </div>
+
+  <h3>📅 週末例行（每週日下午 90 分鐘）</h3>
+  <p>週末沒有市場，反而是「無干擾思考」的最佳時段。固定回顧比每天匆忙操作更能提高勝率。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>#</th><th>項目</th><th>為什麼</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>①</td>
+          <td>週度績效回顧（總損益、勝率、平均獲利/虧損比、最大連虧）</td>
+          <td>沒有數字就沒有改進依據</td>
+        </tr>
+        <tr>
+          <td>②</td>
+          <td>檢視下週重要事件（FOMC、CPI、FAAMG 財報、地緣政治）</td>
+          <td>提前避開或佈局，不是開盤才知道</td>
+        </tr>
+        <tr>
+          <td>③</td>
+          <td>更新自選股名單（淘汰差的，加入符合邏輯的新標的）</td>
+          <td>自選股不是越多越好，重點是「進場理由明確」</td>
+        </tr>
+        <tr>
+          <td>④</td>
+          <td>回測或重看本週關鍵交易（最賺與最賠各 3 筆）</td>
+          <td>用「實際虧損換教訓」是最便宜的學費</td>
+        </tr>
+        <tr>
+          <td>⑤</td>
+          <td>設定下週交易預算與最大虧損上限（例如帳戶 5%）</td>
+          <td>預先設好「停損於總帳戶」是新手到老手最該有的紀律</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================ CH8 ============================ -->
+<section id="sec8">
+  <div class="section-num">CHAPTER 08</div>
+  <h2 class="section-title">券商開戶 & 模擬交易 SOP<span class="tag tag-current">2024-2026</span></h2>
+  <p class="section-lede">開戶 ≠ 馬上能交易。第一次拿到帳號 24 小時內沒完成以下設定，第一次下單會被各種「未設定」卡住。</p>
+
+  <h3>🏦 Interactive Brokers（IBKR）首次設定</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>#</th><th>項目</th><th>平台位置</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>啟用「雙因素驗證 2FA」IBKR Mobile</td><td>Account → Security → Two-Factor Authentication</td></tr>
+        <tr><td>2</td><td>申請「即時報價訂閱」美股 ~$1.5-10/月</td><td>Account → Market Data Subscriptions</td></tr>
+        <tr><td>3</td><td>設定「預設交易頁面」布局</td><td>TWS / IBKR Desktop → File → New Window → Mosaic</td></tr>
+        <tr><td>4</td><td>建立「我的自選股」分類（核心持股 / 觀察中 / ETF）</td><td>New Window → Watchlist → 拖入代號 → 存為 Layout</td></tr>
+        <tr><td>5</td><td>設定「價格警示 + 新聞警示」</td><td>Watchlist → 右鍵 → Alerts</td></tr>
+        <tr><td>6</td><td>申請「免費模擬帳號」</td><td>Account → Free Trial / Paper Trading</td></tr>
+        <tr><td>7</td><td>設定「預設委託單類型」為 <strong>Limit</strong>（不要 Market）</td><td>Mosaic → 右鍵下單視窗 → Default Order Type</td></tr>
+        <tr><td>8</td><td>啟用「出金白名單 + 防釣魚碼」</td><td>Account → Withdrawal → Whitelist + Phishing Code</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>📱 Webull 首次設定</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>#</th><th>項目</th><th>平台位置</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>啟用「生物辨識登入」Face ID / Touch ID</td><td>App → Me → Settings → Security</td></tr>
+        <tr><td>2</td><td>啟用「雙因素 2FA」</td><td>Me → Settings → Security → Two-Factor</td></tr>
+        <tr><td>3</td><td>申請「即時報價 Level 2 / NASDAQ TotalView」</td><td>Me → Free Services / Markets Subscriptions</td></tr>
+        <tr><td>4</td><td>建立「自選股分組」（主題分類，不要混一袋）</td><td>App → Watchlist → + → New List</td></tr>
+        <tr><td>5</td><td>設定「新聞警示 + 價格警示」</td><td>個股頁 → Alerts</td></tr>
+        <tr><td>6</td><td>開通「Extended Hours 盤前盤後交易」</td><td>Trade → Settings → Extended-Hours Trading</td></tr>
+        <tr><td>7</td><td>申請「Paper Trading 模擬帳號」</td><td>底部 Trade → 切換至 Paper Account</td></tr>
+        <tr><td>8</td><td>設定「預設下單為限價單」</td><td>Trade → Order → 切 Limit（不要 Market）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>💼 Charles Schwab + thinkorswim（TOS）首次設定</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>#</th><th>項目</th><th>平台位置</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>下載 thinkorswim Desktop，用 Schwab 帳號登入</td><td>schwab.com/trading/thinkorswim</td></tr>
+        <tr><td>2</td><td>啟用 Security ID（每張圖表右下角隨機代碼）</td><td>Trade → Tools → Customize → 啟用 Security ID</td></tr>
+        <tr><td>3</td><td>啟用 2FA</td><td>schwab.com → My Profile → Security</td></tr>
+        <tr><td>4</td><td>設定預設 Workspace（Chart + Trade + Active Trader 存成一個）</td><td>TOS → File → Workspaces → Save Current As</td></tr>
+        <tr><td>5</td><td>申請 paperMoney 模擬帳號</td><td>登入 TOS → Trade 右上角 → 切到 paperMoney</td></tr>
+        <tr><td>6</td><td>建立 Watchlist + Stock Hacker 掃描</td><td>Trade → Watchlist → +；左側 Scan → Stock Hacker</td></tr>
+        <tr><td>7</td><td>設定 Alerts（含 News Alerts）</td><td>個股圖表 → Studies → Alerts → Create</td></tr>
+        <tr><td>8</td><td>開通 Extended Hours Trading</td><td>個股 Trade Ticket → Settings → Extended Hours</td></tr>
+        <tr><td>9</td><td>下載 Schwab Mobile App 同步登入</td><td>App Store / Google Play</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>🧪 模擬交易（Paper Trading）7 步 SOP</h3>
+  <p>90% 新手前 6 個月在虧錢——不是學得不夠，是「用真錢練習」。模擬讓你用 1/10 時間換同樣的教訓。</p>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">Step 1 — 申請模擬帳號</span>
+      <span class="strategy-tag">5 分鐘</span>
+    </div>
+    <ul>
+      <li>IBKR：Client Portal → Free Trial</li>
+      <li>Webull：底部 Trade → 切到 Paper Trading</li>
+      <li>Schwab：TOS → Trade 右上角下拉 → paperMoney</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">Step 2 — 設定與真倉一致的條件</span>
+      <span class="strategy-tag">關鍵</span>
+    </div>
+    <ul>
+      <li>資金規模：設為「半年後會投入的真實金額」的一半</li>
+      <li>⚠️ <strong>手動加上估算滑價</strong>（進場 +0.05%、出場 -0.05%），模擬倉預設零滑價會讓你過度樂觀</li>
+      <li>下單類型：從一開始就用 Limit Order，不用 Market</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">Step 3 — 設計可量化的測試策略</span>
+      <span class="strategy-tag">必寫白紙黑字</span>
+    </div>
+    <p>範例格式：</p>
+    <ul>
+      <li><strong>進場</strong>：股價站上 20 日均線 + 量能 &gt; 20 日均量 × 1.5 + RSI 介於 50-70</li>
+      <li><strong>出場</strong>：停損 -5%、停利 +10%，或跌破 10 日均線</li>
+      <li><strong>部位</strong>：單筆風險 = 帳戶 1%，最大持倉 3 檔</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">Step 4 — 跑至少 30 筆（建議 100 筆）</span>
+      <span class="strategy-tag">最低門檻</span>
+    </div>
+    <ul>
+      <li>太少無統計意義</li>
+      <li>每一筆都要記錄：進場理由、截圖、結果、是否依計畫執行</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">Step 5 — 每日 + 每週檢核</span>
+      <span class="strategy-tag">SOP 不中斷</span>
+    </div>
+    <ul>
+      <li>每日：寫交易日誌（與真倉相同）</li>
+      <li>每週日：勝率、平均獲利/虧損比、最大 MDD（最大回落）</li>
+      <li>若 30 筆後勝率 &lt; 40% 或平均損益為負 → 回 Step 3，<strong>不要急著進真倉</strong></li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">Step 6 — 轉真倉前的 5 項檢核</span>
+      <span class="strategy-tag">不可跳過</span>
+    </div>
+    <ul>
+      <li>☑️ 模擬 100 筆以上，正期望值 (expectancy) &gt; 0</li>
+      <li>☑️ 已能「機械化執行」，盤中不臨時改規則</li>
+      <li>☑️ 已熟悉券商下單介面（限價、停損、OCO、盤前盤後）</li>
+      <li>☑️ 已備妥交易日誌模板與每日 SOP</li>
+      <li>☑️ 已備妥 3-6 個月生活費（不能動用來交易）</li>
+    </ul>
+  </div>
+
+  <div class="strategy">
+    <div class="strategy-head">
+      <span class="strategy-name">Step 7 — 真倉前 3 個月「微型倉」</span>
+      <span class="strategy-tag">心理測試期</span>
+    </div>
+    <ul>
+      <li>用真倉資金的 <strong>1/3</strong> 進場（例：準備投 30 萬，先只用 10 萬）</li>
+      <li>目的：測試「真錢下的心理反應」——會發現與模擬倉完全不同</li>
+      <li>3 個月後若持續正期望，才放大到目標倉位</li>
+    </ul>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-title">✅ 速查：免費資源附錄</div>
+    <p><strong>交易日曆 / 經濟數據</strong>：TradingView Economic Calendar（最推薦）、ForexFactory、MQL5</p>
+    <p><strong>財報日曆</strong>：Yahoo Finance <code>/calendar/earnings</code>、Nasdaq.com Earnings</p>
+    <p><strong>掃描器</strong>：Finviz（網頁版）、Webull Screener、TOS Stock Hacker（最強免費）</p>
+    <p><strong>交易日誌</strong>：Notion 模板、Google Sheets、Edgewonk（付費）、Tradervue（付費）</p>
+    <p><strong>新聞</strong>：Bloomberg、CNBC、Reuters、Seeking Alpha、券商內建 News 視窗</p>
+  </div>
+</section>
+
+<!-- ============================ DISCLAIMER ============================ -->
+<div class="disclaimer">
+  <h4>⚠️ 免責聲明</h4>
+  <p>本教學僅供學習與參考，<strong>不構成任何投資建議</strong>。所有交易涉及風險，過去的表現不代表未來結果。在投入真實資金前，請先獨立研究、評估自身風險承受能力，並考慮諮詢合格的財務顧問。你應只承擔你能承受完全虧損的金額。</p>
+</div>
+
+</main>
+
+<footer>
+  <p><strong>AutoInvest · 美股交易教學</strong></p>
+  <p>資料夾位置：<code>/Users/caro/AutoInvest/course.html</code> · 最後更新 2026/07/03</p>
+  <p style="margin-top: 12px;">用 ❤️ 為個人投資學習而寫</p>
+</footer>
+
+</body>
+</html>
