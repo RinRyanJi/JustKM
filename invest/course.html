@@ -154,6 +154,93 @@
       border-radius: 3px;
       margin-left: 6px;
     }
+    .deep-link {
+      display: inline-block;
+      font-size: 11px;
+      color: var(--accent-cyan) !important;
+      text-decoration: none;
+      padding: 1px 8px;
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-radius: 4px;
+      margin-left: 4px;
+      transition: all 0.15s;
+    }
+    .deep-link:hover {
+      background: rgba(0, 212, 255, 0.2);
+      border-color: var(--accent-cyan);
+      transform: translateX(2px);
+    }
+    term .def-link {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--accent-cyan) !important;
+      text-decoration: none;
+      padding: 2px 8px;
+      background: rgba(0, 212, 255, 0.15);
+      border-radius: 4px;
+      border: 1px solid rgba(0, 212, 255, 0.4);
+    }
+    term .def-link:hover {
+      background: rgba(0, 212, 255, 0.3);
+    }
+
+    /* ============ INDICATOR DEEP DIVE 章節 ============ */
+    .indic-block {
+      background: linear-gradient(135deg, rgba(26, 33, 56, 0.6) 0%, rgba(19, 24, 38, 0.6) 100%);
+      border-left: 3px solid var(--accent-cyan);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px 16px 22px;
+      margin: 12px 0 24px;
+      font-size: 14px;
+    }
+    .indic-block ul { padding-left: 22px; margin: 8px 0; }
+    .indic-block li { margin: 4px 0; }
+    .indic-block p { margin: 8px 0; }
+    .indic-block pre { margin: 8px 0; }
+    .indic-block h4 {
+      font-size: 18px;
+      margin: 28px 0 12px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      scroll-margin-top: 80px; /* anchor jump 預留 nav 高度 */
+    }
+
+    /* ============ CALLOUT (警示/提示框) ============ */
+    .callout {
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    .callout h4 { margin: 0 0 10px; font-size: 15px; }
+    .callout ul, .callout ol { padding-left: 22px; margin: 6px 0; }
+    .callout li { margin: 4px 0; }
+    .callout-warning {
+      background: rgba(255, 184, 77, 0.08);
+      border: 1px solid rgba(255, 184, 77, 0.4);
+      border-left: 4px solid var(--accent-yellow);
+    }
+    .callout-warning h4 { color: var(--accent-yellow); }
+    .callout-info {
+      background: rgba(79, 158, 255, 0.06);
+      border: 1px solid rgba(79, 158, 255, 0.3);
+      border-left: 4px solid var(--accent-blue);
+    }
+    .callout-info h4 { color: var(--accent-blue); }
+
+    /* 章節內 h3 (類別小標) 樣式 */
+    .section-title + .section-lede + h3 {
+      margin-top: 36px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      color: var(--accent-blue);
+      font-size: 19px;
+    }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -531,6 +618,7 @@
       <li><a href="#sec7">每日SOP</a></li>
       <li><a href="#sec8">券商設定</a></li>
       <li><a href="#sec9">術語表</a></li>
+      <li><a href="#sec10">指標深度</a></li>
     </ul>
   </div>
 </nav>
@@ -596,7 +684,12 @@
     <a class="toc-card" href="#sec9">
       <div class="toc-num">CHAPTER 09</div>
       <div class="toc-title">關鍵字速查表</div>
-      <div class="toc-desc">指標 / 委託單 / 概念 全收錄</div>
+      <div class="toc-desc">27 個必懂術語 + 4 大分類</div>
+    </a>
+    <a class="toc-card" href="#sec10">
+      <div class="toc-num">CHAPTER 10</div>
+      <div class="toc-title">指標深度教學</div>
+      <div class="toc-desc">VWAP / EMA / RSI / MACD / ATR / BB + 8 個主題</div>
     </a>
   </div>
 </div>
@@ -640,8 +733,8 @@
     </div>
     <p>順著強勢方向進場，等動能耗盡出場。</p>
     <ul>
-      <li><strong>進場</strong>：突破前高 + 量能放大 2x 以上 + <term>VWAP<span class="def"><strong>VWAP (Volume-Weighted Average Price)</strong> · 成交量加權平均價。「當日多空分界線」：價格站上 = 多方結構、跌破 = 空方結構。</span></term> 之上</li>
-      <li><strong>出場</strong>：跌破 <term>VWAP<span class="def"><strong>VWAP</strong> · 當日多空分界線。跌破 = 多方失守，動能耗盡出場。</span></term> 或固定 % 停損</li>
+      <li><strong>進場</strong>：突破前高 + 量能放大 2x 以上 + <term>VWAP<span class="def"><strong>VWAP (Volume-Weighted Average Price)</strong> · 成交量加權平均價。「當日多空分界線」：價格站上 = 多方結構、跌破 = 空方結構。 <a href="#indic-vwap" class="def-link">→ 詳見</a></span></term> 之上</li>
+      <li><strong>出場</strong>：跌破 <term>VWAP<span class="def"><strong>VWAP</strong> · 當日多空分界線。跌破 = 多方失守，動能耗盡出場。 <a href="#indic-vwap" class="def-link">→ 詳見</a></span></term> 或固定 % 停損</li>
       <li><strong>勝率</strong>：40-50%，靠大賺小賠</li>
     </ul>
   </div>
@@ -703,9 +796,9 @@
         <tr><th>指標</th><th>參數</th><th>用途</th></tr>
       </thead>
       <tbody>
-        <tr><td><term>VWAP<span class="def"><strong>VWAP (Volume-Weighted Average Price)</strong> · 成交量加權平均價。「當日多空分界線」：價格站上 = 多方結構、跌破 = 空方結構。機構法人都看。</span></term></td><td>當日累計</td><td>機構平均成本，多空分界</td></tr>
-        <tr><td><term>EMA<span class="def"><strong>EMA (Exponential Moving Average)</strong> · 指數移動平均線。反應比 SMA 快，給近期價格更高權重。9/21 黃金交叉是最常用的日內動能訊號。</span></term></td><td>9 / 21</td><td>短期動能交叉訊號</td></tr>
-        <tr><td><term>RSI<span class="def"><strong>RSI (Relative Strength Index)</strong> · 相對強弱指標。0-100，&gt;70 超買、&lt;30 超賣。背離（價格新高但 RSI 沒新高）是反轉訊號。</span></term></td><td>14</td><td>超買超賣 (&gt;70 / &lt;30)</td></tr>
+        <tr><td><term>VWAP<span class="def"><strong>VWAP (Volume-Weighted Average Price)</strong> · 成交量加權平均價。「當日多空分界線」：價格站上 = 多方結構、跌破 = 空方結構。機構法人都看。 <a href="#indic-vwap" class="def-link">→ 詳見</a></span></term></td><td>當日累計</td><td>機構平均成本，多空分界</td></tr>
+        <tr><td><term>EMA<span class="def"><strong>EMA (Exponential Moving Average)</strong> · 指數移動平均線。反應比 SMA 快，給近期價格更高權重。9/21 黃金交叉是最常用的日內動能訊號。 <a href="#indic-ema" class="def-link">→ 詳見</a></span></term></td><td>9 / 21</td><td>短期動能交叉訊號</td></tr>
+        <tr><td><term>RSI<span class="def"><strong>RSI (Relative Strength Index)</strong> · 相對強弱指標。0-100，&gt;70 超買、&lt;30 超賣。背離（價格新高但 RSI 沒新高）是反轉訊號。 <a href="#indic-rsi" class="def-link">→ 詳見</a></span></term></td><td>14</td><td>超買超賣 (&gt;70 / &lt;30)</td></tr>
         <tr><td>Volume</td><td>vs 20日均量</td><td>確認突破有效性</td></tr>
         <tr><td>ATR</td><td>14</td><td>設定停損距離 (1-2x ATR)</td></tr>
       </tbody>
@@ -834,7 +927,7 @@
         <tr><td>SMA 50 / 200</td><td>日線 / 週線</td><td>判斷多空頭排列</td></tr>
         <tr><td>EMA 21</td><td>日線</td><td>短期趨勢 + 進場訊號</td></tr>
         <tr><td>RSI 14</td><td>日線</td><td>超買超賣確認進場時機</td></tr>
-        <tr><td><term>MACD<span class="def"><strong>MACD (Moving Average Convergence Divergence)</strong> · 預設參數 (12, 26, 9)：快線、慢線、柱狀圖。看柱狀圖「擴大或收斂」判斷動能變化。</span></term> (12,26,9)</td><td>日線</td><td>趨勢動能轉折</td></tr>
+        <tr><td><term>MACD<span class="def"><strong>MACD (Moving Average Convergence Divergence)</strong> · 預設參數 (12, 26, 9)：快線、慢線、柱狀圖。看柱狀圖「擴大或收斂」判斷動能變化。 <a href="#indic-macd" class="def-link">→ 詳見</a></span></term> (12,26,9)</td><td>日線</td><td>趨勢動能轉折</td></tr>
         <tr><td>Volume</td><td>日線</td><td>確認突破 / 跌破有效性</td></tr>
       </tbody>
     </table>
@@ -1420,21 +1513,21 @@
     <thead><tr><th style="width:25%;">縮寫</th><th>全名與說明</th></tr></thead>
     <tbody>
       <tr><td><span class="term-name">VWAP<span class="term-cat">指標</span></span></td>
-          <td><strong>Volume-Weighted Average Price</strong> · 成交量加權平均價。當日多空分界線：價格 > VWAP 多方結構，價格 &lt; VWAP 空方結構。機構、法人常用 VWAP 評估「是否買在好價格」。</td></tr>
+          <td><strong>Volume-Weighted Average Price</strong> · 成交量加權平均價。當日多空分界線：價格 > VWAP 多方結構，價格 &lt; VWAP 空方結構。機構、法人常用 VWAP 評估「是否買在好價格」。 <a href="#indic-vwap" class="deep-link">→ 詳見 CH 10</a></td></tr>
       <tr><td><span class="term-name">EMA 9 / 21<span class="term-cat">指標</span></span></td>
-          <td><strong>Exponential Moving Average</strong> · 指數移動平均線。反應比 SMA 快，因為給近期價格更高權重。9/21 黃金交叉是最常用的日內動能訊號。</td></tr>
+          <td><strong>Exponential Moving Average</strong> · 指數移動平均線。反應比 SMA 快，因為給近期價格更高權重。9/21 黃金交叉是最常用的日內動能訊號。 <a href="#indic-ema" class="deep-link">→ 詳見 CH 10</a></td></tr>
       <tr><td><span class="term-name">SMA 50 / 200<span class="term-cat">指標</span></span></td>
-          <td><strong>Simple Moving Average</strong> · 簡單移動平均線。SMA50 = 中期趨勢（波段常用）；SMA200 = 長期牛熊分界（黃金交叉/死亡交叉）。</td></tr>
+          <td><strong>Simple Moving Average</strong> · 簡單移動平均線。SMA50 = 中期趨勢（波段常用）；SMA200 = 長期牛熊分界（黃金交叉/死亡交叉）。 <a href="#indic-ema" class="deep-link">→ 詳見 CH 10</a></td></tr>
       <tr><td><span class="term-name">RSI 14<span class="term-cat">指標</span></span></td>
-          <td><strong>Relative Strength Index</strong> · 相對強弱指標。0-100 區間，&gt; 70 超買、&lt; 30 超賣。背離（價格新高但 RSI 沒新高）是反轉訊號。</td></tr>
+          <td><strong>Relative Strength Index</strong> · 相對強弱指標。0-100 區間，&gt; 70 超買、&lt; 30 超賣。背離（價格新高但 RSI 沒新高）是反轉訊號。 <a href="#indic-rsi" class="deep-link">→ 詳見 CH 10</a></td></tr>
       <tr><td><span class="term-name">MACD<span class="term-cat">指標</span></span></td>
-          <td><strong>Moving Average Convergence Divergence</strong> · 平滑異同移動平均線。預設參數 (12, 26, 9)：快線、慢線、柱狀圖。看柱狀圖是否擴大或收斂判斷動能。</td></tr>
+          <td><strong>Moving Average Convergence Divergence</strong> · 平滑異同移動平均線。預設參數 (12, 26, 9)：快線、慢線、柱狀圖。看柱狀圖是否擴大或收斂判斷動能。 <a href="#indic-macd" class="deep-link">→ 詳見 CH 10</a></td></tr>
       <tr><td><span class="term-name">ATR 14<span class="term-cat">指標</span></span></td>
-          <td><strong>Average True Range</strong> · 平均真實波幅。衡量「一天最多波動多少」，常用於設定停損距離（1.5x ATR = 合理範圍）。</td></tr>
+          <td><strong>Average True Range</strong> · 平均真實波幅。衡量「一天最多波動多少」，常用於設定停損距離（1.5x ATR = 合理範圍）。 <a href="#indic-atr" class="deep-link">→ 詳見 CH 10</a></td></tr>
       <tr><td><span class="term-name">RVOL<span class="term-cat">指標</span></span></td>
-          <td><strong>Relative Volume</strong> · 相對成交量。當日量 / 同期歷史均量。&gt; 1.5 = 突破有效、&gt; 3 = 異常放量要研究原因。</td></tr>
+          <td><strong>Relative Volume</strong> · 相對成交量。當日量 / 同期歷史均量。&gt; 1.5 = 突破有效、&gt; 3 = 異常放量要研究原因。 <a href="#indic-volume" class="deep-link">→ 詳見 CH 10</a></td></tr>
       <tr><td><span class="term-name">Bollinger Bands<span class="term-cat">指標</span></span></td>
-          <td><strong>布林通道</strong> · 由 SMA20 ± 2 倍標準差構成。價格觸上軌可能超買、觸下軌可能超賣。用於均值回歸策略。</td></tr>
+          <td><strong>布林通道</strong> · 由 SMA20 ± 2 倍標準差構成。價格觸上軌可能超買、觸下軌可能超賣。用於均值回歸策略。 <a href="#indic-bb" class="deep-link">→ 詳見 CH 10</a></td></tr>
     </tbody>
   </table>
 
@@ -1447,9 +1540,9 @@
       <tr><td><span class="term-name">Fakeout<span class="term-cat">形態</span></span></td>
           <td><strong>假突破</strong> · 價格突破關鍵價位後立刻回到原區間。多由演算法或造市商製造，掃掉追突破的散戶停損單後反向。</td></tr>
       <tr><td><span class="term-name">Engulfing<span class="term-cat">形態</span></span></td>
-          <td><strong>吞沒型態</strong> · 第二根 K 線實體完全包住第一根。多頭吞沒 = 反轉向上訊號；空頭吞沒 = 反轉向下。需配合趨勢位置判讀。</td></tr>
+          <td><strong>吞沒型態</strong> · 第二根 K 線實體完全包住第一根。多頭吞沒 = 反轉向上訊號；空頭吞沒 = 反轉向下。需配合趨勢位置判讀。 <a href="#indic-pin" class="deep-link">→ 詳見 CH 10</a></td></tr>
       <tr><td><span class="term-name">Pin Bar<span class="term-cat">形態</span></span></td>
-          <td><strong>釘子線</strong> · 長影線 + 小實體的 K 線。長上影 = 賣壓強、長下影 = 買盤強。常作為反轉或拒絕的訊號。</td></tr>
+          <td><strong>釘子線</strong> · 長影線 + 小實體的 K 線。長上影 = 賣壓強、長下影 = 買盤強。常作為反轉或拒絕的訊號。 <a href="#indic-pin" class="deep-link">→ 詳見 CH 10</a></td></tr>
       <tr><td><span class="term-name">Swing Low / High<span class="term-cat">形態</span></span></td>
           <td><strong>波段低點 / 高點</strong> · 一段時間內的最低 / 最高價。波段交易者以此畫支撐壓力線，作為進出場參考。</td></tr>
     </tbody>
@@ -1483,7 +1576,7 @@
       <tr><td><span class="term-name">Day Trade<span class="term-cat">法規</span></span></td>
           <td><strong>日內買賣</strong> · 同一交易日內「開倉 + 平倉」同一標的。美國 SEC 規定：5 個交易日內 4 次日內買賣 = PDT 帳戶，需 ≥ $25,000 權益。</td></tr>
       <tr><td><span class="term-name">PDT<span class="term-cat">法規</span></span></td>
-          <td><strong>Pattern Day Trader</strong> · 觸發日內買賣次數規則的帳戶。帳戶權益 &lt; $25,000 會被限制開新倉 90 天。</td></tr>
+          <td><strong>Pattern Day Trader</strong> · 觸發日內買賣次數規則的帳戶。帳戶權益 &lt; $25,000 會被限制開新倉 90 天。 <a href="#indic-pdt" class="deep-link">→ 詳見 CH 10</a></td></tr>
       <tr><td><span class="term-name">Margin<span class="term-cat">融資</span></span></td>
           <td><strong>融資 / 保證金</strong> · 向券商借錢買股票。放大獲利也放大虧損，融資維持率不足會被「追繳 (margin call)」。</td></tr>
       <tr><td><span class="term-name">Buying Power<span class="term-cat">帳戶</span></span></td>
@@ -1499,13 +1592,13 @@
       <tr><td><span class="term-name">FOMO<span class="term-cat">心理</span></span></td>
           <td><strong>Fear Of Missing Out</strong> · 害怕錯過。看到別人的股票漲而衝動進場，是最大虧損來源之一。</td></tr>
       <tr><td><span class="term-name">Wash Sale<span class="term-cat">稅務</span></span></td>
-          <td><strong>洗售規則</strong> · 30 天內買回同一檔（甚至實質相同的）會被 IRS 視為洗售，虧損不能抵稅，虧損要加回重買的成本基礎。</td></tr>
+          <td><strong>洗售規則</strong> · 30 天內買回同一檔（甚至實質相同的）會被 IRS 視為洗售，虧損不能抵稅，虧損要加回重買的成本基礎。 <a href="#indic-tax" class="deep-link">→ 詳見 CH 10</a></td></tr>
       <tr><td><span class="term-name">Section 475<span class="term-cat">稅務</span></span></td>
-          <td><strong>§475 Mark-to-Market</strong> · IRS 允許特定 trader 身份將持倉「按市價計值」，可豁免 wash sale，需會計師協助申報。</td></tr>
+          <td><strong>§475 Mark-to-Market</strong> · IRS 允許特定 trader 身份將持倉「按市價計值」，可豁免 wash sale，需會計師協助申報。 <a href="#indic-tax" class="deep-link">→ 詳見 CH 10</a></td></tr>
       <tr><td><span class="term-name">Level 2<span class="term-cat">工具</span></span></td>
-          <td><strong>Level 2 報價</strong> · 顯示買賣雙方掛單深度（價位 + 數量）。判斷「支撐在哪、阻力在哪」。Webull/Schwab 免費提供 NASDAQ TotalView。</td></tr>
+          <td><strong>Level 2 報價</strong> · 顯示買賣雙方掛單深度（價位 + 數量）。判斷「支撐在哪、阻力在哪」。Webull/Schwab 免費提供 NASDAQ TotalView。 <a href="#indic-advanced" class="deep-link">→ 詳見 CH 10</a></td></tr>
       <tr><td><span class="term-name">Order Flow<span class="term-cat">工具</span></span></td>
-          <td><strong>訂單流</strong> · 看買賣單進入市場的順序與大小。比單看 K 線更早看到「主力在幹嘛」。專業剝頭皮必備。</td></tr>
+          <td><strong>訂單流</strong> · 看買賣單進入市場的順序與大小。比單看 K 線更早看到「主力在幹嘛」。專業剝頭皮必備。 <a href="#indic-advanced" class="deep-link">→ 詳見 CH 10</a></td></tr>
     </tbody>
   </table>
 
@@ -1518,11 +1611,402 @@
       <tr><td><span class="term-name">隔夜風險<span class="term-cat">風險</span></span></td>
           <td><strong>Overnight Risk</strong> · 持倉過夜的風險：半夜財報、地緣政治、匯率波動、ADR 變動。波段交易必須學會評估。</td></tr>
       <tr><td><span class="term-name">ISM / CPI / NFP / PPI<span class="term-cat">數據</span></span></td>
-          <td><strong>關鍵經濟數據</strong>：ISM 製造業指數 / 消費者物價指數 / 非農就業 / 生產者物價指數。每月公布，直接影響大盤。發布前 30 分鐘必須平倉或縮小部位。</td></tr>
+          <td><strong>關鍵經濟數據</strong>：ISM 製造業指數 / 消費者物價指數 / 非農就業 / 生產者物價指數。每月公布，直接影響大盤。發布前 30 分鐘必須平倉或縮小部位。 <a href="#indic-events" class="deep-link">→ 詳見 CH 10</a></td></tr>
       <tr><td><span class="term-name">FOMC<span class="term-cat">事件</span></span></td>
-          <td><strong>Federal Open Market Committee</strong> · 聯準會公開市場委員會。決定利率走向的關鍵會議（每年 8 次）。鮑爾記者會說話當日波動極大。</td></tr>
+          <td><strong>Federal Open Market Committee</strong> · 聯準會公開市場委員會。決定利率走向的關鍵會議（每年 8 次）。鮑爾記者會說話當日波動極大。 <a href="#indic-events" class="deep-link">→ 詳見 CH 10</a></td></tr>
     </tbody>
   </table>
+</section>
+
+<!-- ============================ CH10: INDICATOR DEEP DIVE ============================ -->
+<section id="sec10">
+  <div class="section-num">CHAPTER 10</div>
+  <h2 class="section-title">指標與概念深度教學<span class="tag tag-principle">查閱手冊</span></h2>
+  <p class="section-lede">每個指標的「計算邏輯 → 參數選擇 → 解讀方式 → 常見陷阱 → 搭配用法」。<br>建議先讀「使用紀律」一節，建立正確框架再深入各指標。</p>
+
+  <div class="callout callout-warning">
+    <h4>⚠️ 使用指標的 3 條鐵律（先讀這個）</h4>
+    <ol>
+      <li><strong>指標是「後照鏡」，不是「GPS」</strong>：所有技術指標都是基於「過去」的價格/量算出來的，用它們預測未來，本質上是相信「歷史會重演」。事實上，市場結構、參與者、宏觀環境都在變，<strong>單一指標勝率不會超過 50-60%</strong>，這是學術研究的共識。</li>
+      <li><strong>不要「一指標打天下」</strong>：最少搭配「<strong>趨勢 + 動能 + 波幅</strong>」三類各一個指標（例如 SMA + RSI + ATR）。少於 3 個會瞎，太多會干擾。</li>
+      <li><strong>同一個指標在不同時間框架結論會相反</strong>：日線 MACD 黃金交叉，但週線 MACD 死亡交叉 → <strong>以最高時間框架為主</strong>（週線 > 日線 > 60分 > 5分）。</li>
+    </ol>
+  </div>
+
+  <h3>🔧 類別 1：趨勢指標 (Trend)</h3>
+  <p>回答「現在的趨勢是往上、往下、還是盤整？」。趨勢指標在盤整時容易失靈（一直假訊號），這是它們最大的弱點。</p>
+
+  <!-- VWAP -->
+  <h4 id="indic-vwap">📊 VWAP — Volume-Weighted Average Price<span class="tag tag-principle">[原則]</span></h4>
+  <div class="indic-block">
+    <p><strong>一句話定義：</strong>「今天的機構投資人平均花多少錢買這支股票」。</p>
+    <p><strong>計算公式：</strong></p>
+    <pre style="background:var(--bg-card);padding:12px;border-radius:6px;font-size:12px;color:var(--accent-cyan);overflow-x:auto;">VWAP = Σ(每筆成交價 × 該筆成交量) / Σ(成交量)
+      = 從開盤到現在的「總成交金額」÷「總成交量」</pre>
+    <p><strong>怎麼解讀：</strong></p>
+    <ul>
+      <li>價格在 VWAP <strong>之上</strong> → 今天的買方平均獲利，多方結構，<strong>偏多做</strong></li>
+      <li>價格在 VWAP <strong>之下</strong> → 今天的買方套牢，空方結構，<strong>偏空做</strong></li>
+      <li>價格<strong>來回穿越 VWAP</strong> → 盤整、無方向</li>
+    </ul>
+    <p><strong>參數選擇：</strong> VWAP <strong>沒有參數</strong>，就是「當日 0 點到現在」累計。但實務上有「Anchored VWAP」可選特定起點（例如財報發布日、FOMC 當日）做為基準。</p>
+    <p><strong>常見陷阱：</strong></p>
+    <ul>
+      <li>❌ 收盤後看 VWAP → 已重置，明天的 VWAP 不一樣 → <strong>VWAP 只在當日有效</strong></li>
+      <li>❌ 盤前/盤後用 VWAP → 流動性差、計算失真</li>
+      <li>❌ 把 VWAP 當支撐壓力 → 它是「平均」不是「邊界」，可被輕易穿越</li>
+    </ul>
+    <p><strong>最佳搭配：</strong> VWAP + 1 分 K 形態 + 成交量（<term>放量<span class="def"><strong>放量</strong> · 當日量 / 歷史均量。&gt; 1.5x 突破有效，&gt; 3x 異常放量。</span></term>）→ 日內動能策略最常用組合。</p>
+  </div>
+
+  <!-- SMA / EMA -->
+  <h4 id="indic-ema">📈 SMA & EMA — 移動平均線<span class="tag tag-principle">[原則]</span></h4>
+  <div class="indic-block">
+    <p><strong>一句話定義：</strong>「過去 N 天收盤價的『加權平均』，連起來就是一條線」。</p>
+    <p><strong>計算公式：</strong></p>
+    <pre style="background:var(--bg-card);padding:12px;border-radius:6px;font-size:12px;color:var(--accent-cyan);overflow-x:auto;">SMA(N) = (P1 + P2 + ... + PN) / N
+      例：SMA(20) = 過去 20 天收盤價加總 ÷ 20
+
+EMA(N) = 給近期價格更高權重
+      公式：EMA_today = Price × k + EMA_yesterday × (1 - k)
+      其中 k = 2 / (N + 1)
+      例：EMA(9) 的 k ≈ 0.2（最近 1 根佔 20%）</pre>
+    <p><strong>兩者差異：</strong></p>
+    <table class="glossary-table">
+      <thead><tr><th>特性</th><th>SMA</th><th>EMA</th></tr></thead>
+      <tbody>
+        <tr><td>反應速度</td><td>慢（把 N 天一視同仁）</td><td>快（近期權重高）</td></tr>
+        <tr><td>雜訊過濾</td><td>較好</td><td>較差</td></tr>
+        <tr><td>常用週期</td><td>50、200（黃金/死亡交叉）</td><td>9、21（短線交叉）</td></tr>
+        <tr><td>適用場景</td><td>判斷長期趨勢、支撐壓力</td><td>短線進場訊號</td></tr>
+      </tbody>
+    </table>
+    <p><strong>黃金交叉 vs 死亡交叉：</strong></p>
+    <ul>
+      <li><strong>黃金交叉</strong>：短週期均線 <strong>由下穿越</strong> 長週期均線 → 多頭訊號（例：EMA9 穿 SMA20 向上）</li>
+      <li><strong>死亡交叉</strong>：短週期均線 <strong>由上穿越</strong> 長週期均線 → 空頭訊號</li>
+      <li><strong>陷阱</strong>：盤整時會一直交叉交叉再交叉 → 假訊號滿天</li>
+    </ul>
+    <p><strong>常見參數組合：</strong></p>
+    <ul>
+      <li>短線：EMA 9 + EMA 21</li>
+      <li>波段：SMA 50 + SMA 200（看趨勢方向）</li>
+      <li>極短線：EMA 5 + EMA 13（剝頭皮）</li>
+    </ul>
+  </div>
+
+  <!-- MACD -->
+  <h4 id="indic-macd">📉 MACD — Moving Average Convergence Divergence<span class="tag tag-principle">[原則]</span></h4>
+  <div class="indic-block">
+    <p><strong>一句話定義：</strong>「把兩條 EMA 的差距『視覺化』，讓你一眼看出動能是增強還是減弱」。</p>
+    <p><strong>計算公式：</strong></p>
+    <pre style="background:var(--bg-card);padding:12px;border-radius:6px;font-size:12px;color:var(--accent-cyan);overflow-x:auto;">DIF 線（快線）= EMA(12) - EMA(26)
+DEM 線（慢線）= EMA(DIF, 9)        ← DIF 的 9 期 EMA
+柱狀圖（Histogram）= DIF - DEM
+
+預設參數：(12, 26, 9)
+也可調成 (5, 35, 5) 給短線用</pre>
+    <p><strong>怎麼解讀：</strong></p>
+    <ul>
+      <li><strong>DIF 在 DEM 之上</strong>（柱狀圖 > 0）→ 多方動能</li>
+      <li><strong>DIF 穿過 DEM 向上</strong> → 黃金交叉，看多</li>
+      <li><strong>柱狀圖「越來越高」</strong> → 動能<strong>增強</strong>，趨勢強勁</li>
+      <li><strong>柱狀圖「越來越短」</strong> → 動能<strong>減弱</strong>，趨勢可能反轉</li>
+    </ul>
+    <p><strong>背離（最重要的進階用法）：</strong></p>
+    <ul>
+      <li><strong>看多背離</strong>：價格創新低，但 MACD 沒創新低 → <strong>下跌動能耗盡</strong>，可能反彈</li>
+      <li><strong>看空背離</strong>：價格創新高，但 MACD 沒創新高 → <strong>上漲動能耗盡</strong>，可能下跌</li>
+    </ul>
+    <p><strong>常見陷阱：</strong></p>
+    <ul>
+      <li>❌ DIF 與 DEM 糾纏在一起時，MACD 完全沒用</li>
+      <li>❌ 背離可以「背再背」（連續背離 2-3 次才真正反轉）</li>
+    </ul>
+  </div>
+
+  <h3>⚡ 類別 2：動能指標 (Momentum)</h3>
+  <p>回答「現在的趨勢『強不強』？是不是該反轉了？」。動能指標領先價格，常作為「領先指標」。</p>
+
+  <!-- RSI -->
+  <h4 id="indic-rsi">⚡ RSI — Relative Strength Index<span class="tag tag-principle">[原則]</span></h4>
+  <div class="indic-block">
+    <p><strong>一句話定義：</strong>「過去 N 天，漲的天數平均漲幅 vs 跌的天數平均跌幅，0-100 的數字」。</p>
+    <p><strong>計算公式：</strong></p>
+    <pre style="background:var(--bg-card);padding:12px;border-radius:6px;font-size:12px;color:var(--accent-cyan);overflow-x:auto;">RS = N 天內「平均漲幅」÷「平均跌幅」
+RSI = 100 - (100 / (1 + RS))
+預設 N = 14</pre>
+    <p><strong>怎麼解讀：</strong></p>
+    <ul>
+      <li><strong>RSI &gt; 70</strong> → 超買（<em>Overbought</em>）：可能即將下跌</li>
+      <li><strong>RSI &lt; 30</strong> → 超賣（<em>Oversold</em>）：可能即將上漲</li>
+      <li><strong>RSI 在 50 附近</strong> → 中性，多空不明</li>
+    </ul>
+    <p><strong>關鍵觀念：「超買 ≠ 馬上跌」</strong></p>
+    <ul>
+      <li>強勢多頭趨勢中，RSI 可以<strong>連續好幾週維持在 70-80</strong>（「趨勢中的超買」），這時做空會被軋空</li>
+      <li>弱勢空頭趨勢中，RSI 可以<strong>連續維持在 20-30</strong></li>
+      <li>正確用法：<strong>只在趨勢反轉時</strong>用 RSI 訊號。判斷反轉看「背離」</li>
+    </ul>
+    <p><strong>背離（最強訊號）：</strong></p>
+    <ul>
+      <li><strong>看空背離</strong>：價格創新高，RSI <strong>沒</strong>創新高 → 上漲動能不足，看空</li>
+      <li><strong>看多背離</strong>：價格創新低，RSI <strong>沒</strong>創新低 → 下跌動能不足，看多</li>
+    </ul>
+    <p><strong>不同週期的差異：</strong></p>
+    <ul>
+      <li>RSI 9 — 短線（剝頭皮），訊號多、雜訊多</li>
+      <li>RSI 14 — 預設值，多數人用</li>
+      <li>RSI 25 — 波段，訊號少但品質高</li>
+    </ul>
+  </div>
+
+  <h3>🌊 類別 3：波幅指標 (Volatility)</h3>
+  <p>回答「這支股票一天最多波動多少？現在是平靜還是狂躁？」。波幅指標<strong>不用於判方向</strong>，只用於「設定停損距離」與「判斷市場狀態」。</p>
+
+  <!-- ATR -->
+  <h4 id="indic-atr">🌊 ATR — Average True Range<span class="tag tag-principle">[原則]</span></h4>
+  <div class="indic-block">
+    <p><strong>一句話定義：</strong>「過去 N 天，這支股票『一天最多波動多少錢』的平均值」。ATR 是新手最該學會的指標之一。</p>
+    <p><strong>計算公式（先算 TR，再算平均）：</strong></p>
+    <pre style="background:var(--bg-card);padding:12px;border-radius:6px;font-size:12px;color:var(--accent-cyan);overflow-x:auto;">TR (True Range) 一天 = max(三個值的最大值)：
+  ① 當日最高 - 當日最低
+  ② |當日最高 - 昨日收盤|
+  ③ |當日最低 - 昨日收盤|
+
+ATR(N) = TR 的 N 天平均
+預設 N = 14</pre>
+    <p><strong>實戰範例：</strong> 假設 AAPL 的 ATR(14) = $3.50
+    → <strong>意思是</strong>：過去 14 天，AAPL 平均一天上下波動 $3.50。
+    → <strong>停損該設多遠？</strong> 至少 1x ATR（$3.50），才不會被正常波動掃出場。
+    → <strong>止盈該設多遠？</strong> 通常 1.5-2x ATR（$5.25 - $7.00）才划算。</p>
+    <p><strong>用法 1：動態設定停損</strong></p>
+    <ul>
+      <li><strong>固定 % 停損的問題</strong>：對低波動股太寬（浪費風險額度）、對高波動股太窄（一直被掃出場）</li>
+      <li><strong>ATR 停損</strong>：停損 = 進場價 − 1.5 × ATR → 自動適應每檔股票的「個性」</li>
+      <li>例：買入 NVDA @ $500，ATR = $15 → 停損 $500 − $22.5 = $477.5（-4.5%）</li>
+    </ul>
+    <p><strong>用法 2：判斷市場狀態</strong></p>
+    <ul>
+      <li>ATR <strong>持續上升</strong> → 波動擴大（盤整結束、突破、財報）</li>
+      <li>ATR <strong>持續下降</strong> → 波動收斂（盤整期、假突破機率高）</li>
+      <li>ATR <strong>突然爆量</strong> → 重要事件（財報、FOMC、地緣政治）</li>
+    </ul>
+    <p><strong>用法 3：判斷「可不可以下單」</strong></p>
+    <ul>
+      <li>ATR 太低的股票 → 1% 進場價位都沒到，停損設不下去，<strong>避開</strong></li>
+      <li>日內交易：要求 ATR &gt; 3% 才值得做（預留滑價 + 手續費後還有利潤）</li>
+    </ul>
+    <p><strong>常見陷阱：</strong></p>
+    <ul>
+      <li>❌ ATR 不是「明天會漲多少」→ 它是「過去 14 天平均」，不是預測</li>
+      <li>❌ 不要把 ATR 直接當進出場訊號 → 它是「距離輔助」，不是「方向訊號」</li>
+    </ul>
+    <p><strong>關鍵觀念：ATR 給你「空間感」</strong> 沒有它，你不知道停損該設多遠、該期待多少利潤。學會 ATR 比學會 RSI 還重要。</p>
+  </div>
+
+  <h3>📏 類別 4：通道指標 (Channels)</h3>
+
+  <!-- Bollinger Bands -->
+  <h4 id="indic-bb">📏 Bollinger Bands — 布林通道<span class="tag tag-principle">[原則]</span></h4>
+  <div class="indic-block">
+    <p><strong>一句話定義：</strong>「SMA20 上下各 2 個標準差畫成的通道」。價格觸上軌可能超買、觸下軌可能超賣。</p>
+    <p><strong>計算公式：</strong></p>
+    <pre style="background:var(--bg-card);padding:12px;border-radius:6px;font-size:12px;color:var(--accent-cyan);overflow-x:auto;">中軌 = SMA(20)
+上軌 = SMA(20) + 2 × 標準差(20)
+下軌 = SMA(20) - 2 × 標準差(20)
+
+註：±2 標準差涵蓋 95% 的正常價格波動</pre>
+    <p><strong>怎麼解讀：</strong></p>
+    <ul>
+      <li>價格<strong>觸上軌</strong> → 相對強勢（但<strong>不一定是賣出訊號</strong>，強勢股可貼上軌走）</li>
+      <li>價格<strong>觸下軌</strong> → 相對弱勢</li>
+      <li><strong>通道收窄（Squeeze）</strong> → 波動降低，即將有大波動（方向未知）</li>
+      <li><strong>通道擴張</strong> → 波動擴大，趨勢進行中</li>
+    </ul>
+    <p><strong>最佳搭配：BB Squeeze + MACD 柱狀圖</strong>
+    當 BB 通道收窄到極致（同類 6 個月內最窄），看 MACD 柱狀圖開始擴大 → <strong>這就是波動率突破的時機</strong>，方向由柱狀圖決定。</p>
+    <p><strong>常見陷阱：</strong></p>
+    <ul>
+      <li>❌ 「觸上軌就賣、觸下軌就買」 → 強勢多頭中價格可貼著上軌走 2-3 週</li>
+      <li>❌ 在盤整區用 BB 反轉 → 容易賺小賠大</li>
+    </ul>
+  </div>
+
+  <h3>📊 類別 5：成交量指標 (Volume)</h3>
+
+  <!-- Volume / RVOL -->
+  <h4 id="indic-volume">📊 Volume / RVOL — 成交量與相對量<span class="tag tag-principle">[原則]</span></h4>
+  <div class="indic-block">
+    <p><strong>一句話定義：</strong> Volume 是「絕對成交股數」，RVOL 是「今天的量是平常的幾倍」。</p>
+    <p><strong>RVOL 計算：</strong></p>
+    <pre style="background:var(--bg-card);padding:12px;border-radius:6px;font-size:12px;color:var(--accent-cyan);overflow-x:auto;">RVOL = 當日成交量 ÷ 同時段歷史平均成交量
+例：開盤 30 分鐘已成交 500 萬股
+    過去 30 天同時段平均是 200 萬股
+    → RVOL = 2.5x（異常放量）</pre>
+    <p><strong>怎麼解讀（這是突破/跌破的「真偽驗證器」）：</strong></p>
+    <ul>
+      <li><strong>突破 + 放量</strong>（RVOL &gt; 1.5x）→ <strong>真突破</strong>，可跟進</li>
+      <li><strong>突破 + 量縮</strong>（RVOL &lt; 1.0x）→ <strong>假突破</strong>機率高，不進場</li>
+      <li><strong>跌破 + 放量</strong> → 主力出貨，<strong>不要接刀子</strong></li>
+      <li><strong>放量滯漲</strong>（大量但 K 線短）→ 主力在出貨，是反轉警訊</li>
+    </ul>
+    <p><strong>重要原則：「量先價行」</strong>
+    真正的主力進場會<strong>先放量</strong>，價格才跟上。如果量沒出來、價格先動 → 假訊號。</p>
+    <p><strong>常見陷阱：</strong></p>
+    <ul>
+      <li>❌ 在開盤前 5 分鐘用 Volume → 流動性低、量失真</li>
+      <li>❌ 比較不同產業的 RVOL → 金融股 vs 生技股正常量差 10 倍，要用「同類比較」</li>
+    </ul>
+  </div>
+
+  <h3>🕯️ 類別 6：價格形態 (Patterns)</h3>
+  <p>形態屬於「主觀判讀」，但 100 年的技術分析史已歸納出幾個高勝率形態。學習它們能幫你「讀懂 K 線的語言」。</p>
+
+  <!-- Pin Bar / Engulfing -->
+  <h4 id="indic-pin">🕯️ Pin Bar & Engulfing — 兩大基礎反轉形態<span class="tag tag-principle">[原則]</span></h4>
+  <div class="indic-block">
+    <p><strong>Pin Bar（釘子線 / 射擊之星）：</strong></p>
+    <ul>
+      <li>特徵：一根 K 線有<strong>很長的影線</strong>，實體很短（像一根釘子）</li>
+      <li>長<strong>上</strong>影線 → 賣方把價格從高點壓下來，看空</li>
+      <li>長<strong>下</strong>影線 → 買方把價格從低點撐起來，看多</li>
+      <li>關鍵：影線要<strong>至少是實體的 2 倍</strong>以上</li>
+    </ul>
+    <p><strong>Engulfing（吞沒型態）：</strong></p>
+    <ul>
+      <li>特徵：第二根 K 線實體<strong>完全包住</strong>第一根 K 線實體</li>
+      <li>多頭吞沒：前紅後綠（綠實體包紅實體）→ 看多反轉</li>
+      <li>空頭吞沒：前綠後紅（紅實體包綠實體）→ 看空反轉</li>
+      <li>關鍵：第二根實體要明顯<strong>比第一根大</strong>，且出現在趨勢末端</li>
+    </ul>
+    <p><strong>使用紀律：</strong></p>
+    <ul>
+      <li>形態<strong>必須出現在關鍵價位</strong>（支撐/壓力/SMA）才有效，否則只是雜訊</li>
+      <li>確認進場：等下一根 K 線「順著形態方向走」才進場，不要當根就衝</li>
+      <li>停損：放在形態的<strong>另一側</strong>（Pin Bar 進場則停損放影線另一端之外）</li>
+    </ul>
+  </div>
+
+  <h3>🇹🇼 類別 7：台灣交易者必懂</h3>
+
+  <!-- FOMC / CPI -->
+  <h4 id="indic-events">📅 重大事件：FOMC / CPI / NFP / ISM / PPI<span class="tag tag-principle">[原則]</span></h4>
+  <div class="indic-block">
+    <p><strong>這 5 個是「每月必看」的美國經濟數據</strong>，直接影響聯準會利率決策，進而影響所有資產價格。</p>
+    <table class="glossary-table">
+      <thead><tr><th>名稱</th><th>中文</th><th>發布時間</th><th>市場意義</th></tr></thead>
+      <tbody>
+        <tr><td><strong>FOMC</strong></td><td>聯邦公開市場委員會</td><td>每年 8 次（會議後記者會）</td><td>決定利率。鮑爾一句話可讓股市震 2-3%。</td></tr>
+        <tr><td><strong>CPI</strong></td><td>消費者物價指數</td><td>每月 10-13 日左右</td><td>通膨指標。核心 CPI &gt; 預期 = 升息機率升。</td></tr>
+        <tr><td><strong>NFP (Non-Farm Payroll)</strong></td><td>非農就業報告</td><td>每月第一個週五</td><td>就業指標。&gt; 預期 = 經濟強、升息機率升。</td></tr>
+        <tr><td><strong>ISM</strong></td><td>製造業 / 服務業指數</td><td>每月第一個工作天</td><td>&gt; 50 = 擴張，&lt; 50 = 收縮。</td></tr>
+        <tr><td><strong>PPI</strong></td><td>生產者物價指數</td><td>每月 15 日左右</td><td>CPI 的「上游」。領先 CPI 1-2 個月。</td></tr>
+      </tbody>
+    </table>
+    <p><strong>實戰紀律：</strong></p>
+    <ul>
+      <li><strong>事件前 30 分鐘平倉或減碼</strong>，不抱部位過夜</li>
+      <li>事件後等<strong>波動收斂</strong>（5-15 分鐘）再進場，避免被「假突破」掃出場</li>
+      <li>新手不知道怎麼看：去 <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener" style="color:var(--accent-cyan);">forexfactory.com/calendar</a> 訂閱月曆</li>
+    </ul>
+  </div>
+
+  <h3>💰 類別 8：稅務（IRS）</h3>
+
+  <!-- Wash Sale / 475 -->
+  <h4 id="indic-tax">💰 Wash Sale 與 Section 475<span class="tag tag-principle">[原則]</span></h4>
+  <div class="indic-block">
+    <p><strong>Wash Sale Rule（洗售規則）：</strong></p>
+    <ul>
+      <li>30 天內買回「同一檔」或「實質相同」的標的 → <strong>虧損不能抵稅</strong></li>
+      <li>例：$100 買 AAPL，$90 賣出（虧 $10），3 天後 $92 又買回 AAPL → 那 $10 虧損<strong>不允許報</strong>，且會加到新成本基礎（$92 + $10 = $102）</li>
+      <li>連「同產業 ETF」「同類股」都可能算（具體由 IRS 認定）</li>
+    </ul>
+    <p><strong>Section 475 Mark-to-Market（§475 市價計值）：</strong></p>
+    <ul>
+      <li>這是給「全職 trader」的稅務優惠</li>
+      <li>持倉按市價計值 → 不用管 wash sale → 虧損可抵一般收入</li>
+      <li>但要符合 IRS 對「trader」身份的認定（一年交易量、頻率、目的），且需會計師協助</li>
+      <li><strong>一般兼職交易者不適用</strong>，找會計師諮詢</li>
+    </ul>
+  </div>
+
+  <h3>🔬 類別 9：進階工具（給認真要進階的人）</h3>
+
+  <!-- Level 2 / Order Flow -->
+  <h4 id="indic-advanced">🔬 Level 2 與 Order Flow<span class="tag tag-current">[進階]</span></h4>
+  <div class="indic-block">
+    <p><strong>Level 2 報價（Depth of Market）：</strong></p>
+    <ul>
+      <li>顯示「買賣雙方掛單的深度」：買方最高 10 檔、賣方最低 10 檔，每檔多少股</li>
+      <li>判斷「支撐在哪、阻力在哪」：看哪個價位有大量掛單</li>
+      <li>例：買方在 $100 掛 50,000 股 → $100 是強支撐</li>
+      <li>免費來源：Webull、Schwab 都提供 NASDAQ TotalView Level 2</li>
+    </ul>
+    <p><strong>Order Flow（訂單流）：</strong></p>
+    <ul>
+      <li>看「買賣單進入市場的順序」與「大小」</li>
+      <li>比單看 K 線更早看到主力在幹嘛（買賣單有大單、演算法單、刷手單之分）</li>
+      <li>專業剝頭皮幾乎必備，付費軟體：Bookmap、ATAS、Jigsaw Trading</li>
+    </ul>
+    <p><strong>學習建議：</strong> 日內交易 3-6 個月穩定後才學。Level 2 雜訊多，新手會「過度解讀」。</p>
+  </div>
+
+  <h3>🇺🇸 類別 10：美股法規速覽</h3>
+
+  <!-- PDT / Day Trade -->
+  <h4 id="indic-pdt">🇺🇸 PDT 規則詳解<span class="tag tag-principle">[原則]</span></h4>
+  <div class="indic-block">
+    <p><strong>PDT 是什麼：</strong></p>
+    <ul>
+      <li>美國 SEC 規定：5 個交易日內有 <strong>4 次以上</strong> 的「日內買賣 (day trade)」 → 帳戶被標記為 <strong>Pattern Day Trader (PDT)</strong></li>
+      <li>被標記後：帳戶權益<strong>必須維持 ≥ $25,000 USD</strong>，否則會被禁止開新倉 <strong>90 天</strong></li>
+    </ul>
+    <p><strong>「日內買賣」的定義：</strong></p>
+    <ul>
+      <li><strong>同一交易日內</strong>，對<strong>同一檔標的</strong>，執行「開倉 → 平倉」或「平倉 → 開倉」</li>
+      <li>期貨、選擇權、外匯 ETF 不算（適用不同的規則）</li>
+      <li>範例：早上買 AAPL、下午賣出 → 1 次；隔天又同樣操作 → 1 次</li>
+    </ul>
+    <p><strong>「交易日」的計算：</strong></p>
+    <ul>
+      <li>滾動 5 個交易日，不是「週一到週五」</li>
+      <li>週三 (1) → 週四 (2) → 週五 (3) → 下週一 (4) → 下週二 (5) → 回到起點</li>
+    </ul>
+    <p><strong>解決方案：</strong></p>
+    <ul>
+      <li><strong>帳戶 ≥ $25,000</strong> → 沒事，正常交易</li>
+      <li><strong>帳戶 &lt; $25,000</strong> → 每 5 天內最多 3 次 day trade</li>
+      <li><strong>新手建議</strong>：先做波段交易，避開 PDT 問題；帳戶達 25k 再做日內</li>
+    </ul>
+  </div>
+
+  <h3>🧰 指標速查總表</h3>
+  <p>用這個表快速決定「現在該用哪個指標」。</p>
+  <table class="glossary-table">
+    <thead><tr><th>你想問的問題</th><th>該用什麼</th></tr></thead>
+    <tbody>
+      <tr><td>現在趨勢是什麼方向？</td><td>SMA 50/200、EMA 9/21、VWAP（日內）</td></tr>
+      <tr><td>趨勢會不會反轉？</td><td>RSI 背離、MACD 背離、Pin Bar / Engulfing</td></tr>
+      <tr><td>動能是增強還是減弱？</td><td>MACD 柱狀圖</td></tr>
+      <tr><td>停損該設多遠？</td><td>ATR（1.5x）</td></tr>
+      <tr><td>突破是真的還是假的？</td><td>RVOL（&gt; 1.5x 是真突破）</td></tr>
+      <tr><td>現在市場是在盤整還是有方向？</td><td>Bollinger Bands（Squeeze vs 擴張）</td></tr>
+      <tr><td>事件風險？</td><td>看 FOMC/CPI/NFP 行事曆</td></tr>
+      <tr><td>主力在買還是在賣？</td><td>Level 2 掛單、Order Flow</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-info">
+    <h4>📚 延伸閱讀</h4>
+    <ul>
+      <li><strong>《技術分析聖經》</strong>（John Murphy）— 指標界聖經，涵蓋幾乎所有指標的由來與用法</li>
+      <li><strong>《Quantitative Trading》</strong>（Ernest Chan）— 量化交易入門，講如何把指標變成可回測的策略</li>
+      <li><strong>TradingView</strong>（tradingview.com）— 免費看圖工具，所有指標都能直接套用試試看</li>
+      <li><strong>Investopedia</strong>（investopedia.com）— 搜尋任何指標名稱都有詳解</li>
+    </ul>
+  </div>
 </section>
 
 <!-- ============================ DISCLAIMER ============================ -->
