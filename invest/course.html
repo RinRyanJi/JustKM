@@ -57,6 +57,104 @@
     }
     .tag-legend .tag { margin-left: 0; }
 
+    /* ============ TOOLTIP / GLOSSARY ============ */
+    /* 任何包在 <term> 裡的文字會 hover 出 popover；用純 CSS，不需要 JS */
+    term {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted var(--accent-cyan);
+      cursor: help;
+      color: var(--accent-cyan);
+      font-weight: 500;
+      transition: color 0.15s ease;
+    }
+    term:hover { color: var(--text-primary); }
+
+    /* Tooltip 主體 */
+    term > .def {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%) translateY(4px);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--accent-cyan);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.5;
+      width: max-content;
+      max-width: 320px;
+      text-align: left;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      z-index: 200;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      white-space: normal;
+    }
+    /* 小箭頭 */
+    term > .def::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: var(--accent-cyan);
+    }
+    term:hover > .def {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    /* 顯示/隱藏切換（手機用） */
+    term:focus > .def {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* ============ GLOSSARY TABLE 章節 ============ */
+    .glossary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 16px;
+    }
+    .glossary-table th {
+      background: var(--bg-card);
+      color: var(--accent-cyan);
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+    .glossary-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(42, 52, 84, 0.4);
+      vertical-align: top;
+    }
+    .glossary-table tr:hover td { background: var(--bg-card); }
+    .glossary-table .term-name {
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      color: var(--accent-cyan);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .glossary-table .term-cat {
+      font-size: 10px;
+      background: rgba(79, 158, 255, 0.12);
+      color: var(--accent-blue);
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-left: 6px;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     html { scroll-behavior: smooth; }
@@ -432,6 +530,7 @@
       <li><a href="#sec6">行動計畫</a></li>
       <li><a href="#sec7">每日SOP</a></li>
       <li><a href="#sec8">券商設定</a></li>
+      <li><a href="#sec9">術語表</a></li>
     </ul>
   </div>
 </nav>
@@ -494,6 +593,11 @@
       <div class="toc-title">券商開戶 & 模擬交易</div>
       <div class="toc-desc">IBKR / Webull / Schwab 首次設定</div>
     </a>
+    <a class="toc-card" href="#sec9">
+      <div class="toc-num">CHAPTER 09</div>
+      <div class="toc-title">關鍵字速查表</div>
+      <div class="toc-desc">指標 / 委託單 / 概念 全收錄</div>
+    </a>
   </div>
 </div>
 
@@ -503,7 +607,7 @@
 <section id="sec1">
   <div class="section-num">CHAPTER 01</div>
   <h2 class="section-title">日內交易 (Day Trading)</h2>
-  <p class="section-lede">同一交易日內開倉、平倉，不持倉過夜。目標是捕捉數分鐘到數小時內的價格波動，靠「高勝率 + 嚴格停損」累積小利。</p>
+  <p>同一交易日內開倉、平倉，不持倉過夜。目標是捕捉數分鐘到數小時內的價格波動，靠「高勝率 + 嚴格<term>停損<span class="def"><strong>停損 (Stop-Loss)</strong> · 預先設好的自動出場單，價格觸發某個價位時自動賣出。新手最重要的風險控制工具，每筆交易必設。</span></term>」累積小利。</p>
 
   <h3>📅 時間窗口</h3>
   <div class="table-wrap">
@@ -536,8 +640,8 @@
     </div>
     <p>順著強勢方向進場，等動能耗盡出場。</p>
     <ul>
-      <li><strong>進場</strong>：突破前高 + 量能放大 2x 以上 + VWAP 之上</li>
-      <li><strong>出場</strong>：跌破 VWAP 或固定 % 停損</li>
+      <li><strong>進場</strong>：突破前高 + 量能放大 2x 以上 + <term>VWAP<span class="def"><strong>VWAP (Volume-Weighted Average Price)</strong> · 成交量加權平均價。「當日多空分界線」：價格站上 = 多方結構、跌破 = 空方結構。</span></term> 之上</li>
+      <li><strong>出場</strong>：跌破 <term>VWAP<span class="def"><strong>VWAP</strong> · 當日多空分界線。跌破 = 多方失守，動能耗盡出場。</span></term> 或固定 % 停損</li>
       <li><strong>勝率</strong>：40-50%，靠大賺小賠</li>
     </ul>
   </div>
@@ -599,9 +703,9 @@
         <tr><th>指標</th><th>參數</th><th>用途</th></tr>
       </thead>
       <tbody>
-        <tr><td>VWAP</td><td>當日累計</td><td>機構平均成本，多空分界</td></tr>
-        <tr><td>EMA</td><td>9 / 21</td><td>短期動能交叉訊號</td></tr>
-        <tr><td>RSI</td><td>14</td><td>超買超賣 (&gt;70 / &lt;30)</td></tr>
+        <tr><td><term>VWAP<span class="def"><strong>VWAP (Volume-Weighted Average Price)</strong> · 成交量加權平均價。「當日多空分界線」：價格站上 = 多方結構、跌破 = 空方結構。機構法人都看。</span></term></td><td>當日累計</td><td>機構平均成本，多空分界</td></tr>
+        <tr><td><term>EMA<span class="def"><strong>EMA (Exponential Moving Average)</strong> · 指數移動平均線。反應比 SMA 快，給近期價格更高權重。9/21 黃金交叉是最常用的日內動能訊號。</span></term></td><td>9 / 21</td><td>短期動能交叉訊號</td></tr>
+        <tr><td><term>RSI<span class="def"><strong>RSI (Relative Strength Index)</strong> · 相對強弱指標。0-100，&gt;70 超買、&lt;30 超賣。背離（價格新高但 RSI 沒新高）是反轉訊號。</span></term></td><td>14</td><td>超買超賣 (&gt;70 / &lt;30)</td></tr>
         <tr><td>Volume</td><td>vs 20日均量</td><td>確認突破有效性</td></tr>
         <tr><td>ATR</td><td>14</td><td>設定停損距離 (1-2x ATR)</td></tr>
       </tbody>
@@ -730,7 +834,7 @@
         <tr><td>SMA 50 / 200</td><td>日線 / 週線</td><td>判斷多空頭排列</td></tr>
         <tr><td>EMA 21</td><td>日線</td><td>短期趨勢 + 進場訊號</td></tr>
         <tr><td>RSI 14</td><td>日線</td><td>超買超賣確認進場時機</td></tr>
-        <tr><td>MACD (12,26,9)</td><td>日線</td><td>趨勢動能轉折</td></tr>
+        <tr><td><term>MACD<span class="def"><strong>MACD (Moving Average Convergence Divergence)</strong> · 預設參數 (12, 26, 9)：快線、慢線、柱狀圖。看柱狀圖「擴大或收斂」判斷動能變化。</span></term> (12,26,9)</td><td>日線</td><td>趨勢動能轉折</td></tr>
         <tr><td>Volume</td><td>日線</td><td>確認突破 / 跌破有效性</td></tr>
       </tbody>
     </table>
@@ -1303,6 +1407,122 @@
     <p><strong>交易日誌</strong>：Notion 模板、Google Sheets、Edgewonk（付費）、Tradervue（付費）</p>
     <p><strong>新聞</strong>：Bloomberg、CNBC、Reuters、Seeking Alpha、券商內建 News 視窗</p>
   </div>
+</section>
+
+<!-- ============================ GLOSSARY ============================ -->
+<section id="sec9">
+  <div class="section-num">CHAPTER 09</div>
+  <h2 class="section-title">關鍵字速查表<span class="tag tag-principle">隨時查閱</span></h2>
+  <p class="section-lede">本教學中提到的所有關鍵字、指標、術語。點擊章節內的<span style="color:var(--accent-cyan);border-bottom:1px dotted var(--accent-cyan);">青色虛線字</span>可直接看定義。</p>
+
+  <h3>🔧 技術指標 / Indicators</h3>
+  <table class="glossary-table">
+    <thead><tr><th style="width:25%;">縮寫</th><th>全名與說明</th></tr></thead>
+    <tbody>
+      <tr><td><span class="term-name">VWAP<span class="term-cat">指標</span></span></td>
+          <td><strong>Volume-Weighted Average Price</strong> · 成交量加權平均價。當日多空分界線：價格 > VWAP 多方結構，價格 &lt; VWAP 空方結構。機構、法人常用 VWAP 評估「是否買在好價格」。</td></tr>
+      <tr><td><span class="term-name">EMA 9 / 21<span class="term-cat">指標</span></span></td>
+          <td><strong>Exponential Moving Average</strong> · 指數移動平均線。反應比 SMA 快，因為給近期價格更高權重。9/21 黃金交叉是最常用的日內動能訊號。</td></tr>
+      <tr><td><span class="term-name">SMA 50 / 200<span class="term-cat">指標</span></span></td>
+          <td><strong>Simple Moving Average</strong> · 簡單移動平均線。SMA50 = 中期趨勢（波段常用）；SMA200 = 長期牛熊分界（黃金交叉/死亡交叉）。</td></tr>
+      <tr><td><span class="term-name">RSI 14<span class="term-cat">指標</span></span></td>
+          <td><strong>Relative Strength Index</strong> · 相對強弱指標。0-100 區間，&gt; 70 超買、&lt; 30 超賣。背離（價格新高但 RSI 沒新高）是反轉訊號。</td></tr>
+      <tr><td><span class="term-name">MACD<span class="term-cat">指標</span></span></td>
+          <td><strong>Moving Average Convergence Divergence</strong> · 平滑異同移動平均線。預設參數 (12, 26, 9)：快線、慢線、柱狀圖。看柱狀圖是否擴大或收斂判斷動能。</td></tr>
+      <tr><td><span class="term-name">ATR 14<span class="term-cat">指標</span></span></td>
+          <td><strong>Average True Range</strong> · 平均真實波幅。衡量「一天最多波動多少」，常用於設定停損距離（1.5x ATR = 合理範圍）。</td></tr>
+      <tr><td><span class="term-name">RVOL<span class="term-cat">指標</span></span></td>
+          <td><strong>Relative Volume</strong> · 相對成交量。當日量 / 同期歷史均量。&gt; 1.5 = 突破有效、&gt; 3 = 異常放量要研究原因。</td></tr>
+      <tr><td><span class="term-name">Bollinger Bands<span class="term-cat">指標</span></span></td>
+          <td><strong>布林通道</strong> · 由 SMA20 ± 2 倍標準差構成。價格觸上軌可能超買、觸下軌可能超賣。用於均值回歸策略。</td></tr>
+    </tbody>
+  </table>
+
+  <h3>📊 技術形態 / Patterns</h3>
+  <table class="glossary-table">
+    <thead><tr><th style="width:25%;">名稱</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr><td><span class="term-name">Breakout<span class="term-cat">形態</span></span></td>
+          <td><strong>突破</strong> · 價格突破盤整區間的關鍵價位（上緣/下緣）。必須配合「放量」才視為真突破，否則可能是假突破（fakeout）。</td></tr>
+      <tr><td><span class="term-name">Fakeout<span class="term-cat">形態</span></span></td>
+          <td><strong>假突破</strong> · 價格突破關鍵價位後立刻回到原區間。多由演算法或造市商製造，掃掉追突破的散戶停損單後反向。</td></tr>
+      <tr><td><span class="term-name">Engulfing<span class="term-cat">形態</span></span></td>
+          <td><strong>吞沒型態</strong> · 第二根 K 線實體完全包住第一根。多頭吞沒 = 反轉向上訊號；空頭吞沒 = 反轉向下。需配合趨勢位置判讀。</td></tr>
+      <tr><td><span class="term-name">Pin Bar<span class="term-cat">形態</span></span></td>
+          <td><strong>釘子線</strong> · 長影線 + 小實體的 K 線。長上影 = 賣壓強、長下影 = 買盤強。常作為反轉或拒絕的訊號。</td></tr>
+      <tr><td><span class="term-name">Swing Low / High<span class="term-cat">形態</span></span></td>
+          <td><strong>波段低點 / 高點</strong> · 一段時間內的最低 / 最高價。波段交易者以此畫支撐壓力線，作為進出場參考。</td></tr>
+    </tbody>
+  </table>
+
+  <h3>📝 委託單 / Orders</h3>
+  <table class="glossary-table">
+    <thead><tr><th style="width:25%;">名稱</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr><td><span class="term-name">Limit Order<span class="term-cat">委託</span></span></td>
+          <td><strong>限價單</strong> · 指定「價格幾元以下才買」或「幾元以上才賣」。成交價可控，新手必用。</td></tr>
+      <tr><td><span class="term-name">Market Order<span class="term-cat">委託</span></span></td>
+          <td><strong>市價單</strong> · 用「當下能成交的最好價」立刻成交。新手不建議用，因為漲跌停或流動性差時會差很多。</td></tr>
+      <tr><td><span class="term-name">Stop-Loss<span class="term-cat">委託</span></span></td>
+          <td><strong>停損單</strong> · 價格觸發某個價位時自動轉為市價/限價單出場。<strong>最重要的風險控制工具</strong>，每筆交易都必須設。</td></tr>
+      <tr><td><span class="term-name">OCO Order<span class="term-cat">委託</span></span></td>
+          <td><strong>One-Cancels-Other</strong> · 同時掛兩張單（停損 + 停利），任一成交就取消另一張。IBKR 與 TOS 都支援。</td></tr>
+      <tr><td><span class="term-name">Trailing Stop<span class="term-cat">委託</span></span></td>
+          <td><strong>移動停損</strong> · 停損價跟著價格往有利方向移動，但不會回頭。例如「下跌 5% 才出」，股價漲了停損也跟著漲，鎖定利潤。</td></tr>
+    </tbody>
+  </table>
+
+  <h3>💼 交易概念 / Concepts</h3>
+  <table class="glossary-table">
+    <thead><tr><th style="width:25%;">名稱</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr><td><span class="term-name">Slippage<span class="term-cat">概念</span></span></td>
+          <td><strong>滑價</strong> · 實際成交價與預期價的差距。波動大、流動性差時滑價也大。模擬倉預設無滑價，會讓你過度樂觀。</td></tr>
+      <tr><td><span class="term-name">Bid-Ask Spread<span class="term-cat">概念</span></span></td>
+          <td><strong>買賣價差</strong> · 賣方最低價 (ask) 與買方最高價 (bid) 之差。差越小 = 流動性越好。大盤股通常 ≤ $0.01。</td></tr>
+      <tr><td><span class="term-name">Day Trade<span class="term-cat">法規</span></span></td>
+          <td><strong>日內買賣</strong> · 同一交易日內「開倉 + 平倉」同一標的。美國 SEC 規定：5 個交易日內 4 次日內買賣 = PDT 帳戶，需 ≥ $25,000 權益。</td></tr>
+      <tr><td><span class="term-name">PDT<span class="term-cat">法規</span></span></td>
+          <td><strong>Pattern Day Trader</strong> · 觸發日內買賣次數規則的帳戶。帳戶權益 &lt; $25,000 會被限制開新倉 90 天。</td></tr>
+      <tr><td><span class="term-name">Margin<span class="term-cat">融資</span></span></td>
+          <td><strong>融資 / 保證金</strong> · 向券商借錢買股票。放大獲利也放大虧損，融資維持率不足會被「追繳 (margin call)」。</td></tr>
+      <tr><td><span class="term-name">Buying Power<span class="term-cat">帳戶</span></span></td>
+          <td><strong>購買力</strong> · 帳戶可動用於下單的金額。融資帳戶 = 現金 + 融資額度 = 現金 × 4（Reg T）。</td></tr>
+      <tr><td><span class="term-name">Equity<span class="term-cat">帳戶</span></span></td>
+          <td><strong>權益</strong> · 帳戶的真實價值（現金 + 持倉市值 - 借款）。判斷 PDT、追繳的核心數字。</td></tr>
+      <tr><td><span class="term-name">MDD<span class="term-cat">風險</span></span></td>
+          <td><strong>Maximum Drawdown</strong> · 最大回落幅度。衡量「最慘時從高峰跌多少」。超過 30% 通常要重新檢視策略。</td></tr>
+      <tr><td><span class="term-name">Risk-Reward Ratio<span class="term-cat">風險</span></span></td>
+          <td><strong>風險報酬比</strong> · 「可能虧多少 / 可能賺多少」。例：停損 -1%、停利 +3% = 1:3。一般建議至少 1:2 以上。</td></tr>
+      <tr><td><span class="term-name">Expectancy<span class="term-cat">績效</span></span></td>
+          <td><strong>期望值</strong> · 長期平均每筆賺/賠多少。公式：(勝率 × 平均獲利) − (敗率 × 平均虧損)。&gt; 0 = 策略有正期望；&lt; 0 = 策略無效。</td></tr>
+      <tr><td><span class="term-name">FOMO<span class="term-cat">心理</span></span></td>
+          <td><strong>Fear Of Missing Out</strong> · 害怕錯過。看到別人的股票漲而衝動進場，是最大虧損來源之一。</td></tr>
+      <tr><td><span class="term-name">Wash Sale<span class="term-cat">稅務</span></span></td>
+          <td><strong>洗售規則</strong> · 30 天內買回同一檔（甚至實質相同的）會被 IRS 視為洗售，虧損不能抵稅，虧損要加回重買的成本基礎。</td></tr>
+      <tr><td><span class="term-name">Section 475<span class="term-cat">稅務</span></span></td>
+          <td><strong>§475 Mark-to-Market</strong> · IRS 允許特定 trader 身份將持倉「按市價計值」，可豁免 wash sale，需會計師協助申報。</td></tr>
+      <tr><td><span class="term-name">Level 2<span class="term-cat">工具</span></span></td>
+          <td><strong>Level 2 報價</strong> · 顯示買賣雙方掛單深度（價位 + 數量）。判斷「支撐在哪、阻力在哪」。Webull/Schwab 免費提供 NASDAQ TotalView。</td></tr>
+      <tr><td><span class="term-name">Order Flow<span class="term-cat">工具</span></span></td>
+          <td><strong>訂單流</strong> · 看買賣單進入市場的順序與大小。比單看 K 線更早看到「主力在幹嘛」。專業剝頭皮必備。</td></tr>
+    </tbody>
+  </table>
+
+  <h3>🇹🇼 專用術語 / Taiwan Trader</h3>
+  <table class="glossary-table">
+    <thead><tr><th style="width:25%;">名稱</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr><td><span class="term-name">盤前盤後<span class="term-cat">時段</span></span></td>
+          <td><strong>Extended Hours</strong> · 美股 04:00-09:30 (Pre-market) 與 16:00-20:00 (After Hours)。流動性差、價差大，新手避開。</td></tr>
+      <tr><td><span class="term-name">隔夜風險<span class="term-cat">風險</span></span></td>
+          <td><strong>Overnight Risk</strong> · 持倉過夜的風險：半夜財報、地緣政治、匯率波動、ADR 變動。波段交易必須學會評估。</td></tr>
+      <tr><td><span class="term-name">ISM / CPI / NFP / PPI<span class="term-cat">數據</span></span></td>
+          <td><strong>關鍵經濟數據</strong>：ISM 製造業指數 / 消費者物價指數 / 非農就業 / 生產者物價指數。每月公布，直接影響大盤。發布前 30 分鐘必須平倉或縮小部位。</td></tr>
+      <tr><td><span class="term-name">FOMC<span class="term-cat">事件</span></span></td>
+          <td><strong>Federal Open Market Committee</strong> · 聯準會公開市場委員會。決定利率走向的關鍵會議（每年 8 次）。鮑爾記者會說話當日波動極大。</td></tr>
+    </tbody>
+  </table>
 </section>
 
 <!-- ============================ DISCLAIMER ============================ -->
