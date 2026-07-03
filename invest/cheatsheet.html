@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>美股交易速查表 — 一頁 A4</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+      font-size: 9pt;
+      line-height: 1.4;
+      color: #1a1a1a;
+      background: white;
+      padding: 10mm;
+      max-width: 210mm;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 18pt;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 4px;
+      color: #1a2138;
+      letter-spacing: -0.3px;
+    }
+    .sub {
+      text-align: center;
+      font-size: 8pt;
+      color: #6b7390;
+      margin-bottom: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .box {
+      border: 1px solid #2a3454;
+      border-radius: 4px;
+      padding: 6px 8px;
+      background: #fafbfd;
+    }
+    .box h3 {
+      font-size: 9pt;
+      font-weight: 700;
+      color: #1a2138;
+      margin-bottom: 4px;
+      border-bottom: 1px solid #e0e4ed;
+      padding-bottom: 2px;
+    }
+    .box h3 .emoji { margin-right: 3px; }
+    .box ol {
+      margin-left: 16px;
+      font-size: 8pt;
+    }
+    .box li {
+      margin-bottom: 2px;
+    }
+    .box li strong { color: #1a2138; }
+    .full {
+      grid-column: 1 / -1;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 7.5pt;
+    }
+    th, td {
+      text-align: left;
+      padding: 2px 4px;
+      border-bottom: 1px solid #e0e4ed;
+    }
+    th {
+      background: #1a2138;
+      color: white;
+      font-weight: 700;
+    }
+    .footer {
+      margin-top: 10px;
+      padding-top: 6px;
+      border-top: 1px solid #2a3454;
+      font-size: 7pt;
+      color: #6b7390;
+      text-align: center;
+    }
+    .footer strong { color: #ff4d6d; }
+    .warn-box {
+      background: #fff5f5;
+      border: 1px solid #ff4d6d;
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-size: 7.5pt;
+      margin-top: 8px;
+    }
+    .warn-box strong { color: #ff4d6d; }
+    code {
+      background: #eef1f7;
+      padding: 0 3px;
+      border-radius: 2px;
+      font-size: 7.5pt;
+      font-family: "SF Mono", Menlo, monospace;
+    }
+    @media print {
+      body { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>📈 美股交易速查表</h1>
+<div class="sub">/Users/caro/AutoInvest/cheatsheet.html · 列印於 A4 紙貼桌邊</div>
+
+<div class="grid">
+  <div class="box">
+    <h3><span class="emoji">🌅</span>盤前 30 分鐘 SOP</h3>
+    <ol>
+      <li><strong>財報日曆</strong>：TradingView Economic Calendar → Earnings 篩選</li>
+      <li><strong>大盤指數 + 期貨</strong>：SPX/NDX/INDU/RUT、ES/NQ、VIX、DXY、US10Y</li>
+      <li><strong>持倉新聞</strong>：逐檔點開，看近 24h 重大公告（FDA、訴訟、升降評）</li>
+      <li><strong>經濟數據</strong>：FOMC、CPI、PPI、NFP；公布前 30 分鐘平倉</li>
+      <li><strong>自選股掃描</strong>：TOS Stock Hacker / Finviz / Webull Screener</li>
+    </ol>
+  </div>
+
+  <div class="box">
+    <h3><span class="emoji">🕘</span>盤中 3 件事</h3>
+    <ol>
+      <li><strong>照作戰地圖執行</strong>，非計畫內訊號一律不接</li>
+      <li><strong>每 30-60 分鐘</strong>刷新持倉 + 警示</li>
+      <li><strong>15:30 ET</strong> 評估是否留倉過夜（半夜財報、ADR 風險）</li>
+    </ol>
+  </div>
+
+  <div class="box">
+    <h3><span class="emoji">🌆</span>收盤後 3 件事</h3>
+    <ol>
+      <li><strong>寫交易日誌</strong>（進場理由、價位、截圖、情緒分數）</li>
+      <li><strong>掃明日觀察名單</strong>（財報、技術到位、未進場的標的）</li>
+      <li><strong>確認帳戶</strong>（Buying Power、保證金使用率，避免 margin call）</li>
+    </ol>
+  </div>
+
+  <div class="box">
+    <h3><span class="emoji">📅</span>週末 5 件事（週日下午 90 分鐘）</h3>
+    <ol>
+      <li><strong>週度績效回顧</strong>（勝率、損益比、最大連虧）</li>
+      <li><strong>下週事件</strong>（FOMC、CPI、FAAMG 財報）</li>
+      <li><strong>精煉自選股</strong>（淘汰差的，每檔寫進場理由）</li>
+      <li><strong>重看本週關鍵交易</strong>（最賺 + 最賠各 3 筆）</li>
+      <li><strong>設定下週最大虧損上限</strong>（例：帳戶 5%）</li>
+    </ol>
+  </div>
+
+  <div class="box full">
+    <h3><span class="emoji">🛡️</span>風險管理鐵律（最重要）</h3>
+    <table>
+      <tr>
+        <th>項目</th>
+        <th>日內</th>
+        <th>波段</th>
+      </tr>
+      <tr>
+        <td><strong>單筆風險</strong></td>
+        <td>帳戶 1-2%</td>
+        <td>帳戶 1-3%</td>
+      </tr>
+      <tr>
+        <td><strong>每日虧損上限</strong></td>
+        <td>2-3% → 立即關機</td>
+        <td>5-6% → 停止下週</td>
+      </tr>
+      <tr>
+        <td><strong>停損設定</strong></td>
+        <td>1.5x ATR 或 -1%</td>
+        <td>SMA50 / 前 swing low 下方 1-2%</td>
+      </tr>
+      <tr>
+        <td><strong>持倉數</strong></td>
+        <td>2-4 個部位</td>
+        <td>3-5 個部位（組合熱度 ≤ 6%）</td>
+      </tr>
+      <tr>
+        <td><strong>時間停損</strong></td>
+        <td>14:00 未達標平倉</td>
+        <td>10 個交易日未達標重新評估</td>
+      </tr>
+      <tr>
+        <td><strong>避開場景</strong></td>
+        <td colspan="2">開盤前 5 分鐘、連虧 2 筆、財報前 1 天未達利潤目標</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="box">
+    <h3><span class="emoji">📊</span>日內指標速查</h3>
+    <table>
+      <tr><th>指標</th><th>用途</th></tr>
+      <tr><td>VWAP</td><td>多空分界線</td></tr>
+      <tr><td>EMA 9/21</td><td>短期動能交叉</td></tr>
+      <tr><td>RSI 14</td><td>&gt;70 超買 / &lt;30 超賣</td></tr>
+      <tr><td>Volume / RVOL</td><td>突破需 &gt; 1.5x 均量</td></tr>
+      <tr><td>ATR 14</td><td>停損 = 1.5x ATR</td></tr>
+    </table>
+  </div>
+
+  <div class="box">
+    <h3><span class="emoji">📈</span>波段指標速查</h3>
+    <table>
+      <tr><th>指標</th><th>用途</th></tr>
+      <tr><td>SMA 50/200</td><td>黃金/死亡交叉、牛熊分界</td></tr>
+      <tr><td>EMA 21</td><td>日線短期趨勢</td></tr>
+      <tr><td>RSI 14</td><td>搭配背離使用</td></tr>
+      <tr><td>MACD 12,26,9</td><td>動能柱狀圖</td></tr>
+      <tr><td>週線 SMA50</td><td>大趨勢確認</td></tr>
+    </table>
+  </div>
+
+  <div class="box full">
+    <h3><span class="emoji">🧪</span>模擬交易 7 步 SOP</h3>
+    <ol>
+      <li><strong>申請模擬帳號</strong>：IBKR Free Trial / Webull Paper / TOS paperMoney</li>
+      <li><strong>與真倉一致</strong>：資金 = 預計真倉的一半；<em>手動加滑價 ±0.05%</em></li>
+      <li><strong>寫下可量化策略</strong>：進場 5 條件、出場 3 規則、部位 1% 風險</li>
+      <li><strong>跑 ≥ 30 筆</strong>（建議 100 筆）；每筆截圖 + 日誌</li>
+      <li><strong>每日 + 每週檢核</strong>：勝率 &lt; 40% → 回 Step 3</li>
+      <li><strong>轉真倉前 5 項檢核</strong>：100+ 筆正期望、機械化執行、熟悉介面、日誌備妥、3-6 月生活費</li>
+      <li><strong>微型倉 3 個月</strong>：真倉資金的 1/3 進場，測試心理反應</li>
+    </ol>
+  </div>
+
+  <div class="box">
+    <h3><span class="emoji">🚫</span>反 FOMO 4 條規則</h3>
+    <ol>
+      <li><strong>不追漲幅 &gt; 5%</strong>的標的</li>
+      <li><strong>連虧 2 筆 → 休息 30 分鐘</strong></li>
+      <li><strong>每日最多 3-5 筆</strong>高品質交易</li>
+      <li><strong>進場前必看 SPY/QQQ 大盤</strong></li>
+    </ol>
+  </div>
+
+  <div class="box">
+    <h3><span class="emoji">💰</span>美國稅務必懂</h3>
+    <ol>
+      <li><strong>Wash Sale</strong>：30 天內同檔重買，虧損不能抵稅</li>
+      <li><strong>Section 475</strong>（Trader 身份）：可豁免 wash sale，需會計師協助</li>
+      <li><strong>短期持有</strong> ≤ 1 年 = 短期資本利得（一般稅率）</li>
+      <li><strong>長期持有</strong> &gt; 1 年 = 長期資本利得（0/15/20%）</li>
+    </ol>
+  </div>
+
+  <div class="box">
+    <h3><span class="emoji">🏦</span>券商選擇</h3>
+    <table>
+      <tr><th>需求</th><th>推薦</th></tr>
+      <tr><td>程式交易</td><td>IBKR Pro</td></tr>
+      <tr><td>技術分析</td><td>Schwab (TOS)</td></tr>
+      <tr><td>新手友善</td><td>Webull</td></tr>
+      <tr><td>量化回測</td><td>TradeStation</td></tr>
+      <tr><td>🇹🇼 台灣人首選</td><td>IBKR（中文支援佳）</td></tr>
+    </table>
+  </div>
+
+  <div class="box">
+    <h3><span class="emoji">🔍</span>免費工具速查</h3>
+    <table>
+      <tr><th>用途</th><th>工具</th></tr>
+      <tr><td>圖表</td><td>TradingView (Plus $12.95/月)</td></tr>
+      <tr><td>篩選器</td><td>Finviz / TOS Stock Hacker</td></tr>
+      <tr><td>經濟日曆</td><td>TradingView / ForexFactory</td></tr>
+      <tr><td>回測</td><td>TradingView Pine / Backtrader</td></tr>
+      <tr><td>交易日誌</td><td>Notion / Google Sheets</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="warn-box">
+  <strong>⚠️ 免責聲明：</strong>本表為教學速查，<strong>不構成投資建議</strong>。所有交易涉及風險，過去表現不代表未來結果。實際申報請諮詢美國執業 CPA。
+</div>
+
+<div class="footer">
+  <strong>AutoInvest · 美股交易速查表</strong> · 2026/07/03 · 完整教學：<code>/Users/caro/AutoInvest/course.html</code>
+</div>
+
+</body>
+</html>
