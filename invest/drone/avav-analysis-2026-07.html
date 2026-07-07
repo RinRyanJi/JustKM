@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AVAV 估值與未來市值推估（2026-07）｜JustKM 無人機研究</title>
+  <style>
+    /* ============ STRIPE-INSPIRED DESIGN SYSTEM ============ */
+    :root {
+      --bg-primary: #FFFFFF;
+      --bg-secondary: #F6F9FC;
+      --bg-card: #FFFFFF;
+      --bg-card-hover: #FAFBFC;
+      --bg-code: #F6F9FC;
+      --border: #E3E8EE;
+      --border-strong: #D6DCE5;
+
+      --text-primary: #0A2540;
+      --text-secondary: #425466;
+      --text-muted: #6B7C93;
+      --text-link: #635BFF;
+
+      --accent-primary: #635BFF;
+      --accent-blue: #A8C0FF;
+      --accent-cyan: #00D4FF;
+      --accent-pink: #FF6B9D;
+      --accent-orange: #FF8C42;
+      --accent-green: #00D68F;
+      --accent-red: #FF4D6D;
+      --accent-yellow: #FFB84D;
+
+      --gradient-text: linear-gradient(90deg, #635BFF 0%, #C77DFF 35%, #FF6B9D 70%, #FF8C42 100%);
+
+      --shadow-sm: 0 1px 2px rgba(60, 66, 87, 0.08);
+      --shadow-md: 0 4px 12px rgba(60, 66, 87, 0.10);
+      --shadow-lg: 0 12px 32px rgba(60, 66, 87, 0.12);
+
+      --font-display: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+      --font-body: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", "Noto Sans TC", sans-serif;
+      --font-mono: "SF Mono", Monaco, "Cascadia Code", "Courier New", monospace;
+    }
+
+    :root[data-theme="dark"] {
+      --bg-primary: #0A0E1A;
+      --bg-secondary: #131826;
+      --bg-card: #1A2138;
+      --bg-card-hover: #222A45;
+      --bg-code: #0F1525;
+      --border: #2A3454;
+      --border-strong: #3A4470;
+      --text-primary: #E8ECF4;
+      --text-secondary: #9AA3B8;
+      --text-muted: #6B7390;
+      --text-link: #A8C0FF;
+      --accent-primary: #A8C0FF;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    body { transition: background-color 0.2s ease, color 0.2s ease; }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    .container { max-width: 920px; margin: 0 auto; padding: 0 24px; }
+
+    /* ============ HERO ============ */
+    .hero {
+      padding: 80px 0 56px;
+      text-align: center;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(99, 91, 255, 0.08), transparent 40%),
+        radial-gradient(circle at 80% 100%, rgba(255, 107, 157, 0.06), transparent 40%);
+    }
+    .eyebrow {
+      display: inline-block;
+      padding: 6px 14px;
+      background: rgba(99, 91, 255, 0.10);
+      color: var(--accent-primary);
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: 48px;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -1px;
+      margin-bottom: 18px;
+    }
+    .hero h1 .gradient {
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero .subtitle {
+      font-size: 19px;
+      color: var(--text-secondary);
+      max-width: 640px;
+      margin: 0 auto 28px;
+    }
+    .meta-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .meta-pill {
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      background: var(--bg-card);
+    }
+
+    /* ============ CTA ============ */
+    .cta-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin: 24px 0 0;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 22px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 15px;
+      text-decoration: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .btn-primary {
+      background: var(--accent-primary);
+      color: #fff;
+      box-shadow: 0 1px 2px rgba(99, 91, 255, 0.30), 0 4px 12px rgba(99, 91, 255, 0.20);
+    }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-outline {
+      background: transparent;
+      color: var(--accent-primary);
+      border: 1.5px solid var(--accent-primary);
+    }
+    .btn-outline:hover { background: rgba(99, 91, 255, 0.06); }
+
+    /* ============ NAV ============ */
+    nav.toc {
+      position: sticky;
+      top: 0;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      padding: 14px 0;
+    }
+    :root[data-theme="dark"] nav.toc {
+      background: rgba(10, 14, 26, 0.85);
+    }
+    nav.toc .container {
+      display: flex;
+      gap: 18px;
+      overflow-x: auto;
+      font-size: 14px;
+    }
+    nav.toc a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      white-space: nowrap;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    nav.toc a:hover { background: var(--bg-secondary); color: var(--accent-primary); }
+
+    /* ============ SECTION ============ */
+    section {
+      padding: 56px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    section:last-of-type { border-bottom: none; }
+    h2 {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+    h2 .num {
+      display: inline-block;
+      width: 36px;
+      height: 36px;
+      line-height: 36px;
+      text-align: center;
+      background: var(--accent-primary);
+      color: #fff;
+      border-radius: 10px;
+      font-size: 18px;
+      margin-right: 12px;
+      vertical-align: middle;
+    }
+    h3 {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 32px 0 12px;
+      color: var(--text-primary);
+    }
+    h4 {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 20px 0 8px;
+      color: var(--text-primary);
+    }
+    .section-lead {
+      font-size: 17px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      max-width: 720px;
+    }
+
+    /* ============ CARDS ============ */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 720px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 34px; }
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .card h4 { margin-top: 0; color: var(--accent-primary); }
+    .card.callout {
+      border-left: 3px solid var(--accent-primary);
+      background: linear-gradient(180deg, rgba(99, 91, 255, 0.03), transparent);
+    }
+    .card.warning { border-left: 3px solid var(--accent-orange); background: linear-gradient(180deg, rgba(255, 140, 66, 0.05), transparent); }
+    .card.danger { border-left: 3px solid var(--accent-red); background: linear-gradient(180deg, rgba(255, 77, 109, 0.05), transparent); }
+    .card.success { border-left: 3px solid var(--accent-green); background: linear-gradient(180deg, rgba(0, 214, 143, 0.05), transparent); }
+
+    /* ============ TABLE ============ */
+    .table-wrap { overflow-x: auto; margin: 20px 0; border: 1px solid var(--border); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead { background: var(--bg-secondary); }
+    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { font-weight: 600; color: var(--text-secondary); font-size: 13px; letter-spacing: 0.3px; text-transform: uppercase; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: var(--bg-card-hover); }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--font-mono); }
+    td.up { color: var(--accent-green); font-weight: 600; }
+    td.down { color: var(--accent-red); font-weight: 600; }
+
+    /* ============ BADGES ============ */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 4px;
+    }
+    .b-red { background: rgba(255, 77, 109, 0.12); color: var(--accent-red); }
+    .b-green { background: rgba(0, 214, 143, 0.12); color: #00B86B; }
+    .b-yellow { background: rgba(255, 184, 77, 0.18); color: #C77A00; }
+    .b-blue { background: rgba(99, 91, 255, 0.12); color: var(--accent-primary); }
+    .b-gray { background: var(--bg-secondary); color: var(--text-secondary); }
+
+    /* ============ TIMELINE ============ */
+    .timeline { border-left: 2px solid var(--border); padding-left: 20px; margin: 16px 0; }
+    .tl-item { position: relative; padding-bottom: 16px; }
+    .tl-item::before {
+      content: ''; position: absolute; left: -28px; top: 6px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--accent-primary); border: 2px solid var(--bg-primary);
+    }
+    .tl-item.green::before { background: var(--accent-green); }
+    .tl-item.yellow::before { background: var(--accent-yellow); }
+    .tl-item.red::before { background: var(--accent-red); }
+    .tl-time { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+    .tl-title { font-weight: 700; margin: 2px 0; }
+    .tl-body { font-size: 14px; color: var(--text-secondary); }
+
+    /* ============ GLOSSARY ============ */
+    .glossary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 720px) { .glossary-grid { grid-template-columns: 1fr; } }
+    details.gloss {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      transition: border-color 0.15s;
+    }
+    details.gloss[open] { border-color: var(--accent-primary); box-shadow: var(--shadow-sm); }
+    details.gloss summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--accent-primary);
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    details.gloss summary::-webkit-details-marker { display: none; }
+    details.gloss summary::after { content: '+'; font-size: 20px; color: var(--text-muted); transition: transform 0.2s; }
+    details.gloss[open] summary::after { content: '−'; color: var(--accent-primary); }
+    details.gloss .gloss-body {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    details.gloss .gloss-body code {
+      background: var(--bg-code);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--accent-primary);
+    }
+
+    /* ============ SCENARIO TABLE ============ */
+    .scenario-bar {
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-weight: 700;
+      color: #fff;
+      margin: 4px 0;
+    }
+    .s-red { background: linear-gradient(90deg, var(--accent-red), #FF8B9D); }
+    .s-yellow { background: linear-gradient(90deg, var(--accent-yellow), #FFD08C); color: #4A3500;}
+    .s-blue { background: linear-gradient(90deg, var(--accent-primary), #A8C0FF); }
+    .s-green { background: linear-gradient(90deg, var(--accent-green), #7DEABF); }
+
+    /* ============ FOOTER ============ */
+    footer {
+      padding: 48px 0;
+      background: var(--bg-secondary);
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 80px;
+    }
+    footer .container { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+    footer a { color: var(--text-secondary); text-decoration: none; }
+    footer a:hover { color: var(--accent-primary); }
+
+    /* ============ THEME TOGGLE ============ */
+    .theme-toggle {
+      position: fixed; top: 90px; right: 24px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 100px; padding: 8px 14px; cursor: pointer;
+      font-size: 13px; font-weight: 600; color: var(--text-secondary);
+      box-shadow: var(--shadow-sm); z-index: 200;
+    }
+    .theme-toggle:hover { color: var(--accent-primary); }
+  </style>
+</head>
+<body>
+  <div class="theme-toggle" onclick="document.documentElement.dataset.theme = document.documentElement.dataset.theme==='dark' ? '' : 'dark'; this.textContent = document.documentElement.dataset.theme==='dark' ? '☀️ Light' : '🌙 Dark';">🌙 Dark</div>
+
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div class="container">
+      <span class="eyebrow">JustKM · 無人機產業研究</span>
+      <h1>
+        <span class="gradient">AVAV</span> 估值與<br>未來市值推估
+      </h1>
+      <p class="subtitle">
+        基於 FY2026 剛出爐的財報 + 本週新增的 $610M 訂單動能，重新校準股價區間與情境機率。
+        這是一份完整的拉估值教學——不只是數字，而是看懂每一個指標背後的意義。
+      </p>
+      <div class="meta-row">
+        <span class="meta-pill">📅 2026-07-07 發布</span>
+        <span class="meta-pill">📊 資料時點：2026-07-06 收盤</span>
+        <span class="meta-pill">💲 現價 $176.84</span>
+        <span class="meta-pill">🏷️ 市值 $9.66B</span>
+      </div>
+      <div class="cta-row">
+        <a href="#summary" class="btn btn-primary">看估值結論 →</a>
+        <a href="#glossary" class="btn btn-outline">名詞解釋</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ TOC ============ -->
+  <nav class="toc">
+    <div class="container">
+      <a href="#summary">① 速覽</a>
+      <a href="#news">② 本週新聞</a>
+      <a href="#financials">③ FY26 財報</a>
+      <a href="#forecast">④ 分析師共識</a>
+      <a href="#valuation">⑤ 三情境估值</a>
+      <a href="#risk">⑥ 風險監控</a>
+      <a href="#glossary">⑦ 財報名詞解釋</a>
+      <a href="#actions">⑧ 操作建議</a>
+    </div>
+  </nav>
+
+  <!-- ============ SUMMARY ============ -->
+  <section id="summary">
+    <div class="container">
+      <h2><span class="num">1</span>速覽：估值回到合理區</h2>
+      <p class="section-lead">
+        AVAV 從 2025 年 10 月的 52 週高點 <strong>$417.86</strong> 一路修正到今天的 <strong>$176.84</strong>，跌幅 <strong>-57.7%</strong>。
+        估值倍數已經從「極端泡沫」回到「昂貴但合理」：Forward P/E 從 200× → 60×，EV/EBITDA 從 249× → 69×。
+      </p>
+
+      <div class="grid-3">
+        <div class="card callout">
+          <h4>📈 營收炸裂</h4>
+          <p style="font-size:32px;font-weight:800;color:var(--accent-primary);">+140.9%</p>
+          <p>FY26 營收 $1.977B，遠超 FY25 的 $820M，主因為 Switchblade 烏克蘭實戰 + Telerob 收購 + JIATF-401 反無人機合約。</p>
+        </div>
+        <div class="card danger">
+          <h4>⚠️ GAAP 巨虧</h4>
+          <p style="font-size:32px;font-weight:800;color:var(--accent-red);">-$265M</p>
+          <p>但這主要是 <strong>$240.7M 一次性減損</strong>（acquisition-related），不是真實經營虧損。Normalized EBITDA 仍有 $205.7M。</p>
+        </div>
+        <div class="card warning">
+          <h4>💸 燒錢中</h4>
+          <p style="font-size:32px;font-weight:800;color:var(--accent-orange);">-$141M</p>
+          <p>FCF 仍負，主因軍工出貨週期長（庫存 + 應收帳款激增），現金流落後獲利 12-18 個月。</p>
+        </div>
+      </div>
+
+      <h3>估值倍數 vs 自己歷史</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>指標</th>
+              <th>現在 (7/6)</th>
+              <th>FY26 高峰</th>
+              <th>FY26 低谷</th>
+              <th>5年中位</th>
+              <th>判讀</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Forward P/E</td><td class="num">53.24</td><td class="num">200.00</td><td class="num">52.63</td><td class="num">~75</td><td><span class="badge b-green">中低區</span></td></tr>
+            <tr><td>P/S</td><td class="num">4.74</td><td class="num">11.18</td><td class="num">4.74</td><td class="num">~6</td><td><span class="badge b-green">已修正</span></td></tr>
+            <tr><td>EV/EBITDA</td><td class="num">69.62</td><td class="num">249.80</td><td class="num">69.62</td><td class="num">~120</td><td><span class="badge b-yellow">中性</span></td></tr>
+            <tr><td>P/B</td><td class="num">2.20</td><td class="num">4.17</td><td class="num">2.20</td><td class="num">~5</td><td><span class="badge b-green">偏低</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:12px;color:var(--text-secondary);font-size:14px;">
+        💡 <strong>結論</strong>：估值已回到 5 年中低區間，但仍未到週期低點（5 年低點 Forward P/E 約 35×，對應股價 $111）。
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ NEWS ============ -->
+  <section id="news">
+    <div class="container">
+      <h2><span class="num">2</span>本週新聞（7/6 ~ 7/12）</h2>
+      <p class="section-lead">
+        這週 AVAV 一次收了三張大單：兩張美國本土反無人機、一張德國 Puma NATO 訂單，加總約 <strong>$610M</strong> 動能。
+        同時 7/8（三天後）有 <strong>NYC Investor Day</strong>，可能釋出 FY27 指引更新。
+      </p>
+
+      <h3>📰 這週新聞時間軸</h3>
+      <div class="timeline">
+        <div class="tl-item green">
+          <div class="tl-time">2026-07-07（今天）</div>
+          <div class="tl-title">🇩🇪 拿下 Puma $30M 德國 LARUS 合約</div>
+          <div class="tl-body">NATO 國家首張公開 UAV 訂單。Puma 是 AV 主力中程 ISR 無人機系統，代表歐洲業務正式啟動。</div>
+        </div>
+        <div class="tl-item green">
+          <div class="tl-time">2026-07-06</div>
+          <div class="tl-title">🇺🇸 Titan $80.5M JIATF-401 反無人機合約</div>
+          <div class="tl-body">Titan C-UAS 系統被選用，JIATF-401（美國南方司令部跨部會小組）即期合約。</div>
+        </div>
+        <div class="tl-item green">
+          <div class="tl-time">2026-07-06</div>
+          <div class="tl-title">🇺🇸 $500M IDIQ 5 年合約 JIATF-401 Domestic Shield</div>
+          <div class="tl-body">5 年期 IDIQ（Indefinite Delivery / Indefinite Quantity）合約，上限 $500M，提供 C-UAS + 小型 C-UAS。盤前大漲近 10%，盤中續漲 16% 至 $200.38。</div>
+        </div>
+        <div class="tl-item yellow">
+          <div class="tl-time">2026-07-06</div>
+          <div class="tl-title">📉 分析師目標價下修 FactSet</div>
+          <div class="tl-body">中位數由 $294 下修至 $271.5（-7.65%）。最高估值 $400、最低 $194。綜合評級仍 Buy。</div>
+        </div>
+        <div class="tl-item green">
+          <div class="tl-time">2026-07-02</div>
+          <div class="tl-title">📈 國防股 NATO 題材發酵</div>
+          <div class="tl-body">$500M 合約消息面，盤中續漲超 16%，最高觸及 $200.38，創 6/5 以來新高。</div>
+        </div>
+        <div class="tl-item green">
+          <div class="tl-time">2026-06-30</div>
+          <div class="tl-title">🚀 FY26 Q4 報告（Blowout Quarter）</div>
+          <div class="tl-body">Q4 Adj EPS $1.84 擊敗華爾街預期 + 上調 FY27 收入展望中位數 → 盤後暴衝逾 20%。</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">2026-06-25</div>
+          <div class="tl-title">👤 任命 William J. Lynn III（前美國國防部副部長）入董事會</div>
+          <div class="tl-body">強化政府關係。</div>
+        </div>
+        <div class="tl-item yellow">
+          <div class="tl-time">2026-07-08（三天後）</div>
+          <div class="tl-title">🎤 NYC Investor Day</div>
+          <div class="tl-body">⚠️ 重大事件：管理層將釋出 FY27 細部指引 + 長期 TAM。可能造成股價 ±10% 波動。</div>
+        </div>
+      </div>
+
+      <h3>淨動能結算（這週新增營收動能）</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>訂單</th><th>金額</th><th>類型</th><th>認列期間</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>🇺🇸 IDIQ JIATF-401</td><td class="num">$500M (上限)</td><td>5 年期 IDIQ</td><td>FY27 ~ FY31</td></tr>
+            <tr><td>🇺🇸 Titan C-UAS</td><td class="num">$80.5M</td><td>即期 firm-fixed-price</td><td>FY27 Q1~Q2</td></tr>
+            <tr><td>🇩🇪 Puma 德國 LARUS</td><td class="num">$30M</td><td>NATO 外銷</td><td>FY27</td></tr>
+            <tr style="font-weight:700;background:var(--bg-secondary);"><td>合計</td><td class="num">$610.5M</td><td colspan="2">≈ FY27 共識 $2.21B 的 28% 已被合約覆蓋</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FINANCIALS ============ -->
+  <section id="financials">
+    <div class="container">
+      <h2><span class="num">3</span>FY26 財報深度解讀</h2>
+      <p class="section-lead">
+        AVAV 採用 4 月底為財年結束（Fiscal Year May-April），FY2026 結束於 <strong>2026-04-30</strong>，報告於 <strong>2026-06-30</strong> 公布。
+      </p>
+
+      <h3>📊 五年損益表（單位：百萬美元）</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>項目</th><th>FY2026</th><th>FY2025</th><th>FY2024</th><th>FY2023</th><th>FY2022</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Revenue</td><td class="num"><strong>1,977</strong></td><td class="num">820.6</td><td class="num">716.7</td><td class="num">540.5</td><td class="num">445.7</td></tr>
+            <tr><td>Revenue YoY</td><td class="num up"><strong>+140.9%</strong></td><td class="num up">+14.5%</td><td class="num up">+32.6%</td><td class="num up">+21.3%</td><td class="num up">+12.9%</td></tr>
+            <tr><td>Gross Profit</td><td class="num">500.6</td><td class="num">318.6</td><td class="num">283.9</td><td class="num">173.5</td><td class="num">141.2</td></tr>
+            <tr><td>Gross Margin</td><td class="num down"><strong>25.3%</strong></td><td class="num">39.4%</td><td class="num">39.6%</td><td class="num">32.1%</td><td class="num">31.7%</td></tr>
+            <tr><td>Operating Income</td><td class="num down">-70.3</td><td class="num">63.7</td><td class="num">73.7</td><td class="num down">-178.7</td><td class="num down">-9.0</td></tr>
+            <tr><td>Net Income (GAAP)</td><td class="num down"><strong>-265.1</strong></td><td class="num">43.6</td><td class="num">59.7</td><td class="num down">-176.2</td><td class="num down">-4.2</td></tr>
+            <tr><td>EPS (GAAP)</td><td class="num down">-$5.40</td><td class="num">$1.56</td><td class="num">$2.19</td><td class="num down">-$7.04</td><td class="num down">-$0.17</td></tr>
+            <tr><td>EPS (Adj.)</td><td class="num"><strong>$3.31</strong></td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+            <tr><td>Normalized EBITDA</td><td class="num"><strong>$205.7M</strong></td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+            <tr><td>Free Cash Flow</td><td class="num down"><strong>-141.0</strong></td><td class="num down">-20.9</td><td class="num down">-7.7</td><td class="num down">-3.5</td><td class="num down">-31.9</td></tr>
+            <tr><td>Diluted Shares</td><td class="num">49.1</td><td class="num">28.2</td><td class="num">27.3</td><td class="num">25.0</td><td class="num">25.0</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>🔍 為什麼 GAAP 虧但 Adj EPS 賺？</h3>
+      <div class="card callout">
+        <p>FY26 有 <strong>$240.7M 一次性 unusual items</strong>，主要是 Telerob 收購相關的 <strong>goodwill impairment</strong>（商譽減損）與整合費用。會計上要立即認列虧損，但<strong>不影響現金流</strong>，分析師會把它「加回」算 Adj EPS。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FORECAST ============ -->
+  <section id="forecast">
+    <div class="container">
+      <h2><span class="num">4</span>FY27 分析師共識</h2>
+      <p class="section-lead">19 位分析師給出的 FY27 平均預估（資料源：S&P Global + TipRanks，2026-07-01 更新）。</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>FY27E 營收</h4>
+          <p style="font-size:28px;font-weight:800;color:var(--accent-primary);">$2.21B</p>
+          <p>較 FY26 +11.83%（高成長但已降速，因為 FY26 是 +140% 的一次性爆發）。</p>
+          <p style="margin-top:8px;font-size:13px;color:var(--text-muted);">區間：$2.1B (低) ~ $2.4B (高)</p>
+        </div>
+        <div class="card">
+          <h4>FY27E Adj EPS</h4>
+          <p style="font-size:28px;font-weight:800;color:var(--accent-primary);">$3.32</p>
+          <p>區間：$3.05 (低) ~ $4.00 (高)。</p>
+          <p style="margin-top:8px;font-size:13px;color:var(--text-muted);">YoY +0.35%（幾乎持平，因 GAAP 仍有折舊拖累）</p>
+        </div>
+      </div>
+
+      <h3>分析師目標價分佈</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>情境</th><th>目標價</th><th>vs 現價 ($176.84)</th><th>共識評級</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>最低（淡）</td><td class="num">$166</td><td class="num down">-6.13%</td><td></td></tr>
+            <tr><td><strong>平均（共識）</strong></td><td class="num"><strong>$258.61</strong></td><td class="num up"><strong>+46.24%</strong></td><td><span class="badge b-green">Buy</span></td></tr>
+            <tr><td>中位</td><td class="num">$232.50</td><td class="num up">+31.47%</td><td></td></tr>
+            <tr><td>最高（牛）</td><td class="num">$450</td><td class="num up">+154.47%</td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>評級分佈（20 位分析師）</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="badge b-green" style="font-size:14px;padding:6px 14px;">Strong Buy × 11</span>
+        <span class="badge b-blue" style="font-size:14px;padding:6px 14px;">Buy × 6</span>
+        <span class="badge b-gray" style="font-size:14px;padding:6px 14px;">Hold × 3</span>
+        <span class="badge b-yellow" style="font-size:14px;padding:6px 14px;">Sell × 0</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VALUATION ============ -->
+  <section id="valuation">
+    <div class="container">
+      <h2><span class="num">5</span>三情境市值 / 股價推估</h2>
+      <p class="section-lead">
+        以 FY27E EPS <strong>$3.32</strong> 為基準，乘上不同的 Forward P/E 倍數，得到對應市值與股價。
+        用 Diluted Shares <strong>49.1M</strong> 算每股。
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>情境</th><th>假設 Forward P/E</th><th>FY27 EPS</th><th>市值</th><th>對應股價</th><th>vs 現價</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge b-red">🔴 保守派</span></td>
+              <td class="num">35×</td>
+              <td class="num">$3.32</td>
+              <td class="num">$5.81B</td>
+              <td class="num"><strong>$111</strong></td>
+              <td class="num down">-37%</td>
+            </tr>
+            <tr>
+              <td><span class="badge b-yellow">🟡 基本派</span></td>
+              <td class="num">50×</td>
+              <td class="num">$3.32</td>
+              <td class="num">$8.30B</td>
+              <td class="num"><strong>$159</strong></td>
+              <td class="num down">-10%</td>
+            </tr>
+            <tr>
+              <td><span class="badge b-blue">🟢 共識均值</span></td>
+              <td class="num">60×</td>
+              <td class="num">$3.32</td>
+              <td class="num">$9.96B</td>
+              <td class="num"><strong>$258.61</strong></td>
+              <td class="num up"><strong>+46%</strong></td>
+            </tr>
+            <tr>
+              <td><span class="badge b-green">🟢 樂觀派</span></td>
+              <td class="num">80×</td>
+              <td class="num">$3.32</td>
+              <td class="num">$13.28B</td>
+              <td class="num"><strong>$266</strong></td>
+              <td class="num up">+50%</td>
+            </tr>
+            <tr>
+              <td><span class="badge b-green">🚀 超樂觀</span></td>
+              <td class="num">100×</td>
+              <td class="num">$3.50</td>
+              <td class="num">$17.50B</td>
+              <td class="num"><strong>$345</strong></td>
+              <td class="num up">+95%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>📊 視覺化股價區間</h3>
+      <div style="margin:24px 0;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:4px;">
+          <span>$111</span><span>$159</span><span>$177 (現)</span><span>$258</span><span>$345</span>
+        </div>
+        <div style="position:relative;height:48px;background:linear-gradient(90deg, var(--accent-red) 0%, var(--accent-yellow) 30%, var(--accent-primary) 50%, var(--accent-green) 100%);border-radius:8px;">
+          <div style="position:absolute;left:32%;top:-8px;width:3px;height:64px;background:var(--text-primary);box-shadow:0 0 0 2px white;"></div>
+          <div style="position:absolute;left:32%;top:-32px;transform:translateX(-50%);background:var(--text-primary);color:#fff;padding:3px 8px;border-radius:4px;font-size:11px;white-space:nowrap;">現價 $176.84</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-top:4px;">
+          <span>保守</span><span>基本</span><span></span><span>共識</span><span>超樂觀</span>
+        </div>
+      </div>
+
+      <h3>⚖️ 我的判斷：基本情境</h3>
+      <div class="card callout">
+        <h4>基本派股價區間：$180 ~ $220（對應市值 $9.5B ~ $11.5B）</h4>
+        <p style="margin-top:8px;">
+          ✅ <strong>撐多方</strong>：Titan $80.5M + IDIQ $500M 5年；FY27 +11.8% 營收成長；C-UAS 題材；Puma 北約外銷<br>
+          ⚠️ <strong>壓多方</strong>：Gross margin 從 39% → 25%；FCF 仍負 $141M；GAAP 連兩年虧損；股價已從 $417 -58%<br>
+          🔴 <strong>警訊</strong>：「Program Risks」分析師報告；當前 Short Interest 12.56%；今天股價已從高點跌 -7.36%
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RISK ============ -->
+  <section id="risk">
+    <div class="container">
+      <h2><span class="num">6</span>風險與監控指標</h2>
+
+      <div class="grid-2">
+        <div class="card danger">
+          <h4>🚨 監控指標 #1：Q1 FY27 營收 + 毛利率</h4>
+          <p>約 9 月公布。決定 FY27 全年能不能達 $2.21B；毛利率若回不到 28% 以上，估值將下修。</p>
+        </div>
+        <div class="card danger">
+          <h4>🚨 監控指標 #2：GAAP 虧損能否收斂</h4>
+          <p>看 goodwill impairment 是否一次性；若 FY27 仍有大額減損，分析師會下修目標價。</p>
+        </div>
+        <div class="card danger">
+          <h4>🚨 監控指標 #3：FCF 是否轉正</h4>
+          <p>FY26 -$141M，FY27 預估 -$114M。要看到明顯改善（<-50M）才算體質回升。</p>
+        </div>
+        <div class="card warning">
+          <h4>⚠️ 立即事件：7/8 NYC Investor Day</h4>
+          <p>管理層將釋出 FY27 細部指引 + 長期 TAM，可能造成 ±10% 波動。建議避開當天進場。</p>
+        </div>
+      </div>
+
+      <h3>三大風險因子</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>風險</th><th>嚴重度</th><th>監控訊號</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>美軍預算被砍 / 計畫延遲</td>
+              <td><span class="badge b-red">高</span></td>
+              <td>國會撥款法案、戰爭部公告</td>
+            </tr>
+            <tr>
+              <td>Switchblade 烏克蘭需求降溫</td>
+              <td><span class="badge b-yellow">中</span></td>
+              <td>俄烏戰況、新聞報導</td>
+            </tr>
+            <tr>
+              <td>同業（Anduril / Shield AI）擠壓市占</td>
+              <td><span class="badge b-yellow">中</span></td>
+              <td>招標結果、市占率報告</td>
+            </tr>
+            <tr>
+              <td>Titan / Puma 整合出包</td>
+              <td><span class="badge b-gray">低</span></td>
+              <td>交付延遲、客戶投訴</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GLOSSARY ============ -->
+  <section id="glossary">
+    <div class="container">
+      <h2><span class="num">7</span>財報分析名詞解釋</h2>
+      <p class="section-lead">
+        這份報告用了很多財經與會計專有名詞。這一章把每一個用到的詞彙都展開講，
+        即使你沒讀過財報，也能完整理解分析邏輯。
+      </p>
+
+      <h3>📘 A. 損益表（Income Statement）相關</h3>
+      <div class="glossary-grid">
+
+        <details class="gloss">
+          <summary>Revenue / Total Revenue（營收 / 總營收）</summary>
+          <div class="gloss-body">
+            公司在一段期間內賣出產品或提供服務的<strong>總金額</strong>，還沒扣任何成本。
+            例如 AVAV FY26 Revenue $1.977B = 整年賣了價值 19.77 億美元的無人機與服務。
+            <br><br>
+            <strong>關鍵指標</strong>：<code>YoY %</code>（Year-over-Year，與去年同期比）。
+            AVAV FY26 YoY +140.9% = 營收比 FY25 翻了一倍多。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>Cost of Revenue（銷貨成本，COGS）</summary>
+          <div class="gloss-body">
+            直接生產商品的成本，例如材料、零件、直接人工。
+            <strong>不含</strong>業務員薪資、總部租金這種「間接」成本。
+            <br><br>
+            計算公式：<code>Revenue − COGS = Gross Profit</code>
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>Gross Profit（毛利）與 Gross Margin（毛利率）</summary>
+          <div class="gloss-body">
+            <strong>Gross Profit</strong> = Revenue − COGS（還沒扣業務、研發、管理費用）。
+            <strong>Gross Margin</strong> = Gross Profit ÷ Revenue，以百分比表示。
+            <br><br>
+            毛利率越高代表定價能力越強或成本越低。
+            AVAV 毛利率從 FY25 的 39.4% 跌到 FY26 的 25.3% → 預示 Switchblade 量產、Telerob 整合拉低毛利。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>Operating Expense（營業費用）</summary>
+          <div class="gloss-body">
+            維持公司營運但不直接綁在產品上的支出，主要包含：
+            <ul style="margin:8px 0 0 20px;">
+              <li><strong>SG&A</strong>（Selling, General & Administrative）— 業務、行政、總部</li>
+              <li><strong>R&D</strong>（Research & Development）— 研發</li>
+              <li><strong>D&A</strong>（Depreciation & Amortization）— 折舊與攤銷</li>
+            </ul>
+            AVAV FY26 SG&A $443M + R&D $128M + Other $241M = 合計約 $812M。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>Operating Income（營業利益，EBIT 簡化版）</summary>
+          <div class="gloss-body">
+            <code>Gross Profit − Operating Expense</code> = 公司本業的獲利，
+            <strong>還沒扣利息和稅</strong>。
+            <br><br>
+            AVAV FY26 = -$70.3M → 本業小虧；
+            但 Normalized EBITDA $205.7M（加入折舊回加 + 排除一次性減損）→ 真實本業其實有賺 $200M+。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>EBIT vs EBITDA（差一個 D = Depreciation）</summary>
+          <div class="gloss-body">
+            <strong>EBIT</strong>（Earnings Before Interest & Tax）= 稅前息前盈餘 = Operating Income 的另一個名字。
+            <br><br>
+            <strong>EBITDA</strong> = EBIT ＋ <strong>D</strong>epreciation（折舊）＋ Amortization（攤銷）。
+            為什麼要加回來？因為折舊是「過去買設備的分期攤提」，不是今年的現金流出，
+            EBITDA 比較接近「本業現金賺錢能力」。
+            <br><br>
+            AVAV FY26 GAAP EBITDA = -$35M，但 <strong>Normalized EBITDA</strong> = $205.7M → 加回 $240.7M 一次性減損後的真實獲利。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>Net Income（淨利）vs EPS</summary>
+          <div class="gloss-body">
+            <strong>Net Income</strong> = 扣掉所有東西（成本、費用、利息、稅）後的最後盈餘。
+            <br><br>
+            <strong>EPS</strong>（Earnings Per Share）= Net Income ÷ 流通股數，給「每股賺多少」。
+            兩種算法：
+            <ul style="margin:8px 0 0 20px;">
+              <li><strong>Basic EPS</strong>— 用基本流通股</li>
+              <li><strong>Diluted EPS</strong>— 把可轉換債、員工選擇權全部稀釋後的股數（更保守）</li>
+            </ul>
+            AVAV FY26 GAAP Diluted EPS = -$5.40，但 Adj. EPS = $3.31（分析師看的數字）。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>GAAP vs Non-GAAP / Adjusted（會計準則差異）</summary>
+          <div class="gloss-body">
+            <strong>GAAP</strong>（Generally Accepted Accounting Principles）= 美國一般公認會計原則，
+            對上市公司強制，要求把所有東西（含一次性減損）都計入。
+            <br><br>
+            <strong>Non-GAAP / Adjusted</strong> = 公司自己調整，把「非經常性項目」扣掉，
+            讓數字更接近真實營運狀況。
+            <br><br>
+            AVAV FY26 例子：GAAP -$5.40 vs Adj. $3.31，差距 = $8.71 ≈ $240.7M 一次性減損 ÷ 49.1M 股。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>Normalized EBITDA / Normalized Income</summary>
+          <div class="gloss-body">
+            把所有「一次性」、「非現金」、「非經常」項目調整後的 EBITDA / 淨利，
+            代表<strong>可持續的營運獲利能力</strong>。
+            <br><br>
+            AVAV FY26：
+            <ul style="margin:8px 0 0 20px;">
+              <li>GAAP Net Income = -$265M</li>
+              <li>Normalized Income = -$42M（差距 = $240.7M 一次性項目加上稅務影響）</li>
+            </ul>
+          </div>
+        </details>
+
+      </div>
+
+      <h3>📗 B. 資產負債表（Balance Sheet）相關</h3>
+      <div class="glossary-grid">
+
+        <details class="gloss">
+          <summary>Total Cash（現金總額）vs Total Debt（負債總額）</summary>
+          <div class="gloss-body">
+            <strong>Cash</strong> = 銀行存款 + 短期投資，公司可動用的彈藥。
+            <br><br>
+            <strong>Debt</strong> = 短借 + 長借，公司欠外面的錢。
+            <br><br>
+            <strong>Net Cash</strong> = Cash − Debt（公司真正的淨現金部位）。
+            AVAV FY26：Cash $632M、Debt $835M → <strong>Net Debt $203M</strong>（已轉為淨負債，這是新訊號）。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>Book Value / BVPS（帳面價值 / 每股淨值）</summary>
+          <div class="gloss-body">
+            <code>(股東權益) ÷ 流通股數</code> = 清算時股東理論上可以拿回的價值。
+            <br><br>
+            AVAV BVPS = $85.94，目前股價 $176.84 → <strong>P/B = 2.20×</strong>。
+            代表市場願意付 2.20 倍帳面價買 AVAV，因為相信它的無形價值（Switchblade 品牌、軍工關係）。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>Current Ratio（流動比率）</summary>
+          <div class="gloss-body">
+            <code>流動資產 ÷ 流動負債</code>，衡量短期償債能力。
+            <ul style="margin:8px 0 0 20px;">
+              <li>&gt; 2 → 健康（AVAV = 4.30）</li>
+              <li>1~2 → 正常</li>
+              <li>&lt; 1 → 短期償債壓力大</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>Total Debt / Equity（D/E，負債權益比）</summary>
+          <div class="gloss-body">
+            公司用借錢擴張的程度。AVAV = 18.97% → 中度槓桿，不算高，但相較 FY25 的 5.44% 明顯上升（為了 Telerob 收購）。
+          </div>
+        </details>
+
+      </div>
+
+      <h3>📕 C. 現金流量表（Cash Flow Statement）相關</h3>
+      <div class="glossary-grid">
+
+        <details class="gloss">
+          <summary>Operating Cash Flow（營業現金流，OCF）</summary>
+          <div class="gloss-body">
+            公司「本業」實際進出的現金（已扣除應收/應付帳款變動）。
+            AVAV FY26 = -$78.4M → 本業還沒開始賺現金。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>Free Cash Flow（自由現金流，FCF）</summary>
+          <div class="gloss-body">
+            <code>OCF − Capital Expenditure（資本支出，購置設備/廠房）</code>
+            = 公司「扣掉維持營運必要的投資後」剩下可自由分配的現金。
+            <br><br>
+            FCF 為負不代表公司會死，代表正在燒錢擴張（買設備、建庫存）。
+            <strong>但要持續監控 — 燒超過 24 個月沒改善就有融資風險</strong>。
+            AVAV FY26 FCF = -$141M，比 FY25 的 -$21M 惡化 6.7 倍，這是最讓分析師擔心的點。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>Levered Free Cash Flow（LFCF）</summary>
+          <div class="gloss-body">
+            <code>FCF − 還本付息後</code>，是「股東實際能拿到的現金」。
+            AVAV FY26 LFCF = -$251M（比 FCF 還糟，因有收購相關的一次性利息支出）。
+          </div>
+        </details>
+
+      </div>
+
+      <h3>📙 D. 估值倍數（Valuation Multiples）</h3>
+      <div class="glossary-grid">
+
+        <details class="gloss">
+          <summary>Forward P/E（本益比，未來）</summary>
+          <div class="gloss-body">
+            <code>股價 ÷ 預估未來 12 個月 EPS</code> = 你願意付幾年的獲利買這檔股票。
+            <br><br>
+            AVAV Forward P/E 53.24× = 你願意付 53 年的獲利（53 年才回本），
+            對成長股合理（一般 S&P 500 是 20-25×）。
+            <br><br>
+            <strong>關鍵變體</strong>：
+            <ul style="margin:8px 0 0 20px;">
+              <li><strong>Trailing P/E</strong> = 用過去 12 個月 EPS（滯後）</li>
+              <li><strong>Forward P/E</strong> = 用未來 12 個月 EPS（領先，分析師偏愛）</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>PEG Ratio（本益成長比）</summary>
+          <div class="gloss-body">
+            <code>P/E ÷ 盈餘成長率 %</code>，把成長考慮進去。
+            <br><br>
+            PEG &lt; 1 = 便宜，&gt; 2 = 貴。
+            AVAV PEG 34.12（KTOS）→ 偏貴；AVAV PEG 沒給因為 GAAP 虧損。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>P/S（市銷比）</summary>
+          <div class="gloss-body">
+            <code>市值 ÷ 營收</code>，適用於還沒賺錢的公司。
+            AVAV = 4.74× → 對軍工硬體公司算合理（一般 2-5×）。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>P/B（市淨比）</summary>
+          <div class="gloss-body">
+            <code>股價 ÷ 每股帳面價值</code>。
+            AVAV = 2.20× → 略高，但軍工股普遍 3-5×，相對便宜。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>EV / Revenue 與 EV / EBITDA（企業價值倍數）</summary>
+          <div class="gloss-body">
+            <strong>EV</strong>（Enterprise Value，企業價值）= 市值 + 淨負債 = 「買下整家公司要花的錢」。
+            <br><br>
+            <strong>EV/Revenue</strong> 比 P/S 更嚴格（把債務也算進去）。
+            <strong>EV/EBITDA</strong> 比 P/E 更嚴格（同理）。軍工股常用這兩個。
+            <br><br>
+            AVAV EV/EBITDA 69.62× → 高，因為 EBITDA 還在 $200M 級別（剛起飛）。
+          </div>
+        </details>
+
+      </div>
+
+      <h3>📓 E. 籌碼面相關</h3>
+      <div class="glossary-grid">
+
+        <details class="gloss">
+          <summary>Short Interest（放空部位）</summary>
+          <div class="gloss-body">
+            借券放空還沒回補的股數。
+            <strong>Short % of Float</strong> = 放空股數 ÷ 可流通在外股數。
+            <br><br>
+            AVAV = 12.56%（5 月為 11.38%，6 月上升到 12.56%）→ 空方加碼中。
+            越高代表軋空（Squeeze）風險越大，但也是空方認為會跌的證據。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>Short Ratio / Days to Cover（回補天數）</summary>
+          <div class="gloss-body">
+            <code>放空股數 ÷ 平均日成交量</code> = 全部回補要幾天。
+            AVAV = 3.85 天 → 中等，不算極端軋空候選（RCAT 是 1.67 天更具備）。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>Float（流通在外股數）</summary>
+          <div class="gloss-body">
+            = 總股數 − 內部人持有 − 限制性股票 = 真正可以在市場買賣的股數。
+            AVAV Float 37.9M / 總股 50.6M → <strong>74.9%</strong> 在外流通，波動會放大。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>Beta（β 值，市場敏感度）</summary>
+          <div class="gloss-body">
+            衡量個股相對大盤（S&P 500）的波動程度。
+            <ul style="margin:8px 0 0 20px;">
+              <li>β = 1 → 跟大盤一樣</li>
+              <li>β &gt; 1 → 比大盤兇（AVAV = 1.39）</li>
+              <li>β &lt; 1 → 比大盤溫和</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>Institutional %（機構持股比例）</summary>
+          <div class="gloss-body">
+            共同基金、避險基金、退休基金等專業投資機構持股佔比。
+            AVAV = 89.12% → 非常高，這是大型軍工股的典型特徵。
+            <strong>高機構持股</strong> = 較穩定，但也代表散戶買進會被機構洗出場。
+          </div>
+        </details>
+
+      </div>
+
+      <h3>📔 F. 軍工 / 無人機產業專有名詞</h3>
+      <div class="glossary-grid">
+
+        <details class="gloss">
+          <summary>Switchblade（遊蕩彈 / 自殺無人機）</summary>
+          <div class="gloss-body">
+            一種小型可拋棄式無人機，能盤旋等待目標，再俯衝攻擊。
+            AVAV 是最大供應商，烏克蘭戰場大量使用而聲名大噪。
+            型號 300（小型反人員）、600（反裝甲）。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>C-UAS（Counter-UAS，反無人機系統）</summary>
+          <div class="gloss-body">
+            偵測、辨識、干擾、摧毀敵方無人機的整套系統。
+            包含：雷達、RF 偵測器、干擾槍（如 DroneHunter）、攔截機。
+            市場成長比無人機本體更快 — 因為便宜無人機太多，防守需求爆發。
+            AVAV 的 Titan 系統是其中一線產品。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>IDIQ（Indefinite Delivery / Indefinite Quantity）合約</summary>
+          <div class="gloss-body">
+            美國政府常用的一種長期採購框架合約 — 設定<strong>上限金額</strong>與<strong>合約期間</strong>，
+            但不保證一定下單，客戶按需要分批下 task order。
+            <br><br>
+            AVAV 這次拿到 $500M IDIQ 5年 = 「最多可以買 $500M，但要逐年下單」。
+            對營收的貢獻會分 5 年認列。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>JIATF-401（Joint Interagency Task Force 401）</summary>
+          <div class="gloss-body">
+            美國南方司令部（SOUTHCOM）底下的跨部會工作組，
+            專責美國本土「Domestic Shield」反無人機任務。
+            AVAV 是其主要供應商。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>Puma（中型 ISR 無人機）</summary>
+          <div class="gloss-body">
+            AVAV 老牌中程偵察無人機，固定翼設計，續航 2-3 小時，
+            主要客戶：美軍、北約盟國（這次德國）。
+          </div>
+        </details>
+
+        <details class="gloss">
+          <summary>Titan（C-UAS 系統）</summary>
+          <div class="gloss-body">
+            AVAV 自家研發的「軟殺」（soft-kill）反無人機系統，
+            用電子干擾切斷無人機與操作員的通訊，讓它迫降或返航。
+          </div>
+        </details>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ ACTIONS ============ -->
+  <section id="actions">
+    <div class="container">
+      <h2><span class="num">8</span>操作建議</h2>
+      <p class="section-lead">基於以上分析，給三種風險胃口的進場策略：</p>
+
+      <div class="grid-3">
+        <div class="card success">
+          <h4>🟢 保守派</h4>
+          <p><strong>先不進場</strong>。</p>
+          <p>等 7/8 Investor Day 後再看。若 Q1 FY27 營收年增 + 毛利率改善 → 進場。</p>
+          <p style="margin-top:12px;color:var(--text-secondary);">適合：不想承擔短期波動的投資人。</p>
+        </div>
+        <div class="card callout">
+          <h4>🟡 平衡派（推薦）</h4>
+          <p><strong>小部位試單</strong>（倉位 ≤ 5%）</p>
+          <p>分 3 批進：$180 / $165 / $150。設 -15% 停損。</p>
+          <p style="margin-top:12px;color:var(--text-secondary);">對應「基本派」$180~$220 區間看法。</p>
+        </div>
+        <div class="card warning">
+          <h4>🔴 積極派</h4>
+          <p><strong>現在進場</strong>。</p>
+          <p>目標 $250（共識均值），$300 開始減碼，$170 停損。</p>
+          <p style="margin-top:12px;color:var(--text-secondary);">前提：相信 NATO + C-UAS 題材會持續兌現。</p>
+        </div>
+      </div>
+
+      <h3>重要提醒 ⚠️</h3>
+      <div class="card danger">
+        <p>1. 7/8 NYC Investor Day 當天波動可能 ±10%，避開當天進場。</p>
+        <p style="margin-top:6px;">2. 分批進場，絕不一次 all-in。</p>
+        <p style="margin-top:6px;">3. 設定 <strong>-15% 停損</strong>，軍工股波動劇烈，不可戀棧。</p>
+        <p style="margin-top:6px;">4. 同業對照：KTOS 是更穩健的替代方案（有真正 EPS $0.17 與淨現金 $1.27B）。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <div class="container">
+      <div>
+        <strong style="color:var(--text-primary);">JustKM</strong> · 無人機產業研究
+      </div>
+      <div>
+        <a href="https://github.com/RinRyanJi/JustKM/tree/main/invest/drone">GitHub 原始檔</a>
+        ·
+        <a href="https://RinRyanJi.github.io/JustKM/invest/drone/avav-analysis-2026-07.html">線上版</a>
+        ·
+        <a href="./course.html">返回美股教學</a>
+      </div>
+    </div>
+    <div class="container" style="margin-top:16px;">
+      © 2026 JustKM · 資料來源：Yahoo Finance, Stock Analysis, Investing.com, AeroVironment IR · 本報告僅供研究參考，不構成投資建議
+    </div>
+  </footer>
+
+  <script>
+    // Restore theme
+    if (localStorage.getItem('justkm-theme') === 'dark') {
+      document.documentElement.dataset.theme = 'dark';
+      document.querySelector('.theme-toggle').textContent = '☀️ Light';
+    }
+    document.querySelector('.theme-toggle').onclick = () => {
+      const isDark = document.documentElement.dataset.theme === 'dark';
+      if (isDark) {
+        document.documentElement.dataset.theme = '';
+        document.querySelector('.theme-toggle').textContent = '🌙 Dark';
+        localStorage.setItem('justkm-theme', 'light');
+      } else {
+        document.documentElement.dataset.theme = 'dark';
+        document.querySelector('.theme-toggle').textContent = '☀️ Light';
+        localStorage.setItem('justkm-theme', 'dark');
+      }
+    };
+  </script>
+</body>
+</html>
