@@ -108,9 +108,144 @@
     @media print {
       body { padding: 0; }
     }
-  </style>
+  <style> 區塊加入以下變數:
+       :root { --font-scale: 1; }
+       html { font-size: calc(16px * var(--font-scale)); }
+     並把現有字體的 px 改為 rem（或保留 px 讓 calc 處理整體縮放）
+
+  2. HTML 在 <body> 內第一行插入:
+       <div class="font-adjuster" role="group" aria-label="字級調整">
+         <button id="fa-dec" title="字級變小">A−</button>
+         <span class="fa-label">字級</span>
+         <span class="fa-value" id="fa-value">100%</span>
+         <button id="fa-inc" title="字級變大">A+</button>
+         <button id="fa-reset" title="重設" style="font-size:11px;">⟲</button>
+       </div>
+
+  3. JS 在 <script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1;
+    const MIN = 0.7;
+    const MAX = 1.6;
+    const DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      if (valEl) valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+
+    let saved = DEFAULT;
+    try {
+      const v = localStorage.getItem(KEY);
+      if (v) saved = parseFloat(v) || DEFAULT;
+    } catch(e) {}
+    apply(saved);
+
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+
+    // 鍵盤快捷鍵: Cmd/Ctrl + = (放大) / - (縮小) / 0 (重設)
+    document.addEventListener('keydown', (e) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      if (e.key === '+' || e.key === '=') {
+        e.preventDefault();
+        apply(cur + STEP);
+      } else if (e.key === '-') {
+        e.preventDefault();
+        apply(cur - STEP);
+      } else if (e.key === '0') {
+        e.preventDefault();
+        apply(DEFAULT);
+      }
+    });
+  })();
+</script>
+</body> 之前插入:
+       <script src="/js/font-adjuster.js"></script>
+-->
+<style>
+  :root { --font-scale: 1; }
+  html { font-size: calc(16px * var(--font-scale)); }
+  .font-adjuster {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 999;
+    background: var(--bg-secondary, #131826);
+    border: 1px solid var(--border, #2a3454);
+    border-radius: 10px;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+  }
+  .font-adjuster button {
+    background: var(--bg-card, #1a2138);
+    border: 1px solid var(--border, #2a3454);
+    color: var(--text-primary, #e8ecf4);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+  }
+  .font-adjuster button:hover {
+    background: var(--accent, #4f9eff);
+    color: white;
+    border-color: var(--accent, #4f9eff);
+  }
+  .font-adjuster .fa-label {
+    font-size: 11px;
+    color: var(--text-muted, #6b7390);
+    margin: 0 4px;
+    letter-spacing: 0.5px;
+  }
+  .font-adjuster .fa-value {
+    font-size: 11px;
+    color: var(--accent, #4f9eff);
+    font-weight: 700;
+    min-width: 36px;
+    text-align: center;
+    font-family: 'SF Mono', monospace;
+  }
+  @media (max-width: 600px) {
+    .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+    .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+  }
+</style>
+</style>
 </head>
 <body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (Cmd/Ctrl + -)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (Cmd/Ctrl + +)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (Cmd/Ctrl + 0)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
 
 <h1>📈 美股交易速查表</h1>
 <div class="sub">/Users/caro/AutoInvest/cheatsheet.html · 列印於 A4 紙貼桌邊</div>

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>網路小白入門：REST 與 WebSocket · JustKM</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131826;
+      --bg-card: #1a2138;
+      --bg-code: #0f1424;
+      --border: #2a3454;
+      --text-primary: #e8ecf4;
+      --text-secondary: #9aa3b8;
+      --text-muted: #6b7390;
+      --accent: #4f9eff;
+      --accent-green: #00d68f;
+      --accent-orange: #ff9f43;
+      --accent-red: #ff4d6d;
+      --accent-purple: #a855f7;
+      /* 字級調整器 — 預設 100% */
+      --font-scale: 1;
+    }
+    /* ===== 字級調整器全域 ===== */
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.75;
+      min-height: 100vh;
+      padding: 40px 20px 80px;
+    }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    /* ===== 字級調整器 UI ===== */
+    .font-adjuster {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 999;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(8px);
+    }
+    .font-adjuster button {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .font-adjuster button:hover {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    .font-adjuster .fa-label {
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      margin: 0 4px;
+      letter-spacing: 0.5px;
+    }
+    .font-adjuster .fa-value {
+      font-size: 0.6875rem;
+      color: var(--accent);
+      font-weight: 700;
+      min-width: 36px;
+      text-align: center;
+      font-family: 'SF Mono', monospace;
+    }
+
+    .hero {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 32px;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #4f9eff 0%, #00d68f 50%, #a855f7 100%);
+    }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .hero .sub { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 16px; }
+    .badge {
+      display: inline-block;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 0.6875rem;
+      color: var(--text-secondary);
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+    .badge.blue { color: var(--accent); border-color: var(--accent); }
+    .badge.green { color: var(--accent-green); border-color: var(--accent-green); }
+    .badge.purple { color: var(--accent-purple); border-color: var(--accent-purple); }
+
+    .toc {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 32px;
+    }
+    .toc-title {
+      font-size: 0.8125rem; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+    }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 6px;
+    }
+    .toc a {
+      color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem;
+      padding: 5px 10px; border-radius: 6px; transition: all 0.15s;
+    }
+    .toc a:hover { color: var(--accent); background: var(--bg-card); }
+
+    section {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      scroll-margin-top: 20px;
+    }
+    section h2 {
+      font-size: 1.375rem; font-weight: 700; margin-bottom: 4px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    section h2 .num {
+      color: var(--accent); font-size: 0.875rem; font-weight: 800;
+      background: var(--bg-card); padding: 2px 8px; border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    section h3 {
+      font-size: 1.0625rem; font-weight: 700; color: var(--accent);
+      margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    section h4 {
+      font-size: 0.875rem; font-weight: 700; color: var(--text-secondary);
+      margin-top: 18px; margin-bottom: 6px;
+    }
+    section p { margin-bottom: 10px; color: var(--text-secondary); font-size: 0.875rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--text-secondary); font-size: 0.875rem; }
+    section li { margin-bottom: 4px; }
+    section strong { color: var(--text-primary); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.8125rem; }
+    th { text-align: left; background: var(--bg-card); color: var(--text-primary); padding: 9px 12px; border: 1px solid var(--border); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+    tr:hover td { background: rgba(79, 158, 255, 0.04); }
+
+    pre {
+      background: var(--bg-code); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px 16px;
+      overflow-x: auto; margin: 10px 0 14px;
+      font-size: 0.78125rem; line-height: 1.55;
+    }
+    pre code { color: #e8ecf4; }
+    .lang-tag {
+      display: inline-block; font-size: 0.625rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 4px; font-weight: 700;
+    }
+    p code, li code, td code {
+      background: var(--bg-code); border: 1px solid var(--border);
+      padding: 1px 6px; border-radius: 4px;
+      font-size: 0.78125rem; color: var(--accent-orange);
+    }
+
+    .callout {
+      border-left: 3px solid var(--accent); background: var(--bg-card);
+      padding: 12px 16px; border-radius: 0 8px 8px 0;
+      margin: 12px 0 16px; font-size: 0.84375rem; color: var(--text-secondary);
+    }
+    .callout.warn { border-left-color: var(--accent-orange); }
+    .callout.danger { border-left-color: var(--accent-red); }
+    .callout.tip { border-left-color: var(--accent-green); }
+    .callout.info { border-left-color: var(--accent-blue, var(--accent)); }
+    .callout strong { color: var(--text-primary); }
+
+    .back-home {
+      display: inline-block; margin-bottom: 20px;
+      color: var(--accent); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--border);
+      border-radius: 8px; background: var(--bg-secondary);
+    }
+    .back-home:hover { border-color: var(--accent); }
+    .footer {
+      text-align: center; color: var(--text-muted); font-size: 0.75rem;
+      margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border);
+    }
+
+    .status-pill {
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      font-size: 0.6875rem; font-family: monospace; font-weight: 700;
+    }
+    .sp-200 { background: rgba(0, 214, 143, 0.15); color: var(--accent-green); }
+    .sp-400 { background: rgba(255, 159, 67, 0.15); color: var(--accent-orange); }
+    .sp-403 { background: rgba(255, 77, 109, 0.15); color: var(--accent-red); }
+
+    .diagram {
+      background: var(--bg-code); border: 1px solid var(--border);
+      border-radius: 8px; padding: 16px 18px;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.78125rem;
+      color: var(--text-secondary);
+      white-space: pre;
+      overflow-x: auto;
+      line-height: 1.5;
+    }
+    .diagram .arrow { color: var(--accent); }
+    .diagram .label { color: var(--accent-green); }
+
+    .related {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 16px 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .related a {
+      color: var(--accent); text-decoration: none; font-size: 0.875rem;
+      padding: 10px 14px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--bg-secondary);
+      transition: all 0.15s;
+      display: block;
+    }
+    .related a:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .related .rel-title { color: var(--text-primary); font-weight: 700; }
+    .related .rel-sub { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 600px) {
+      .related { grid-template-columns: 1fr; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../index.html">← 回到 JustKM 首頁</a>
+
+  <div class="hero">
+    <h1>🌐 網路小白入門：REST 與 WebSocket</h1>
+    <p class="sub">學任何 API 之前的必備知識 · 5 分鐘搞懂兩種網路通訊模式</p>
+    <div>
+      <span class="badge blue">零基礎友善</span>
+      <span class="badge green">不需 API Key</span>
+      <span class="badge purple">含可跑範例</span>
+      <span class="badge">附 ASCII 流程圖</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#intro">⓪ 一句話總結</a>
+      <a href="#rest">① REST 概念</a>
+      <a href="#rest-verbs">② HTTP 4 大動詞</a>
+      <a href="#rest-flow">③ REST 流程圖</a>
+      <a href="#status">④ HTTP Status Code</a>
+      <a href="#ws">⑤ WebSocket 概念</a>
+      <a href="#ws-flow">⑥ WebSocket 流程圖</a>
+      <a href="#compare">⑦ REST vs WebSocket 對比</a>
+      <a href="#try">⑧ 動手試範例</a>
+      <a href="#next">⑨ 接下來學什麼？</a>
+    </div>
+  </nav>
+
+  <!-- ============================ ⓪ ============================ -->
+  <section id="intro">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+
+    <p>在學任何 API（包括 Alpaca、Shioaji、券商網站）之前，先把兩個核心概念搞清楚 — <strong>REST</strong> 與 <strong>WebSocket</strong>。</p>
+
+    <table>
+      <thead><tr><th>類型</th><th>生活比喻</th><th>特性</th><th>Alpaca 用在哪</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>REST</strong></td>
+          <td>📞 <strong>打電話叫外送</strong><br>你打一次、店家回應一次、對話結束</td>
+          <td>單次請求/回應、簡單、無狀態</td>
+          <td>查帳戶、下單、看持倉、看 K 線</td>
+        </tr>
+        <tr>
+          <td><strong>WebSocket</strong></td>
+          <td>📡 <strong>LINE 群組</strong><br>雙方保持連線，誰有消息就 push 過去</td>
+          <td>持續連線、雙向、伺服器主動推送</td>
+          <td>即時報價、即時成交、訂單更新推播</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <strong>💡 最簡記法</strong>
+      <ul style="margin-top:6px;">
+        <li><strong>REST</strong> = 「我去<em>問</em>，伺服器<em>答</em>，結束」→ 適合查資料、下單</li>
+        <li><strong>WebSocket</strong> = 「我們<em>保持通話</em>，誰有消息就<em> push</em>」→ 適合即時報價</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============================ ① ============================ -->
+  <section id="rest">
+    <h2><span class="num">①</span> REST — 請問、回答、結束</h2>
+
+    <p><strong>REST</strong> 全名 <em>Representational State Transfer</em>，是現今網路最常用的 API 風格。
+    它的核心精神很簡單：你送一個「請求」給伺服器，伺服器回一個「回應」，然後對話就結束了。</p>
+
+    <p>想像你去餐廳：</p>
+    <ol>
+      <li>你走到櫃台（送出請求）</li>
+      <li>你說「我要一份炒飯」（附帶資訊）</li>
+      <li>服務生說「好的，$100」（收到回應）</li>
+      <li>對話結束（連線關閉）</li>
+    </ol>
+
+    <p>下次你想再點，就要重新走一次這個流程。伺服器不會記得你「上次」點過什麼。</p>
+  </section>
+
+  <!-- ============================ ② ============================ -->
+  <section id="rest-verbs">
+    <h2><span class="num">②</span> HTTP 4 大動詞（REST 的語言）</h2>
+
+    <p>REST 用 4 個「動詞」告訴伺服器你要做什麼。這 4 個動詞是 HTTP 標準的，瀏覽器、APP、Python 程式都通用。</p>
+
+    <table>
+      <thead><tr><th>HTTP 動詞</th><th>意思</th><th>生活例子</th><th>Alpaca 例子</th></tr></thead>
+      <tbody>
+        <tr><td><code>GET</code></td><td>查（不修改資料）</td><td>看菜單</td><td>查帳戶餘額 <code>GET /v2/account</code></td></tr>
+        <tr><td><code>POST</code></td><td>新增一筆</td><td>下單點餐</td><td>下單 <code>POST /v2/orders</code></td></tr>
+        <tr><td><code>PATCH</code></td><td>修改部分</td><td>改訂單數量</td><td>改單 <code>PATCH /v2/orders/{id}</code></td></tr>
+        <tr><td><code>DELETE</code></td><td>刪除</td><td>取消訂單</td><td>刪單 <code>DELETE /v2/orders/{id}</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <strong>📌 為什麼動詞不是中文？</strong><br>
+      HTTP 規範定義在 <a href="https://datatracker.ietf.org/doc/html/rfc7231" style="color:var(--accent);">RFC 7231</a>，
+      是全球通用的網路標準。無論你在台灣、日本、美國，用的動詞都一樣。
+    </div>
+  </section>
+
+  <!-- ============================ ③ ============================ -->
+  <section id="rest-flow">
+    <h2><span class="num">③</span> REST 流程圖（用 ASCII 圖看清楚）</h2>
+
+    <p>下方這張圖展示一個 REST 請求的完整流程：</p>
+
+    <div class="diagram">你（瀏覽器/程式）                Alpaca 伺服器
+       │                                  │
+       │  <span class="arrow">── GET /v2/account ──►</span>    │   (1) 你發出請求
+       │                                  │   (2) 伺服器查詢資料庫
+       │  <span class="arrow">◄── JSON 資料 ──────</span>    │   (3) 回傳結果
+       │                                  │
+       │  <span class="label">← 連線關閉 →</span>              │   (4) 結束
+       │                                  │</div>
+
+    <h4>💻 實際範例（用 curl 問 Alpaca 帳戶）</h4>
+    <span class="lang-tag">bash</span>
+    <pre><code>curl -X GET \
+  -H "APCA-API-KEY-ID: YOUR_KEY_ID" \
+  -H "APCA-API-SECRET-KEY: YOUR_SECRET" \
+  https://paper-api.alpaca.markets/v2/account</code></pre>
+
+    <p>伺服器會回一段 JSON：</p>
+    <pre><code>{
+  "id": "904837e3-3b76-47ec-b432-046db621571b",
+  "account_number": "PA1234567890",
+  "status": "ACTIVE",
+  "cash": "10000.00",
+  "portfolio_value": "15000.00",
+  "buying_power": "20000.00",
+  ...
+}</code></pre>
+
+    <p>就這樣，<strong>一個請求、一個回應、結束</strong>。</p>
+  </section>
+
+  <!-- ============================ ④ ============================ -->
+  <section id="status">
+    <h2><span class="num">④</span> HTTP Status Code（伺服器告訴你結果的編號）</h2>
+
+    <p>伺服器回應的時候，除了 JSON 資料外，還會帶一個三位數的<strong>狀態碼</strong>。第一個數字代表大類別：</p>
+
+    <table>
+      <thead><tr><th>代碼範圍</th><th>意思</th></tr></thead>
+      <tbody>
+        <tr><td><strong>2xx</strong></td><td>✅ 成功（你的請求 OK）</td></tr>
+        <tr><td><strong>3xx</strong></td><td>🔄 重新導向（網址搬了）</td></tr>
+        <tr><td><strong>4xx</strong></td><td>❌ 你端錯了（送錯格式、沒權限）</td></tr>
+        <tr><td><strong>5xx</strong></td><td>💥 伺服器錯了（系統當機）</td></tr>
+      </tbody>
+    </table>
+
+    <h3>你會遇到的 9 個常見狀態碼</h3>
+    <table>
+      <thead><tr><th>Code</th><th>意思</th><th>你該怎麼做</th></tr></thead>
+      <tbody>
+        <tr><td><span class="status-pill sp-200">200</span></td><td>✅ 成功</td><td>拿資料用</td></tr>
+        <tr><td><span class="status-pill sp-200">201</span></td><td>✅ 建立成功（POST 用）</td><td>拿資料用</td></tr>
+        <tr><td><span class="status-pill sp-400">400</span></td><td>❌ 你送出的格式錯了</td><td>檢查 JSON、必填欄位</td></tr>
+        <tr><td><span class="status-pill sp-400">401</span></td><td>❌ 沒帶 API Key</td><td>檢查 Header</td></tr>
+        <tr><td><span class="status-pill sp-403">403</span></td><td>❌ Key 錯或權限不足</td><td>檢查 Key、餘額、PDT</td></tr>
+        <tr><td><span class="status-pill sp-400">404</span></td><td>❌ 路徑錯了</td><td>檢查 URL 拼字</td></tr>
+        <tr><td><span class="status-pill sp-400">422</span></td><td>❌ 內容格式對但邏輯錯</td><td>看 error message</td></tr>
+        <tr><td><span class="status-pill sp-400">429</span></td><td>❌ 請求太頻繁</td><td>睡一下再試（rate limit）</td></tr>
+        <tr><td><span class="status-pill sp-403">500</span></td><td>💥 伺服器當機</td><td>稍後再試或聯絡客服</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>⚠️ 菜鳥最容易搞混</strong>：<code>404</code> 不一定是「網頁不存在」，
+      在 API 中通常是「你打的 endpoint 路徑錯了」；<code>403</code> 不一定是「被禁止」，
+      Alpaca 中常見是「帳戶餘額不足」或「PDT 限制」。
+    </div>
+  </section>
+
+  <!-- ============================ ⑤ ============================ -->
+  <section id="ws">
+    <h2><span class="num">⑤</span> WebSocket — 一直保持連線，誰有消息誰就 push</h2>
+
+    <p><strong>WebSocket</strong> 是瀏覽器與伺服器之間的<strong>長連線</strong>。連線建立後，雙方隨時可以互相傳訊息，不用每次都重新「打招呼」。</p>
+
+    <p>想像你加入 LINE 群組：</p>
+    <ol>
+      <li>你加入群組（建立連線）</li>
+      <li>群組成員開始聊天（雙向訊息）</li>
+      <li>有新訊息自動跳出來（伺服器主動推送）</li>
+      <li>你不必一直問「有新的嗎？」（不需要輪詢）</li>
+      <li>你退群才結束（手動關閉連線）</li>
+    </ol>
+
+    <h3>🎯 什麼時候該用 WebSocket？</h3>
+    <ul>
+      <li>✅ 你<strong>需要即時資料</strong>（每秒數十筆的報價）</li>
+      <li>✅ 你<strong>不想一直問</strong>伺服器「有新的嗎？」</li>
+      <li>✅ 你想讓<strong>伺服器主動通知你</strong>（訂單成交、價格觸發）</li>
+    </ul>
+
+    <p>反過來說，如果你只是想<strong> 5 秒鐘查一次 </strong>股價，REST 輪詢（每 5 秒送一次 GET）就夠了，WebSocket 反而太複雜。</p>
+  </section>
+
+  <!-- ============================ ⑥ ============================ -->
+  <section id="ws-flow">
+    <h2><span class="num">⑥</span> WebSocket 流程圖</h2>
+
+    <div class="diagram">你（程式）                          Alpaca 伺服器
+       │                                      │
+       │  <span class="arrow">── 請求升級成 WS ──►</span>          │   (1) 用 HTTP 發起升級請求
+       │  <span class="arrow">◄── 101 Switching ───</span>        │   (2) 伺服器同意升級
+       │                                      │
+       │  <span class="label">← 連線保持 →</span>                    │   (3) 持續連線（長時間）
+       │                                      │
+       │  <span class="arrow">── {"action":"auth"} ►</span>        │   (4) 你送認證
+       │  <span class="arrow">── {"action":"subscribe"} ►</span>  │   (5) 你訂閱 BTC/USD 報價
+       │                                      │
+       │  <span class="arrow">◄── {報價 1} ─────</span>           │   (6) 伺服器主動推播
+       │  <span class="arrow">◄── {報價 2} ─────</span>           │   (7) 又一筆成交
+       │  <span class="arrow">◄── {報價 3} ─────</span>           │   (8) 又有新報價
+       │  <span class="arrow">◄── {報價 4} ─────</span>           │
+       │                                      │
+       │  <span class="label">← 連線保持（直到你關） →</span>      │</div>
+
+    <h4>🔧 連線範例（用裸 WebSocket）</h4>
+    <span class="lang-tag">python</span>
+    <pre><code>import websocket   # pip install websocket-client
+import json
+
+def on_open(ws):
+    # 認證
+    ws.send(json.dumps({
+        'action': 'auth',
+        'key': 'YOUR_KEY_ID',
+        'secret': 'YOUR_SECRET_KEY'
+    }))
+    # 訂閱 BTC/USD 與 ETH/USD 的即時報價
+    ws.send(json.dumps({
+        'action': 'subscribe',
+        'trades': ['BTC/USD'],
+        'quotes': ['ETH/USD']
+    }))
+
+def on_message(ws, msg):
+    arr = json.loads(msg)
+    for item in arr:
+        t = item.get('T')
+        if t == 't':    # trade
+            print(f"TRADE {item['S']} px={item['p']} qty={item['s']}")
+        elif t == 'q':  # quote
+            print(f"QUOTE {item['S']} bid={item['bp']} ask={item['ap']}")
+
+ws = websocket.WebSocketApp(
+    'wss://stream.data.alpaca.markets/v1beta2/crypto',
+    on_open=on_open,
+    on_message=on_message
+)
+ws.run_forever()   # 一直保持連線</code></pre>
+
+    <p>注意：這個範例一旦啟動，就<strong>不會自動結束</strong>，因為它要持續接收推播。按 <code>Ctrl+C</code> 結束。</p>
+  </section>
+
+  <!-- ============================ ⑦ ============================ -->
+  <section id="compare">
+    <h2><span class="num">⑦</span> REST vs WebSocket 對比表</h2>
+
+    <table>
+      <thead><tr><th>面向</th><th>REST</th><th>WebSocket</th></tr></thead>
+      <tbody>
+        <tr><td>連線模式</td><td>短連線（問完就斷）</td><td>長連線（一直保持）</td></tr>
+        <tr><td>發起方</td><td>永遠是<strong>客戶端</strong></td><td>雙方都可以</td></tr>
+        <tr><td>通訊單位</td><td>HTTP 請求/回應</td><td>JSON 訊息（雙向）</td></tr>
+        <tr><td>即時性</td><td>差（要輪詢）</td><td>極佳（伺服器主動推）</td></tr>
+        <tr><td>資源消耗</td><td>低（短連線）</td><td>較高（持續佔用 socket）</td></tr>
+        <tr><td>複雜度</td><td>簡單（curl 就能用）</td><td>較複雜（需管理連線）</td></tr>
+        <tr><td>斷線處理</td><td>無需處理</td><td>需要重連邏輯</td></tr>
+        <tr><td>適合場景</td><td>CRUD、報表、定期抓資料</td><td>即時報價、聊天室、通知</td></tr>
+        <tr><td>Alpaca 應用</td><td>下單、查持倉、看 K 線</td><td>即時報價、訂單狀態推播</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>🤔 該用哪個？</strong><br>
+      • 想<strong>查資料、下單、看 K 線</strong> → REST<br>
+      • 想<strong>即時知道價格變動</strong> → WebSocket<br>
+      • 想<strong>被通知訂單成交</strong> → WebSocket（trade_updates）<br>
+      • <strong>大多數情境</strong> → REST 為主，WebSocket 為輔
+    </div>
+  </section>
+
+  <!-- ============================ ⑧ ============================ -->
+  <section id="try">
+    <h2><span class="num">⑧</span> 動手試：兩個都能跑的最簡範例</h2>
+
+    <p>以下兩個 Python 範例<strong>完全不需要 Alpaca Key</strong>，用公開測試站即可跑通。先試試看，會更有感覺。</p>
+
+    <h3>範例 A：REST（用 httpbin.org 模擬伺服器）</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>import requests   # pip install requests
+
+# GET 請求 — 像打電話問「現在幾點」
+r = requests.get('https://httpbin.org/get')
+print(f"狀態碼: {r.status_code}")   # 200
+print(f"回應 JSON: {r.json()}")
+
+# POST 請求 — 像打電話說「我要點一份炒飯」
+r = requests.post('https://httpbin.org/post',
+                  json={'symbol': 'BTC/USD', 'qty': 0.01})
+print(f"伺服器說: {r.json()['json']}")   # 把你送的資料 echo 回來</code></pre>
+
+    <p>預期輸出：</p>
+    <pre><code>狀態碼: 200
+回應 JSON: {'args': {}, 'headers': {...}, 'origin': '...', 'url': '...'}
+伺服器說: {'symbol': 'BTC/USD', 'qty': 0.01}</code></pre>
+
+    <h3>範例 B：WebSocket（用 echo.websocket.org 測試）</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>import websocket   # pip install websocket-client
+
+# 建立連線
+ws = websocket.create_connection('wss://echo.websocket.org')
+
+# 你送一句話
+ws.send('Hello, 伺服器!')
+
+# 伺服器 echo 回來
+reply = ws.recv()
+print(f"伺服器說: {reply}")
+
+# 關閉
+ws.close()</code></pre>
+
+    <p>預期輸出：</p>
+    <pre><code>伺服器說: Hello, 伺服器!</code></pre>
+
+    <p>這個範例中：你連上一個 echo 伺服器，送什麼它就回什麼。<strong>真實 Alpaca WebSocket</strong> 差別只在伺服器會<strong>主動推播行情</strong>，不只回應你的訊息。</p>
+
+    <div class="callout tip">
+      <strong>💡 練習建議</strong>：
+      <ol style="margin-top:6px;">
+        <li>先跑範例 A（簡單），看到 200 跟 JSON 就成功了</li>
+        <li>再跑範例 B（稍難），看到 echo 回來就成功了</li>
+        <li>範例 B 如果一直沒收到回應，檢查防火牆（公司網路常擋 WS）</li>
+        <li>兩個都成功後，你已經準備好學任何 API 了 🎉</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================ ⑨ ============================ -->
+  <section id="next">
+    <h2><span class="num">⑨</span> 接下來學什麼？</h2>
+
+    <p>恭喜你搞懂了 REST 與 WebSocket！這是所有 API 的基礎。</p>
+
+    <h3>🚀 進階推薦閱讀</h3>
+    <div class="related">
+      <a href="./alpaca-api.html">
+        <div class="rel-title">🦙 Alpaca Stock API 中文速查</div>
+        <div class="rel-sub">17 節完整版 · 下單、持倉、即時行情、Python 範例</div>
+      </a>
+      <a href="./alpaca-crypto-api.html">
+        <div class="rel-title">₿ Alpaca Crypto API 中文速查</div>
+        <div class="rel-sub">10 節 · BTC/ETH 交易、WebSocket 報價、6 個範例</div>
+      </a>
+      <a href="./course.html">
+        <div class="rel-title">📈 美股交易教學</div>
+        <div class="rel-sub">投資基礎 · Daytrading · Swing · 風險管理</div>
+      </a>
+      <a href="https://developer.mozilla.org/zh-TW/docs/Web/HTTP/Methods">
+        <div class="rel-title">MDN HTTP 動詞完整參考</div>
+        <div class="rel-sub">外部權威參考（英文為主，含中文版）</div>
+      </a>
+    </div>
+
+    <h3>📚 其他推薦資源</h3>
+    <ul>
+      <li><a href="https://developer.mozilla.org/zh-TW/docs/Web/API/WebSockets_API" style="color:var(--accent);">MDN WebSocket API</a> — WebSocket 完整規格</li>
+      <li><a href="https://zh.wikipedia.org/wiki/REST" style="color:var(--accent);">維基百科 REST</a> — REST 歷史與概念</li>
+      <li><a href="https://httpbin.org/" style="color:var(--accent);">httpbin.org</a> — 練習 REST 的好地方</li>
+      <li><a href="https://www.piesocket.com/websocket-tester" style="color:var(--accent);">PieSocket WebSocket Tester</a> — 瀏覽器內測試 WebSocket</li>
+    </ul>
+
+    <div class="callout info">
+      <strong>📌 學完本節，你應該能回答</strong>：
+      <ol style="margin-top:6px;">
+        <li>為什麼 Alpaca 同時有 REST API 跟 WebSocket？</li>
+        <li>為什麼下單用 REST，但即時報價要用 WebSocket？</li>
+        <li>看到 <code>403</code> 跟 <code>422</code> 時，分別該檢查什麼？</li>
+        <li>怎麼決定一個新功能該用 REST 還是 WebSocket？</li>
+      </ol>
+      如果這 4 題你都能答 → 你已經具備學任何 API 的基礎了 🎉
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · 網路小白入門：REST 與 WebSocket</p>
+    <p style="margin-top:4px;">最後更新：2026-07-11 · 字級調整器在右上角，可隨時改變字體大小</p>
+    <p style="margin-top:4px;"><a href="../index.html" style="color:var(--accent);text-decoration:none;">← 回到 JustKM 首頁</a></p>
+  </div>
+
+</div>
+
+<script>
+  // ========== 字級調整器 ==========
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1;
+    const MIN = 0.7;
+    const MAX = 1.6;
+    const DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+
+    // 從 localStorage 讀取
+    let saved = DEFAULT;
+    try {
+      const v = localStorage.getItem(KEY);
+      if (v) saved = parseFloat(v) || DEFAULT;
+    } catch(e) {}
+    apply(saved);
+
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+
+    // 鍵盤快捷鍵: Cmd/Ctrl + / - / 0
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) {
+        e.preventDefault();
+        const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+        apply(cur + STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '-') {
+        e.preventDefault();
+        const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+        apply(cur - STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '0') {
+        e.preventDefault();
+        apply(DEFAULT);
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>
