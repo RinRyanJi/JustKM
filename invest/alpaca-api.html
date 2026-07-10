@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alpaca API 中文速查 · JustKM</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131826;
+      --bg-card: #1a2138;
+      --bg-code: #0f1424;
+      --border: #2a3454;
+      --text-primary: #e8ecf4;
+      --text-secondary: #9aa3b8;
+      --text-muted: #6b7390;
+      --accent: #4f9eff;
+      --accent-purple: #a855f7;
+      --accent-green: #00d68f;
+      --accent-orange: #ff9f43;
+      --accent-red: #ff4d6d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.75;
+      min-height: 100vh;
+      padding: 40px 20px 80px;
+    }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    /* Header */
+    .hero {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 32px;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #4f9eff 0%, #a855f7 50%, #00d68f 100%);
+    }
+    .hero h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .hero .sub { color: var(--text-secondary); font-size: 14px; margin-bottom: 16px; }
+    .badge {
+      display: inline-block;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+    .badge.green { color: var(--accent-green); border-color: var(--accent-green); }
+    .badge.blue { color: var(--accent); border-color: var(--accent); }
+
+    /* TOC */
+    .toc {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 32px;
+    }
+    .toc-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 6px;
+    }
+    .toc a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 13px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+    .toc a:hover { color: var(--accent); background: var(--bg-card); }
+    .toc .group {
+      grid-column: 1 / -1;
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 700;
+      margin-top: 8px;
+      padding-left: 4px;
+    }
+
+    /* Section */
+    section {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      scroll-margin-top: 20px;
+    }
+    section h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    section h2 .num {
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 800;
+      background: var(--bg-card);
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    section h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-top: 24px;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    section h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-top: 18px;
+      margin-bottom: 6px;
+    }
+    section p { margin-bottom: 10px; color: var(--text-secondary); font-size: 14px; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--text-secondary); font-size: 14px; }
+    section li { margin-bottom: 4px; }
+    section strong { color: var(--text-primary); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    /* Endpoint cards */
+    .endpoint {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'SF Mono', Menlo, monospace;
+      font-size: 13px;
+      flex-wrap: wrap;
+    }
+    .method {
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+    .GET { background: rgba(0, 214, 143, 0.15); color: var(--accent-green); }
+    .POST { background: rgba(79, 158, 255, 0.15); color: var(--accent); }
+    .PATCH { background: rgba(255, 159, 67, 0.15); color: var(--accent-orange); }
+    .DELETE { background: rgba(255, 77, 109, 0.15); color: var(--accent-red); }
+    .PUT { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); }
+    .path { color: var(--text-primary); }
+
+    /* Code blocks */
+    pre {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      overflow-x: auto;
+      margin: 10px 0 14px;
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+    pre code { color: #e8ecf4; }
+    .lang-tag {
+      display: inline-block;
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    /* Inline code */
+    p code, li code, td code {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 12.5px;
+      color: var(--accent-orange);
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 18px;
+      font-size: 13px;
+    }
+    th {
+      text-align: left;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      font-weight: 700;
+    }
+    td {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+    tr:hover td { background: rgba(79, 158, 255, 0.04); }
+
+    /* Callout */
+    .callout {
+      border-left: 3px solid var(--accent);
+      background: var(--bg-card);
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      margin: 12px 0 16px;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+    }
+    .callout.warn { border-left-color: var(--accent-orange); }
+    .callout.danger { border-left-color: var(--accent-red); }
+    .callout.tip { border-left-color: var(--accent-green); }
+    .callout strong { color: var(--text-primary); }
+
+    /* JSON syntax highlights */
+    .jkey { color: #79c0ff; }
+    .jstr { color: #a5d6a7; }
+    .jnum { color: #ffb070; }
+    .jbool { color: #ff7b72; }
+    .jnull { color: #d2a8ff; }
+
+    /* Footer */
+    .back-home {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 14px;
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-secondary);
+    }
+    .back-home:hover { border-color: var(--accent); }
+    .footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Status pill */
+    .status-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: monospace;
+      font-weight: 700;
+    }
+    .sp-200 { background: rgba(0, 214, 143, 0.15); color: var(--accent-green); }
+    .sp-400 { background: rgba(255, 159, 67, 0.15); color: var(--accent-orange); }
+    .sp-403 { background: rgba(255, 77, 109, 0.15); color: var(--accent-red); }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 JustKM 首頁</a>
+
+  <div class="hero">
+    <h1>🦙 Alpaca API 中文速查手冊</h1>
+    <p class="sub">Trading API + Market Data API · 給交易者的精簡實戰版（基於官方 v2 文檔）</p>
+    <div>
+      <span class="badge blue">Trading API</span>
+      <span class="badge green">Market Data</span>
+      <span class="badge">REST + WebSocket</span>
+      <span class="badge">Python SDK 友善</span>
+      <span class="badge">Paper Trading 免費</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <div class="group">▸ 基礎篇</div>
+      <a href="#auth">① 認證與環境</a>
+      <a href="#endpoints">② 速查總表</a>
+      <a href="#account">③ 帳戶 Account</a>
+      <a href="#orders">④ 下單 Orders</a>
+      <a href="#positions">⑤ 持倉 Positions</a>
+      <a href="#assets">⑥ 可交易標的 Assets</a>
+      <a href="#clock">⑦ 市場時鐘 Clock</a>
+      <a href="#calendar">⑧ 交易日曆 Calendar</a>
+      <a href="#watchlist">⑨ 自選股 Watchlist</a>
+      <a href="#activities">⑩ 帳戶活動</a>
+      <a href="#portfolio">⑪ 投資組合歷史</a>
+      <a href="#announcements">⑫ 企業行動公告</a>
+      <a href="#config">⑬ 帳戶設定</a>
+      <div class="group">▸ 進階篇</div>
+      <a href="#streaming">⑭ WebSocket 即時串流</a>
+      <a href="#marketdata">⑮ 行情 API</a>
+      <a href="#examples">⑯ 完整 Python 範例</a>
+      <a href="#rules">⑰ 訂單與部位規則</a>
+    </div>
+  </nav>
+
+  <!-- ============================ ① 認證 ============================ -->
+  <section id="auth">
+    <h2><span class="num">①</span> 認證與環境</h2>
+    <p>所有私有 API 都需要 HTTP Header 帶上兩組 API Key。在 <a href="https://app.alpaca.markets/" style="color:var(--accent);">app.alpaca.markets</a> 開發者後台申請。</p>
+
+    <h3>Endpoint 網域</h3>
+    <table>
+      <thead><tr><th>環境</th><th>REST Base URL</th><th>WebSocket</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Live（實盤）</strong></td><td><code>https://api.alpaca.markets</code></td><td><code>wss://api.alpaca.markets/stream</code></td></tr>
+        <tr><td><strong>Paper（模擬）</strong></td><td><code>https://paper-api.alpaca.markets</code></td><td><code>wss://paper-api.alpaca.markets/stream</code></td></tr>
+        <tr><td><strong>Market Data</strong></td><td><code>https://data.alpaca.markets/v2</code></td><td><code>wss://stream.data.alpaca.markets/v2/{iex|sip}</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>⚠️ Live / Paper 一定要分開</strong>：兩者用不同的 API Key 與不同網域。把測試腳本跑錯網域會直接用真錢下單。
+    </div>
+
+    <h3>認證範例（curl）</h3>
+    <span class="lang-tag">bash</span>
+    <pre><code>curl -X GET \
+  -H "APCA-API-KEY-ID: {YOUR_API_KEY_ID}" \
+  -H "APCA-API-SECRET-KEY: {YOUR_API_SECRET_KEY}" \
+  https://paper-api.alpaca.markets/v2/account</code></pre>
+
+    <h3>Python SDK 認證</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>import alpaca_trade_api as tradeapi
+
+api = tradeapi.REST(
+    key_id='YOUR_KEY_ID',
+    secret_key='YOUR_SECRET_KEY',
+    base_url='https://paper-api.alpaca.markets',  # 改為 api.alpaca.markets 即可上實盤
+    api_version='v2'
+)
+
+account = api.get_account()
+print(f"帳戶狀態: {account.status}, 可用資金: {account.cash} USD")</code></pre>
+
+    <h3>通用規則</h3>
+    <ul>
+      <li><strong>時間格式</strong>：所有時間使用 ISO8601 / RFC3339（含時區，例如 <code>2026-07-11T13:30:00Z</code>）</li>
+      <li><strong>數字精度</strong>：API 將小數以 <code>string</code> 回傳以保留精度，送出時建議也用 string 避免截斷</li>
+      <li><strong>ID 格式</strong>：使用 UUID v4（帶連字號）。範例：<code>904837e3-3b76-47ec-b432-046db621571b</code></li>
+      <li><strong>Symbol 形式</strong>：可用 <code>AAPL</code> 或 <code>AAPL:NASDAQ</code> 或 <code>AAPL:NASDAQ:us_equity</code> 或 <code>asset_id</code>。<strong>大小寫敏感</strong>。</li>
+      <li><strong>Rate Limit</strong>：每分鐘 200 次 / 每 API Key（paper / live 各自獨立）。超過會回 <span class="status-pill sp-400">429</span></li>
+    </ul>
+  </section>
+
+  <!-- ============================ ② 速查表 ============================ -->
+  <section id="endpoints">
+    <h2><span class="num">②</span> 端點速查總表</h2>
+
+    <h3>Account 帳戶</h3>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/account</span></div>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/account/configurations</span></div>
+    <div class="endpoint"><span class="method PATCH">PATCH</span><span class="path">/v2/account/configurations</span></div>
+
+    <h3>Orders 下單</h3>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/orders</span></div>
+    <div class="endpoint"><span class="method POST">POST</span><span class="path">/v2/orders</span></div>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/orders/{order_id}</span></div>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/orders:by_client_order_id</span></div>
+    <div class="endpoint"><span class="method PATCH">PATCH</span><span class="path">/v2/orders/{order_id}</span></div>
+    <div class="endpoint"><span class="method DELETE">DELETE</span><span class="path">/v2/orders</span></div>
+    <div class="endpoint"><span class="method DELETE">DELETE</span><span class="path">/v2/orders/{order_id}</span></div>
+
+    <h3>Positions 持倉</h3>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/positions</span></div>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/positions/{symbol}</span></div>
+    <div class="endpoint"><span class="method DELETE">DELETE</span><span class="path">/v2/positions</span></div>
+    <div class="endpoint"><span class="method DELETE">DELETE</span><span class="path">/v2/positions/{symbol}</span></div>
+
+    <h3>其他</h3>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/assets</span></div>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/assets/{symbol_or_asset_id}</span></div>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/clock</span></div>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/calendar</span></div>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/watchlists</span></div>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/account/activities</span></div>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/account/portfolio/history</span></div>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/corporate_actions/announcements</span></div>
+  </section>
+
+  <!-- ============================ ③ Account ============================ -->
+  <section id="account">
+    <h2><span class="num">③</span> 帳戶資訊 /v2/account</h2>
+
+    <h3>GET /v2/account — 取得帳戶資訊</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>account = api.get_account()
+print(account.cash)              # 可用現金
+print(account.buying_power)      # 購買力（含融資）
+print(account.portfolio_value)   # 投資組合總值
+print(account.equity)            # 含未實現損益的權益
+print(account.daytrade_count)    # 5 個工作天內的日內交易次數（PDT 判斷）
+print(account.pattern_day_trader) # 是否被標記 PDT
+print(account.trading_blocked)   # 是否被禁止交易
+print(account.account_blocked)   # 是否被禁止轉帳</code></pre>
+
+    <h3>回傳重點欄位</h3>
+    <table>
+      <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>UUID v4 帳戶 ID</td></tr>
+        <tr><td><code>account_number</code></td><td>人類可讀的帳號</td></tr>
+        <tr><td><code>status</code></td><td>帳戶狀態（見下表）</td></tr>
+        <tr><td><code>currency</code></td><td>幣別（預設 <code>USD</code>）</td></tr>
+        <tr><td><code>cash</code></td><td>可用現金</td></tr>
+        <tr><td><code>buying_power</code></td><td>總購買力（含融資槓桿）</td></tr>
+        <tr><td><code>equity</code></td><td>總權益（cash + market value）</td></tr>
+        <tr><td><code>portfolio_value</code></td><td>持倉市值</td></tr>
+        <tr><td><code>pattern_day_trader</code></td><td>PDT 標記（true/false）</td></tr>
+        <tr><td><code>trading_blocked</code></td><td>true=僅禁止下單</td></tr>
+        <tr><td><code>account_blocked</code></td><td>true=禁止下單與轉帳</td></tr>
+        <tr><td><code>shorting_enabled</code></td><td>是否開啟放空</td></tr>
+        <tr><td><code>long_market_value</code></td><td>做多部位市值</td></tr>
+        <tr><td><code>short_market_value</code></td><td>放空部位市值（負值）</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Account Status 狀態碼</h3>
+    <ul>
+      <li><code>ONBOARDING</code> / <code>SUBMISSION_FAILED</code> / <code>SUBMITTED</code> — 開戶流程中</li>
+      <li><code>ACCOUNT_UPDATED</code> — 個資更新審核中，期間暫停交易</li>
+      <li><code>APPROVAL_PENDING</code> — 最後審批中</li>
+      <li><code>ACTIVE</code> — ✅ 正常可交易</li>
+      <li><code>REJECTED</code> — 申請被拒</li>
+    </ul>
+
+    <div class="callout">
+      <strong>📌 PDT 規則提醒</strong>：5 個工作天內做滿 4 次日內交易會被標記 PDT（Pattern Day Trader），帳戶權益需 ≥ $25,000 USD 才能繼續當沖。否則會被凍結帳戶 90 天。
+    </div>
+  </section>
+
+  <!-- ============================ ④ Orders ============================ -->
+  <section id="orders">
+    <h2><span class="num">④</span> 下單 Orders /v2/orders</h2>
+
+    <h3>POST /v2/orders — 下單</h3>
+    <span class="lang-tag">python</span>
+    <pre><code># 市價買 1 股 AAPL
+api.submit_order(
+    symbol='AAPL',
+    qty=1,
+    side='buy',
+    type='market',
+    time_in_force='gtc'
+)
+
+# 限價單：$180 以下才買
+api.submit_order(
+    symbol='AAPL',
+    qty=10,
+    side='buy',
+    type='limit',
+    time_in_force='day',
+    limit_price=180.00
+)
+
+# 止損單：股價跌破 $150 賣出
+api.submit_order(
+    symbol='AAPL',
+    qty=10,
+    side='sell',
+    type='stop',
+    time_in_force='gtc',
+    stop_price=150.00
+)
+
+# 止損限價單（stop-limit）：跌破 $150 後只在 $148 限價賣出
+api.submit_order(
+    symbol='AAPL',
+    qty=10,
+    side='sell',
+    type='stop_limit',
+    time_in_force='gtc',
+    stop_price=150.00,
+    limit_price=148.00
+)
+
+# 追蹤止損（trailing stop）：股價回落 5% 賣出
+api.submit_order(
+    symbol='AAPL',
+    qty=10,
+    side='sell',
+    type='trailing_stop',
+    time_in_force='gtc',
+    trail_percent=5.0   # 或用 trail_price=2.50 表示美元金額
+)</code></pre>
+
+    <h3>關鍵參數</h3>
+    <table>
+      <thead><tr><th>參數</th><th>必填</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>symbol</code></td><td>✅</td><td>標的代號（支援 <code>BTC/USD</code>、<code>AAPL</code>）</td></tr>
+        <tr><td><code>qty</code> 或 <code>notional</code></td><td>✅（二選一）</td><td><code>qty</code> 為股數；<code>notional</code> 為美元金額（適用 fractional）</td></tr>
+        <tr><td><code>side</code></td><td>✅</td><td><code>buy</code> / <code>sell</code></td></tr>
+        <tr><td><code>type</code></td><td>✅</td><td><code>market</code> / <code>limit</code> / <code>stop</code> / <code>stop_limit</code> / <code>trailing_stop</code></td></tr>
+        <tr><td><code>time_in_force</code></td><td>✅</td><td><code>day</code> / <code>gtc</code> / <code>opg</code> / <code>cls</code> / <code>ioc</code> / <code>fok</code></td></tr>
+        <tr><td><code>limit_price</code></td><td>看 type</td><td>limit / stop_limit 必填</td></tr>
+        <tr><td><code>stop_price</code></td><td>看 type</td><td>stop / stop_limit 必填</td></tr>
+        <tr><td><code>trail_price</code> / <code>trail_percent</code></td><td>trailing_stop 必填</td><td>追蹤金額 / 百分比（二選一）</td></tr>
+        <tr><td><code>client_order_id</code></td><td>—</td><td>自訂 ID（≤ 48 字元），便於對帳</td></tr>
+        <tr><td><code>extended_hours</code></td><td>—</td><td><code>true</code> 允許盤前盤後（限價單才有效）</td></tr>
+        <tr><td><code>order_class</code></td><td>—</td><td><code>oco</code>、<code>oto</code>、<code>bracket</code>（見下表）</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Time In Force</h3>
+    <ul>
+      <li><code>day</code> — 當日有效，未成交自動取消</li>
+      <li><code>gtc</code> — 一直有效直到成交或手動取消（最多 90 天）</li>
+      <li><code>opg</code> — 開盤單（opening cross only）</li>
+      <li><code>cls</code> — 收盤單（closing cross only）</li>
+      <li><code>ioc</code> — Immediate-or-Cancel，立即成交否則取消</li>
+      <li><code>fok</code> — Fill-or-Kill，全部成交否則取消</li>
+    </ul>
+
+    <h3>OCO / Bracket — 多條件單</h3>
+    <span class="lang-tag">python</span>
+    <pre><code># Bracket：主單 + 停損 + 停利
+api.submit_order(
+    symbol='AAPL',
+    qty=10,
+    side='buy',
+    type='limit',
+    time_in_force='gtc',
+    limit_price=180.00,
+    order_class='bracket',
+    take_profit={'limit_price': 195.00},
+    stop_loss={'stop_price': 175.00}
+)
+
+# OCO：停損與停利任一觸發即取消另一個
+api.submit_order(
+    symbol='AAPL',
+    qty=10,
+    side='sell',
+    type='limit',
+    time_in_force='gtc',
+    limit_price=195.00,
+    order_class='oco',
+    stop_loss={'stop_price': 175.00}
+)</code></pre>
+
+    <h3>GET /v2/orders — 查詢訂單</h3>
+    <span class="lang-tag">python</span>
+    <pre><code># 取得所有開放中訂單
+orders = api.list_orders(status='open')
+
+# 取得今天已成交訂單
+filled_today = api.list_orders(
+    status='closed',
+    after='2026-07-11T00:00:00Z'
+)
+
+# 用 client_order_id 查
+order = api.get_order_by_client_order_id('my-order-001')</code></pre>
+
+    <h3>DELETE /v2/orders/{order_id} — 取消訂單</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>api.cancel_order('order-uuid-here')
+
+# 一次取消全部
+api.cancel_all_orders()</code></pre>
+
+    <h3>PATCH /v2/orders/{order_id} — 修改訂單</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>api.replace_order(
+    order_id='order-uuid',
+    qty=20,                # 改數量
+    limit_price=185.00     # 改價格
+)</code></pre>
+
+    <h3>Order 主要狀態</h3>
+    <ul>
+      <li><code>new</code> — 已送出，尚未到交易所</li>
+      <li><code>pending_new</code> / <code>accepted</code> — 處理中</li>
+      <li><code>filled</code> — 全部成交</li>
+      <li><code>partially_filled</code> — 部分成交</li>
+      <li><code>canceled</code> / <code>expired</code> — 已取消 / 過期</li>
+      <li><code>rejected</code> — 被拒絕（看 <code>rejected_message</code> 找原因）</li>
+      <li><code>done_for_day</code> — 今日收盤，剩餘明天繼續</li>
+    </ul>
+
+    <div class="callout tip">
+      <strong>💡 500 筆上限</strong>：單次 <code>GET /v2/orders</code> 最多回 500 筆。需要全量歷史請參考 <a href="https://alpaca.markets/learn/get-all-orders" style="color:var(--accent);">Get All Orders recipe</a>（用 <code>until</code> + <code>after</code> 分頁）。
+    </div>
+  </section>
+
+  <!-- ============================ ⑤ Positions ============================ -->
+  <section id="positions">
+    <h2><span class="num">⑤</span> 持倉 Positions /v2/positions</h2>
+
+    <h3>GET /v2/positions — 列出所有持倉</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>positions = api.list_positions()
+for p in positions:
+    print(f"{p.symbol}: {p.qty} 股, 市值 ${p.market_value}, 未實現 ${p.unrealized_pl}")</code></pre>
+
+    <h3>GET /v2/positions/{symbol} — 單一持倉</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>aapl = api.get_position('AAPL')
+print(f"成本 ${aapl.cost_basis}, 現價 ${aapl.current_price}, 損益 ${aapl.unrealized_pl}")</code></pre>
+
+    <h3>DELETE /v2/positions/{symbol} — 平倉</h3>
+    <span class="lang-tag">python</span>
+    <pre><code># 平倉 AAPL 全部（一般市價單）
+api.close_position('AAPL')
+
+# 只平倉一半
+api.close_position('AAPL', qty=5)
+
+# 一次全部平倉
+api.close_all_positions()</code></pre>
+
+    <h3>Position 欄位</h3>
+    <table>
+      <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>asset_id</code> / <code>symbol</code></td><td>標的 ID 與代號</td></tr>
+        <tr><td><code>exchange</code> / <code>asset_class</code></td><td>交易所與資產類別</td></tr>
+        <tr><td><code>qty</code></td><td>股數（正=做多，負=放空）</td></tr>
+        <tr><td><code>avg_entry_price</code></td><td>平均成本</td></tr>
+        <tr><td><code>cost_basis</code></td><td>成本總額</td></tr>
+        <tr><td><code>current_price</code></td><td>當前價格（real-time 更新）</td></tr>
+        <tr><td><code>market_value</code></td><td>當前市值</td></tr>
+        <tr><td><code>unrealized_pl</code></td><td>未實現損益（USD）</td></tr>
+        <tr><td><code>unrealized_plpc</code></td><td>未實現損益百分比</td></tr>
+        <tr><td><code>change_today</code></td><td>今日漲跌百分比</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============================ ⑥ Assets ============================ -->
+  <section id="assets">
+    <h2><span class="num">⑥</span> 可交易標的 Assets /v2/assets</h2>
+
+    <h3>GET /v2/assets — 列出所有可交易標的</h3>
+    <span class="lang-tag">python</span>
+    <pre><code># 找可放空且可融資的美股
+assets = api.list_assets(
+    status='active',
+    asset_class='us_equity'
+)
+shortable = [a for a in assets if a.easy_to_borrow and a.marginable]
+
+# 找 BTC
+btc = api.get_asset('BTC/USD')</code></pre>
+
+    <h3>Asset 欄位</h3>
+    <table>
+      <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>UUID v4，唯一不變</td></tr>
+        <tr><td><code>symbol</code></td><td>代號（可能改變，看時點）</td></tr>
+        <tr><td><code>exchange</code></td><td>如 <code>NASDAQ</code>、<code>NYSE</code>、<code>CRYPTO</code></td></tr>
+        <tr><td><code>asset_class</code></td><td><code>us_equity</code> 或 <code>crypto</code></td></tr>
+        <tr><td><code>status</code></td><td><code>active</code> / <code>inactive</code></td></tr>
+        <tr><td><code>tradable</code></td><td>是否可下單</td></tr>
+        <tr><td><code>marginable</code></td><td>可否融資</td></tr>
+        <tr><td><code>shortable</code></td><td>可否放空</td></tr>
+        <tr><td><code>easy_to_borrow</code></td><td>是否容易借券</td></tr>
+        <tr><td><code>fractionable</code></td><td>是否可碎股交易</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============================ ⑦ Clock ============================ -->
+  <section id="clock">
+    <h2><span class="num">⑦</span> 市場時鐘 Clock /v2/clock</h2>
+
+    <h3>GET /v2/clock — 查市場開收盤</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>clock = api.get_clock()
+print(f"現在 {clock.timestamp}")
+print(f"市場{'開' if clock.is_open else '關'}")
+print(f"下次開盤: {clock.next_open}")
+print(f"下次收盤: {clock.next_close}")
+
+# 判斷現在是否開盤（注意假日會回傳 next_open 不是當天）
+if clock.is_open:
+    print("可下單")
+else:
+    delta = clock.next_open - clock.timestamp
+    print(f"離開盤還有 {delta}")</code></pre>
+
+    <h3>回傳欄位</h3>
+    <table>
+      <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>timestamp</code></td><td>當前時間戳（ISO 8601）</td></tr>
+        <tr><td><code>is_open</code></td><td>是否開盤中</td></tr>
+        <tr><td><code>next_open</code></td><td>下次開盤時間</td></tr>
+        <tr><td><code>next_close</code></td><td>下次收盤時間</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============================ ⑧ Calendar ============================ -->
+  <section id="calendar">
+    <h2><span class="num">⑧</span> 交易日曆 Calendar /v2/calendar</h2>
+
+    <h3>GET /v2/calendar — 查交易日</h3>
+    <span class="lang-tag">python</span>
+    <pre><code># 查 2026 年 7 月到 8 月的交易日
+cal = api.get_calendar(start='2026-07-01', end='2026-08-31')
+for day in cal:
+    print(f"{day.date}: 開 {day.open}, 收 {day.close}")</code></pre>
+
+    <p>回傳從 1970 到 2029 年的所有交易日，含早收盤（如 Black Friday 13:00 收）。
+    適合排程策略時避開休市日。</p>
+  </section>
+
+  <!-- ============================ ⑨ Watchlist ============================ -->
+  <section id="watchlist">
+    <h2><span class="num">⑨</span> 自選股 Watchlist /v2/watchlists</h2>
+
+    <span class="lang-tag">python</span>
+    <pre><code># 建立 watchlist
+api.create_watchlist('momentum', ['AAPL', 'NVDA', 'TSLA'])
+
+# 列出所有 watchlist
+for wl in api.get_watchlists():
+    print(f"{wl.name}: {wl.assets}")
+
+# 用名稱取得
+wl = api.get_watchlist_by_name('momentum')
+
+# 新增標的到 watchlist
+api.add_asset_to_watchlist(wl.id, 'AMD')
+
+# 移除
+api.remove_asset_from_watchlist(wl.id, 'TSLA')
+
+# 刪除 watchlist
+api.delete_watchlist(wl.id)</code></pre>
+
+    <p>一個帳戶可有 <strong>多個 watchlist</strong>，每個是 ordered list。可以 ID 或 name 存取。</p>
+  </section>
+
+  <!-- ============================ ⑩ Activities ============================ -->
+  <section id="activities">
+    <h2><span class="num">⑩</span> 帳戶活動 /v2/account/activities</h2>
+
+    <h3>GET /v2/account/activities — 列出活動記錄</h3>
+    <span class="lang-tag">python</span>
+    <pre><code># 列出本月所有 FILL（成交）
+fills = api.get_activities(
+    activity_types='FILL',
+    date='2026-07-01'   # 單日查詢
+)
+
+# 用分頁（page_token）
+activities = api.get_activities(
+    activity_types='FILL',
+    page_size=100,
+    direction='desc'
+)
+
+for a in activities:
+    print(f"{a.symbol} {a.side} {a.qty} @ {a.price}")</code></pre>
+
+    <h3>主要活動類型</h3>
+    <table>
+      <thead><tr><th>類型</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>FILL</code></td><td>成交（部分 + 全成）</td></tr>
+        <tr><td><code>TRANS</code></td><td>現金交易（CSD 入金、CSW 出金）</td></tr>
+        <tr><td><code>DIV</code></td><td>股息</td></tr>
+        <tr><td><code>DIVCGL</code> / <code>DIVCGS</code></td><td>資本利得配息（長 / 短）</td></tr>
+        <tr><td><code>INT</code></td><td>融資利息</td></tr>
+        <tr><td><code>MA</code></td><td>合併 / 收購</td></tr>
+        <tr><td><code>SSP</code> / <code>SC</code> / <code>NC</code></td><td>股票分割 / 代號變更 / 名稱變更</td></tr>
+        <tr><td><code>OPASN</code> / <code>OPEXP</code> / <code>OPXRC</code></td><td>選擇權指派 / 到期 / 履約</td></tr>
+        <tr><td><code>REORG</code></td><td>重組企業行動</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============================ ⑪ Portfolio ============================ -->
+  <section id="portfolio">
+    <h2><span class="num">⑪</span> 投資組合歷史 /v2/account/portfolio/history</h2>
+
+    <span class="lang-tag">python</span>
+    <pre><code># 取得過去 1 個月每日資料
+history = api.get_portfolio_history(
+    period='1M',
+    timeframe='1D',
+    extended_hours=False
+)
+
+# history.equity 為每日權益 list
+# history.profit_loss 為損益 list
+# history.profit_loss_pct 為百分比 list
+for d, e, p in zip(history.timestamp, history.equity, history.profit_loss):
+    print(f"{d}: ${e} (P/L ${p})")</code></pre>
+
+    <div class="callout warn">
+      <strong>⚠️ 已知問題</strong>：官方有回報 Portfolio History API 在計算 <code>equity</code>、<code>profit_loss</code>、<code>profit_loss_pct</code> 可能出現不正確數值，使用前請自行驗證。官方正在改版中。
+    </div>
+
+    <p><strong>Period 可選</strong>：<code>1D</code> / <code>1W</code> / <code>1M</code> / <code>3M</code> / <code>6M</code> / <code>1A</code> / <code>all</code></p>
+    <p><strong>Timeframe 可選</strong>：<code>1Min</code> / <code>5Min</code> / <code>15Min</code> / <code>1H</code> / <code>1D</code></p>
+  </section>
+
+  <!-- ============================ ⑫ Announcements ============================ -->
+  <section id="announcements">
+    <h2><span class="num">⑫</span> 企業行動公告 /v2/corporate_actions/announcements</h2>
+
+    <span class="lang-tag">python</span>
+    <pre><code># 查 AAPL 的所有歷史 / 未來股息
+import alpaca_trade_api as tradeapi
+api = tradeapi.REST(...)
+
+# 公開 API（免費帳號可用）
+news_api = tradeapi.REST(
+    key_id, secret_key,
+    base_url='https://data.alpaca.markets'
+)
+# 注：announcements 是 trading API
+announcements = api.get_announcements(
+    symbol='AAPL',
+    start='2026-01-01'
+)
+for a in announcements:
+    print(f"{a.date}: {a.type} - {a.title}")</code></pre>
+
+    <p>資料通常在 declaration date 後下一個交易日入庫，可用於預測未來部位變化。</p>
+  </section>
+
+  <!-- ============================ ⑬ Config ============================ -->
+  <section id="config">
+    <h2><span class="num">⑬</span> 帳戶設定 /v2/account/configurations</h2>
+
+    <span class="lang-tag">python</span>
+    <pre><code>config = api.get_account_configurations()
+print(config.dtbp_check)        # 日內交易購買力檢查：'entry' / 'exit' / 'both'
+print(config.trade_confirm_email)  # 下單確認信
+print(config.suspend_trade)     # 是否暫停交易
+print(config.no_shorting)       # 是否禁止放空
+print(config.fractional_trading)  # 是否啟用碎股
+
+# 修改
+api.patch_account_configurations(
+    no_shorting=True,
+    fractional_trading=True
+)</code></pre>
+
+    <h3>DTBP 保護（DTMC 風控）</h3>
+    <ul>
+      <li><code>entry</code> — 進場前檢查（日內交易不會超限）</li>
+      <li><code>exit</code> — 出場時檢查（保護最嚴，會強制平倉）</li>
+      <li><code>both</code> — 兩個都檢查（建議新手使用）</li>
+    </ul>
+  </section>
+
+  <!-- ============================ ⑭ Streaming ============================ -->
+  <section id="streaming">
+    <h2><span class="num">⑭</span> WebSocket 即時串流</h2>
+
+    <p>Alpaca 支援 [RFC6455](https://datatracker.ietf.org/doc/html/rfc6455) WebSocket，
+    提供 <strong>trade_updates</strong> 事件流（訂單、成交、帳戶更新）。
+    也支援 JSON 與 MessagePack 兩種格式。</p>
+
+    <h3>連線 URL</h3>
+    <ul>
+      <li>Paper: <code>wss://paper-api.alpaca.markets/stream</code></li>
+      <li>Live: <code>wss://api.alpaca.markets/stream</code></li>
+      <li>Market Data: <code>wss://stream.data.alpaca.markets/v2/{iex|sip}</code></li>
+    </ul>
+
+    <h3>連線 + 認證 + 訂閱範例</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>import websocket, json
+from threading import Thread
+
+def on_open(ws):
+    # 認證
+    ws.send(json.dumps({
+        'action': 'authenticate',
+        'data': {
+            'key_id': 'YOUR_KEY_ID',
+            'secret_key': 'YOUR_SECRET_KEY'
+        }
+    }))
+    # 訂閱 trade_updates
+    ws.send(json.dumps({
+        'action': 'listen',
+        'data': {'streams': ['trade_updates']}
+    }))
+
+def on_message(ws, message):
+    msg = json.loads(message)
+    if msg['stream'] == 'trade_updates':
+        event = msg['data']['event']
+        order = msg['data']['order']
+        print(f"[{event}] {order['symbol']} {order['side']} {order['qty']} @ {order.get('filled_avg_price')}")
+
+def on_error(ws, err):
+    print("Error:", err)
+
+ws = websocket.WebSocketApp(
+    'wss://paper-api.alpaca.markets/stream',
+    on_open=on_open,
+    on_message=on_message,
+    on_error=on_error
+)
+ws.run_forever()</code></pre>
+
+    <h3>主要事件類型</h3>
+    <table>
+      <thead><tr><th>Event</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>new</code></td><td>訂單已送至交易所</td></tr>
+        <tr><td><code>fill</code></td><td>全部成交（含 <code>price</code>、<code>position_qty</code>、<code>timestamp</code>）</td></tr>
+        <tr><td><code>partial_fill</code></td><td>部分成交</td></tr>
+        <tr><td><code>canceled</code></td><td>取消完成</td></tr>
+        <tr><td><code>expired</code></td><td>TIF 到期</td></tr>
+        <tr><td><code>done_for_day</code></td><td>今日收盤</td></tr>
+        <tr><td><code>replaced</code></td><td>修改完成</td></tr>
+        <tr><td><code>rejected</code></td><td>被拒絕（看 <code>rejected_message</code>）</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <strong>💡 推薦用法</strong>：與其 poll <code>GET /v2/orders</code>，不如訂閱 WebSocket — 即時、無 API 額度消耗、訂單狀態主動推播。
+    </div>
+  </section>
+
+  <!-- ============================ ⑮ Market Data ============================ -->
+  <section id="marketdata">
+    <h2><span class="num">⑮</span> Market Data API</h2>
+
+    <h3>資料源</h3>
+    <table>
+      <thead><tr><th>資料源</th><th>覆蓋率</th><th>費用</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>iex</code></td><td>~2.5% 美股成交量</td><td>免費</td><td>Investors Exchange，開發測試用</td></tr>
+        <tr><td><code>sip</code></td><td>100% 美股成交量</td><td>需付費 + 簽約</td><td>NYSE（CTA）+ Nasdaq（UTP）兩大 SIP 直連</td></tr>
+        <tr><td><code>otc</code></td><td>OTC 市場</td><td>需訂閱</td><td>散戶即將推出</td></tr>
+      </tbody>
+    </table>
+
+    <h3>歷史資料 REST 端點</h3>
+    <table>
+      <thead><tr><th>端點</th><th>回傳</th></tr></thead>
+      <tbody>
+        <tr><td><code>GET /v2/stocks/{symbol}/trades</code></td><td>歷史逐筆成交</td></tr>
+        <tr><td><code>GET /v2/stocks/{symbol}/quotes</code></td><td>歷史報價（bid/ask）</td></tr>
+        <tr><td><code>GET /v2/stocks/{symbol}/bars</code></td><td>K 線（OHLCV）</td></tr>
+        <tr><td><code>GET /v2/stocks/trades?symbols=AAPL,MSFT</code></td><td>多標的成交</td></tr>
+        <tr><td><code>GET /v2/stocks/snapshots</code></td><td>多標的即時快照</td></tr>
+      </tbody>
+    </table>
+
+    <h3>取得 K 線範例</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>from alpaca_trade_api import REST, TimeFrame
+import datetime
+
+api = REST(key_id, secret_key, base_url='https://data.alpaca.markets/v2')
+
+# 取 AAPL 最近 30 天日 K
+bars = api.get_bars(
+    'AAPL',
+    TimeFrame.Day,
+    start=datetime.datetime(2026, 6, 1).date(),
+    end=datetime.datetime(2026, 7, 11).date(),
+    adjustment='all'   # 'raw' / 'split' / 'dividend' / 'all'
+).df
+print(bars.tail())
+
+# 取 5 分 K
+bars_5m = api.get_bars('AAPL', TimeFrame(5, TimeFrame.Minute),
+                       start='2026-07-10', end='2026-07-11').df</code></pre>
+
+    <h3>最新快照</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>snapshot = api.get_snapshot('AAPL')
+print(f"最新成交: ${snapshot.latest_trade.price}")
+print(f"最新報價: bid={snapshot.latest_quote.bid_price} ask={snapshot.latest_quote.ask_price}")
+print(f"今日: open={snapshot.daily_bar.open} high={snapshot.daily_bar.high}")
+print(f"前日: close={snapshot.previous_daily_bar.close}")</code></pre>
+
+    <h3>即時行情 WebSocket</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>from alpaca_trade_api import Stream
+
+stream = Stream(
+    key_id, secret_key,
+    base_url='wss://stream.data.alpaca.markets',
+    data_feed='iex'   # 或 'sip'
+)
+
+async def quote_callback(q):
+    print(f"{q.symbol}: bid {q.bid_price} / ask {q.ask_price}")
+
+stream.subscribe_quotes(quote_callback, 'AAPL', 'NVDA')
+stream.run()</code></pre>
+
+    <div class="callout">
+      <strong>📌 MessagePack</strong>：要使用 MessagePack 二進位格式（更省頻寬），加 header <code>Content-Type: application/msgpack</code>。
+    </div>
+  </section>
+
+  <!-- ============================ ⑯ 完整範例 ============================ -->
+  <section id="examples">
+    <h2><span class="num">⑯</span> 完整 Python 範例</h2>
+
+    <h3>範例 1 — 簡易網格策略</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>"""
+網格策略：在 $170 ~ $200 間每 $5 掛一檔限價單
+啟動前先取消該標的所有未成交訂單
+"""
+import alpaca_trade_api as tradeapi
+
+api = tradeapi.REST(
+    'KEY', 'SECRET',
+    base_url='https://paper-api.alpaca.markets'
+)
+
+SYMBOL = 'AAPL'
+LOW, HIGH, STEP = 170, 200, 5
+QTY = 1
+
+# 取消舊單
+api.cancel_all_orders()
+
+for price in range(LOW, HIGH, STEP):
+    api.submit_order(
+        symbol=SYMBOL,
+        qty=QTY,
+        side='buy',
+        type='limit',
+        time_in_force='gtc',
+        limit_price=float(price)
+    )
+print("已掛買單網格")</code></pre>
+
+    <h3>範例 2 — 移動停損（trailing stop）</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>"""
+持有 AAPL 期間，每天收盤檢查，若當日高點比持倉成本高 5%，
+則啟動 3% trailing stop 保護利潤
+"""
+import alpaca_trade_api as tradeapi
+api = tradeapi.REST('K', 'S', base_url='https://paper-api.alpaca.markets')
+
+position = api.get_position('AAPL')
+entry = float(position.avg_entry_price)
+
+# 取得今天到目前的最高價
+bars = api.get_bars('AAPL', tradeapi.TimeFrame.Day, limit=1).df
+today_high = float(bars['high'].iloc[-1])
+
+# 已獲利 5% → 掛 3% trailing stop
+if today_high >= entry * 1.05:
+    # 先取消舊的停損單
+    api.cancel_all_orders()
+    api.submit_order(
+        symbol='AAPL',
+        qty=position.qty,
+        side='sell',
+        type='trailing_stop',
+        time_in_force='gtc',
+        trail_percent=3.0
+    )
+    print(f"已掛 3% trailing stop (entry ${entry}, today high ${today_high})")</code></pre>
+
+    <h3>範例 3 — 即時價觸發下單（Stream）</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>"""
+監控 AAPL 即時報價，跌破 $150 時市價賣出 1 股
+"""
+from alpaca_trade_api import Stream, REST
+
+trade_api = REST('K', 'S', base_url='https://paper-api.alpaca.markets')
+
+triggered = False
+
+async def on_quote(q):
+    global triggered
+    if q.symbol == 'AAPL' and q.bid_price < 150 and not triggered:
+        triggered = True
+        trade_api.submit_order(
+            symbol='AAPL', qty=1,
+            side='sell', type='market',
+            time_in_force='ioc'
+        )
+        print(f"觸發賣單 at ${q.bid_price}")
+
+stream = Stream('K', 'S',
+                base_url='wss://stream.data.alpaca.markets',
+                data_feed='iex')
+stream.subscribe_quotes(on_quote, 'AAPL')
+stream.run()</code></pre>
+
+    <h3>範例 4 — PDT 保護：開盤前拒絕新單</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>"""
+每次下單前檢查是否會觸發 PDT（避免被凍結 90 天）
+"""
+import alpaca_trade_api as tradeapi
+
+api = tradeapi.REST('K', 'S', base_url='https://paper-api.alpaca.markets')
+
+def safe_submit_order(**kwargs):
+    account = api.get_account()
+    is_daytrade = (kwargs.get('time_in_force', 'day') == 'day')
+
+    if account.pattern_day_trader and account.daytrade_count >= 3 and is_daytrade:
+        raise Exception("⚠️ 已 PDT 標記且 5 天內做滿 4 次當沖,跳過新單避免凍結")
+
+    if not account.pattern_day_trader and float(account.equity) < 25000 and is_daytrade:
+        if account.daytrade_count >= 3:
+            raise Exception("⚠️ 帳戶 < $25k 且即將觸發 PDT,跳過")
+
+    return api.submit_order(**kwargs)
+
+# 改用 safe_submit_order 取代直接 api.submit_order
+safe_submit_order(symbol='AAPL', qty=10, side='buy', type='market', time_in_force='day')</code></pre>
+
+    <h3>範例 5 — 每日對帳報表</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>"""
+每日收盤後產出當日對帳（成交 + 持倉）
+"""
+import alpaca_trade_api as tradeapi
+from datetime import datetime, date
+
+api = tradeapi.REST('K', 'S', base_url='https://paper-api.alpaca.markets')
+
+today = date.today().isoformat()
+
+# 當日成交
+fills = api.get_activities(activity_types='FILL', date=today)
+print(f"=== {today} 成交記錄 ===")
+total_pl = 0
+for f in fills:
+    pl = float(f.price) * float(f.qty) * (1 if f.side == 'sell' else -1)
+    total_pl += pl
+    print(f"{f.symbol:6} {f.side:4} {f.qty:>6} @ ${f.price:>8.2f}  ({f.order_id[:8]})")
+print(f"\n當日成交金額: ${-total_pl:.2f}")
+
+# 當前持倉
+print("\n=== 持倉 ===")
+for p in api.list_positions():
+    print(f"{p.symbol:6} {p.qty:>6} 股 @ avg ${float(p.avg_entry_price):>8.2f}"
+          f" | unrealized ${float(p.unrealized_pl):>8.2f} ({float(p.unrealized_plpc)*100:.2f}%)")</code></pre>
+  </section>
+
+  <!-- ============================ ⑰ 規則 ============================ -->
+  <section id="rules">
+    <h2><span class="num">⑰</span> 訂單與部位規則速查</h2>
+
+    <h3>常見 403 原因與解法</h3>
+    <table>
+      <thead><tr><th>狀況</th><th>HTTP</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td>帳號被禁放空卻下空單</td><td><span class="status-pill sp-403">403</span></td><td>需要 <code>shorting_enabled=true</code></td></tr>
+        <tr><td>Easy-to-borrow 不足</td><td><span class="status-pill sp-403">403</span></td><td>改找 <code>easy_to_borrow=true</code> 標的</td></tr>
+        <tr><td>購買力不足</td><td><span class="status-pill sp-403">403</span></td><td>檢查 <code>buying_power</code> 是否涵蓋</td></tr>
+        <tr><td>非融資標的用融資買</td><td><span class="status-pill sp-403">403</span></td><td>篩 <code>marginable=true</code></td></tr>
+        <tr><td>想做多翻空直接單</td><td><span class="status-pill sp-403">403</span></td><td>目前不支援，需先平倉再反向</td></tr>
+        <tr><td>Rate Limit</td><td><span class="status-pill sp-400">429</span></td><td>每分鐘 200 次，加 sleep / 走 WebSocket</td></tr>
+      </tbody>
+    </table>
+
+    <h3>市價單的特殊處理</h3>
+    <ul>
+      <li><strong>做多市價單</strong>：會被轉為 marketable limit，價格 collar <strong>+2.5% ~ +4%</strong>（防止滑價過大）</li>
+      <li><strong>做空市價單</strong>：不會轉，但會做 <strong>102.5% ~ 104%</strong> 的購買力預檢</li>
+      <li><strong>可融資標的</strong>：用 <code>buying_power</code> 判斷可用額度</li>
+      <li><strong>不可融資標的</strong>：需用現金 <code>cash</code></li>
+    </ul>
+
+    <h3>短部位規則</h3>
+    <ul>
+      <li>放空單的 <code>side=sell</code>，無新增參數</li>
+      <li>短部位 <code>qty</code> 和 <code>market_value</code> 都是負值</li>
+      <li>目前只能放空 <code>easy_to_borrow=true</code> 的標的</li>
+      <li>不能直接從多翻空（或空翻多），需先平倉再反向</li>
+      <li>已有 pending sell 時不能再下 buy（會 <span class="status-pill sp-403">403</span>）</li>
+    </ul>
+
+    <h3>部位顯示規則</h3>
+    <ul>
+      <li>短部位以負值表示：例如賣空 10 股 AAPL，<code>qty=-10</code>、<code>market_value=-1500</code></li>
+      <li>放空利潤顯示為負數時表示虧損</li>
+    </ul>
+
+    <div class="callout danger">
+      <strong>🚨 紙上談兵必做</strong>：所有策略先用 <strong>paper-api.alpaca.markets</strong> 跑至少 1-3 個月。
+      換實盤前 <code>base_url</code> <strong>只改這一行</strong> 即可，千萬不要漏改。
+    </div>
+
+    <div class="callout tip">
+      <strong>📚 延伸閱讀</strong>：完整官方文檔請見 <a href="https://alpaca.markets/docs/api-references/trading-api/" style="color:var(--accent);">alpaca.markets/docs</a>。
+      Python SDK: <a href="https://github.com/alpacahq/alpaca-trade-api-python" style="color:var(--accent);">alpacahq/alpaca-trade-api-python</a>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · Alpaca API 中文速查手冊</p>
+    <p style="margin-top:4px;">內容翻譯自 Alpaca 官方文檔，僅供個人學習使用。版本：API v2（2026-07）</p>
+    <p style="margin-top:4px;"><a href="./index.html" style="color:var(--accent);text-decoration:none;">← 回到 JustKM 首頁</a></p>
+  </div>
+
+</div>
+</body>
+</html>
