@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alpaca Crypto API 中文速查 · JustKM</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131826;
+      --bg-card: #1a2138;
+      --bg-code: #0f1424;
+      --border: #2a3454;
+      --text-primary: #e8ecf4;
+      --text-secondary: #9aa3b8;
+      --text-muted: #6b7390;
+      --accent: #f7931a;       /* BTC 橘 */
+      --accent-purple: #a855f7;
+      --accent-green: #00d68f;
+      --accent-orange: #ff9f43;
+      --accent-red: #ff4d6d;
+      --accent-blue: #4f9eff;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.75;
+      min-height: 100vh;
+      padding: 40px 20px 80px;
+    }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .hero {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 32px;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #f7931a 0%, #a855f7 50%, #00d68f 100%);
+    }
+    .hero h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .hero .sub { color: var(--text-secondary); font-size: 14px; margin-bottom: 16px; }
+    .badge {
+      display: inline-block;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+    .badge.orange { color: var(--accent); border-color: var(--accent); }
+    .badge.green { color: var(--accent-green); border-color: var(--accent-green); }
+    .badge.blue { color: var(--accent-blue); border-color: var(--accent-blue); }
+
+    .toc {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 32px;
+    }
+    .toc-title {
+      font-size: 13px; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+    }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 6px;
+    }
+    .toc a {
+      color: var(--text-secondary); text-decoration: none; font-size: 13px;
+      padding: 5px 10px; border-radius: 6px; transition: all 0.15s;
+    }
+    .toc a:hover { color: var(--accent); background: var(--bg-card); }
+
+    section {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      scroll-margin-top: 20px;
+    }
+    section h2 {
+      font-size: 22px; font-weight: 700; margin-bottom: 4px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    section h2 .num {
+      color: var(--accent); font-size: 14px; font-weight: 800;
+      background: var(--bg-card); padding: 2px 8px; border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    section h3 {
+      font-size: 17px; font-weight: 700; color: var(--accent);
+      margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    section h4 {
+      font-size: 14px; font-weight: 700; color: var(--text-secondary);
+      margin-top: 18px; margin-bottom: 6px;
+    }
+    section p { margin-bottom: 10px; color: var(--text-secondary); font-size: 14px; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--text-secondary); font-size: 14px; }
+    section li { margin-bottom: 4px; }
+    section strong { color: var(--text-primary); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    .endpoint {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px 14px; margin: 8px 0;
+      display: flex; align-items: center; gap: 12px;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 13px; flex-wrap: wrap;
+    }
+    .method { padding: 3px 10px; border-radius: 5px; font-weight: 700; font-size: 11px; letter-spacing: 0.5px; }
+    .GET { background: rgba(0, 214, 143, 0.15); color: var(--accent-green); }
+    .POST { background: rgba(79, 158, 255, 0.15); color: var(--accent-blue); }
+    .PATCH { background: rgba(255, 159, 67, 0.15); color: var(--accent-orange); }
+    .DELETE { background: rgba(255, 77, 109, 0.15); color: var(--accent-red); }
+    .PUT { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); }
+    .path { color: var(--text-primary); }
+
+    pre {
+      background: var(--bg-code); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px 16px;
+      overflow-x: auto; margin: 10px 0 14px;
+      font-size: 12.5px; line-height: 1.55;
+    }
+    pre code { color: #e8ecf4; }
+    .lang-tag {
+      display: inline-block; font-size: 10px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 4px; font-weight: 700;
+    }
+
+    p code, li code, td code {
+      background: var(--bg-code); border: 1px solid var(--border);
+      padding: 1px 6px; border-radius: 4px;
+      font-size: 12.5px; color: var(--accent-orange);
+    }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 13px; }
+    th { text-align: left; background: var(--bg-card); color: var(--text-primary); padding: 9px 12px; border: 1px solid var(--border); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+    tr:hover td { background: rgba(247, 147, 26, 0.04); }
+
+    .callout {
+      border-left: 3px solid var(--accent); background: var(--bg-card);
+      padding: 12px 16px; border-radius: 0 8px 8px 0;
+      margin: 12px 0 16px; font-size: 13.5px; color: var(--text-secondary);
+    }
+    .callout.warn { border-left-color: var(--accent-orange); }
+    .callout.danger { border-left-color: var(--accent-red); }
+    .callout.tip { border-left-color: var(--accent-green); }
+    .callout.info { border-left-color: var(--accent-blue); }
+    .callout strong { color: var(--text-primary); }
+
+    .back-home {
+      display: inline-block; margin-bottom: 20px;
+      color: var(--accent); text-decoration: none; font-size: 14px;
+      padding: 6px 14px; border: 1px solid var(--border);
+      border-radius: 8px; background: var(--bg-secondary);
+    }
+    .back-home:hover { border-color: var(--accent); }
+    .footer {
+      text-align: center; color: var(--text-muted); font-size: 12px;
+      margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border);
+    }
+
+    .status-pill {
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      font-size: 11px; font-family: monospace; font-weight: 700;
+    }
+    .sp-200 { background: rgba(0, 214, 143, 0.15); color: var(--accent-green); }
+    .sp-400 { background: rgba(255, 159, 67, 0.15); color: var(--accent-orange); }
+    .sp-403 { background: rgba(255, 77, 109, 0.15); color: var(--accent-red); }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 JustKM 首頁</a>
+
+  <div class="hero">
+    <h1>₿ Alpaca Crypto API 中文速查</h1>
+    <p class="sub">Trading API (Crypto) + Crypto 即時行情 WebSocket · 給加密貨幣交易者的精簡實戰版</p>
+    <div>
+      <span class="badge orange">Crypto Trading</span>
+      <span class="badge green">即時 WebSocket</span>
+      <span class="badge blue">52+ 交易對</span>
+      <span class="badge">USD / BTC / USDT 計價</span>
+      <span class="badge">7×24 交易</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#auth">① 認證與環境</a>
+      <a href="#overview">② Crypto API 概觀</a>
+      <a href="#endpoints">③ 端點速查總表</a>
+      <a href="#orders">④ 下單 Orders</a>
+      <a href="#positions">⑤ 持倉 Positions</a>
+      <a href="#assets">⑥ 標的 Assets</a>
+      <a href="#activities">⑦ 帳戶活動</a>
+      <a href="#realtime">⑧ WebSocket 即時行情</a>
+      <a href="#examples">⑨ 完整 Python 範例</a>
+      <a href="#differences">⑩ Crypto vs Stock 差異</a>
+    </div>
+  </nav>
+
+  <!-- ============================ ① 認證 ============================ -->
+  <section id="auth">
+    <h2><span class="num">①</span> 認證與環境</h2>
+    <p>認證方式與 Stock Trading API 相同 — Header 帶 <code>APCA-API-KEY-ID</code> 與 <code>APCA-API-SECRET-KEY</code>。</p>
+
+    <h3>Endpoint 網域</h3>
+    <table>
+      <thead><tr><th>環境</th><th>REST Base URL</th><th>WebSocket</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Live（實盤）</strong></td><td><code>https://api.alpaca.markets</code></td><td><code>wss://api.alpaca.markets/stream</code></td></tr>
+        <tr><td><strong>Paper（模擬）</strong></td><td><code>https://paper-api.alpaca.markets</code></td><td><code>wss://paper-api.alpaca.markets/stream</code></td></tr>
+        <tr><td><strong>Crypto 即時行情</strong></td><td>—</td><td><code>wss://stream.data.alpaca.markets/v1beta2/crypto</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>⚠️ Crypto 也分 paper / live</strong>：同樣的 API Key 在 paper 環境開 Paper Trading 模式，在 live 環境就要開真錢模式。切換時只改 <code>base_url</code>。
+    </div>
+
+    <h3>Python SDK 連線範例</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>import alpaca_trade_api as tradeapi
+
+# Crypto 跟 Stock 用同一個 SDK 與同一組 Key
+api = tradeapi.REST(
+    key_id='YOUR_KEY_ID',
+    secret_key='YOUR_SECRET_KEY',
+    base_url='https://paper-api.alpaca.markets',
+    api_version='v2'
+)
+
+# 帳戶查詢方式完全相同
+acct = api.get_account()
+print(f"現金: {acct.cash} USD")</code></pre>
+
+    <h3>通用規則（與 Stock API 一致）</h3>
+    <ul>
+      <li><strong>時間格式</strong>：ISO8601 / RFC3339（含時區）</li>
+      <li><strong>數字精度</strong>：小數以 <code>string</code> 回傳以保留精度，送出時建議也用 string</li>
+      <li><strong>ID 格式</strong>：UUID v4（帶連字號）</li>
+      <li><strong>Symbol 形式</strong>：<code>BTC/USD</code> 或 <code>BTCUSD</code> 或 <code>BTC/USD:CRYPTO</code> 或 <code>asset_id</code>。<strong>大小寫敏感</strong>。</li>
+      <li><strong>Rate Limit</strong>：每分鐘 200 次 / 每 API Key。超過回 <span class="status-pill sp-400">429</span></li>
+    </ul>
+  </section>
+
+  <!-- ============================ ② 概觀 ============================ -->
+  <section id="overview">
+    <h2><span class="num">②</span> Crypto API 概觀</h2>
+
+    <p>Alpaca Crypto API 讓你用同一組 API Key 即可交易加密貨幣。支援：</p>
+    <ul>
+      <li><strong>52+ 交易對</strong> × <strong>20+ 幣種</strong></li>
+      <li>計價單位：<strong>USD</strong>、<strong>BTC</strong>、<strong>USDT</strong></li>
+      <li><strong>7×24 全年無休</strong>（不像股票有開收盤）</li>
+      <li>支援 <strong>市價 / 限價 / 停損 / 追蹤止損 / OCO / Bracket</strong> 全部訂單類型</li>
+      <li>即時行情透過 <strong>WebSocket v1beta2/crypto</strong></li>
+      <li>無 PDT 限制（不受 pattern day trader 規則影響）</li>
+      <li>無融資 / 放空（Crypto 為現貨交易，<strong>不能放空</strong>）</li>
+    </ul>
+
+    <h3>與 Stock API 的差異速覽</h3>
+    <table>
+      <thead><tr><th>項目</th><th>Stock</th><th>Crypto</th></tr></thead>
+      <tbody>
+        <tr><td>交易時間</td><td>美股時段 + 盤前盤後</td><td>7×24 全天候</td></tr>
+        <tr><td>放空</td><td>✅ 可</td><td>❌ 不可（僅現貨）</td></tr>
+        <tr><td>融資</td><td>✅ 可（依帳戶）</td><td>❌ 不可</td></tr>
+        <tr><td>PDT 限制</td><td>✅ 有</td><td>❌ 無</td></tr>
+        <tr><td>Symbol 格式</td><td><code>AAPL</code></td><td><code>BTC/USD</code>、<code>ETH/BTC</code></td></tr>
+        <tr><td>最小下單單位</td><td>1 股（可碎股）</td><td>依標的而異（常見 0.0001 BTC）</td></tr>
+        <tr><td>持有幣種結算</td><td>USD</td><td>USD / BTC / USDT（依交易對）</td></tr>
+        <tr><td>即時行情 WebSocket</td><td><code>/v2/iex</code> 或 <code>/v2/sip</code></td><td><code>/v1beta2/crypto</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <strong>ℹ️ Crypto Account 是 Stock 帳戶的延伸</strong>：你不需要再開 Crypto 帳戶，在同一個 Alpaca 帳戶下，
+      <code>get_account()</code> 回傳的 <code>cash</code> 是 USD 餘額，<code>positions</code> 會同時列出股票與幣幣。
+      加密貨幣無法作為保證金。
+    </div>
+  </section>
+
+  <!-- ============================ ③ 速查表 ============================ -->
+  <section id="endpoints">
+    <h2><span class="num">③</span> 端點速查總表</h2>
+    <p>Crypto 與 Stock 共用同一組端點，差別只在 <code>symbol</code> 參數填的是 <code>BTC/USD</code> 而非 <code>AAPL</code>。</p>
+
+    <h3>Orders</h3>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/orders</span></div>
+    <div class="endpoint"><span class="method POST">POST</span><span class="path">/v2/orders</span></div>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/orders/{order_id}</span></div>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/orders:by_client_order_id</span></div>
+    <div class="endpoint"><span class="method PATCH">PATCH</span><span class="path">/v2/orders/{order_id}</span></div>
+    <div class="endpoint"><span class="method DELETE">DELETE</span><span class="path">/v2/orders/{order_id}</span></div>
+    <div class="endpoint"><span class="method DELETE">DELETE</span><span class="path">/v2/orders</span></div>
+
+    <h3>Positions</h3>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/positions</span></div>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/positions/{symbol}</span></div>
+    <div class="endpoint"><span class="method DELETE">DELETE</span><span class="path">/v2/positions/{symbol}</span></div>
+    <div class="endpoint"><span class="method DELETE">DELETE</span><span class="path">/v2/positions</span></div>
+
+    <h3>Assets / Activities</h3>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/assets</span></div>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/assets/{symbol_or_asset_id}</span></div>
+    <div class="endpoint"><span class="method GET">GET</span><span class="path">/v2/account/activities</span></div>
+  </section>
+
+  <!-- ============================ ④ Orders ============================ -->
+  <section id="orders">
+    <h2><span class="num">④</span> 下單 Orders /v2/orders</h2>
+
+    <h3>POST /v2/orders — 下單範例</h3>
+    <span class="lang-tag">python</span>
+    <pre><code># 市價買 $100 美元的 BTC
+api.submit_order(
+    symbol='BTC/USD',
+    notional='100',         # 用美元金額（碎幣交易）
+    side='buy',
+    type='market',
+    time_in_force='gtc'
+)
+
+# 限價買 0.01 BTC at $60,000
+api.submit_order(
+    symbol='BTC/USD',
+    qty='0.01',
+    side='buy',
+    type='limit',
+    time_in_force='gtc',
+    limit_price='60000'
+)
+
+# 限價賣 ETH at $3,500（持倉需 ≥ 0.01 ETH）
+api.submit_order(
+    symbol='ETH/USD',
+    qty='0.1',
+    side='sell',
+    type='limit',
+    time_in_force='gtc',
+    limit_price='3500'
+)
+
+# BTC/ETH 對（非 USD 計價）
+api.submit_order(
+    symbol='BTC/ETH',
+    qty='0.01',
+    side='buy',
+    type='market',
+    time_in_force='ioc'
+)
+
+# 追蹤止損：BTC 從高點回落 5% 賣出
+api.submit_order(
+    symbol='BTC/USD',
+    qty='0.01',
+    side='sell',
+    type='trailing_stop',
+    time_in_force='gtc',
+    trail_percent='5.0'
+)
+
+# Bracket：BTC 買入後自動掛停損 + 停利
+api.submit_order(
+    symbol='BTC/USD',
+    notional='1000',
+    side='buy',
+    type='market',
+    time_in_force='gtc',
+    order_class='bracket',
+    take_profit={'limit_price': '70000'},
+    stop_loss={'stop_price': '58000'}
+)</code></pre>
+
+    <h3>關鍵參數</h3>
+    <table>
+      <thead><tr><th>參數</th><th>必填</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>symbol</code></td><td>✅</td><td><code>BTC/USD</code>、<code>ETH/BTC</code>、<code>USDT/USD</code> 等</td></tr>
+        <tr><td><code>qty</code> 或 <code>notional</code></td><td>✅（二選一）</td><td><code>qty</code>=幣數，<code>notional</code>=美元金額（最小通常 $1）</td></tr>
+        <tr><td><code>side</code></td><td>✅</td><td><code>buy</code> / <code>sell</code>（僅現貨）</td></tr>
+        <tr><td><code>type</code></td><td>✅</td><td><code>market</code> / <code>limit</code> / <code>stop</code> / <code>stop_limit</code> / <code>trailing_stop</code></td></tr>
+        <tr><td><code>time_in_force</code></td><td>✅</td><td><code>gtc</code> / <code>ioc</code> / <code>fok</code>（Crypto 不支援 <code>day</code>、<code>opg</code>、<code>cls</code>）</td></tr>
+        <tr><td><code>limit_price</code></td><td>看 type</td><td>limit / stop_limit / bracket take_profit 必填</td></tr>
+        <tr><td><code>stop_price</code></td><td>看 type</td><td>stop / stop_limit / bracket stop_loss 必填</td></tr>
+        <tr><td><code>trail_percent</code> / <code>trail_price</code></td><td>trailing_stop 必填</td><td>百分比或美元金額</td></tr>
+        <tr><td><code>client_order_id</code></td><td>—</td><td>自訂 ID（≤ 48 字元）</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>⚠️ Crypto 不支援的 TIF</strong>：沒有 <code>day</code>、<code>opg</code>、<code>cls</code>。使用會回 <span class="status-pill sp-400">400</span>。
+      想限當日自動取消，請在 client 端自己用 cron / 排程刪單。
+    </div>
+
+    <h3>Order 主要狀態</h3>
+    <ul>
+      <li><code>new</code> / <code>accepted</code> — 送出、等待撮合</li>
+      <li><code>filled</code> — 完全成交</li>
+      <li><code>partially_filled</code> — 部分成交（Crypto 較少見，因多為市價或限價全成）</li>
+      <li><code>canceled</code> / <code>expired</code> — 已取消 / 到期</li>
+      <li><code>rejected</code> — 拒絕（看 <code>rejected_message</code> 找原因）</li>
+    </ul>
+
+    <h3>取消與查詢（與 Stock 完全相同）</h3>
+    <span class="lang-tag">python</span>
+    <pre><code># 查開放中訂單
+orders = api.list_orders(status='open', symbols=['BTC/USD', 'ETH/USD'])
+
+# 取消單筆
+api.cancel_order('order-uuid')
+
+# 取消所有
+api.cancel_all_orders()
+
+# 用 client_order_id 查
+order = api.get_order_by_client_order_id('my-btc-001')
+
+# 修改（僅 gtc 限價單可改）
+api.replace_order('order-uuid', qty='0.02', limit_price='59000')</code></pre>
+  </section>
+
+  <!-- ============================ ⑤ Positions ============================ -->
+  <section id="positions">
+    <h2><span class="num">⑤</span> 持倉 Positions /v2/positions</h2>
+
+    <h3>GET /v2/positions — 列出持倉</h3>
+    <span class="lang-tag">python</span>
+    <pre><code># 所有持倉（股票 + 加密貨幣）
+for p in api.list_positions():
+    if p.asset_class == 'crypto':
+        print(f"₿ {p.symbol}: {p.qty} ({p.exchange})")
+
+# 只篩 Crypto
+crypto_positions = [p for p in api.list_positions() if p.asset_class == 'crypto']
+print(f"持倉幣種: {[p.symbol for p in crypto_positions]}")
+
+# 單一持倉
+btc = api.get_position('BTC/USD')
+print(f"BTC: {btc.qty} 顆, 平均成本 ${btc.avg_entry_price}")
+print(f"目前市值 ${btc.market_value}, 未實現 ${btc.unrealized_pl}")</code></pre>
+
+    <h3>DELETE /v2/positions/{symbol} — 平倉</h3>
+    <span class="lang-tag">python</span>
+    <pre><code># 市價賣出全部 BTC
+api.close_position('BTC/USD')
+
+# 只賣一半
+api.close_position('BTC/USD', qty='0.005')
+
+# 一次平所有倉位
+api.close_all_positions()</code></pre>
+
+    <h3>Position 欄位（Crypto 專屬）</h3>
+    <table>
+      <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>asset_id</code> / <code>symbol</code></td><td>標的 ID 與代號（如 <code>BTC/USD</code>）</td></tr>
+        <tr><td><code>exchange</code></td><td>如 <code>CRYPTO</code>（Alpaca 內部撮合）</td></tr>
+        <tr><td><code>asset_class</code></td><td>必為 <code>crypto</code></td></tr>
+        <tr><td><code>qty</code></td><td>幣數（<strong>永遠為正</strong>，Crypto 不放空）</td></tr>
+        <tr><td><code>avg_entry_price</code></td><td>平均成本（USD）</td></tr>
+        <tr><td><code>cost_basis</code></td><td>成本總額</td></tr>
+        <tr><td><code>current_price</code></td><td>當前 USD 價格（real-time）</td></tr>
+        <tr><td><code>market_value</code></td><td>市值（qty × current_price）</td></tr>
+        <tr><td><code>unrealized_pl</code></td><td>未實現損益 USD</td></tr>
+        <tr><td><code>unrealized_plpc</code></td><td>損益百分比（小數，如 <code>0.05</code> = 5%）</td></tr>
+        <tr><td><code>change_today</code></td><td>今日漲跌百分比</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============================ ⑥ Assets ============================ -->
+  <section id="assets">
+    <h2><span class="num">⑥</span> 可交易標的 Assets /v2/assets</h2>
+
+    <h3>GET /v2/assets — 列出標的</h3>
+    <span class="lang-tag">python</span>
+    <pre><code># 列出所有 crypto 標的
+cryptos = api.list_assets(asset_class='crypto')
+for c in cryptos[:20]:
+    print(f"{c.symbol:12} tradable={c.tradable}  min_qty={c.min_trade_qty}  min_price_inc={c.price_increment}")</code></pre>
+
+    <h3>Asset 欄位（Crypto 專屬）</h3>
+    <table>
+      <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>UUID v4，唯一不變</td></tr>
+        <tr><td><code>symbol</code></td><td>代號（如 <code>BTC/USD</code>）</td></tr>
+        <tr><td><code>name</code></td><td>全名（如 <code>Bitcoin</code>）</td></tr>
+        <tr><td><code>exchange</code></td><td><code>CRYPTO</code></td></tr>
+        <tr><td><code>asset_class</code></td><td><code>crypto</code></td></tr>
+        <tr><td><code>status</code></td><td><code>active</code> / <code>inactive</code></td></tr>
+        <tr><td><code>tradable</code></td><td>是否可下單</td></tr>
+        <tr><td><code>min_trade_qty</code></td><td>最小下單數量（如 <code>0.0001</code> BTC）</td></tr>
+        <tr><td><code>min_trade_notional</code></td><td>最小下單金額（USD）</td></tr>
+        <tr><td><code>price_increment</code></td><td>最小價格單位（如 <code>0.01</code> USD）</td></tr>
+        <tr><td><code>qty_increment</code></td><td>最小數量單位</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>📌 重要</strong>：下單前請檢查 <code>min_trade_qty</code> 與 <code>min_trade_notional</code>，
+      數量與金額過小會被交易所拒絕。
+    </div>
+  </section>
+
+  <!-- ============================ ⑦ Activities ============================ -->
+  <section id="activities">
+    <h2><span class="num">⑦</span> 帳戶活動 /v2/account/activities</h2>
+
+    <h3>GET /v2/account/activities — 列出活動</h3>
+    <span class="lang-tag">python</span>
+    <pre><code># 本月所有成交（含股票 + 加密貨幣）
+fills = api.get_activities(activity_types='FILL', date='2026-07-01')
+for f in fills:
+    print(f"{f.symbol} {f.side} {f.qty} @ ${f.price} (asset_class={f.asset_class})")
+
+# 只看 Crypto 活動
+crypto_fills = [a for a in fills if a.asset_class == 'crypto']</code></pre>
+
+    <h3>Crypto 專屬活動類型</h3>
+    <table>
+      <thead><tr><th>類型</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>FILL</code></td><td>成交（部分 + 全成）</td></tr>
+        <tr><td><code>CFEE</code></td><td>Crypto 手續費</td></tr>
+        <tr><td><code>TRANS</code></td><td>現金交易（CSD 入金 / CSW 出金）</td></tr>
+        <tr><td><code>MISC</code></td><td>其他罕見類型</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <strong>💡 Crypto 沒有</strong>：股息 (<code>DIV</code>)、股票分割 (<code>SSP</code>)、合併 (<code>MA</code>) 等股票活動類型。
+      與股票帳戶差別在 Crypto 活動較單純。
+    </div>
+  </section>
+
+  <!-- ============================ ⑧ WebSocket ============================ -->
+  <section id="realtime">
+    <h2><span class="num">⑧</span> WebSocket 即時行情</h2>
+
+    <h3>連線 URL</h3>
+    <p>新版（推薦）：<code>wss://stream.data.alpaca.markets/v1beta2/crypto</code></p>
+    <p>舊版（保留）：<code>wss://stream.data.alpaca.markets/v1beta1/crypto</code></p>
+
+    <h3>訂閱方案</h3>
+    <table>
+      <thead><tr><th>方案</th><th>trades</th><th>quotes</th><th>bars</th><th>orderbooks</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Free</strong></td><td>30 channels</td><td>30 channels</td><td>無上限</td><td>10 symbols</td></tr>
+        <tr><td><strong>Unlimited</strong></td><td>無上限</td><td>無上限</td><td>無上限</td><td>無上限</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px; color:var(--text-muted);">每個帳戶同時只能有 <strong>1 個 WebSocket 連線</strong>。</p>
+
+    <h3>訂閱資料類型</h3>
+    <table>
+      <thead><tr><th>類型</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>trades</code></td><td>逐筆成交（買賣方向、價格、量、時間）</td></tr>
+        <tr><td><code>quotes</code></td><td>買賣報價（bid/ask）</td></tr>
+        <tr><td><code>bars</code></td><td>分鐘 K 線（OHLCV）</td></tr>
+        <tr><td><code>orderbooks</code></td><td>訂單簿快照（多檔買賣單）</td></tr>
+      </tbody>
+    </table>
+
+    <h3>連線範例</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>import websocket, json
+from threading import Thread
+
+def on_open(ws):
+    ws.send(json.dumps({
+        'action': 'auth',
+        'key': 'YOUR_KEY_ID',
+        'secret': 'YOUR_SECRET_KEY'
+    }))
+    ws.send(json.dumps({
+        'action': 'subscribe',
+        'trades': ['BTC/USD'],
+        'quotes': ['ETH/USD'],
+        'bars': ['BTC/USD', 'ETH/USD'],
+        'orderbooks': ['BTC/USD']
+    }))
+
+def on_message(ws, msg):
+    arr = json.loads(msg)
+    for item in arr:
+        t = item.get('T')
+        if t == 't':    # trade
+            print(f"TRADE {item['S']} px={item['p']} qty={item['s']}")
+        elif t == 'q':  # quote
+            print(f"QUOTE {item['S']} bid={item['bp']} ask={item['ap']}")
+        elif t == 'b':  # bar
+            print(f"BAR {item['S']} o={item['o']} c={item['c']} v={item['v']}")
+        elif t == 'o':  # orderbook
+            print(f"OB {item['S']} bids={len(item['b'])} asks={len(item['a'])}")
+
+ws = websocket.WebSocketApp(
+    'wss://stream.data.alpaca.markets/v1beta2/crypto',
+    on_open=on_open,
+    on_message=on_message
+)
+ws.run_forever()</code></pre>
+
+    <h3>使用 SDK（推薦）</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>from alpaca_trade_api import Stream
+
+stream = Stream(
+    key_id='YOUR_KEY_ID',
+    secret_key='YOUR_SECRET_KEY',
+    base_url='wss://stream.data.alpaca.markets',
+    data_feed='crypto'   # 不同於股票的 'iex'/'sip'
+)
+
+async def on_trade(t):
+    print(f"{t.symbol} ${t.price} x {t.size}")
+
+async def on_bar(b):
+    print(f"{b.symbol} OHLCV: {b.open}/{b.high}/{b.low}/{b.close}/{b.volume}")
+
+stream.subscribe_trades(on_trade, 'BTC/USD', 'ETH/USD')
+stream.subscribe_bars(on_bar, 'BTC/USD')
+stream.run()</code></pre>
+
+    <h3>Trade Schema</h3>
+    <table>
+      <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>T</code></td><td>固定為 <code>"t"</code></td></tr>
+        <tr><td><code>S</code></td><td>Symbol（如 <code>BTC/USD</code>）</td></tr>
+        <tr><td><code>p</code></td><td>成交價</td></tr>
+        <tr><td><code>s</code></td><td>成交量</td></tr>
+        <tr><td><code>t</code></td><td>時間戳（RFC3339）</td></tr>
+        <tr><td><code>tks</code></td><td>買賣方向（<code>B</code> / <code>S</code> / <code>-</code>）</td></tr>
+        <tr><td><code>i</code></td><td>Trade ID</td></tr>
+      </tbody>
+    </table>
+
+    <h3>常見錯誤碼</h3>
+    <table>
+      <thead><tr><th>Code</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>400</code></td><td>訊息格式錯誤</td></tr>
+        <tr><td><code>401</code></td><td>未認證就訂閱</td></tr>
+        <tr><td><code>402</code></td><td>認證失敗（Key 錯誤）</td></tr>
+        <tr><td><code>403</code></td><td>重複認證</td></tr>
+        <tr><td><code>404</code></td><td>認證逾時（連線後太久沒送 auth）</td></tr>
+        <tr><td><code>405</code></td><td>訂閱數超過方案上限</td></tr>
+        <tr><td><code>406</code></td><td>已有其他連線（單帳戶單連線限制）</td></tr>
+        <tr><td><code>407</code></td><td>處理太慢（buffer 滿）</td></tr>
+        <tr><td><code>409</code></td><td>訂閱方案不足（付費功能）</td></tr>
+        <tr><td><code>500</code></td><td>伺服器錯誤</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============================ ⑨ 範例 ============================ -->
+  <section id="examples">
+    <h2><span class="num">⑨</span> 完整 Python 範例</h2>
+
+    <h3>範例 1 — 每日 DCA（美元成本平均）</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>"""
+每天買 $50 美元 BTC，無論價格。
+搭配 cron job 在固定時間執行。
+"""
+import alpaca_trade_api as tradeapi
+from datetime import datetime
+
+api = tradeapi.REST(
+    'KEY', 'SECRET',
+    base_url='https://paper-api.alpaca.markets'
+)
+
+def daily_dca(symbol='BTC/USD', amount_usd='50'):
+    order = api.submit_order(
+        symbol=symbol,
+        notional=amount_usd,
+        side='buy',
+        type='market',
+        time_in_force='gtc'
+    )
+    print(f"[{datetime.now()}] DCA buy {symbol} ${amount_usd}, order id: {order.id}")
+    return order
+
+daily_dca()</code></pre>
+
+    <h3>範例 2 — 利潤鎖定：BTC 漲 10% 賣一半</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>"""
+持有 BTC，當前價 vs 平均成本漲幅達 10% → 市價賣一半鎖利
+"""
+import alpaca_trade_api as tradeapi
+api = tradeapi.REST('K', 'S', base_url='https://paper-api.alpaca.markets')
+
+btc = api.get_position('BTC/USD')
+entry = float(btc.avg_entry_price)
+now = float(btc.current_price)
+gain_pct = (now - entry) / entry
+
+if gain_pct >= 0.10:
+    sell_qty = str(float(btc.qty) / 2)
+    order = api.submit_order(
+        symbol='BTC/USD',
+        qty=sell_qty,
+        side='sell',
+        type='market',
+        time_in_force='gtc'
+    )
+    print(f"已賣出 {sell_qty} BTC 鎖利 (gain {gain_pct*100:.2f}%)")
+else:
+    print(f"目前漲幅 {gain_pct*100:.2f}%,未達 10%, 續抱")</code></pre>
+
+    <h3>範例 3 — 動態網格（BTC）</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>"""
+在當前價 ±10% 範圍內每 2% 掛一檔限價單，金額 $50
+"""
+import alpaca_trade_api as tradeapi
+api = tradeapi.REST('K', 'S', base_url='https://paper-api.alpaca.markets')
+
+SYMBOL = 'BTC/USD'
+GRID_COUNT = 10
+STEP_PCT = 0.02
+AMOUNT = '50'
+
+# 清掉舊單
+api.cancel_all_orders()
+
+# 取當前價
+last = float(api.get_snapshot(SYMBOL).latest_trade.price)
+
+orders = []
+for i in range(-GRID_COUNT//2, GRID_COUNT//2 + 1):
+    price = round(last * (1 + i * STEP_PCT), 2)
+    if i == 0: continue
+    side = 'buy' if price < last else 'sell'
+    try:
+        o = api.submit_order(
+            symbol=SYMBOL,
+            notional=AMOUNT,
+            side=side,
+            type='limit',
+            time_in_force='gtc',
+            limit_price=str(price)
+        )
+        orders.append(o)
+        print(f"  {side} @ ${price}")
+    except Exception as e:
+        print(f"  Skip {price}: {e}")
+
+print(f"\n總共掛 {len(orders)} 檔")</code></pre>
+
+    <h3>範例 4 — 即時價觸發（市價單）</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>"""
+監控 BTC 即時報價，跌破 $58,000 時市價賣出全部持倉
+"""
+from alpaca_trade_api import Stream, REST
+import asyncio
+
+trade_api = REST('K', 'S', base_url='https://paper-api.alpaca.markets')
+fired = False
+
+async def on_quote(q):
+    global fired
+    if q.symbol == 'BTC/USD' and q.bid_price < 58000 and not fired:
+        fired = True
+        btc = trade_api.get_position('BTC/USD')
+        trade_api.submit_order(
+            symbol='BTC/USD',
+            qty=btc.qty,
+            side='sell',
+            type='market',
+            time_in_force='ioc'
+        )
+        print(f"觸發賣單 bid=${q.bid_price}")
+        # 結束 stream
+        await asyncio.sleep(1)
+
+stream = Stream(
+    'K', 'S',
+    base_url='wss://stream.data.alpaca.markets',
+    data_feed='crypto'
+)
+stream.subscribe_quotes(on_quote, 'BTC/USD')
+stream.run()</code></pre>
+
+    <h3>範例 5 — 即時 OHLCV 進 SQLite</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>"""
+把 BTC/USD 的 1 分 K 寫入 SQLite，便於後續 backtest
+"""
+import sqlite3
+from alpaca_trade_api import Stream
+import datetime
+
+db = sqlite3.connect('/tmp/crypto_bars.db')
+db.execute('''
+CREATE TABLE IF NOT EXISTS bars (
+    symbol TEXT, ts TEXT, open REAL, high REAL,
+    low REAL, close REAL, volume REAL,
+    PRIMARY KEY (symbol, ts)
+)
+''')
+
+async def on_bar(b):
+    db.execute('''
+        INSERT OR REPLACE INTO bars
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (b.symbol, b.timestamp.isoformat(),
+          b.open, b.high, b.low, b.close, b.volume))
+    db.commit()
+    print(f"{b.symbol} @ {b.timestamp} c={b.close}")
+
+stream = Stream('K', 'S',
+                base_url='wss://stream.data.alpaca.markets',
+                data_feed='crypto')
+stream.subscribe_bars(on_bar, 'BTC/USD', 'ETH/USD')
+stream.run()</code></pre>
+
+    <h3>範例 6 — 查所有交易對的最小下單量</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>import alpaca_trade_api as tradeapi
+api = tradeapi.REST('K', 'S', base_url='https://paper-api.alpaca.markets')
+
+print(f"{'Symbol':<12} {'最小下單量':>12} {'最小金額':>10}")
+print("-" * 40)
+for a in api.list_assets(asset_class='crypto', status='active'):
+    if a.tradable:
+        print(f"{a.symbol:<12} {a.min_trade_qty:>12} ${a.min_trade_notional:>9}")</code></pre>
+  </section>
+
+  <!-- ============================ ⑩ 差異 ============================ -->
+  <section id="differences">
+    <h2><span class="num">⑩</span> Crypto vs Stock 關鍵差異</h2>
+
+    <h3>下單與部位差異</h3>
+    <ul>
+      <li><strong>無放空</strong>：Crypto 僅現貨，<code>qty</code> 永遠為正</li>
+      <li><strong>無融資</strong>：下單前檢查 <code>cash</code>（USD）是否足夠</li>
+      <li><strong>無 PDT</strong>：當沖無限制，<code>daytrade_count</code> 對 Crypto 不適用</li>
+      <li><strong>無 fragments 美股那樣碎股限制</strong>，但有 <code>min_trade_qty</code> 與 <code>min_trade_notional</code></li>
+      <li><strong>TIF 限制</strong>：只有 <code>gtc</code> / <code>ioc</code> / <code>fok</code></li>
+    </ul>
+
+    <h3>常見 403/422 原因</h3>
+    <table>
+      <thead><tr><th>狀況</th><th>HTTP</th><th>解法</th></tr></thead>
+      <tbody>
+        <tr><td>USD 餘額不足</td><td><span class="status-pill sp-403">403</span></td><td>先入金或賣其他幣</td></tr>
+        <tr><td>持倉幣數不足</td><td><span class="status-pill sp-403">403</span></td><td>賣單 qty ≤ 持倉</td></tr>
+        <tr><td>下單量 < min_trade_qty</td><td><span class="status-pill sp-400">422</span></td><td>提高 qty</td></tr>
+        <tr><td>下單金額 < min_trade_notional</td><td><span class="status-pill sp-400">422</span></td><td>提高 notional</td></tr>
+        <tr><td>價格非 price_increment 倍數</td><td><span class="status-pill sp-400">422</span></td><td>round 到 increment</td></tr>
+        <tr><td>使用 day/opg/cls TIF</td><td><span class="status-pill sp-400">422</span></td><td>改用 gtc</td></tr>
+        <tr><td>嘗試放空</td><td><span class="status-pill sp-403">403</span></td><td>不可放空，先建倉再賣</td></tr>
+      </tbody>
+    </table>
+
+    <h3>幣幣轉換（USDT/USD 結算）</h3>
+    <p>Alpaca 的 USDT/USD 對視為 <strong>同類資產</strong>，交易 USDT/USD 不會扣你的 USD 餘額，而是用你已有的 USDT。如果你持有 USDT 而想換成 USD，可以：</p>
+
+    <span class="lang-tag">python</span>
+    <pre><code># 把 USDT 換成 USD
+api.submit_order(
+    symbol='USDT/USD',
+    qty='100',   # 賣 100 USDT
+    side='sell',
+    type='market',
+    time_in_force='gtc'
+)</code></pre>
+
+    <h3>帳戶資產總覽</h3>
+    <span class="lang-tag">python</span>
+    <pre><code>"""
+列出帳戶中所有 Crypto 持倉與 USDT 等結算幣
+"""
+import alpaca_trade_api as tradeapi
+api = tradeapi.REST('K', 'S', base_url='https://paper-api.alpaca.markets')
+
+acct = api.get_account()
+print(f"USD 現金: ${acct.cash}")
+print(f"總權益: ${acct.equity}")
+print()
+
+print("=== Crypto 持倉 ===")
+total_crypto_usd = 0
+for p in api.list_positions():
+    if p.asset_class == 'crypto':
+        mv = float(p.market_value)
+        total_crypto_usd += mv
+        print(f"{p.symbol:<12} {p.qty:>14} 顆  市值 ${mv:>10.2f}")
+
+print(f"\n加密貨幣總市值: ${total_crypto_usd:.2f}")
+print(f"帳戶可用 USD: ${acct.cash}")
+print(f"可用 USDT（如果有）: 查看 get_position('USDT')")</code></pre>
+
+    <div class="callout danger">
+      <strong>🚨 Crypto 帳戶不是獨立帳戶</strong>：交易 Crypto 不會影響美股交易，反之亦然。但 <strong>Crypto 沒有 FDIC 保險</strong>，
+      且 USD 餘額由 Alpaca 帳戶統一管理。請勿將退休金規模的資金單獨放在 Crypto。
+    </div>
+
+    <div class="callout info">
+      <strong>📚 延伸閱讀</strong>：<a href="https://alpaca.markets/docs/api-references/crypto-api/" style="color:var(--accent);">Alpaca Crypto API 官方文檔</a> ·
+      <a href="./alpaca-api.html" style="color:var(--accent);">← Stock API 中文速查</a>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · Alpaca Crypto API 中文速查</p>
+    <p style="margin-top:4px;">內容翻譯自 Alpaca 官方文檔，僅供個人學習使用。版本：Crypto API v2（2026-07）</p>
+    <p style="margin-top:4px;"><a href="./index.html" style="color:var(--accent);text-decoration:none;">← 回到 JustKM 首頁</a></p>
+  </div>
+
+</div>
+</body>
+</html>
