@@ -312,6 +312,7 @@
   <nav class="toc">
     <div class="toc-title">📑 目錄</div>
     <div class="toc-grid">
+      <a href="#network-basics">⓪ 網路小白入門（必看）</a>
       <div class="group">▸ 基礎篇</div>
       <a href="#auth">① 認證與環境</a>
       <a href="#endpoints">② 速查總表</a>
@@ -335,6 +336,187 @@
   </nav>
 
   <!-- ============================ ① 認證 ============================ -->
+  <!-- ============================ 網路基礎 ============================ -->
+  <section id="network-basics">
+    <h2><span class="num">⓪</span> 給網路小白的 REST 與 WebSocket 入門</h2>
+
+    <p>在學 Alpaca API 之前，先把兩個核心網路概念搞清楚：**REST** 與 **WebSocket**。本節用生活比喻 + 對照表，讓你 5 分鐘懂。</p>
+
+    <h3>一句話總結</h3>
+    <table>
+      <thead><tr><th>類型</th><th>比喻</th><th>特性</th><th>Alpaca 用在哪</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>REST</strong></td>
+          <td>📞 <strong>打電話叫外送</strong>：你打一次、店家回應一次、對話結束</td>
+          <td>單次請求/回應、簡單、無狀態</td>
+          <td>查帳戶、下單、看持倉、看 K 線</td>
+        </tr>
+        <tr>
+          <td><strong>WebSocket</strong></td>
+          <td>📡 <strong>LINE 群組</strong>：雙方保持連線，誰有消息就 push 過去</td>
+          <td>持續連線、雙向、伺服器主動推送</td>
+          <td>即時報價、即時成交、訂單更新推播</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>REST — 請問、回答、結束</h3>
+    <p><strong>REST</strong> 全名 Representational State Transfer，是現今網路最常用的 API 風格。它有 4 個核心動詞：</p>
+
+    <table>
+      <thead><tr><th>HTTP 動詞</th><th>意思</th><th>生活例子</th><th>Alpaca 例子</th></tr></thead>
+      <tbody>
+        <tr><td><code>GET</code></td><td>查（不修改資料）</td><td>看菜單</td><td>查帳戶餘額 <code>GET /v2/account</code></td></tr>
+        <tr><td><code>POST</code></td><td>新增一筆</td><td>下單點餐</td><td>下單 <code>POST /v2/orders</code></td></tr>
+        <tr><td><code>PATCH</code></td><td>修改部分</td><td>改訂單數量</td><td>改單 <code>PATCH /v2/orders/{id}</code></td></tr>
+        <tr><td><code>DELETE</code></td><td>刪除</td><td>取消訂單</td><td>刪單 <code>DELETE /v2/orders/{id}</code></td></tr>
+      </tbody>
+    </table>
+
+    <p>每次 REST 請求都是 <strong>獨立</strong> 的，伺服器不會記得你上次問過什麼。</p>
+
+    <h4>🔍 REST 流程（你 → 伺服器 → 你）</h4>
+    <pre><code>你（瀏覽器/程式）             Alpaca 伺服器
+       │                            │
+       │  ── GET /v2/account ───►   │  (1) 你發出請求
+       │                            │  (2) 伺服器查詢資料庫
+       │   ◄── JSON 資料 ──────    │  (3) 回傳結果
+       │                            │
+       │  ← 連線關閉 →               │  (4) 結束
+       │                            │</code></pre>
+
+    <h4>💻 實際範例（用 curl 問 Alpaca 帳戶）</h4>
+    <span class="lang-tag">bash</span>
+    <pre><code>curl -X GET \
+  -H "APCA-API-KEY-ID: YOUR_KEY_ID" \
+  -H "APCA-API-SECRET-KEY: YOUR_SECRET" \
+  https://paper-api.alpaca.markets/v2/account</code></pre>
+
+    <p>伺服器會回一段 JSON：</p>
+    <pre><code>{
+  "id": "904837e3-3b76-47ec-b432-046db621571b",
+  "account_number": "PA1234567890",
+  "status": "ACTIVE",
+  "cash": "10000.00",
+  "portfolio_value": "15000.00",
+  "buying_power": "20000.00",
+  ...
+}</code></pre>
+
+    <h4>📬 HTTP Status Code（伺服器告訴你結果的編號）</h4>
+    <table>
+      <thead><tr><th>Code</th><th>意思</th><th>你該怎麼做</th></tr></thead>
+      <tbody>
+        <tr><td><span class="status-pill sp-200">200</span></td><td>✅ 成功</td><td>拿資料用</td></tr>
+        <tr><td><span class="status-pill sp-200">201</span></td><td>✅ 建立成功（POST 用）</td><td>拿資料用</td></tr>
+        <tr><td><span class="status-pill sp-400">400</span></td><td>❌ 你送出的格式錯了</td><td>檢查 JSON、必填欄位</td></tr>
+        <tr><td><span class="status-pill sp-400">401</span></td><td>❌ 沒帶 API Key</td><td>檢查 Header</td></tr>
+        <tr><td><span class="status-pill sp-403">403</span></td><td>❌ Key 錯或權限不足</td><td>檢查 Key、餘額、PDT</td></tr>
+        <tr><td><span class="status-pill sp-400">404</span></td><td>❌ 路徑錯了</td><td>檢查 URL 拼字</td></tr>
+        <tr><td><span class="status-pill sp-400">422</span></td><td>❌ 內容格式對但邏輯錯</td><td>看 error message</td></tr>
+        <tr><td><span class="status-pill sp-400">429</span></td><td>❌ 請求太頻繁</td><td>睡一下再試（rate limit）</td></tr>
+        <tr><td><span class="status-pill sp-403">500</span></td><td>💥 伺服器當機</td><td>稍後再試或聯絡客服</td></tr>
+      </tbody>
+    </table>
+
+    <h3>WebSocket — 一直保持連線，誰有消息誰就 push</h3>
+    <p><strong>WebSocket</strong> 是瀏覽器與伺服器之間的<strong>長連線</strong>。連線建立後，雙方隨時可以互相傳訊息，不用每次都重新「打招呼」。</p>
+
+    <h4>🔍 WebSocket 流程</h4>
+    <pre><code>你（程式）                    Alpaca 伺服器
+       │                            │
+       │  ── 請求升級成 WS ──►      │  (1) 用 HTTP 發起升級請求
+       │   ◄── 101 Switching ───    │  (2) 伺服器同意升級
+       │                            │
+       │  ← 連線保持 →               │  (3) 持續連線
+       │                            │
+       │  ── {"action":"auth"} ►    │  (4) 你送認證
+       │  ── {"action":"subscribe"} ►│  (5) 你訂閱 BTC/USD 報價
+       │                            │
+       │   ◄── {報價1} ──────      │  (6) 伺服器主動推播
+       │   ◄── {報價2} ──────      │  (7) 又一筆成交
+       │   ◄── {報價3} ──────      │  (8) 又有新報價
+       │   ◄── {報價4} ──────      │
+       │                            │
+       │  ← 連線保持（直到你關） →    │</code></pre>
+
+    <h4>🎯 什麼時候該用 WebSocket？</h4>
+    <ul>
+      <li>✅ 你<strong>需要即時資料</strong>（每秒數十筆的報價）</li>
+      <li>✅ 你<strong>不想一直問</strong>伺服器「有新的嗎？」</li>
+      <li>✅ 你想讓<strong>伺服器主動通知你</strong>（訂單成交、價格觸發）</li>
+    </ul>
+
+    <p>反過來說，如果你只是想<strong> 5 秒鐘查一次 </strong>股價，REST 輪詢（每 5 秒送一次 GET）就夠了，WebSocket 反而太複雜。</p>
+
+    <h4>📊 REST vs WebSocket 對比</h4>
+    <table>
+      <thead><tr><th>面向</th><th>REST</th><th>WebSocket</th></tr></thead>
+      <tbody>
+        <tr><td>連線模式</td><td>短連線（問完就斷）</td><td>長連線（一直保持）</td></tr>
+        <tr><td>發起方</td><td>永遠是<strong>客戶端</strong></td><td>雙方都可以</td></tr>
+        <tr><td>通訊單位</td><td>HTTP 請求/回應</td><td>JSON 訊息（雙向）</td></tr>
+        <tr><td>即時性</td><td>差（要輪詢）</td><td>極佳（伺服器主動推）</td></tr>
+        <tr><td>資源消耗</td><td>低（短連線）</td><td>較高（持續佔用 socket）</td></tr>
+        <tr><td>複雜度</td><td>簡單（curl 就能用）</td><td>較複雜（需管理連線）</td></tr>
+        <tr><td>適合場景</td><td>CRUD、報表、定期抓資料</td><td>即時報價、聊天室、通知</td></tr>
+        <tr><td>Alpaca 應用</td><td>下單、查持倉、看 K 線</td><td>即時報價、訂單狀態推播</td></tr>
+      </tbody>
+    </table>
+
+    <h3>🔧 動手試：兩個都能跑的最簡範例</h3>
+    <p>以下兩個 Python 範例<strong>完全不需要 Alpaca Key</strong>，用公開測試站即可跑通。</p>
+
+    <h4>範例 A：REST（用 httpbin.org 模擬伺服器）</h4>
+    <span class="lang-tag">python</span>
+    <pre><code>import requests   # pip install requests
+
+# GET 請求 — 像打電話問「現在幾點」
+r = requests.get('https://httpbin.org/get')
+print(f"狀態碼: {r.status_code}")   # 200
+print(f"回應 JSON: {r.json()}")
+
+# POST 請求 — 像打電話說「我要點一份炒飯」
+r = requests.post('https://httpbin.org/post',
+                  json={'symbol': 'BTC/USD', 'qty': 0.01})
+print(f"伺服器說: {r.json()['json']}")   # 把你送的資料 echo 回來</code></pre>
+
+    <h4>範例 B：WebSocket（用 echo.websocket.org 測試）</h4>
+    <span class="lang-tag">python</span>
+    <pre><code>import websocket   # pip install websocket-client
+
+# 建立連線
+ws = websocket.create_connection('wss://echo.websocket.org')
+
+# 你送一句話
+ws.send('Hello, 伺服器!')
+
+# 伺服器 echo 回來
+reply = ws.recv()
+print(f"伺服器說: {reply}")
+
+# 關閉
+ws.close()</code></pre>
+
+    <p>這個範例中：你連上一個 echo 伺服器，送什麼它就回什麼。<strong>真實 Alpaca WebSocket</strong> 差別只在伺服器會主動推播行情，不只回應你的訊息。</p>
+
+    <div class="callout tip">
+      <strong>💡 簡單記法</strong>：
+      <ul style="margin-top:6px;">
+        <li><strong>REST</strong> = 「我去<em>問</em>，伺服器<em>答</em>，結束」→ 適合查資料、下單</li>
+        <li><strong>WebSocket</strong> = 「我們<em>保持通話</em>，誰有消息就<em> push</em>」→ 適合即時報價</li>
+      </ul>
+    </div>
+
+    <div class="callout info">
+      <strong>📚 延伸閱讀</strong>：
+      <a href="https://developer.mozilla.org/zh-TW/docs/Web/HTTP/Methods" style="color:var(--accent);">MDN HTTP 動詞</a> ·
+      <a href="https://developer.mozilla.org/zh-TW/docs/Web/API/WebSockets_API" style="color:var(--accent);">MDN WebSocket API</a> ·
+      <a href="https://zh.wikipedia.org/wiki/REST" style="color:var(--accent);">維基百科 REST</a>
+    </div>
+  </section>
+
   <section id="auth">
     <h2><span class="num">①</span> 認證與環境</h2>
     <p>所有私有 API 都需要 HTTP Header 帶上兩組 API Key。在 <a href="https://app.alpaca.markets/" style="color:var(--accent);">app.alpaca.markets</a> 開發者後台申請。</p>
