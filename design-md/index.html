@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>設計系統圖鑑 · 74 個品牌 DESIGN.md · JustKM</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131826;
+      --bg-card: #1a2138;
+      --bg-code: #0f1424;
+      --border: #2a3454;
+      --text-primary: #e8ecf4;
+      --text-secondary: #9aa3b8;
+      --text-muted: #6b7390;
+      --accent: #4f9eff;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.75;
+      min-height: 100vh;
+      padding: 40px 20px 80px;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    .font-adjuster {
+      position: fixed; top: 16px; right: 16px; z-index: 999;
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4); backdrop-filter: blur(8px);
+    }
+    .font-adjuster button {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-primary); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; font-family: inherit;
+    }
+    .font-adjuster button:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .font-adjuster .fa-label { font-size: 11px; color: var(--text-muted); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 11px; color: var(--accent); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .hero {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 16px; padding: 36px 32px; margin-bottom: 24px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg,
+        #ff385c 0%, #0066cc 12%, #5e6ad2 24%, #171717 36%,
+        #cc785c 48%, #533afd 60%, #00d68f 72%, #ff9f43 84%, #a855f7 100%);
+    }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .hero .sub { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 16px; }
+    .badge {
+      display: inline-block; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px; padding: 3px 10px; font-size: 0.6875rem;
+      color: var(--text-secondary); margin-right: 6px; margin-bottom: 6px;
+    }
+    .badge.blue { color: var(--accent); border-color: var(--accent); }
+    .badge.purple { color: #a855f7; border-color: #a855f7; }
+    .badge.green { color: #00d68f; border-color: #00d68f; }
+
+    .controls {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 20px; margin-bottom: 24px;
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    }
+    .controls input[type="text"] {
+      flex: 1; min-width: 200px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-primary); padding: 8px 12px; border-radius: 6px;
+      font-size: 0.875rem; font-family: inherit;
+    }
+    .controls input[type="text"]:focus { outline: none; border-color: var(--accent); }
+    .controls .filter-label { color: var(--text-muted); font-size: 0.8125rem; }
+    .controls button {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-secondary); padding: 8px 14px; border-radius: 6px;
+      font-size: 0.8125rem; cursor: pointer; font-family: inherit;
+    }
+    .controls button.active, .controls button:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .count { color: var(--text-muted); font-size: 0.8125rem; margin-left: auto; }
+    .count strong { color: var(--accent); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden; transition: all 0.2s;
+      cursor: pointer;
+    }
+    .card:hover {
+      border-color: var(--accent); transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+    .card .preview {
+      height: 120px; padding: 18px;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 700; font-size: 1.25rem;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      letter-spacing: -0.3px;
+      position: relative;
+    }
+    .card .info { padding: 12px 16px; }
+    .card .brand-name {
+      font-weight: 700; font-size: 0.9375rem; color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .card .hex-code {
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .card .hex-code span {
+      display: inline-block;
+      width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px;
+      margin-right: 6px;
+      border: 1px solid var(--border);
+    }
+    .card .desc {
+      color: var(--text-secondary); font-size: 0.75rem;
+      margin-top: 6px;
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Modal */
+    .modal-bg {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: none; align-items: center; justify-content: center;
+      z-index: 1000; padding: 20px; backdrop-filter: blur(4px);
+    }
+    .modal-bg.show { display: flex; }
+    .modal {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 16px; max-width: 720px; width: 100%;
+      max-height: 88vh; overflow-y: auto;
+    }
+    .modal-header {
+      padding: 24px 28px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; background: var(--bg-secondary); z-index: 1;
+    }
+    .modal-header h2 { font-size: 1.25rem; }
+    .modal-close {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-primary); width: 32px; height: 32px;
+      border-radius: 6px; cursor: pointer; font-size: 1.125rem;
+    }
+    .modal-close:hover { background: var(--accent); border-color: var(--accent); }
+    .modal-body { padding: 24px 28px; }
+    .modal-body .preview-large {
+      border-radius: 12px; height: 160px; margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 1.5rem; font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .modal-body .desc { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 20px; line-height: 1.7; }
+    .modal-body .colors { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; }
+    .modal-body .color-chip {
+      border-radius: 8px; padding: 10px 12px; font-family: 'SF Mono', monospace;
+      font-size: 0.6875rem; border: 1px solid var(--border);
+    }
+    .modal-body .color-chip .chip-color {
+      width: 100%; height: 32px; border-radius: 4px; margin-bottom: 6px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .modal-body .modal-cta {
+      display: inline-block; padding: 10px 20px; background: var(--accent);
+      color: white; text-decoration: none; border-radius: 8px;
+      font-size: 0.875rem; font-weight: 600; margin-right: 8px;
+    }
+    .modal-body .modal-cta:hover { opacity: 0.9; }
+    .modal-body .modal-cta.secondary { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary); }
+
+    .back-home {
+      display: inline-block; margin-bottom: 20px;
+      color: var(--accent); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--border);
+      border-radius: 8px; background: var(--bg-secondary);
+    }
+    .back-home:hover { border-color: var(--accent); }
+    .footer {
+      text-align: center; color: var(--text-muted); font-size: 0.75rem;
+      margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../index.html">← 回到 JustKM 首頁</a>
+
+  <div class="hero">
+    <h1>🎨 設計系統圖鑑</h1>
+    <p class="sub">74 個品牌的 DESIGN.md 規格 · 從 Stripe 到 Linear 到 Apple — 全部收錄</p>
+    <div>
+      <span class="badge blue">74 個品牌</span>
+      <span class="badge purple">100k+ stars</span>
+      <span class="badge green">YAML 結構化</span>
+      <span class="badge">直接餵 AI 生成器</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <input type="text" id="search" placeholder="搜尋品牌（中英文都可）...">
+    <button class="active" data-filter="all">全部</button>
+    <button data-filter="tech">科技</button>
+    <button data-filter="finance">金融</button>
+    <button data-filter="design">設計工具</button>
+    <button data-filter="car">車廠</button>
+    <button data-filter="ai">AI</button>
+    <span class="count">顯示 <strong id="visible-count">74</strong> / 74 個</span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="footer">
+    <p>JustKM · 設計系統圖鑑</p>
+    <p style="margin-top:4px;">資料來源：<a href="https://github.com/VoltAgent/awesome-design-md" style="color:var(--accent);">VoltAgent/awesome-design-md</a>（100k+ stars）</p>
+    <p style="margin-top:4px;"><a href="../index.html" style="color:var(--accent);text-decoration:none;">← 回到 JustKM 首頁</a></p>
+  </div>
+
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Brand</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+  // 字級調整器
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      if (valEl) valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { saved = parseFloat(localStorage.getItem(KEY)) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').onclick = () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    };
+    document.getElementById('fa-inc').onclick = () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    };
+    document.getElementById('fa-reset').onclick = () => apply(DEFAULT);
+    document.addEventListener('keydown', (e) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); apply(cur + STEP); }
+      else if (e.key === '-') { e.preventDefault(); apply(cur - STEP); }
+      else if (e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+
+  // 分類映射
+  const CATEGORY = {
+    tech: ['stripe','vercel','linear.app','notion','figma','framer','miro','slack','github','cal','webflow','raycast','clay','posthog','intercom','resend','revolut','replicate','wise','shopify','supabase','superhuman','sentry','spotify','uber','zapier','mintlify','sanity','theverge','wired','composio','spacex','together.ai','runwayml','pinterest','expo','mongodb','clickhouse','hashicorp','ollama','cohere','x.ai','mastercard','vodafone','airbnb','airtable','nintendo-2001','starbucks','playstation','hp','ibm','nike','dell-1996','meta','nvidia','voltagent','opencode.ai','lovable','cursor','warp','minimax'],
+    finance: ['stripe','binance','coinbase','kraken','mastercard','revolut','wise','airbnb'],
+    design: ['figma','framer','miro','clay','linear.app','notion','webflow','raycast','stripe','apple','vercel','intercom','posthog','sanity','sentry'],
+    car: ['bmw','bmw-m','bugatti','ferrari','lamborghini','renault','tesla'],
+    ai: ['claude','minimax','mistral.ai','cohere','together.ai','replicate','runwayml','voltagent','opencode.ai','lovable','cursor','x.ai','ollama','elevenlabs']
+  };
+
+  // 載入 brands.json
+  let brands = [];
+  fetch('./brands.json')
+    .then(r => r.json())
+    .then(data => {
+      brands = data;
+      render(brands);
+    })
+    .catch(err => {
+      document.getElementById('grid').innerHTML = '<p style="color:var(--accent-red);">載入 brands.json 失敗</p>';
+    });
+
+  let currentFilter = 'all';
+  let currentQuery = '';
+
+  function render(list) {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = list.map(b => `
+      <div class="card" onclick="openModal('${b.brand}')">
+        <div class="preview" style="background:${b.primary}">${b.brand}</div>
+        <div class="info">
+          <div class="brand-name">${b.brand}</div>
+          <div class="hex-code"><span style="background:${b.primary}"></span>${b.primary}</div>
+          <div class="desc">${b.description || b.name}</div>
+        </div>
+      </div>
+    `).join('');
+    document.getElementById('visible-count').textContent = list.length;
+  }
+
+  function applyFilter() {
+    let result = brands;
+    if (currentFilter !== 'all') {
+      const set = new Set(CATEGORY[currentFilter] || []);
+      result = result.filter(b => set.has(b.brand));
+    }
+    if (currentQuery) {
+      const q = currentQuery.toLowerCase();
+      result = result.filter(b =>
+        b.brand.toLowerCase().includes(q) ||
+        (b.description || '').toLowerCase().includes(q) ||
+        (b.name || '').toLowerCase().includes(q)
+      );
+    }
+    render(result);
+  }
+
+  document.getElementById('search').addEventListener('input', (e) => {
+    currentQuery = e.target.value;
+    applyFilter();
+  });
+  document.querySelectorAll('.controls button[data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.controls button[data-filter]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      applyFilter();
+    });
+  });
+
+  // Modal
+  async function openModal(brand) {
+    const b = brands.find(x => x.brand === brand);
+    if (!b) return;
+    document.getElementById('modal-title').textContent = b.brand;
+    const body = document.getElementById('modal-body');
+    body.innerHTML = `
+      <div class="preview-large" style="background:${b.primary}">${b.brand}</div>
+      <div class="desc">${b.description || b.name}</div>
+      <h3 style="color:var(--accent); font-size:0.875rem; margin-bottom:10px;">主要色彩</h3>
+      <div class="colors">
+        ${[b.primary, ...['#1c1e54','#0d253d','#273951','#64748d','#ffffff','#f6f9fc','#e3e8ee']].slice(0,8).map(c => `
+          <div class="color-chip">
+            <div class="chip-color" style="background:${c}"></div>
+            ${c}
+          </div>
+        `).join('')}
+      </div>
+      <div style="margin-top:16px;">
+        <a class="modal-cta" href="./library/${brand}/DESIGN.md" target="_blank">📄 檢視 DESIGN.md</a>
+        <a class="modal-cta secondary" href="https://github.com/VoltAgent/awesome-design-md/tree/main/design-md/${brand}" target="_blank">GitHub ↗</a>
+      </div>
+    `;
+    document.getElementById('modal').classList.add('show');
+  }
+  function closeModal() {
+    document.getElementById('modal').classList.remove('show');
+  }
+  document.getElementById('modal').addEventListener('click', (e) => {
+    if (e.target.id === 'modal') closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+</script>
+
+</body>
+</html>
