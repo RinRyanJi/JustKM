@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>石垣島 × 西表島 × 竹富島 行程總覽 (2026-07-16 → 07-22) · JustKM</title>
+  <meta name="description content="Sanity 風格兩段住宿行程表。Day 1 西表過夜（民宿なみ荘）+ Day 2-6 石垣住宿（みどり荘），含颱風 9 號後的最新渡輪/巴士狀態與應變 SOP。">
+  <style>
+    /* ============================================================
+       SANITY 風格 — JustKM × travel/ishigaki-2026/itinerary
+       來源: design-md/library/sanity/DESIGN.md
+       概念: near-black 畫布 + 電光藍 #0052EF 互動
+              + 珊瑚紅 #F36458 CTA + Neon Green 進度
+              + IBM Plex Mono 數字 + Pill 按鈕 (99999px)
+       ============================================================ */
+
+    :root {
+      --canvas:         #0b0b0b;
+      --pure-black:     #000000;
+      --surface-1:      #212121;
+      --surface-2:      #353535;
+      --text-1:         #ffffff;
+      --text-2:         #b9b9b9;
+      --text-3:         #797979;
+
+      --red-cta:        #f36458;
+      --blue-hover:     #0052ef;
+      --blue-light:     #55beff;
+      --green-neon:     #19d600;
+      --error-red:      #dd0000;
+
+      --iriomote:       #19d600;  /* 西表綠 */
+      --ishigaki:       #0052ef;  /* 石垣藍 */
+      --taketomi:       #f36458;  /* 竹富珊瑚 */
+      --typhoon:        #dd0000;  /* 颱風紅 */
+
+      --font-scale:     1;
+      --container:      1080px;
+
+      --r-xs: 3px;
+      --r-sm: 6px;
+      --r-md: 12px;
+      --r-lg: 18px;
+      --r-pill: 99999px;
+    }
+
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      background: var(--canvas);
+      color: var(--text-1);
+      line-height: 1.55;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--blue-hover); text-decoration: none; transition: color .15s; }
+    a:hover { color: var(--blue-light); }
+    code { font-family: 'IBM Plex Mono', 'SF Mono', Menlo, monospace; }
+
+    /* ===== 字級調整器 ===== */
+    .font-adjuster {
+      position: fixed;
+      top: 16px; right: 16px;
+      z-index: 999;
+      background: var(--surface-1);
+      border: 1px solid var(--surface-2);
+      border-radius: var(--r-pill);
+      padding: 4px 6px;
+      display: flex; align-items: center; gap: 4px;
+      backdrop-filter: blur(8px);
+    }
+    .font-adjuster button {
+      background: var(--surface-2);
+      border: 0;
+      color: var(--text-1);
+      width: 32px; height: 32px;
+      border-radius: var(--r-pill);
+      font-size: 13px; font-weight: 700;
+      cursor: pointer;
+      transition: background .15s;
+      font-family: inherit;
+    }
+    .font-adjuster button:hover { background: var(--blue-hover); color: var(--text-1); }
+    .font-adjuster .fa-label { font-size: 11px; color: var(--text-3); margin: 0 4px; letter-spacing: .5px; }
+    .font-adjuster .fa-value { font-size: 11px; color: var(--blue-light); font-weight: 700; min-width: 36px; text-align: center; font-family: 'IBM Plex Mono', monospace; }
+
+    /* ===== Layout ===== */
+    .container { max-width: var(--container); margin: 0 auto; padding: 32px 20px 80px; }
+
+    /* ===== Hero ===== */
+    .hero {
+      border: 1px solid var(--surface-2);
+      border-radius: var(--r-lg);
+      padding: 40px 36px;
+      margin-bottom: 32px;
+      background: var(--surface-1);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-tag {
+      display: inline-block;
+      background: var(--canvas);
+      color: var(--blue-light);
+      border: 1px solid var(--blue-hover);
+      border-radius: var(--r-pill);
+      padding: 4px 14px;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .hero h1 {
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -2px;
+      margin-bottom: 12px;
+    }
+    .hero .sub {
+      font-size: 15px; color: var(--text-2); line-height: 1.6;
+      max-width: 720px;
+    }
+    .hero-pills {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px;
+      border-radius: var(--r-pill);
+      font-size: 12px; font-weight: 600;
+      letter-spacing: .3px;
+      background: var(--surface-2);
+      color: var(--text-1);
+    }
+    .pill.iriomote { background: rgba(25, 214, 0, .15); color: var(--iriomote); border: 1px solid var(--iriomote); }
+    .pill.ishigaki { background: rgba(0, 82, 239, .15); color: var(--blue-light); border: 1px solid var(--blue-hover); }
+    .pill.taketomi { background: rgba(243, 100, 88, .15); color: var(--red-cta); border: 1px solid var(--red-cta); }
+    .pill.typhoon  { background: rgba(221, 0, 0, .15); color: var(--error-red); border: 1px solid var(--error-red); }
+    .pill.ship     { background: rgba(85, 190, 255, .15); color: var(--blue-light); border: 1px solid var(--blue-light); }
+
+    /* ===== Stats ===== */
+    .stats {
+      margin-top: 24px;
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .stat {
+      background: var(--canvas);
+      border: 1px solid var(--surface-2);
+      border-radius: var(--r-md);
+      padding: 14px 16px;
+    }
+    .stat .n {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 28px; font-weight: 700;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat .l { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .8px; }
+
+    /* ===== Typhoon Banner ===== */
+    .typhoon-banner {
+      background: linear-gradient(135deg, rgba(221,0,0,.15), rgba(243,100,88,.1));
+      border: 2px solid var(--error-red);
+      border-radius: var(--r-md);
+      padding: 20px 24px;
+      margin-bottom: 32px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .typhoon-banner .icon {
+      font-size: 32px;
+      flex-shrink: 0;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .6; } }
+    .typhoon-banner h3 {
+      font-size: 18px; font-weight: 700;
+      color: var(--error-red);
+      margin-bottom: 4px;
+    }
+    .typhoon-banner p { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+    .typhoon-banner p + p { margin-top: 4px; }
+
+    /* ===== Section ===== */
+    .section {
+      margin-bottom: 48px;
+    }
+    .sec-head {
+      display: flex; align-items: baseline; gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--surface-2);
+    }
+    .sec-head .num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      color: var(--blue-light);
+      font-weight: 700;
+    }
+    .sec-head h2 {
+      font-size: 22px; font-weight: 700;
+      letter-spacing: -.5px;
+    }
+    .sec-head .tag {
+      font-size: 11px;
+      color: var(--text-3);
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      margin-left: auto;
+    }
+
+    /* ===== Stay Cards (兩段住宿) ===== */
+    .stays {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 720px) { .stays { grid-template-columns: 1fr; } }
+
+    .stay-card {
+      background: var(--surface-1);
+      border: 1px solid var(--surface-2);
+      border-left: 4px solid var(--iriomote);
+      border-radius: var(--r-md);
+      padding: 20px 22px;
+    }
+    .stay-card.ishigaki { border-left-color: var(--blue-hover); }
+    .stay-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .stay-card .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: var(--r-pill);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+    .stay-card .badge.irio   { background: var(--iriomote); color: var(--canvas); }
+    .stay-card .badge.ishi   { background: var(--blue-hover); color: var(--text-1); }
+    .stay-card .row {
+      display: flex; gap: 8px;
+      font-size: 13px;
+      color: var(--text-2);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+    .stay-card .row .k {
+      flex: 0 0 70px;
+      color: var(--text-3);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      padding-top: 2px;
+    }
+    .stay-card .row .v {
+      flex: 1;
+    }
+    .stay-card .row .v code {
+      font-size: 12px;
+      color: var(--blue-light);
+    }
+    .stay-card .footer-row {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--surface-2);
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px;
+      color: var(--text-3);
+    }
+    .stay-card .price { color: var(--green-neon); font-family: 'IBM Plex Mono', monospace; font-weight: 700; }
+
+    /* ===== Timeline (Day by Day) ===== */
+    .timeline {
+      position: relative;
+      padding-left: 36px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 12px;
+      top: 14px; bottom: 14px;
+      width: 1px;
+      background: linear-gradient(180deg, var(--blue-hover), var(--iriomote), var(--red-cta));
+    }
+
+    .day {
+      position: relative;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px dashed var(--surface-2);
+    }
+    .day:last-child { border-bottom: 0; padding-bottom: 0; margin-bottom: 0; }
+
+    .day::before {
+      content: '';
+      position: absolute;
+      left: -29px; top: 8px;
+      width: 13px; height: 13px;
+      border-radius: 50%;
+      background: var(--canvas);
+      border: 2px solid var(--blue-hover);
+    }
+    .day.iriomote::before { border-color: var(--iriomote); }
+    .day.taketomi::before { border-color: var(--red-cta); }
+    .day.typhoon::before  { border-color: var(--error-red); }
+
+    .day-head {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 8px;
+    }
+    .day-head .date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      color: var(--text-3);
+      letter-spacing: .5px;
+    }
+    .day-head .title {
+      font-size: 18px; font-weight: 700;
+      letter-spacing: -.3px;
+    }
+    .day-head .stay {
+      margin-left: auto;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      padding: 3px 10px;
+      border-radius: var(--r-pill);
+    }
+    .day-head .stay.iriomote { background: rgba(25,214,0,.15); color: var(--iriomote); border: 1px solid var(--iriomote); }
+    .day-head .stay.ishigaki { background: rgba(0,82,239,.15); color: var(--blue-light); border: 1px solid var(--blue-hover); }
+    .day-head .stay.home { background: rgba(221,0,0,.15); color: var(--error-red); border: 1px solid var(--error-red); }
+
+    .day-body {
+      background: var(--surface-1);
+      border: 1px solid var(--surface-2);
+      border-radius: var(--r-md);
+      padding: 16px 20px;
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.7;
+    }
+
+    .day-body .slot {
+      display: flex; gap: 12px; padding: 4px 0;
+    }
+    .day-body .slot + .slot { border-top: 1px dashed var(--surface-2); margin-top: 4px; padding-top: 8px; }
+    .day-body .slot .time {
+      flex: 0 0 88px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--blue-light);
+      font-weight: 700;
+      padding-top: 2px;
+    }
+    .day-body .slot .what {
+      flex: 1;
+    }
+    .day-body .slot .what b { color: var(--text-1); }
+    .day-body .slot .what .note {
+      display: block;
+      font-size: 11px;
+      color: var(--text-3);
+      margin-top: 2px;
+    }
+    .day-body .slot .what .ok    { color: var(--green-neon); font-size: 11px; }
+    .day-body .slot .what .warn  { color: var(--red-cta); font-size: 11px; }
+    .day-body .slot .what .alert { color: var(--error-red); font-weight: 700; font-size: 11px; }
+
+    /* ===== Ferry Card ===== */
+    .ferry-grid {
+      display: grid; gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+    .ferry-card {
+      background: var(--surface-1);
+      border: 1px solid var(--surface-2);
+      border-radius: var(--r-md);
+      padding: 14px 18px;
+      position: relative;
+    }
+    .ferry-card .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-3);
+      margin-bottom: 6px;
+    }
+    .ferry-card .route {
+      font-size: 16px; font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text-1);
+    }
+    .ferry-card .times {
+      display: flex; flex-direction: column;
+      gap: 6px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+    }
+    .ferry-card .times .row { display: flex; justify-content: space-between; }
+    .ferry-card .times .row .t { color: var(--blue-light); font-weight: 700; }
+    .ferry-card .times .row .d { color: var(--text-3); }
+    .ferry-card .alert {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--surface-2);
+      font-size: 11px;
+      color: var(--error-red);
+      font-weight: 700;
+    }
+    .ferry-card .note {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-3);
+      line-height: 1.5;
+    }
+
+    /* ===== Callout ===== */
+    .callout {
+      background: var(--surface-1);
+      border-left: 3px solid var(--blue-hover);
+      border-radius: var(--r-sm);
+      padding: 12px 16px;
+      margin: 8px 0;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+    .callout.warn  { border-left-color: var(--red-cta); }
+    .callout.alert { border-left-color: var(--error-red); background: rgba(221,0,0,.08); }
+    .callout.ok    { border-left-color: var(--iriomote); }
+    .callout b     { color: var(--text-1); }
+    .callout p + p { margin-top: 6px; }
+
+    /* ===== Two-col ===== */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 720px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* ===== Table ===== */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      background: var(--surface-1);
+      border: 1px solid var(--surface-2);
+      border-radius: var(--r-md);
+      overflow: hidden;
+    }
+    th, td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--surface-2);
+    }
+    th {
+      background: var(--canvas);
+      color: var(--blue-light);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      font-size: 11px;
+    }
+    tr:last-child td { border-bottom: 0; }
+    td code { color: var(--blue-light); font-size: 11px; }
+    td b { color: var(--text-1); }
+
+    /* ===== Footer ===== */
+    .footer {
+      text-align: center;
+      color: var(--text-3);
+      font-size: 11px;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--surface-2);
+      line-height: 1.7;
+    }
+    .footer a { color: var(--blue-light); }
+    .footer a:hover { color: var(--text-1); }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (Cmd/Ctrl + -)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (Cmd/Ctrl + +)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (Cmd/Ctrl + 0)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <!-- ============================ HERO ============================ -->
+  <div class="hero">
+    <span class="hero-tag">ITINERARY · 沖繩跳島 7D6N</span>
+    <h1>石垣島 × 西表島 × 竹富島</h1>
+    <p class="sub">兩段住宿：<b style="color:var(--iriomote);">Day 1 西表過夜</b>（民宿なみ荘）+ <b style="color:var(--blue-light);">Day 2–6 石垣住宿</b>（みどり荘）。回程虎航 IT231 7/22 凌晨。颱風巴威（9 號）剛過境，所有船班/巴士動態請於出發前 24 小時複查。</p>
+    <div class="hero-pills">
+      <span class="pill iriomote">🌳 西表 (1 夜)</span>
+      <span class="pill ishigaki">🏝 石垣 (5 夜)</span>
+      <span class="pill taketomi">🌴 竹富 (日歸)</span>
+      <span class="pill ship">🚢 夜船 YAIMAMARU</span>
+      <span class="pill typhoon">⛈ 颱風季</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n">6</div><div class="l">DAYS</div></div>
+      <div class="stat"><div class="n">3</div><div class="l">ISLANDS</div></div>
+      <div class="stat"><div class="n">2</div><div class="l">STAYS</div></div>
+      <div class="stat"><div class="n">2</div><div class="l">PEOPLE</div></div>
+    </div>
+  </div>
+
+  <!-- ============================ TYPHOON BANNER ============================ -->
+  <div class="typhoon-banner">
+    <div class="icon">⛈</div>
+    <div>
+      <h3>颱風 9 號（巴威）過境警報 · 2026-07-11（六）發布</h3>
+      <p><b>現況：</b>八重山観光フェリー + 安栄観光全航路 7/11 全便欠航，7/12 午前仍全航路欠航、午後未定。</p>
+      <p><b>影響：</b>上原港、大原港方向 7/17-7/18 船班<b>有可能</b>受影響。需在 7/14（二）做最終確認 → 致電民宿 0980-85-5257。</p>
+      <p><b>查詢：</b><a href="https://www.yaeyama.co.jp/">八重山観光フェリー</a> · <a href="https://www.aneikankou.co.jp/">安栄観光</a> · <a href="https://iriomote.com/local-bus/">西表島交通</a></p>
+    </div>
+  </div>
+
+  <!-- ============================ §1 兩段住宿 ============================ -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 01</span>
+      <h2>兩段住宿 · 兩個島嶼基地</h2>
+      <span class="tag">STAYS · 1 + 5 NIGHTS</span>
+    </div>
+
+    <div class="stays">
+
+      <!-- 西表 Namisou -->
+      <div class="stay-card">
+        <h3>
+          <span class="badge irio">C 段</span>
+          民宿なみ荘
+        </h3>
+        <div class="row">
+          <div class="k">地址</div>
+          <div class="v">〒907-1434 沖縄県八重山郡竹富町字南風見 201-60<br><span style="font-size:11px;color:var(--text-3);">（西表島東南端 · 縣道 215 白浜南風見線）</span></div>
+        </div>
+        <div class="row">
+          <div class="k">電話</div>
+          <div class="v"><code>0980-85-5257</code>（9:00-20:00）</div>
+        </div>
+        <div class="row">
+          <div class="k">LINE</div>
+          <div class="v"><a href="https://lin.ee/Op8IoNS">lin.ee/Op8IoNS</a></div>
+        </div>
+        <div class="row">
+          <div class="k">入住</div>
+          <div class="v"><b>7/17（五）</b> 1 晚 · Check-in 15:00 / Check-out 10:00</div>
+        </div>
+        <div class="row">
+          <div class="k">房型</div>
+          <div class="v">和室（最多 3 人）/ 洋室（單人）</div>
+        </div>
+        <div class="row">
+          <div class="k">設施</div>
+          <div class="v">Wi-Fi · 免費私人停車場 · 冷氣 · 早餐 +500 円</div>
+        </div>
+        <div class="footer-row">
+          <span>💰 1 名 6,500 円 / 2 名 6,000 円 / 3 名 5,500 円</span>
+          <span class="price">≈ NT$ 1,300 / 2 人</span>
+        </div>
+      </div>
+
+      <!-- 石垣 みどり荘 -->
+      <div class="stay-card ishigaki">
+        <h3>
+          <span class="badge ishi">D 段</span>
+          みどり荘 (Midorisou)
+        </h3>
+        <div class="row">
+          <div class="k">地址</div>
+          <div class="v">〒907-0004 沖縄県石垣市登野城 628-9<br><span style="font-size:11px;color:var(--text-3);">（石垣市區 · 巴士「登野城」站徒步 5 分）</span></div>
+        </div>
+        <div class="row">
+          <div class="k">電話</div>
+          <div class="v">（待確認）</div>
+        </div>
+        <div class="row">
+          <div class="k">位置</div>
+          <div class="v">Euglena Mall（拱廊商店街）徒步 12 分 · 巴士 730/731 直達機場</div>
+        </div>
+        <div class="row">
+          <div class="k">入住</div>
+          <div class="v"><b>7/18（六）</b> 起 4-5 晚 · 至 7/22 凌晨回程</div>
+        </div>
+        <div class="row">
+          <div class="k">優勢</div>
+          <div class="v">市區 · 安靜 · 無需轉乘 · 直接吃石垣牛/八重山蕎麥麵</div>
+        </div>
+        <div class="row">
+          <div class="k">待確認</div>
+          <div class="v">① 房型 ② 取消政策 ③ 是否含早餐 ④ 入住時間</div>
+        </div>
+        <div class="footer-row">
+          <span>💰 （待確認，建議 Booking / じゃらん）</span>
+          <span class="price">—</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout ok">
+      <b>✅ 為什麼這樣分？</b>
+      <p>西表深度遊需過夜，但 7/17 西表無大眾運輸密集時段，<b>民宿自家接送</b>或<b>上原港-祖納-白浜免費巴士</b>是唯一選項。</p>
+      <p>7/18 起回石垣市區後，5 個完整白天可彈性處理：竹富日歸 + 川平灣/平久保崎 + 機場購物。</p>
+    </div>
+  </section>
+
+  <!-- ============================ §2 渡輪時刻 ============================ -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 02</span>
+      <h2>關鍵渡輪時刻表 · 八重観 + 安栄</h2>
+      <span class="tag">FERRY · 40 min / trip</span>
+    </div>
+
+    <div class="ferry-grid">
+      <div class="ferry-card">
+        <div class="label">八重山観光フェリー</div>
+        <div class="route">石垣港 ⇄ 上原港</div>
+        <div class="times">
+          <div class="row"><span class="d">石垣出</span><span class="t">08:00 / 11:00 / 13:30 / 15:45</span></div>
+          <div class="row"><span class="d">上原着</span><span class="t">09:00 / 12:00 / 14:30 / 17:05</span></div>
+        </div>
+        <div class="alert">⚠ 7/11 全航路欠航 / 7/12 午前未定</div>
+        <div class="note">適合 7/17 抵石垣後轉乘，搭 <b>11:00</b> 班 12:00 抵上原，<b>中午可入住民宿</b>。</div>
+      </div>
+
+      <div class="ferry-card">
+        <div class="label">安栄観光</div>
+        <div class="route">石垣港 ⇄ 大原港</div>
+        <div class="times">
+          <div class="row"><span class="d">石垣出</span><span class="t">07:00 / 10:30 / 14:00 / 17:30</span></div>
+          <div class="row"><span class="d">大原着</span><span class="t">07:40 / 11:10 / 14:40 / 18:10</span></div>
+        </div>
+        <div class="alert">⚠ 同上：7/11 全便欠航</div>
+        <div class="note">大原離上原約 30 分車程，免費巴士或民宿接送。</div>
+      </div>
+
+      <div class="ferry-card">
+        <div class="label">無料送迎巴士</div>
+        <div class="route">上原港 ⇄ 祖納 ⇄ 白浜</div>
+        <div class="times">
+          <div class="row"><span class="d">配合船班</span><span class="t">高速船到港後出發</span></div>
+          <div class="row"><span class="d">車程</span><span class="t">約 40 min</span></div>
+        </div>
+        <div class="note" style="color:var(--green-neon);">✅ 免費，無需預約，配合高速船時刻</div>
+        <div class="note">可達南風見（民宿方向）方向需再轉西表島交通巴士。</div>
+      </div>
+
+      <div class="ferry-card">
+        <div class="label">西表島交通（路線巴士）</div>
+        <div class="route">白浜 ⇄ 上原 ⇄ 大原港 ⇄ 豊原</div>
+        <div class="times">
+          <div class="row"><span class="d">方向</span><span class="t">單線往返</span></div>
+          <div class="row"><span class="d">班次</span><span class="t">1 天 4 往返（8 班）</span></div>
+          <div class="row"><span class="d">南風見站</span><span class="t">🟢 存在（中野 ↔ 白浜間）</span></div>
+        </div>
+        <div class="note">2026/04 改正版（夏季時刻） · <a href="https://iriomote.com/assets/pdf/bus-schedule202604.pdf?v=2">PDF 時刻表</a></div>
+        <div class="note" style="color:var(--text-3);">⚠ Vision 對 PDF 解析不穩，<b>建議現場問民宿最近班次</b></div>
+      </div>
+    </div>
+
+    <div class="callout warn" style="margin-top:16px;">
+      <b>📌 7/17 從石垣到西表民宿的時間軸（正常情況）：</b>
+      <p>08:00 YAIMARU 抵石垣 → 09:00 出境 → 09:30 寄行李（石垣港國際ターミナル locker）→ 11:00 渡輪出發 → 12:00 抵上原港 → 12:30 搭免費巴士往祖納/白浜方向 → 13:30 抵南風見附近 → 民宿報到</p>
+    </div>
+  </section>
+
+  <!-- ============================ §3 逐日行程 ============================ -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 03</span>
+      <h2>7 日行程逐日明細</h2>
+      <span class="tag">DAY BY DAY · 7/16 → 7/22</span>
+    </div>
+
+    <div class="timeline">
+
+      <!-- Day 1 -->
+      <div class="day ship">
+        <div class="day-head">
+          <span class="date">2026 · 07 · 16 (THU)</span>
+          <span class="title">台灣出發 · 夜船 YAIMARU</span>
+          <span class="stay ship" style="background:rgba(85,190,255,.15);color:var(--blue-light);border:1px solid var(--blue-light);">夜船</span>
+        </div>
+        <div class="day-body">
+          <div class="slot">
+            <span class="time">19:00</span>
+            <span class="what">
+              <b>台北家中出發</b>
+              <span class="note">建議搭 <b>機場捷運 + 高鐵/國光</b> 至基隆東岸旅運中心</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">20:00–21:30</span>
+            <span class="what">
+              <b>基隆東岸旅運中心 · Check-in</b>
+              <span class="note">櫃檯 20:00 開 / 21:30 截止 · 攜帶護照、台灣身分證、訂位代號 <code>F2026070300006</code></span>
+              <span class="alert">⚠ 船公司寫 23:00 開航，行程頁寫 23:30 — 出發前確認 30 分鐘差異</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">23:00</span>
+            <span class="what">
+              <b>YAIMAMARU 開航</b>
+              <span class="note">21,688 噸 · 545 人客艙 · 標準房 C · SC-569（雙床） · 2 人房</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">過夜</span>
+            <span class="what">
+              <b>船上休息</b>
+              <span class="note">建議早睡，7/17 早抵石垣要跑渡輪轉乘窗口</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day 2 -->
+      <div class="day iriomote">
+        <div class="day-head">
+          <span class="date">2026 · 07 · 17 (FRI)</span>
+          <span class="title">抵石垣 · 轉船 → 西表</span>
+          <span class="stay iriomote">西表 1 夜</span>
+        </div>
+        <div class="day-body">
+          <div class="slot">
+            <span class="time">08:00 JPN</span>
+            <span class="what">
+              <b>YAIMARU 抵石垣港国際ターミナル</b>
+              <span class="note">±30 min 港口作業裕度 · 8:00-9:30 入境</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">09:00–10:30</span>
+            <span class="what">
+              <b>石垣市區閒置時間</b>
+              <span class="note">建議先去 730/731 巴士站買三日票 / 或直接去石垣港巴士站</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">11:00</span>
+            <span class="what">
+              <b>八重山観光フェリー 出発</b>
+              <span class="note">石垣 → 上原 · 航程 40 分 · ¥1,820</span>
+              <span class="ok">✅ 線上訂位：yaeyama.co.jp 乗船券予約（前一天 18:00 截止）</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">12:00</span>
+            <span class="what">
+              <b>抵上原港</b>
+              <span class="note">轉乘「上原-祖納-白浜」無料送迎バス（配合船班時刻）</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">13:00 頃</span>
+            <span class="what">
+              <b>民宿なみ荘 Check-in</b>
+              <span class="note">Check-in 15:00 起（早到可先寄行李） · 在南風見附近下車</span>
+              <span class="note">📍 建議事先聯絡民宿安排接送，或預約傍晚於上原港接送</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">14:00–18:00</span>
+            <span class="what">
+              <b>西表島南部 · 星野 / 浦内川 / マングローブ</b>
+              <span class="note">走路或租機車（需國際駕照） · 浦内川輕艇カヌー 或 海邊散步</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">18:00–</span>
+            <span class="what">
+              <b>民宿晚餐（建議預約）</b>
+              <span class="note">島上唯一選擇 · 5,500 円/人起 · 含新鮮食材</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day 3 -->
+      <div class="day">
+        <div class="day-head">
+          <span class="date">2026 · 07 · 18 (SAT)</span>
+          <span class="title">西表 → 石垣 · 轉場日</span>
+          <span class="stay ishigaki">石垣 4-5 夜</span>
+        </div>
+        <div class="day-body">
+          <div class="slot">
+            <span class="time">06:00–09:00</span>
+            <span class="what">
+              <b>西表晨間（建議行程）</b>
+              <span class="note">船浦 / 由布島 / マングローブ日出 · 或简单散步</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">10:00</span>
+            <span class="what">
+              <b>Check-out · 民宿出發</b>
+              <span class="note">民宿預約送回上原港（務必前 1 天確認）</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">11:30</span>
+            <span class="what">
+              <b>八重山観光フェリー 上原 → 石垣</b>
+              <span class="note">07:00 / 08:00 / 11:00 / 14:30 石垣着。建議搭 <b>10:00 班 11:00 抵</b></span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">13:00</span>
+            <span class="what">
+              <b>石垣市區 · みどり荘 Check-in</b>
+              <span class="note">登野城 628-9 · 寄行李後自由活動</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">15:00–18:00</span>
+            <span class="what">
+              <b>Euglena Mall · 市區採購</b>
+              <span class="note">石垣牛燒肉 · 八重山蕎麥麵 · 邊銀食堂石垣島辣油（伴手禮首選）</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day 4 -->
+      <div class="day taketomi">
+        <div class="day-head">
+          <span class="date">2026 · 07 · 19 (SUN)</span>
+          <span class="title">竹富島 · 日歸跳島</span>
+          <span class="stay ishigaki">石垣續住</span>
+        </div>
+        <div class="day-body">
+          <div class="slot">
+            <span class="time">08:30</span>
+            <span class="what">
+              <b>石垣港 → 竹富島</b>
+              <span class="note">安栄観光高速船 · 約 10 分 · 來回 ¥1,820（單程 ¥910）</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">09:00–11:30</span>
+            <span class="what">
+              <b>竹富島 · 租單車環島</b>
+              <span class="note">KONDOI 浜 · 星砂海灘（カイジ浜）· 西棧橋（適合拍照）</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">12:00–13:30</span>
+            <span class="what">
+              <b>そば処 竹の子</b>
+              <span class="note">創業 50+ 年老店 · 八重山蕎麥麵 · 沖繩軟骨排骨麵</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">14:00–15:30</span>
+            <span class="what">
+              <b>パーラーぱいぬ島</b>
+              <span class="note">黑糖紅豆刨冰（善哉）· 島上唯一網美甜點店</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">16:00</span>
+            <span class="what">
+              <b>竹富島 → 石垣</b>
+              <span class="note">回程高速船</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">18:00–</span>
+            <span class="what">
+              <b>石垣牛晚餐</b>
+              <span class="note">推薦：焼肉 島 · 炭火烧肉 一二三 · まるみつ本店</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day 5 -->
+      <div class="day">
+        <div class="day-head">
+          <span class="date">2026 · 07 · 20 (MON)</span>
+          <span class="title">石垣島內 · 北部環島</span>
+          <span class="stay ishigaki">石垣續住</span>
+        </div>
+        <div class="day-body">
+          <div class="slot">
+            <span class="time">08:30</span>
+            <span class="what">
+              <b>租車 · 川平灣方向出發</b>
+              <span class="note">推薦 Toyota Rent-a-Car（機場有櫃檯） · 約 ¥6,000/day 起</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">09:30–11:30</span>
+            <span class="what">
+              <b>川平灣 · 玻璃底船</b>
+              <span class="note">米其林三星景點 · 珊瑚/熱帶魚 · 約 30 分 ¥2,000</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">12:00–13:00</span>
+            <span class="what">
+              <b>石垣島最高峰 · 牧草地帶</b>
+              <span class="note">於茂登岳登山口眺望 · 不必攻頂，路過即可</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">14:00–15:30</span>
+            <span class="what">
+              <b>平久保崎燈塔</b>
+              <span class="note">島最北端 · 360° 無敵海景 · 戀人勝地</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">17:00–18:30</span>
+            <span class="what">
+              <b>御神崎燈塔 · 夕陽</b>
+              <span class="note">西岸懸崖 · 壯麗日落 · 情侶勝地</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">19:00–</span>
+            <span class="what">
+              <b>市區 · 八重山蕎麥麵晚餐</b>
+              <span class="note">推薦：岸本食堂 · 仲間</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day 6 -->
+      <div class="day">
+        <div class="day-head">
+          <span class="date">2026 · 07 · 21 (TUE)</span>
+          <span class="title">緩衝 · 購物 / SPA</span>
+          <span class="stay ishigaki">石垣續住</span>
+        </div>
+        <div class="day-body">
+          <div class="slot">
+            <span class="time">10:00–13:00</span>
+            <span class="what">
+              <b>石垣市區 · 補貨 / 最後採購</b>
+              <span class="note">機場免税只看石垣牛/泡盛/蝦餅，回市區買邊銀食堂辣油</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">14:00–16:00</span>
+            <span class="what">
+              <b>石垣島溫泉 / 海邊沙灘</b>
+              <span class="note">建議：フサキビーチ 或 ANA インターコンチネンタル海灘（消費區）</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">17:00–19:00</span>
+            <span class="what">
+              <b>川平灣 · 最後日落</b>
+              <span class="note">或玉取崎展望台看夕陽</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">20:00–</span>
+            <span class="what">
+              <b>晚餐 · 整理行李</b>
+              <span class="note">建議簡單吃，準備半夜回桃機</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day 7 -->
+      <div class="day">
+        <div class="day-head">
+          <span class="date">2026 · 07 · 22 (WED)</span>
+          <span class="title">虎航 IT231 · 回桃</span>
+          <span class="stay home">回家</span>
+        </div>
+        <div class="day-body">
+          <div class="slot">
+            <span class="time">01:00</span>
+            <span class="what">
+              <b>みどり荘 Check-out</b>
+              <span class="note">事前跟民宿協調 Check-out 時間（一般 10:00，但可協商）</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">01:30</span>
+            <span class="what">
+              <b>登野城 → 石垣機場</b>
+              <span class="note">計程車 / 深夜 TAXI · 約 ¥1,800-2,500 · 預約 0980-XX-XXXX</span>
+              <span class="note">📌 機場 24 hr 開放，可以超早報到</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">02:00–</span>
+            <span class="what">
+              <b>石垣空港 → 桃園機場</b>
+              <span class="note">虎航 IT231 · 約 1 hr 20 min · 凌晨班機，建議機場貴賓室休息</span>
+            </span>
+          </div>
+          <div class="slot">
+            <span class="time">05:00</span>
+            <span class="what">
+              <b>抵達桃園機場 · 回家</b>
+              <span class="note">高鐵/客運回中南部 · 如果太累，建議機場貴賓室先洗澡</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================ §4 颱風應變 ============================ -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 04</span>
+      <h2>颱風 / 船班取消 · 應變 SOP</h2>
+      <span class="tag">RISK PLAN</span>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <h4 style="font-size:14px;color:var(--error-red);margin-bottom:8px;">📡 出發前必掃的 4 個網址</h4>
+        <table>
+          <thead><tr><th>來源</th><th>URL</th><th>用途</th></tr></thead>
+          <tbody>
+            <tr><td><b>八重山観光フェリー</b></td><td><a href="https://www.yaeyama.co.jp/">yaeyama.co.jp</a></td><td>石垣-上原航路</td></tr>
+            <tr><td><b>安栄観光</b></td><td><a href="https://www.aneikankou.co.jp/">aneikankou.co.jp</a></td><td>石垣-大原/竹富</td></tr>
+            <tr><td><b>西表島交通</b></td><td><a href="https://iriomote.com/local-bus/">iriomote.com</a></td><td>島上巴士</td></tr>
+            <tr><td><b>石垣市 news</b></td><td><a href="https://www.city.ishigaki.okinawa.jp/">city.ishigaki.okinawa.jp</a></td><td>當地防災公告</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <h4 style="font-size:14px;color:var(--error-red);margin-bottom:8px;">🚨 6 級應變</h4>
+        <div class="callout alert">
+          <b>Lv 1 · 7/11-7/16 觀察期</b>
+          <p>每天 20:00 看八重観官網，確認 7/17 上原航路是否恢復</p>
+        </div>
+        <div class="callout alert">
+          <b>Lv 2 · 7/14 二 · 致電民宿</b>
+          <p>打 <code>0980-85-5257</code> 確認接送、屋況、巴士時刻</p>
+        </div>
+        <div class="callout warn">
+          <b>Lv 3 · 7/15 三 · 預備方案</b>
+          <p>若 7/17 仍不穩 → <b>改訂 Day 1-5 全住石垣</b>（みどり荘），西表改為 Day 5-6 單日遊</p>
+        </div>
+        <div class="callout warn">
+          <b>Lv 4 · 7/16 四 · 決策日</b>
+          <p>船公司若 7/17 全日欠航 → 考慮直接改訂 YAIMAMARU 7/18 船 / 取消整趟</p>
+        </div>
+        <div class="callout ok">
+          <b>Lv 5 · 7/17 起滯留石垣</b>
+          <p>石垣市區 5 整天可改為：竹富日歸、川平灣日遊、機場購物、市區美食巡禮</p>
+        </div>
+        <div class="callout ok">
+          <b>Lv 6 · 7/22 回程</b>
+          <p>虎航 IT231 公告取消 → 直接改訂下一班 · 啟動旅遊不便險理賠</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ §5 待辦 ============================ -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 05</span>
+      <h2>出發前必做清單</h2>
+      <span class="tag">TODO · 截止 7/15</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>截止</th><th>事項</th><th>對象</th><th>狀態</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>7/12</td>
+          <td>確認 YAIMARU 開航時間（23:00 vs 23:30）</td>
+          <td>東聯航運</td>
+          <td style="color:var(--text-3);">待確認</td>
+        </tr>
+        <tr>
+          <td>7/13</td>
+          <td>確認みどり篠訂單（房型/取消/早餐）</td>
+          <td>みどり篠</td>
+          <td style="color:var(--red-cta);"><b>❗ 重要</b></td>
+        </tr>
+        <tr>
+          <td>7/14</td>
+          <td>致電民宿なみ篠確認：①接送 ②最近巴士 ③屋況 ④颱風後狀態</td>
+          <td>0980-85-5257</td>
+          <td style="color:var(--red-cta);"><b>❗ 重要</b></td>
+        </tr>
+        <tr>
+          <td>7/14</td>
+          <td>八重山観光フェリー線上訂 7/17 11:00 船票</td>
+          <td>yaeyama.co.jp</td>
+          <td style="color:var(--text-3);">待預訂</td>
+        </tr>
+        <tr>
+          <td>7/14</td>
+          <td>確認 7/18 上原→石垣船班時刻</td>
+          <td>八重観</td>
+          <td style="color:var(--text-3);">待確認</td>
+        </tr>
+        <tr>
+          <td>7/15</td>
+          <td>換日幣 ¥25,000（2 人 6 天）</td>
+          <td>兆豐/機場</td>
+          <td style="color:var(--text-3);">待兌換</td>
+        </tr>
+        <tr>
+          <td>7/15</td>
+          <td>確認旅遊不便險涵蓋颱風滯留</td>
+          <td>保險公司</td>
+          <td style="color:var(--text-3);">待確認</td>
+        </tr>
+        <tr>
+          <td>7/16</td>
+          <td>租車預約（7/20 北部環島用）</td>
+          <td>Toyota Rent-a-Car</td>
+          <td style="color:var(--text-3);">待預約</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout ok" style="margin-top:16px;">
+      <b>📲 7/14 早上會自動收到提醒（cron job 已設）</b>
+      <p>提醒內容包含這份清單 + 民宿電話/LINE + 颱風航路查詢連結</p>
+    </div>
+  </section>
+
+  <!-- ============================ FOOTER ============================ -->
+  <div class="footer">
+    <a href="https://github.com/RinRyanJi/JustKM/tree/main/travel/ishigaki-2026">travel/ishigaki-2026/itinerary.html</a> · JustKM<br>
+    來源：<a href="https://github.com/RinRyanJi/JustKM/tree/main/design-md/library/sanity">design-md/library/sanity/DESIGN.md</a> · 風格抽中 RNG seed=20260711<br>
+    建立於 2026-07-11 · 字級調整器 <code>Cmd/Ctrl + / - / 0</code><br>
+    <span style="color:var(--error-red);">⚠ 7/11 颱風巴威過境，建議出發前再掃市府 news.html</span><br>
+    主源：八重山観光フェリー官網 · 安栄観光官網 · 西表島交通官網
+  </div>
+
+</div>
+
+<script>
+  // ============== 字級調整器（與全站同步） ==============
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1;
+    const MIN = 0.7;
+    const MAX = 1.6;
+    const DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      if (valEl) valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+
+    let saved = DEFAULT;
+    try {
+      const v = localStorage.getItem(KEY);
+      if (v) saved = parseFloat(v) || DEFAULT;
+    } catch(e) {}
+    apply(saved);
+
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+
+    document.addEventListener('keydown', (e) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); apply(cur + STEP); }
+      else if (e.key === '-') { e.preventDefault(); apply(cur - STEP); }
+      else if (e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
