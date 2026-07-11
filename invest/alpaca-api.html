@@ -3,425 +3,387 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Alpaca API 中文速查 · JustKM</title>
+  <title>Alpaca API 中文速查手冊 · JustKM</title>
+  <meta name="description" content="SpaceX 風格的 Alpaca Trading API + Market Data API + Crypto API 中文速查手冊，覆蓋交易/行情/串流/下單全套範例。">
   <style>
+    /* ============================================================
+       SPACEX 風格 — JustKM × Alpaca
+       來源: design-md/library/spacex/DESIGN.md
+       概念: 任務導向航空級 fin-tech 美學. 純黑畫布 + D-DIN display
+              + Ghost outlined pill CTA + 極簡 UI chrome
+       ============================================================ */
+
     :root {
-      --bg-primary: #0a0e1a;
-      --bg-secondary: #131826;
-      --bg-card: #1a2138;
-      --bg-code: #0f1424;
-      --border: #2a3454;
-      --text-primary: #e8ecf4;
-      --text-secondary: #9aa3b8;
-      --text-muted: #6b7390;
-      --accent: #4f9eff;
-      --accent-purple: #a855f7;
-      --accent-green: #00d68f;
-      --accent-orange: #ff9f43;
-      --accent-red: #ff4d6d;
-    
-  --font-scale: 1;}
+      --bg-night: #000000;
+      --bg-night-soft: #0a0a0a;
+      --bg-light: #ffffff;
+      --bg-cool: #f5f5f7;
+      --hairline-light: rgba(255,255,255,0.10);
+      --hairline-strong: rgba(255,255,255,0.25);
+      --hairline-on-light: #e0e0e8;
+      --ink-on-dark: #ffffff;
+      --ink-mute-dark: #b4b4b8;
+      --ink-on-light: #1a1a1a;
+      --ink-mute-light: #5a5a5f;
+      --accent-white: #ffffff;
+
+      --font-scale: 1;
+
+      --r-xs: 4px;
+      --r-sm: 8px;
+      --r-md: 16px;
+      --r-pill: 32px;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      line-height: 1.75;
+      font-family: "Arial Narrow", "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", -apple-system, system-ui, sans-serif;
+      background: var(--bg-night);
+      color: var(--ink-on-dark);
+      line-height: 1.6;
       min-height: 100vh;
-      padding: 40px 20px 80px;
+      -webkit-font-smoothing: antialiased;
+      letter-spacing: 0.32px;
     }
-    .container { max-width: 980px; margin: 0 auto; }
 
-    /* Header */
+    /* ===== 字級調整器 ===== */
+    .font-adjuster {
+      position: fixed; top: 16px; right: 16px; z-index: 999;
+      background: rgba(255,255,255,0.08); border: 1px solid var(--hairline-strong);
+      border-radius: var(--r-pill); padding: 6px 10px;
+      display: flex; align-items: center; gap: 4px;
+      backdrop-filter: blur(12px);
+    }
+    .font-adjuster button {
+      background: transparent; border: 1px solid transparent;
+      color: var(--ink-on-dark); width: 36px; height: 36px;
+      border-radius: var(--r-pill); font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: all 0.18s;
+      display: flex; align-items: center; justify-content: center; font-family: inherit;
+      letter-spacing: 1px;
+    }
+    .font-adjuster button:hover { background: white; color: black; }
+    .font-adjuster .fa-label { font-size: 11px; color: var(--ink-mute-dark); margin: 0 6px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+    .font-adjuster .fa-value { font-size: 11px; color: var(--ink-on-dark); font-weight: 700; min-width: 38px; text-align: center; font-family: "SF Mono", monospace; }
+
+    /* ===== Container ===== */
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 32px 24px 80px;
+    }
+
+    /* ===== Back home ===== */
+    .back-home {
+      display: inline-flex; align-items: center;
+      padding: 10px 22px; margin-bottom: 32px;
+      color: var(--ink-on-dark); text-decoration: none;
+      border: 1px solid var(--hairline-strong);
+      border-radius: var(--r-pill);
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .back-home:hover { background: white; color: black; }
+
+    /* ===== Hero (SpaceX-style: total black, white display, D-DIN vibe) ===== */
     .hero {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 36px 32px;
+      padding: 80px 0 64px;
+      border-bottom: 1px solid var(--hairline-light);
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6.5vw, 5.5rem);
+      font-weight: 700;
+      text-transform: none;
+      letter-spacing: -0.01em;
+      line-height: 0.95;
+      margin-bottom: 24px;
+      color: white;
+      max-width: 900px;
+    }
+    .hero .sub {
+      font-size: 1.125rem;
+      color: var(--ink-mute-dark);
+      max-width: 720px;
       margin-bottom: 32px;
-      position: relative;
-      overflow: hidden;
+      font-weight: 400;
+      letter-spacing: 0.32px;
     }
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #4f9eff 0%, #a855f7 50%, #00d68f 100%);
-    }
-    .hero h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
-    .hero .sub { color: var(--text-secondary); font-size: 14px; margin-bottom: 16px; }
-    .badge {
-      display: inline-block;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 3px 10px;
-      font-size: 11px;
-      color: var(--text-secondary);
-      margin-right: 6px;
-      margin-bottom: 6px;
-    }
-    .badge.green { color: var(--accent-green); border-color: var(--accent-green); }
-    .badge.blue { color: var(--accent); border-color: var(--accent); }
 
-    /* TOC */
+    /* ===== Badge (ghost outlined pill) ===== */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 8px 18px; margin: 4px 6px 4px 0;
+      background: transparent; color: white;
+      border: 1px solid var(--hairline-strong);
+      border-radius: var(--r-pill);
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      font-family: "Arial", sans-serif;
+      transition: all 0.18s;
+    }
+    .badge:hover { background: white; color: black; }
+    .badge.blue {  border-color: rgba(220,235,255,0.5); }
+    .badge.green { border-color: rgba(190,255,210,0.5); }
+    .badge.orange { border-color: rgba(255,200,150,0.5); }
+
+    /* ===== TOC ===== */
     .toc {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px 24px;
-      margin-bottom: 32px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--hairline-light);
+      border-radius: var(--r-sm);
+      padding: 40px;
+      margin-top: 64px;
     }
     .toc-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 12px;
+      font-size: 11px; color: var(--ink-mute-dark);
+      letter-spacing: 3px; text-transform: uppercase;
+      font-weight: 700; margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--hairline-light);
     }
     .toc-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 6px;
     }
-    .toc a {
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 13px;
-      padding: 5px 10px;
-      border-radius: 6px;
-      transition: all 0.15s;
-    }
-    .toc a:hover { color: var(--accent); background: var(--bg-card); }
-    .toc .group {
-      grid-column: 1 / -1;
-      font-size: 12px;
-      color: var(--accent);
-      font-weight: 700;
-      margin-top: 8px;
-      padding-left: 4px;
-    }
-
-    /* Section */
-    section {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 28px 32px;
-      margin-bottom: 24px;
-      scroll-margin-top: 20px;
-    }
-    section h2 {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    section h2 .num {
-      color: var(--accent);
-      font-size: 14px;
-      font-weight: 800;
-      background: var(--bg-card);
-      padding: 2px 8px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-    }
-    section h3 {
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--accent);
-      margin-top: 24px;
-      margin-bottom: 10px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid var(--border);
-    }
-    section h4 {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text-secondary);
-      margin-top: 18px;
-      margin-bottom: 6px;
-    }
-    section p { margin-bottom: 10px; color: var(--text-secondary); font-size: 14px; }
-    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--text-secondary); font-size: 14px; }
-    section li { margin-bottom: 4px; }
-    section strong { color: var(--text-primary); }
-    section code { font-family: 'SF Mono', Menlo, monospace; }
-
-    /* Endpoint cards */
-    .endpoint {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
+    .toc-grid a {
+      display: block;
       padding: 12px 14px;
-      margin: 8px 0;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-family: 'SF Mono', Menlo, monospace;
-      font-size: 13px;
-      flex-wrap: wrap;
+      color: white; text-decoration: none;
+      font-size: 13px; font-weight: 500;
+      border-radius: var(--r-xs);
+      transition: all 0.15s;
+      letter-spacing: 0.32px;
     }
-    .method {
-      padding: 3px 10px;
-      border-radius: 5px;
+    .toc-grid a:hover {
+      background: rgba(255,255,255,0.08);
+    }
+    .toc-grid .group {
+      grid-column: 1 / -1;
+      padding: 16px 14px 4px;
+      font-size: 10px; color: var(--ink-mute-dark);
+      letter-spacing: 3px; text-transform: uppercase;
       font-weight: 700;
-      font-size: 11px;
-      letter-spacing: 0.5px;
     }
-    .GET { background: rgba(0, 214, 143, 0.15); color: var(--accent-green); }
-    .POST { background: rgba(79, 158, 255, 0.15); color: var(--accent); }
-    .PATCH { background: rgba(255, 159, 67, 0.15); color: var(--accent-orange); }
-    .DELETE { background: rgba(255, 77, 109, 0.15); color: var(--accent-red); }
-    .PUT { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); }
-    .path { color: var(--text-primary); }
 
-    /* Code blocks */
-    pre {
-      background: var(--bg-code);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px 16px;
-      overflow-x: auto;
-      margin: 10px 0 14px;
-      font-size: 12.5px;
-      line-height: 1.55;
+    /* ===== Section (full-black bands) ===== */
+    section {
+      padding: 80px 0;
+      border-bottom: 1px solid var(--hairline-light);
     }
-    pre code { color: #e8ecf4; }
-    .lang-tag {
+    section:last-of-type { border-bottom: none; }
+
+    /* Section eyebrow / numbered h2 — SpaceX uses D-DIN caps for titles */
+    h2 {
+      font-size: clamp(2rem, 4.5vw, 3.2rem);
+      font-weight: 700;
+      letter-spacing: -0.005em;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      color: white;
+      max-width: 900px;
+    }
+    h2 .num {
       display: inline-block;
-      font-size: 10px;
-      color: var(--text-muted);
-      text-transform: uppercase;
+      padding-right: 14px;
+      color: var(--ink-mute-dark);
+      font-size: 0.7em;
       letter-spacing: 1px;
-      margin-bottom: 4px;
-      font-weight: 700;
+      vertical-align: middle;
     }
-
-    /* Inline code */
+    h3 {
+      font-size: 1.5rem; font-weight: 700;
+      margin: 40px 0 16px;
+      color: white;
+      letter-spacing: -0.005em;
+    }
+    h4 {
+      font-size: 1.0625rem; font-weight: 700;
+      margin: 24px 0 10px; color: white;
+      letter-spacing: 0.32px;
+    }
+    p {
+      margin-bottom: 12px;
+      color: rgba(255,255,255,0.86);
+      font-size: 1rem;
+      letter-spacing: 0.32px;
+    }
     p code, li code, td code {
-      background: var(--bg-code);
-      border: 1px solid var(--border);
-      padding: 1px 6px;
-      border-radius: 4px;
-      font-size: 12.5px;
-      color: var(--accent-orange);
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--hairline-light);
+      color: white;
+      padding: 2px 8px; border-radius: var(--r-xs);
+      font-size: 0.875em;
+      font-family: "SF Mono", ui-monospace, Menlo, monospace;
     }
 
-    /* Tables */
+    a {
+      color: white; text-decoration: underline;
+      text-underline-offset: 3px; text-decoration-thickness: 1px;
+    }
+    a:hover { color: #d0d0d0; }
+
+    /* ===== Code blocks (SpaceX: black within black, hairline border, mono) ===== */
+    pre {
+      background: #050505;
+      border: 1px solid var(--hairline-light);
+      border-radius: var(--r-sm);
+      padding: 20px 22px;
+      overflow-x: auto;
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+      font-size: 13px; line-height: 1.7;
+      margin: 12px 0 16px;
+      color: #e8e8e8;
+    }
+    pre code { background: transparent; padding: 0; border: none; color: inherit; font-size: inherit; }
+
+    /* Alpaca-style JSON / keyword coloring for code */
+    .jkey  { color: #b4d5ff; }
+    .jstr  { color: #b6e8c8; }
+    .jnum  { color: #f0c8a4; }
+    .jbool { color: #e8a8d4; }
+    .jnull { color: #888; }
+    .key   { color: #b4d5ff; }
+    .num   { color: #f0c8a4; }
+    .ctrl  { color: #e8a8d4; font-weight: 700; }
+    .style { color: #b6e8c8; }
+
+    /* ===== Tables ===== */
     table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 12px 0 18px;
-      font-size: 13px;
+      width: 100%; border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 0.9375rem;
+    }
+    th, td {
+      padding: 14px 16px; text-align: left;
+      border-bottom: 1px solid var(--hairline-light);
+      color: white;
+      letter-spacing: 0.32px;
     }
     th {
-      text-align: left;
-      background: var(--bg-card);
-      color: var(--text-primary);
-      padding: 9px 12px;
-      border: 1px solid var(--border);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
       font-weight: 700;
+      color: var(--ink-mute-dark);
+      border-bottom: 1px solid var(--hairline-strong);
     }
-    td {
-      padding: 9px 12px;
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      vertical-align: top;
-    }
-    tr:hover td { background: rgba(79, 158, 255, 0.04); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.03); }
 
-    /* Callout */
-    .callout {
-      border-left: 3px solid var(--accent);
-      background: var(--bg-card);
-      padding: 12px 16px;
-      border-radius: 0 8px 8px 0;
-      margin: 12px 0 16px;
-      font-size: 13.5px;
-      color: var(--text-secondary);
-    }
-    .callout.warn { border-left-color: var(--accent-orange); }
-    .callout.danger { border-left-color: var(--accent-red); }
-    .callout.tip { border-left-color: var(--accent-green); }
-    .callout strong { color: var(--text-primary); }
-
-    /* JSON syntax highlights */
-    .jkey { color: #79c0ff; }
-    .jstr { color: #a5d6a7; }
-    .jnum { color: #ffb070; }
-    .jbool { color: #ff7b72; }
-    .jnull { color: #d2a8ff; }
-
-    /* Footer */
-    .back-home {
+    /* ===== Method pills (GET/POST/...) ===== */
+    .method {
       display: inline-block;
-      margin-bottom: 20px;
-      color: var(--accent);
-      text-decoration: none;
-      font-size: 14px;
-      padding: 6px 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--bg-secondary);
+      padding: 3px 10px;
+      border-radius: var(--r-xs);
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 1px;
+      font-family: "SF Mono", monospace;
+      border: 1px solid;
     }
-    .back-home:hover { border-color: var(--accent); }
-    .footer {
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 12px;
-      margin-top: 48px;
-      padding-top: 24px;
-      border-top: 1px solid var(--border);
+    .GET { background: rgba(120,255,180,0.10); color: #b6e8c8; border-color: rgba(120,255,180,0.30); }
+    .POST { background: rgba(180,213,255,0.10); color: #b4d5ff; border-color: rgba(180,213,255,0.30); }
+    .PATCH { background: rgba(255,200,150,0.10); color: #f0c8a4; border-color: rgba(255,200,150,0.30); }
+    .DELETE { background: rgba(255,170,180,0.10); color: #f3b6c2; border-color: rgba(255,170,180,0.30); }
+    .PUT { background: rgba(220,180,255,0.10); color: #d8baf3; border-color: rgba(220,180,255,0.30); }
+
+    .path { color: rgba(255,255,255,0.86); font-family: "SF Mono", monospace; font-size: 0.9375em; }
+
+    /* ===== Endpoint card ===== */
+    .endpoint {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--hairline-light);
+      border-left: 2px solid white;
+      border-radius: var(--r-sm);
+      padding: 18px 22px;
+      margin: 14px 0;
+    }
+    .endpoint:hover {
+      background: rgba(255,255,255,0.05);
+      border-left-width: 4px;
     }
 
-    /* Status pill */
+    /* ===== Callout (info / warn / danger) ===== */
+    .callout {
+      padding: 18px 22px;
+      border-radius: var(--r-sm);
+      margin: 16px 0;
+      border: 1px solid var(--hairline-light);
+      background: rgba(255,255,255,0.02);
+      font-size: 1rem;
+    }
+    .callout.warn { border-left: 3px solid #f0c8a4; }
+    .callout.danger { border-left: 3px solid #f3b6c2; }
+    .callout.info { border-left: 3px solid #b4d5ff; }
+    .callout.green { border-left: 3px solid #b6e8c8; }
+
+    /* ===== Lang tag ===== */
+    .lang-tag {
+      display: inline-block;
+      font-size: 10px; color: var(--ink-mute-dark);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 6px; font-weight: 700;
+    }
+
+    /* ===== Status pill ===== */
     .status-pill {
       display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-family: monospace;
-      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--r-pill);
+      font-size: 11px; font-weight: 700;
+      font-family: "SF Mono", monospace;
+      letter-spacing: 1px;
+      border: 1px solid;
     }
-    .sp-200 { background: rgba(0, 214, 143, 0.15); color: var(--accent-green); }
-    .sp-400 { background: rgba(255, 159, 67, 0.15); color: var(--accent-orange); }
-    .sp-403 { background: rgba(255, 77, 109, 0.15); color: var(--accent-red); }
-  <style> 區塊加入以下變數:
-       :root { --font-scale: 1; }
-       html { font-size: calc(16px * var(--font-scale)); }
-     並把現有字體的 px 改為 rem（或保留 px 讓 calc 處理整體縮放）
+    .sp-200 { background: rgba(120,255,180,0.12); color: #b6e8c8; border-color: rgba(120,255,180,0.30); }
+    .sp-400 { background: rgba(255,170,180,0.12); color: #f3b6c2; border-color: rgba(255,170,180,0.30); }
+    .sp-403 { background: rgba(255,170,180,0.12); color: #f3b6c2; border-color: rgba(255,170,180,0.30); }
 
-  2. HTML 在 <body> 內第一行插入:
-       <div class="font-adjuster" role="group" aria-label="字級調整">
-         <button id="fa-dec" title="字級變小">A−</button>
-         <span class="fa-label">字級</span>
-         <span class="fa-value" id="fa-value">100%</span>
-         <button id="fa-inc" title="字級變大">A+</button>
-         <button id="fa-reset" title="重設" style="font-size:11px;">⟲</button>
-       </div>
-
-  3. JS 在 <script>
-  (function() {
-    const KEY = 'justkm-font-scale';
-    const STEP = 0.1;
-    const MIN = 0.7;
-    const MAX = 1.6;
-    const DEFAULT = 1.0;
-    const root = document.documentElement;
-    const valEl = document.getElementById('fa-value');
-
-    function apply(scale) {
-      scale = Math.max(MIN, Math.min(MAX, scale));
-      scale = Math.round(scale * 100) / 100;
-      root.style.setProperty('--font-scale', scale);
-      if (valEl) valEl.textContent = Math.round(scale * 100) + '%';
-      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    /* ===== Tip ===== */
+    .tip {
+      background: rgba(255,255,255,0.04);
+      border-left: 3px solid white;
+      padding: 16px 20px;
+      margin: 16px 0;
+      border-radius: var(--r-xs);
+      font-size: 0.9375rem;
+      color: rgba(255,255,255,0.86);
     }
 
-    let saved = DEFAULT;
-    try {
-      const v = localStorage.getItem(KEY);
-      if (v) saved = parseFloat(v) || DEFAULT;
-    } catch(e) {}
-    apply(saved);
+    /* ===== Lists ===== */
+    ul, ol { padding-left: 24px; margin-bottom: 12px; color: rgba(255,255,255,0.86); }
+    li { margin-bottom: 6px; }
 
-    document.getElementById('fa-dec').addEventListener('click', () => {
-      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
-      apply(cur - STEP);
-    });
-    document.getElementById('fa-inc').addEventListener('click', () => {
-      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
-      apply(cur + STEP);
-    });
-    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    /* ===== Footer ===== */
+    .footer {
+      border-top: 1px solid var(--hairline-light);
+      padding: 64px 24px;
+      text-align: center;
+      color: var(--ink-mute-dark);
+      font-size: 12px;
+      letter-spacing: 1.5px;
+    }
+    .footer strong { color: white; letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 12px; font-size: 14px; }
+    .footer a { color: white; font-weight: 700; }
+    .footer a:hover { color: #d0d0d0; }
 
-    // 鍵盤快捷鍵: Cmd/Ctrl + = (放大) / - (縮小) / 0 (重設)
-    document.addEventListener('keydown', (e) => {
-      if (!(e.metaKey || e.ctrlKey)) return;
-      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
-      if (e.key === '+' || e.key === '=') {
-        e.preventDefault();
-        apply(cur + STEP);
-      } else if (e.key === '-') {
-        e.preventDefault();
-        apply(cur - STEP);
-      } else if (e.key === '0') {
-        e.preventDefault();
-        apply(DEFAULT);
-      }
-    });
-  })();
-</script>
-</body> 之前插入:
-       <script src="/js/font-adjuster.js"></script>
--->
-<style>
-  :root { --font-scale: 1; }
-  html { font-size: calc(16px * var(--font-scale)); }
-  .font-adjuster {
-    position: fixed;
-    top: 16px;
-    right: 16px;
-    z-index: 999;
-    background: var(--bg-secondary, #131826);
-    border: 1px solid var(--border, #2a3454);
-    border-radius: 10px;
-    padding: 6px 8px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(8px);
-  }
-  .font-adjuster button {
-    background: var(--bg-card, #1a2138);
-    border: 1px solid var(--border, #2a3454);
-    color: var(--text-primary, #e8ecf4);
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: inherit;
-  }
-  .font-adjuster button:hover {
-    background: var(--accent, #4f9eff);
-    color: white;
-    border-color: var(--accent, #4f9eff);
-  }
-  .font-adjuster .fa-label {
-    font-size: 11px;
-    color: var(--text-muted, #6b7390);
-    margin: 0 4px;
-    letter-spacing: 0.5px;
-  }
-  .font-adjuster .fa-value {
-    font-size: 11px;
-    color: var(--accent, #4f9eff);
-    font-weight: 700;
-    min-width: 36px;
-    text-align: center;
-    font-family: 'SF Mono', monospace;
-  }
-  @media (max-width: 600px) {
-    .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
-    .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
-  }
-</style>
-</style>
+    /* ===== Mobile ===== */
+    @media (max-width: 720px) {
+      .container { padding: 24px 16px 64px; }
+      .hero { padding: 48px 0; }
+      section { padding: 56px 0; }
+      .toc { padding: 24px; margin-top: 48px; }
+      .toc-grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 2.25rem; }
+      h2 { font-size: 1.75rem; }
+      .font-adjuster { top: 8px; right: 8px; }
+    }
+  </style>
 </head>
 <body>
-
 <div class="font-adjuster" role="group" aria-label="字級調整">
   <button id="fa-dec" title="字級變小 (Cmd/Ctrl + -)" aria-label="字級變小">A−</button>
   <span class="fa-label">字級</span>
@@ -1565,5 +1527,40 @@ for p in api.list_positions():
   </div>
 
 </div>
+<script>
+  // ===== 字級調整器（與站內其他頁同步） =====
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      if (valEl) valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { saved = parseFloat(localStorage.getItem(KEY)) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').onclick = () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    };
+    document.getElementById('fa-inc').onclick = () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    };
+    document.getElementById('fa-reset').onclick = () => apply(DEFAULT);
+    document.addEventListener('keydown', (e) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); apply(cur + STEP); }
+      else if (e.key === '-') { e.preventDefault(); apply(cur - STEP); }
+      else if (e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
 </body>
 </html>
