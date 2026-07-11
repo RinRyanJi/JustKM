@@ -1,0 +1,1917 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finnhub API 中文速查 · JustKM</title>
+  <style>
+    /* ========== Vercel 設計系統 ==========
+       來源: design-md/library/vercel/DESIGN.md
+       風格: 黑底白字 + 多色 mesh 漸層 hero + Geist 字型
+    */
+    :root {
+      /* Vercel 色彩系統 */
+      --primary: #171717;
+      --ink: #171717;
+      --body: #4d4d4d;
+      --mute: #888888;
+      --hairline: #ebebeb;
+      --canvas: #ffffff;
+      --canvas-soft: #fafafa;
+      --canvas-soft-2: #f5f5f5;
+      --link: #0070f3;
+      --link-deep: #0761d1;
+      --success: #0070f3;
+      --error: #ee0000;
+      --warning: #f5a623;
+      --violet: #7928ca;
+      --cyan: #50e3c2;
+      --pink: #ff0080;
+      /* 漸層 */
+      --grad-develop: linear-gradient(120deg, #007cf0 0%, #00dfd8 100%);
+      --grad-preview: linear-gradient(120deg, #7928ca 0%, #ff0080 100%);
+      --grad-ship: linear-gradient(120deg, #ff4d4d 0%, #f9cb28 100%);
+      --grad-finnhub: linear-gradient(135deg, #007cf0 0%, #7928ca 50%, #ff0080 100%);
+      /* 字級 */
+      --font-scale: 1;
+      /* 圓角 */
+      --r-sm: 6px;
+      --r-md: 8px;
+      --r-lg: 12px;
+      --r-pill: 9999px;
+    }
+
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Geist, Inter, -apple-system, "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      background: var(--canvas);
+      color: var(--ink);
+      line-height: 1.75;
+      min-height: 100vh;
+      padding: 0 0 80px;
+    }
+
+    /* ===== 字級調整器 ===== */
+    .font-adjuster {
+      position: fixed; top: 16px; right: 16px; z-index: 999;
+      background: white; border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    }
+    .font-adjuster button {
+      background: var(--canvas-soft); border: 1px solid var(--hairline);
+      color: var(--ink); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; font-family: inherit;
+    }
+    .font-adjuster button:hover { background: var(--ink); color: white; border-color: var(--ink); }
+    .font-adjuster .fa-label { font-size: 11px; color: var(--mute); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 11px; color: var(--link); font-weight: 700; min-width: 36px; text-align: center; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    /* ===== Navbar ===== */
+    nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--hairline);
+      padding: 12px 24px;
+    }
+    .nav-inner {
+      max-width: 1280px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 700; font-size: 1rem;
+      color: var(--ink); text-decoration: none;
+    }
+    .nav-logo .logo-mark {
+      width: 22px; height: 22px;
+      background: var(--ink);
+      clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    }
+    .nav-logo .logo-mark.gradient {
+      background: var(--grad-finnhub);
+      clip-path: none;
+      border-radius: 4px;
+      color: white; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800;
+    }
+    .nav-links { display: flex; gap: 8px; align-items: center; }
+    .nav-link {
+      padding: 6px 12px; font-size: 0.8125rem;
+      color: var(--body); text-decoration: none;
+      border-radius: var(--r-pill);
+      transition: all 0.15s;
+    }
+    .nav-link:hover { color: var(--ink); background: var(--canvas-soft-2); }
+    .nav-cta {
+      padding: 4px 12px; font-size: 0.8125rem;
+      background: var(--ink); color: white;
+      border: 1px solid var(--ink);
+      border-radius: var(--r-sm); text-decoration: none;
+      height: 28px; display: inline-flex; align-items: center;
+      font-weight: 600;
+    }
+    .nav-cta.outline {
+      background: white; color: var(--ink);
+    }
+    .nav-cta:hover { opacity: 0.85; }
+
+    /* ===== Hero ===== */
+    .hero {
+      position: relative;
+      padding: 96px 24px 80px;
+      text-align: center;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        radial-gradient(60% 60% at 15% 20%, rgba(0,124,240,0.35) 0%, transparent 60%),
+        radial-gradient(50% 50% at 85% 15%, rgba(121,40,202,0.30) 0%, transparent 65%),
+        radial-gradient(60% 60% at 75% 80%, rgba(255,0,128,0.28) 0%, transparent 70%),
+        radial-gradient(40% 40% at 25% 85%, rgba(245,166,35,0.18) 0%, transparent 65%);
+      z-index: -1;
+      filter: blur(0px);
+    }
+    .hero h1 {
+      font-size: 3.25rem; font-weight: 700;
+      letter-spacing: -2.4px; line-height: 1.05;
+      margin-bottom: 16px;
+      color: var(--ink);
+    }
+    .hero h1 .gradient-text {
+      background: var(--grad-finnhub);
+      -webkit-background-clip: text; background-clip: text;
+      color: transparent;
+    }
+    .hero p {
+      font-size: 1.125rem; color: var(--body);
+      max-width: 640px; margin: 0 auto 28px;
+      line-height: 1.6;
+    }
+    .hero .badges { display: inline-flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px; border-radius: var(--r-pill);
+      background: white; border: 1px solid var(--hairline);
+      font-size: 0.75rem; color: var(--body);
+    }
+    .badge.black { background: var(--ink); color: white; border-color: var(--ink); }
+    .badge.purple { background: var(--violet); color: white; border-color: var(--violet); }
+    .badge.blue { background: var(--link); color: white; border-color: var(--link); }
+    .badge.green { background: #00d68f; color: white; border-color: #00d68f; }
+
+    /* ===== Container ===== */
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+    /* ===== TOC ===== */
+    .toc {
+      background: var(--canvas-soft);
+      border: 1px solid var(--hairline);
+      border-radius: var(--r-lg);
+      padding: 24px;
+      margin: 40px auto;
+    }
+    .toc-title {
+      font-size: 0.6875rem; text-transform: uppercase;
+      letter-spacing: 1.2px; color: var(--mute);
+      margin-bottom: 12px; font-weight: 600;
+    }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 4px;
+    }
+    .toc-grid a {
+      padding: 6px 10px;
+      color: var(--body); text-decoration: none;
+      font-size: 0.8125rem;
+      border-radius: var(--r-sm);
+      transition: all 0.15s;
+    }
+    .toc-grid a:hover {
+      color: var(--ink); background: white;
+    }
+
+    /* ===== Section ===== */
+    section {
+      padding: 64px 0 32px;
+      border-top: 1px solid var(--hairline);
+      margin-top: 32px;
+    }
+    section:first-of-type { border-top: none; margin-top: 0; }
+    h2 {
+      font-size: 1.875rem; font-weight: 700;
+      letter-spacing: -0.8px; line-height: 1.15;
+      margin-bottom: 8px; color: var(--ink);
+      display: flex; align-items: baseline; gap: 10px;
+    }
+    h2 .num {
+      font-size: 0.75rem; font-weight: 700;
+      color: white; background: var(--ink);
+      padding: 3px 8px; border-radius: var(--r-sm);
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      letter-spacing: 0;
+    }
+    h3 {
+      font-size: 1.25rem; font-weight: 600;
+      letter-spacing: -0.3px;
+      margin: 32px 0 12px; color: var(--ink);
+    }
+    h4 {
+      font-size: 1rem; font-weight: 600;
+      margin: 20px 0 8px; color: var(--ink);
+    }
+    p { margin-bottom: 12px; color: var(--body); }
+    p.lead { font-size: 1.0625rem; color: var(--body); }
+    a { color: var(--link); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.875em;
+      background: var(--canvas-soft-2);
+      padding: 1px 6px; border-radius: 4px;
+      color: var(--ink);
+    }
+
+    /* ===== Code Block ===== */
+    pre {
+      background: #0a0a0a; color: #e8ecf4;
+      padding: 20px 24px;
+      border-radius: var(--r-md);
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.8125rem; line-height: 1.7;
+      margin: 16px 0;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    pre .c-key { color: #79c0ff; }
+    pre .c-str { color: #a5d6ff; }
+    pre .c-num { color: #ffa657; }
+    pre .c-com { color: #6b7390; font-style: italic; }
+    pre .c-fn { color: #d2a8ff; }
+
+    /* ===== Endpoint Card ===== */
+    .endpoint {
+      background: white; border: 1px solid var(--hairline);
+      border-radius: var(--r-lg);
+      padding: 18px 22px;
+      margin: 12px 0;
+      transition: all 0.2s;
+    }
+    .endpoint:hover {
+      border-color: var(--ink);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    .ep-header {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 8px;
+    }
+    .ep-method {
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 0.6875rem; font-weight: 700;
+      padding: 3px 8px; border-radius: var(--r-sm);
+      background: var(--canvas-soft-2); color: var(--body);
+      letter-spacing: 0.5px;
+    }
+    .ep-name {
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 0.9375rem; font-weight: 700;
+      color: var(--ink);
+    }
+    .ep-tier {
+      font-size: 0.6875rem; padding: 2px 8px;
+      border-radius: var(--r-pill);
+      background: var(--canvas-soft-2); color: var(--mute);
+      margin-left: auto; font-weight: 600;
+    }
+    .ep-tier.free { background: #e8f7f0; color: #00a86b; }
+    .ep-tier.pro { background: #fff3e0; color: #d97706; }
+    .ep-tier.ent { background: #f3e8ff; color: var(--violet); }
+    .ep-desc {
+      color: var(--body); font-size: 0.875rem;
+      margin-top: 4px;
+    }
+    .ep-params {
+      margin-top: 8px; font-size: 0.75rem;
+      color: var(--mute);
+      font-family: ui-monospace, SFMono-Regular, monospace;
+    }
+    .ep-params code {
+      background: transparent; padding: 0; color: var(--ink);
+    }
+
+    /* ===== Pricing Table ===== */
+    .pricing {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px; margin: 24px 0;
+    }
+    .price-card {
+      border: 1px solid var(--hairline);
+      border-radius: var(--r-lg);
+      padding: 24px;
+      background: white;
+      position: relative;
+    }
+    .price-card.featured {
+      border-color: var(--ink);
+      background: var(--ink); color: white;
+    }
+    .price-card.featured::before {
+      content: 'RECOMMENDED'; position: absolute;
+      top: -10px; right: 16px;
+      background: var(--grad-finnhub); color: white;
+      font-size: 0.625rem; font-weight: 700;
+      padding: 3px 10px; border-radius: var(--r-pill);
+      letter-spacing: 0.5px;
+    }
+    .price-card .tier-name {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: var(--mute);
+    }
+    .price-card.featured .tier-name { color: rgba(255,255,255,0.7); }
+    .price-card .price {
+      font-size: 2rem; font-weight: 700;
+      letter-spacing: -0.5px; margin: 8px 0;
+    }
+    .price-card .price small {
+      font-size: 0.875rem; font-weight: 400;
+      color: var(--mute);
+    }
+    .price-card.featured .price small { color: rgba(255,255,255,0.6); }
+    .price-card ul {
+      list-style: none; margin: 16px 0;
+    }
+    .price-card li {
+      font-size: 0.8125rem; padding: 4px 0;
+      color: var(--body);
+      display: flex; align-items: start; gap: 8px;
+    }
+    .price-card.featured li { color: rgba(255,255,255,0.85); }
+    .price-card li::before {
+      content: '✓'; color: #00a86b; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .price-card.featured li::before { color: #50e3c2; }
+    .price-card li.no::before {
+      content: '✗'; color: var(--mute);
+    }
+    .price-card.featured li.no::before { color: rgba(255,255,255,0.4); }
+
+    /* ===== Stats Grid ===== */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px; margin: 24px 0;
+    }
+    .stat {
+      background: var(--canvas-soft);
+      border: 1px solid var(--hairline);
+      border-radius: var(--r-lg);
+      padding: 20px;
+    }
+    .stat .num {
+      font-size: 2rem; font-weight: 700;
+      letter-spacing: -0.5px; line-height: 1;
+      background: var(--grad-finnhub);
+      -webkit-background-clip: text; background-clip: text;
+      color: transparent;
+    }
+    .stat .label {
+      font-size: 0.75rem; color: var(--mute);
+      margin-top: 6px;
+    }
+
+    /* ===== Warning / Note ===== */
+    .note {
+      padding: 16px 20px;
+      border-radius: var(--r-md);
+      margin: 16px 0;
+      font-size: 0.875rem;
+    }
+    .note.info {
+      background: #f0f7ff; border-left: 3px solid var(--link);
+      color: var(--body);
+    }
+    .note.warn {
+      background: #fff8eb; border-left: 3px solid var(--warning);
+      color: var(--body);
+    }
+    .note.success {
+      background: #e8f7f0; border-left: 3px solid #00a86b;
+      color: var(--body);
+    }
+    .note strong { color: var(--ink); }
+
+    /* ===== Tables ===== */
+    table {
+      width: 100%; border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.875rem;
+    }
+    th, td {
+      padding: 10px 14px; text-align: left;
+      border-bottom: 1px solid var(--hairline);
+    }
+    th {
+      background: var(--canvas-soft);
+      font-weight: 600; color: var(--ink);
+      font-size: 0.75rem; text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    td code { font-size: 0.8125rem; }
+
+    /* ===== Comparison vs ===== */
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .compare > div {
+      padding: 16px;
+      border: 1px solid var(--hairline);
+      border-radius: var(--r-md);
+      background: white;
+    }
+    .compare h4 { margin-top: 0; }
+    .compare .pros li, .compare .cons li {
+      font-size: 0.8125rem; padding: 3px 0;
+    }
+    @media (max-width: 700px) {
+      .compare { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 2.25rem; }
+      .hero { padding: 56px 16px 48px; }
+    }
+
+    .footer {
+      text-align: center; color: var(--mute); font-size: 0.75rem;
+      margin-top: 64px; padding-top: 24px;
+      border-top: 1px solid var(--hairline);
+    }
+    .footer a { color: var(--link); }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設" style="font-size:11px;">⟲</button>
+</div>
+
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="../index.html">
+      <span class="logo-mark gradient">F</span>
+      <span>Finnhub API 中文速查</span>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="#pricing">費用</a>
+      <a class="nav-link" href="#endpoints">Endpoints</a>
+      <a class="nav-link" href="#examples">範例</a>
+      <a class="nav-cta" href="https://finnhub.io/dashboard" target="_blank">免費註冊 ↗</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>用 <span class="gradient-text">Finnhub</span><br>打造你的量化武器庫</h1>
+  <p>100+ endpoints · 即時 K 線、法說會逐字稿、社群情緒、SEC 文件、替代數據 — 一個 API 全包。<br>30 年 EOD 資料、15 年逐字稿歷史，最適合基本面 + 情緒策略回測。</p>
+  <div class="badges">
+    <span class="badge black">1045+ stars Python SDK</span>
+    <span class="badge purple">替代數據之王</span>
+    <span class="badge blue">即時 WebSocket</span>
+    <span class="badge green">Free Tier 可用</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ============================ TOC ============================ -->
+  <div class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#why">① 為何選 Finnhub</a>
+      <a href="#pricing">② 費用方案（重點）</a>
+      <a href="#auth">③ 認證與環境</a>
+      <a href="#endpoints">④ Endpoints 全覽</a>
+      <a href="#examples">⑤ 完整 Python 範例</a>
+      <a href="#websocket">⑥ WebSocket 即時串流</a>
+      <a href="#compare">⑦ vs Alpaca / Polygon 比較</a>
+      <a href="#pitfalls">⑧ 常見坑</a>
+    </div>
+  </div>
+
+  <!-- ============================ ① 為何選 Finnhub ============================ -->
+  <section id="why">
+    <h2><span class="num">①</span> 為何選 Finnhub</h2>
+
+    <p class="lead">在量化圈與 AI 開發者中，F 開頭的選擇其實不多 — Finnhub 是唯一一個把 <strong>即時報價</strong>、<strong>基本面</strong>、<strong>替代數據</strong>三條線都做齊的服務。</p>
+
+    <div class="stats">
+      <div class="stat"><div class="num">100+</div><div class="label">API Endpoints</div></div>
+      <div class="stat"><div class="num">30年</div><div class="label">歷史 EOD 資料</div></div>
+      <div class="stat"><div class="num">15年</div><div class="label">法說會逐字稿</div></div>
+      <div class="stat"><div class="num">60/min</div><div class="label">Free Tier Rate</div></div>
+    </div>
+
+    <h3>三大獨家優勢</h3>
+
+    <div class="compare">
+      <div>
+        <h4>🎙️ 法說會逐字稿 (Earnings Call Transcripts)</h4>
+        <p>15 年歷史逐字稿，可用 <code>transcripts_list()</code> 列出公司所有法說會 ID，再用 <code>transcripts(id)</code> 抓逐字稿。免費方案只給近 1 年，Pro 以上可回溯 15 年。</p>
+        <p class="note success"><strong>用途</strong>：NLP 抓管理層語氣變化、Q&amp;A 避重就輕程度、build 信心指標。</p>
+      </div>
+      <div>
+        <h4>📱 社群情緒 + 內部人交易</h4>
+        <p><code>stock_social_sentiment</code>（Reddit / Twitter / Stocktwits）、<code>stock_insider_transactions</code>、<code>stock_insider_sentiment</code>、<code>congressional_trading</code>（國會議員交易！）— 全部內建。</p>
+        <p class="note success"><strong>用途</strong>：事件驅動策略、insider buying alert、國會抄作業策略。</p>
+      </div>
+      <div>
+        <h4>📑 SEC 文件全文 + 情緒分析</h4>
+        <p><code>filings</code> 抓 10-K/10-Q/8-K 全文、<code>sec_sentiment_analysis</code> 給文件情緒分數、<code>sec_similarity_index</code> 算出「這份 10-K 跟去年有多像」（越像 = 公司越沒新意）。</p>
+        <p class="note success"><strong>用途</strong>：基本面事件型策略、similarity 跌破閾值 = 公司有大改變。</p>
+      </div>
+      <div>
+        <h4>💵 全套替代數據</h4>
+        <p>專利申請 (<code>stock_uspto_patent</code>)、H-1B 簽證 (<code>stock_visa_application</code>)、政府遊說支出 (<code>stock_lobbying</code>)、ESG 分數、供應鏈關係 — 量化圈俗稱的 <strong>「非傳統數據」</strong>。</p>
+        <p class="note success"><strong>用途</strong>：小型 alpha 來源，避開擁擠的技術指標交易。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ ② 費用方案 ============================ -->
+  <section id="pricing">
+    <h2><span class="num">②</span> 費用方案（重點）</h2>
+
+    <p>Finnhub 採<strong>五層級訂閱制</strong>，按 API 呼叫額度與進階資料分價。免費方案足以做個人學習與小量回測，正式量化請至少升級到 Pro。</p>
+
+    <div class="note warn">
+      <strong>⚠️ 價格以官方 <a href="https://finnhub.io/pricing" target="_blank">finnhub.io/pricing</a> 為準</strong>。以下為 2026 年 7 月的公開方案，實際金額可能因匯率或促銷變動。建議點連結重新確認。
+    </div>
+
+    <div class="pricing">
+      <div class="price-card">
+        <div class="tier-name">Free</div>
+        <div class="price">$0<small>/月</small></div>
+        <ul>
+          <li>60 requests/min</li>
+          <li class="no">WebSocket 僅延遲報價</li>
+          <li>15 天歷史分線</li>
+          <li>30 年 EOD 資料</li>
+          <li>1 年法說會逐字稿</li>
+          <li>基本公司資料、新聞</li>
+        </ul>
+      </div>
+
+      <div class="price-card">
+        <div class="tier-name">Pro</div>
+        <div class="price">$49.99<small>/月</small></div>
+        <ul>
+          <li>300 requests/min</li>
+          <li>WebSocket 即時報價</li>
+          <li>1 年歷史分線（1/5/15/30/60 分鐘）</li>
+          <li>30 年 EOD</li>
+          <li>5 年法說會逐字稿</li>
+          <li>完整情緒 + insider 資料</li>
+        </ul>
+      </div>
+
+      <div class="price-card featured">
+        <div class="tier-name">All-in-One</div>
+        <div class="price">$199.99<small>/月</small></div>
+        <ul>
+          <li>1200 requests/min</li>
+          <li>WebSocket + L2 深度</li>
+          <li>30 年<strong>歷史分線</strong></li>
+          <li>15 年法說會逐字稿</li>
+          <li>全 SEC 文件 + 情緒</li>
+          <li>替代數據全部解鎖</li>
+        </ul>
+      </div>
+
+      <div class="price-card">
+        <div class="tier-name">Enterprise</div>
+        <div class="price">客製<small></small></div>
+        <ul>
+          <li>客製 rate limit</li>
+          <li>Tick 等級歷史資料</li>
+          <li>專屬支援 + SLA</li>
+          <li>歷史 NBBO</li>
+          <li>客製化資料 feed</li>
+          <li>15 年法說會逐字稿</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>關鍵功能在各方案的可用性</h3>
+    <table>
+      <thead>
+        <tr><th>功能</th><th>Free</th><th>Pro</th><th>All-in-One</th><th>Enterprise</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>quote()</code> 即時報價</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td><code>stock_candles()</code> EOD</td><td>30 年</td><td>30 年</td><td>30 年</td><td>30 年</td></tr>
+        <tr><td><code>stock_candles()</code> 分線</td><td>15 天</td><td>1 年</td><td>30 年</td><td>30 年</td></tr>
+        <tr><td><code>stock_tick()</code> Tick 級</td><td>❌</td><td>❌</td><td>近期</td><td>歷史</td></tr>
+        <tr><td><code>transcripts()</code> 法說會逐字稿</td><td>1 年</td><td>5 年</td><td>15 年</td><td>15 年</td></tr>
+        <tr><td><code>stock_social_sentiment()</code></td><td>限制</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td><code>filings()</code> SEC 文件全文</td><td>近 1 年</td><td>5 年</td><td>15 年</td><td>15 年</td></tr>
+        <tr><td><code>sec_sentiment_analysis()</code></td><td>❌</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>WebSocket 即時報價</td><td>延遲</td><td>✅</td><td>✅ + L2</td><td>✅ + L2</td></tr>
+        <tr><td><code>congressional_trading()</code></td><td>❌</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>Rate Limit</td><td>60/min</td><td>300/min</td><td>1200/min</td><td>客製</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note info">
+      <strong>💡 怎麼選？</strong>
+      <ul style="margin-top:6px; padding-left:20px;">
+        <li><strong>學習 / 小型回測</strong>：Free（每天約 86,400 次呼叫額度，分線只有 15 天）</li>
+        <li><strong>個人量化 + 即時下單驗證</strong>：Pro $49.99/mo（1 年分線足夠做大部分策略回測）</li>
+        <li><strong>認真做基本面 + 情緒策略</strong>：All-in-One $199.99/mo（30 年分線 + 15 年逐字稿才能跑完整回測）</li>
+        <li><strong>機構等級</strong>：Enterprise（客製報價）</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============================ ③ 認證 ============================ -->
+  <section id="auth">
+    <h2><span class="num">③</span> 認證與環境</h2>
+
+    <h3>1. 取得 API Key</h3>
+    <ol style="padding-left: 24px; color: var(--body); line-height: 1.9;">
+      <li>到 <a href="https://finnhub.io/register" target="_blank">finnhub.io/register</a> 註冊（免費）</li>
+      <li>登入後到 <a href="https://finnhub.io/dashboard" target="_blank">Dashboard</a>，複製 <code>API Key</code></li>
+      <li>放進環境變數（不要寫進程式）</li>
+    </ol>
+
+    <h3>2. 安裝官方 Python SDK</h3>
+<pre><code><span class="c-com"># pip 安裝</span>
+pip install finnhub-python
+
+<span class="c-com"># 或升級到最新版</span>
+pip install --upgrade finnhub-python</code></pre>
+
+    <h3>3. 初始化客戶端</h3>
+<pre><code><span class="c-key">import</span> finnhub
+<span class="c-key">import</span> os
+
+<span class="c-com"># 從環境變數讀 API key（推薦做法）</span>
+finnhub_client = finnhub.Client(api_key=os.getenv(<span class="c-str">"FINNHUB_API_KEY"</span>))
+
+<span class="c-com"># 或測試時直接傳</span>
+<span class="c-com"># finnhub_client = finnhub.Client(api_key="YOUR API KEY")</span>
+
+<span class="c-com"># 簡易測試</span>
+print(finnhub_client.quote(<span class="c-str">"AAPL"</span>))</code></pre>
+
+    <h3>4. 純 REST（不裝 SDK）</h3>
+<pre><code><span class="c-com"># 用 curl 也可以,base URL 是 https://finnhub.io/api/v1</span>
+curl <span class="c-str">"https://finnhub.io/api/v1/quote?symbol=AAPL&amp;token=YOUR_API_KEY"</span>
+
+<span class="c-com"># 回傳 JSON</span>
+<span class="c-com">{</span>
+  <span class="c-str">"c"</span>: <span class="c-num">189.84</span>,   <span class="c-com">// current price</span>
+  <span class="c-str">"d"</span>: <span class="c-num">-1.23</span>,    <span class="c-com">// change</span>
+  <span class="c-str">"dp"</span>: <span class="c-num">-0.6437</span>, <span class="c-com">// percent change</span>
+  <span class="c-str">"h"</span>: <span class="c-num">191.55</span>,  <span class="c-com">// high price of the day</span>
+  <span class="c-str">"l"</span>: <span class="c-num">189.20</span>,  <span class="c-com">// low price of the day</span>
+  <span class="c-str">"o"</span>: <span class="c-num">191.07</span>,  <span class="c-com">// open price of the day</span>
+  <span class="c-str">"pc"</span>: <span class="c-num">191.07</span>, <span class="c-com">// previous close</span>
+  <span class="c-str">"t"</span>: <span class="c-num">1721054400</span>  <span class="c-com">// timestamp</span>
+<span class="c-com">}</span></code></pre>
+
+    <div class="note info">
+      <strong>Base URL</strong>: <code>https://finnhub.io/api/v1</code><br>
+      <strong>認證方式</strong>: URL 帶 <code>token=YOUR_KEY</code> query 參數（不是 Bearer header）<br>
+      <strong>回傳格式</strong>: 純 JSON，沒有標準錯誤 envelope，錯的時候回空物件或 <code>{}</code>
+    </div>
+  </section>
+
+  <!-- ============================ ④ Endpoints 全覽 ============================ -->
+  <section id="endpoints">
+    <h2><span class="num">④</span> Endpoints 全覽（100+）</h2>
+
+    <p class="lead">依功能分 10 大類。每張卡標示 <strong>最低可用方案</strong> 與 <strong>Python 呼叫語法</strong>。</p>
+
+    <!-- ===== 行情 / K線 ===== -->
+    <h3>📈 行情 / K線 (12 個)</h3>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">quote(symbol)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">即時報價 — 現價、今日高低、漲跌幅、前收。回傳 dict 含 <code>c/d/dp/h/l/o/pc/t</code>。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">stock_candles(symbol, resolution, _from, to)</span>
+        <span class="ep-tier free">Free 15天</span>
+      </div>
+      <div class="ep-desc">K 線資料。<strong>resolution</strong>: <code>1/5/15/30/60/D/W/M</code>。回傳 <code>o/h/l/c/v/t/s</code> 陣列，可用 <code>pd.DataFrame</code> 直接轉。</div>
+      <div class="ep-params">resolution: 1/5/15/30/60/D/W/M · _from/to: unix timestamp 或 YYYY-MM-DD</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">last_bid_ask(symbol)</span>
+        <span class="ep-tier pro">Pro+</span>
+      </div>
+      <div class="ep-desc">最新 bid/ask 報價。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">stock_tick(symbol, date, limit, skip)</span>
+        <span class="ep-tier ent">All-in-One</span>
+      </div>
+      <div class="ep-desc">Tick 等級歷史資料。回傳 <code>{data, type, symbol}</code>。需 <code>date='YYYY-MM-DD'</code>。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">stock_nbbo(symbol, date, limit, skip)</span>
+        <span class="ep-tier ent">Enterprise</span>
+      </div>
+      <div class="ep-desc">歷史 NBBO（National Best Bid/Offer），L2 等級深度。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">forex_candles(symbol, resolution, _from, to)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">外匯 K 線。<code>symbol='OANDA:EUR_USD'</code>。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">crypto_candles(symbol, resolution, _from, to)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">加密貨幣 K 線。<code>symbol='BINANCE:BTCUSDT'</code>。</div>
+    </div>
+
+    <!-- ===== 基本面 ===== -->
+    <h3>💰 基本面 (21 個)</h3>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">company_basic_financials(symbol, metric)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">基本財務指標。<code>metric='all'</code> 取全部（pe/eps/roe/毛利率等 50+ 指標）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">financials(symbol, statement, freq)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">三大報表完整資料。<code>statement='bs'|'ic'|'cf'</code> (資產負債/損益/現金流), <code>freq='annual'|'quarterly'</code>。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">financials_reported(symbol=, cik=, access_number=, freq=)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">已申報的原始財務資料（與 <code>financials()</code> 不同，這是直接從 SEC 抓的）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">company_earnings(symbol, limit)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">歷史 EPS + 驚喜值（actual/estimate/surprise/surprisePercent）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">earnings_calendar(_from, to, symbol)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">未來財報發布日曆。<code>international=True</code> 包含國際市場。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">company_revenue_estimates(symbol, freq)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">分析師對未來營收的共識估計值。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">company_eps_estimates(symbol, freq)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">分析師對未來 EPS 的共識估計值（含高/低/平均/個股分析師數）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">company_ebitda_estimates / ebit_estimates / fcf_estimates / capex_estimates / ocf_estimates</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">其他財務指標估計（EBITDA / EBIT / Free Cash Flow / CapEx / OCF）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">company_earnings_quality_score(symbol, freq)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">盈餘品質分數（0-100，越高越難造假）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">stock_revenue_breakdown(symbol, cik='')</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">營收按產品線/地區拆分（segment revenue breakdown）。</div>
+    </div>
+
+    <!-- ===== 分析師 ===== -->
+    <h3>📊 分析師 / 升評 (2 個)</h3>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">recommendation_trends(symbol)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">分析師評等趨勢（strongBuy/buy/hold/sell/strongSell 過去 4 個月）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">price_target(symbol)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">分析師目標價 — 平均/中位/最高/最低/最新。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">upgrade_downgrade(symbol=, _from=, to=)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">個股評等升/降記錄（含時間、分析師、公司）。</div>
+    </div>
+
+    <!-- ===== 替代數據 / 情緒 ===== -->
+    <h3>🎯 替代數據 / 情緒 (19 個 — Finnhub 強項)</h3>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">transcripts_list(symbol)</span>
+        <span class="ep-tier free">1年</span>
+      </div>
+      <div class="ep-desc">列出該公司所有法說會逐字稿 ID。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">transcripts(_id)</span>
+        <span class="ep-tier free">1年</span>
+      </div>
+      <div class="ep-desc">抓指定法說會逐字稿全文，含開場致詞、QA、預備部分。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">stock_social_sentiment(symbol, _from=, to=)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">Reddit / Twitter / Stocktwits 情緒分數（mention/positiveScore/negativeScore）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">news_sentiment(symbol)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">公司新聞情緒分析（articles / buzz / companyNewsScore / sectorAverageScore）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">stock_insider_transactions(symbol, _from=, to=)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">內部人交易記錄（CEO/CFO/Director 的買賣）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">stock_insider_sentiment(symbol, _from, to)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">內部人情緒（MSPR - Monthly Share Purchase Ratio，淨買入比例）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">congressional_trading(symbol, _from, to)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">美國國會議員交易揭露（國會抄作業策略必備）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">sec_sentiment_analysis(access_number)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">SEC 文件情緒分數（10-K/10-Q 文字分析）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">sec_similarity_index(symbol=, cik=, freq=)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">SEC 文件相似度指數（今年 10-K 跟去年多像？越像 = 公司越沒改變）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">company_esg_score(symbol)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">ESG 環境/社會/治理分數。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">stock_uspto_patent(symbol, _from=, to=)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">公司專利申請記錄（美國專利商標局）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">stock_visa_application(symbol, _from, to)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">公司 H-1B / L-1 簽證申請數（研發投入領先指標）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">stock_lobbying(symbol, _from, to)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">公司政府遊說支出。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">stock_usa_spending(symbol, _from, to)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">公司美國政府合約支出。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">stock_supply_chain(symbol)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">公司供應鏈上下游關係圖。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">stock_presentation(symbol)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">公司投資人簡報（PDF link list）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">earnings_call_live(_from, to, symbol='')</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">即時追蹤正在進行的法說會（逐字稿 streaming）。</div>
+    </div>
+
+    <!-- ===== 新聞 ===== -->
+    <h3>📰 新聞 (3 個)</h3>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">general_news(category, min_id=0)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">一般市場新聞。<code>category</code>: general / forex / crypto / merger。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">company_news(symbol, _from, to)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">公司新聞。<code>_from/to</code> 用 YYYY-MM-DD 格式。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">press_releases(symbol, _from=None, to=None)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">公司新聞稿（press releases）。</div>
+    </div>
+
+    <!-- ===== 公司治理 ===== -->
+    <h3>🏛️ 公司治理 / SEC (11 個)</h3>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">company_profile(symbol=, isin=, cusip=)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">公司基本資料 — 名稱、產業、國家、市值、Logo URL。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">company_profile2(symbol=, isin=, cusip=)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">公司資料 v2（多了 share outstanding 等）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">company_executive(symbol)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">公司高階主管名單（CEO/CFO/COO 等）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">company_peers(symbol)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">同業清單（peer companies）— 給相對估值用。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">filings(symbol='', cik='', access_number='', form='', _from='', to='')</span>
+        <span class="ep-tier free">1年</span>
+      </div>
+      <div class="ep-desc">SEC 文件列表（10-K / 10-Q / 8-K 等）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">ownership(symbol, limit)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">大股東持股（持股比例 > 5% 的股東）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">fund_ownership(symbol, limit)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">基金持股（共同基金 / 對沖基金）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">institutional_ownership(symbol, cusip, _from, to)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">機構持股變化（13F 申報資料）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">historical_employee_count(symbol, _from, to)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">公司歷年員工數（招募速度 = 成長領先指標）。</div>
+    </div>
+
+    <!-- ===== 外匯 / 加密 ===== -->
+    <h3>💱 外匯 / 加密 / 債券 (8 個)</h3>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">forex_rates(base='USD')</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">所有主要貨幣對某基準貨幣的匯率。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">forex_symbols(exchange)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">列出某交易所所有外匯交易對。<code>exchange='OANDA'/'FXCM'/'ICAP'/'PEEL'</code>。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">crypto_exchanges()</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">所有支援的加密交易所清單。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">crypto_symbols(exchange)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">列出某交易所所有加密貨幣交易對。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">crypto_profile(symbol)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">加密貨幣基本資料（技術規格、開發者、區塊鏈）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">bond_profile(isin=, cusip=, figi=)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">債券基本資料。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">bond_yield_curve(code)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">殖利率曲線。<code>code='US'/'UK'/'DE'/'JP'/'CN'...</code></div>
+    </div>
+
+    <!-- ===== 選擇權 ===== -->
+    <h3>📊 選擇權 (1 個)</h3>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">option_chain(symbol, **params)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">選擇權鏈。<code>date='YYYY-MM-DD'</code>, <code>strike=...</code>, <code>option_type='call'/'put'</code>。</div>
+    </div>
+
+    <!-- ===== 指數 / ETF / 基金 ===== -->
+    <h3>🧮 指數 / ETF / 基金 (13 個)</h3>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">indices_const(symbol)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">指數成分股。<code>symbol='^GSPC'/'^DJI'/'^IXIC'</code>。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">indices_hist_const(symbol, from=, to=)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">指數歷史成分股變動（看指數調權時點）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">etfs_profile(symbol)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">ETF 基本資料（資產類別、家族、發行商）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">etfs_holdings(symbol)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">ETF 持倉清單（看 SPY 買了什麼）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">etfs_sector_exp / etfs_country_exp / etfs_allocation</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">ETF 的產業 / 國家 / 資產配置曝險。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">mutual_fund_profile / holdings / sector_exp / country_exp</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">共同基金基本資料 / 持倉 / 產業 / 國家曝險。</div>
+    </div>
+
+    <!-- ===== 經濟 / 市場 ===== -->
+    <h3>🌐 經濟 / 市場 (8 個)</h3>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">country()</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">所有支援的國家清單。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">economic_code()</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">所有經濟指標代碼（CPI/GDP/失業率 等）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">economic_data(code)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">歷史經濟指標數據。<code>code='MA-USA-656880'</code>（CPI 美國）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">calendar_economic(_from, to)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">未來經濟事件發布日曆（NFP / CPI / FOMC 等）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">ipo_calendar(_from, to)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">未來 IPO 日曆。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">fda_calendar()</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">FDA 藥證審批日曆（生技股策略必備）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">market_status(exchange='US')</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">交易所開盤狀態（open/closed/pre-market/after-hours）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">market_holiday(exchange='US')</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">交易所休市日。</div>
+    </div>
+
+    <!-- ===== 技術 / 其他 ===== -->
+    <h3>🛠️ 技術 / 其他 (20 個)</h3>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">technical_indicator(symbol, resolution, _from, to, indicator, indicator_fields)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">60+ 技術指標直接算好給你（SMA/EMA/RSI/MACD/Bollinger/ATR 等）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">aggregate_indicator(symbol, resolution)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">綜合技術分析信號（buy/neutral/sell）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">pattern_recognition(symbol, resolution)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">K 線型態辨識（頭肩頂 / 雙底 / 三角等）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">support_resistance(symbol, resolution)</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">支撐/壓力位（自動計算）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">stock_symbols(exchange, mic=, security_type=, currency=)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">列出某交易所所有股票代號。<code>exchange='US'</code> 取美國所有股票。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">symbol_lookup(query)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">搜尋股票代號。<code>query='apple'</code>。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">historical_market_cap(symbol, _from=, to=)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">歷史市值（用於 size factor / 小型股策略）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">stock_dividends(symbol, _from=, to=)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">歷年股息（除息日、發放日、金額）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">stock_splits(symbol, _from, to)</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">歷年股票分割（除權日、比例）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">exchange()</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">所有支援的交易所清單。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">sector_metric(region='NA')</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">產業別估值指標（PE/PB/EV/EBITDA 等按 sector 統計）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">price_metrics(symbol, date='')</span>
+        <span class="ep-tier pro">Pro</span>
+      </div>
+      <div class="ep-desc">個股歷史估值指標（52 週高/低、PE/PB 等）。</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="ep-header">
+        <span class="ep-method">GET</span>
+        <span class="ep-name">covid19()</span>
+        <span class="ep-tier free">Free</span>
+      </div>
+      <div class="ep-desc">美國各州 COVID-19 案例（已停止更新但歷史資料可查）。</div>
+    </div>
+  </section>
+
+  <!-- ============================ ⑤ 完整範例 ============================ -->
+  <section id="examples">
+    <h2><span class="num">⑤</span> 完整 Python 範例</h2>
+
+    <h3>範例 1：即時報價 + 個股新聞</h3>
+<pre><code><span class="c-key">import</span> finnhub
+<span class="c-key">import</span> os
+<span class="c-key">from</span> datetime <span class="c-key">import</span> datetime, timedelta
+
+client = finnhub.Client(api_key=os.getenv(<span class="c-str">"FINNHUB_API_KEY"</span>))
+
+<span class="c-com"># 即時報價</span>
+quote = client.quote(<span class="c-str">"AAPL"</span>)
+print(f"AAPL: ${quote['c']} ({quote['dp']:+.2f}%)")
+
+<span class="c-com"># 過去 7 天公司新聞</span>
+_to = datetime.now().strftime(<span class="c-str">"%Y-%m-%d"</span>)
+_from = (datetime.now() - timedelta(days=<span class="c-num">7</span>)).strftime(<span class="c-str">"%Y-%m-%d"</span>)
+news = client.company_news(<span class="c-str">"AAPL"</span>, _from=_from, to=_to)
+
+<span class="c-key">for</span> n <span class="c-key">in</span> news[:<span class="c-num">5</span>]:
+    print(f"  - [{n['source']}] {n['headline']}")</code></pre>
+
+    <h3>範例 2：30 年 EOD 回測下載（DataFrame）</h3>
+<pre><code><span class="c-key">import</span> finnhub
+<span class="c-key">import</span> pandas <span class="c-key">as</span> pd
+<span class="c-key">import</span> time
+
+client = finnhub.Client(api_key=os.getenv(<span class="c-str">"FINNHUB_API_KEY"</span>))
+
+<span class="c-com"># 抓 30 年 SPY 日線 (免費方案就有)</span>
+<span class="c-com"># Unix timestamp: 1996-01-01 ~ 2026-07-11</span>
+_from = <span class="c-num">820454400</span>  <span class="c-com"># 1996-01-01</span>
+_to = <span class="c-num">1752201600</span>  <span class="c-num">2026-07-11</span>
+
+res = client.stock_candles(<span class="c-str">"SPY"</span>, <span class="c-str">"D"</span>, _from, _to)
+
+df = pd.DataFrame(res)
+df[<span class="c-str">"date"</span>] = pd.to_datetime(df[<span class="c-str">"t"</span>], unit=<span class="c-str">"s"</span>)
+df = df[[<span class="c-str">"date"</span>, <span class="c-str">"o"</span>, <span class="c-str">"h"</span>, <span class="c-str">"l"</span>, <span class="c-str">"c"</span>, <span class="c-str">"v"</span>]]
+df.columns = [<span class="c-str">"date"</span>, <span class="c-str">"open"</span>, <span class="c-str">"high"</span>, <span class="c-str">"low"</span>, <span class="c-str">"close"</span>, <span class="c-str">"volume"</span>]
+print(df.head())
+print(f"共 {len(df)} 筆,從 {df.date.min()} 到 {df.date.max()}")</code></pre>
+
+    <h3>範例 3：基本面 + 分析師目標價綜合評分</h3>
+<pre><code><span class="c-key">def</span> <span class="c-fn">analyze_fundamentals</span>(symbol):
+    client = finnhub.Client(api_key=os.getenv(<span class="c-str">"FINNHUB_API_KEY"</span>))
+
+    <span class="c-com"># 1. 基本財務指標</span>
+    bs = client.company_basic_financials(symbol, <span class="c-str">"all"</span>)[<span class="c-str">"metric"</span>]
+    pe = bs.get(<span class="c-str">"peNormalizedAnnual"</span>)
+    roe = bs.get(<span class="c-str">"roeRfy"</span>)
+    gross_margin = bs.get(<span class="c-str">"grossMarginAnnual"</span>)
+
+    <span class="c-com"># 2. 分析師目標價</span>
+    pt = client.price_target(symbol)
+    target_avg = pt[<span class="c-str">"targetMean"</span>]
+    target_high = pt[<span class="c-str">"targetHigh"</span>]
+    target_low = pt[<span class="c-str">"targetLow"</span>]
+
+    <span class="c-com"># 3. 即時報價</span>
+    q = client.quote(symbol)
+    current = q[<span class="c-str">"c"</span>]
+
+    upside = (target_avg - current) / current * <span class="c-num">100</span>
+
+    print(f<span class="c-str">"""
+=== {symbol} 基本面分析 ===
+現價: ${current:.2f}
+PE: {pe:.1f}
+ROE: {roe*100:.1f}%
+毛利率: {gross_margin*100:.1f}%
+
+分析師目標價:
+  平均: ${target_avg:.2f} ({upside:+.1f}% upside)
+  最高: ${target_high:.2f}
+  最低: ${target_low:.2f}
+"""</span>)
+
+    <span class="c-key">return</span> {
+        <span class="c-str">"symbol"</span>: symbol,
+        <span class="c-str">"current"</span>: current,
+        <span class="c-str">"pe"</span>: pe,
+        <span class="c-str">"upside"</span>: upside,
+        <span class="c-str">"analyst_target"</span>: target_avg,
+    }
+
+analyze_fundamentals(<span class="c-str">"AAPL"</span>)</code></pre>
+
+    <h3>範例 4：法說會逐字稿 NLP — 管理層信心指標</h3>
+<pre><code><span class="c-key">import</span> finnhub
+<span class="c-key">import</span> re
+
+client = finnhub.Client(api_key=os.getenv(<span class="c-str">"FINNHUB_API_KEY"</span>))
+
+<span class="c-com"># 1. 列出 AAPL 過去 4 季法說會</span>
+transcripts = client.transcripts_list(<span class="c-str">"AAPL"</span>)
+
+<span class="c-com"># 信心詞 / 模糊詞 清單</span>
+confident_words = [<span class="c-str">"strong"</span>, <span class="c-str">"confident"</span>, <span class="c-str">"robust"</span>, <span class="c-str">"exceeded"</span>, <span class="c-str">"outperform"</span>, <span class="c-str">"record"</span>]
+hedge_words = [<span class="c-str">"challenging"</span>, <span class="c-str">"headwind"</span>, <span class="c-str">"uncertain"</span>, <span class="c-str">"may"</span>, <span class="c-str">"could"</span>, <span class="c-str">"approximately"</span>]
+
+<span class="c-key">for</span> t <span class="c-key">in</span> transcripts[:<span class="c-num">4</span>]:
+    <span class="c-com"># 2. 抓該場逐字稿</span>
+    full = client.transcripts(t[<span class="c-str">"id"</span>])
+    text = full.get(<span class="c-str">"transcript"</span>, <span class="c-str">""</span>).lower()
+
+    <span class="c-com"># 3. 簡單信心分數</span>
+    confident = sum(text.count(w) <span class="c-key">for</span> w <span class="c-key">in</span> confident_words)
+    hedge = sum(text.count(w) <span class="c-key">for</span> w <span class="c-key">in</span> hedge_words)
+    score = (confident - hedge) / max(confident + hedge, <span class="c-num">1</span>) * <span class="c-num">100</span>
+
+    print(f<span class="c-str">"{t['quarter']} {t['year']}: 信心={score:+.0f} ({confident} 強 / {hedge} 弱)"</span>)</code></pre>
+
+    <div class="note info">
+      <strong>💡 進階用法</strong>：可以把逐字稿餵給 Claude / GPT 做 sentiment analysis，比單純數字高/低更精準。
+    </div>
+
+    <h3>範例 5：內部人交易訊號 (Insider Buying Alert)</h3>
+<pre><code><span class="c-key">import</span> finnhub
+<span class="c-key">from</span> datetime <span class="c-key">import</span> datetime, timedelta
+
+client = finnhub.Client(api_key=os.getenv(<span class="c-str">"FINNHUB_API_KEY"</span>))
+
+<span class="c-com"># 過去 30 天內部人交易</span>
+_to = datetime.now().strftime(<span class="c-str">"%Y-%m-%d"</span>)
+_from = (datetime.now() - timedelta(days=<span class="c-num">30</span>)).strftime(<span class="c-str">"%Y-%m-%d"</span>)
+
+insider = client.stock_insider_transactions(<span class="c-str">"AAPL"</span>, _from=_from, to=_to)
+
+<span class="c-com"># 只看 CEO / CFO 買入 (change > 0)</span>
+print(<span class="c-str">"=== 內部人大額買入 (>$100K) ==="</span>)
+<span class="c-key">for</span> t <span class="c-key">in</span> insider.get(<span class="c-str">"data"</span>, []):
+    <span class="c-key">if</span> t[<span class="c-str">"change"</span>] > <span class="c-num">0</span>:
+        value = abs(t[<span class="c-str">"change"</span>] * t[<span class="c-str">"transactionPrice"</span>])
+        <span class="c-key">if</span> value > <span class="c-num">100000</span>:
+            print(f<span class="c-str">"  {t['filingDate']}: {t['name']} ({t['position']}) "</span>
+                  f<span class="c-str">"買入 {t['change']:,} 股 (${value:,.0f})"</span>)</code></pre>
+
+    <h3>範例 6：抓 60+ 技術指標（直接省下算指標的功夫）</h3>
+<pre><code><span class="c-key">import</span> finnhub
+<span class="c-key">import</span> pandas <span class="c-key">as</span> pd
+
+client = finnhub.Client(api_key=os.getenv(<span class="c-str">"FINNHUB_API_KEY"</span>))
+
+<span class="c-com"># 計算 RSI(14) 最近 30 天</span>
+<span class="c-key">import</span> time
+_to = <span class="c-key">int</span>(time.time())
+_from = _to - <span class="c-num">30</span> * <span class="c-num">86400</span>
+
+rsi = client.technical_indicator(
+    symbol=<span class="c-str">"AAPL"</span>,
+    resolution=<span class="c-str">"D"</span>,
+    _from=_from,
+    to=_to,
+    indicator=<span class="c-str">"rsi"</span>,
+    indicator_fields={<span class="c-str">"timeperiod"</span>: <span class="c-num">14</span>}
+)
+
+df = pd.DataFrame(rsi)
+df[<span class="c-str">"date"</span>] = pd.to_datetime(df[<span class="c-str">"t"</span>], unit=<span class="c-str">"s"</span>)
+print(df[[<span class="c-str">"date"</span>, <span class="c-str">"rsi"</span>]].tail(<span class="c-num">5</span>))
+
+<span class="c-com"># 其他可用 indicator 名稱: sma, ema, wma, macd, bbands, atr, adx, stoch, cci, obv, mfi...</span></code></pre>
+  </section>
+
+  <!-- ============================ ⑥ WebSocket ============================ -->
+  <section id="websocket">
+    <h2><span class="num">⑥</span> WebSocket 即時串流</h2>
+
+    <p class="lead">Finnhub 的 WebSocket 是 Pro 以上方案才能用的<strong>即時</strong>報價（Free 是延遲版）。端點：<code>wss://ws.finnhub.io</code></p>
+
+    <h3>安裝 websocket-client</h3>
+<pre><code>pip install websocket-client</code></pre>
+
+    <h3>Python 範例：訂閱 AAPL 即時 tick</h3>
+<pre><code><span class="c-key">import</span> websocket
+<span class="c-key">import</span> json
+<span class="c-key">import</span> os
+
+<span class="c-key">def</span> <span class="c-fn">on_message</span>(ws, message):
+    data = json.loads(message)
+    print(data)
+
+<span class="c-key">def</span> <span class="c-fn">on_open</span>(ws):
+    <span class="c-com"># 訂閱 AAPL</span>
+    ws.send(json.dumps({<span class="c-str">"type"</span>: <span class="c-str">"subscribe"</span>, <span class="c-str">"symbol"</span>: <span class="c-str">"AAPL"</span>}))
+
+<span class="c-key">def</span> <span class="c-fn">on_close</span>(ws):
+    print(<span class="c-str">"連線關閉"</span>)
+
+ws = websocket.WebSocketApp(
+    <span class="c-str">"wss://ws.finnhub.io?token="</span> + os.getenv(<span class="c-str">"FINNHUB_API_KEY"</span>),
+    on_message=on_message,
+    on_open=on_open,
+    on_close=on_close
+)
+ws.run_forever()</code></pre>
+
+    <h3>訊息格式</h3>
+<pre><code><span class="c-com">// 收到的訊息</span>
+{
+  <span class="c-str">"data"</span>: [
+    {
+      <span class="c-str">"c"</span>: <span class="c-str">"h"</span>,          <span class="c-com">// conditions</span>
+      <span class="c-str">"p"</span>: <span class="c-num">189.84</span>,      <span class="c-com">// last price</span>
+      <span class="c-str">"s"</span>: <span class="c-str">"AAPL"</span>,      <span class="c-com">// symbol</span>
+      <span class="c-str">"t"</span>: <span class="c-num">1721054400123</span>, <span class="c-com">// timestamp (ms)</span>
+      <span class="c-str">"v"</span>: <span class="c-num">100</span>          <span class="c-com">// volume</span>
+    }
+  ],
+  <span class="c-str">"type"</span>: <span class="c-str">"trade"</span>
+}</code></pre>
+
+    <div class="note warn">
+      <strong>⚠️ 注意</strong>：
+      <ul style="margin-top:6px; padding-left:20px;">
+        <li>最多同時訂閱 <strong>50 個 symbol</strong>（Pro）/ 500 個（All-in-One）</li>
+        <li>每個 WebSocket 連線會在 <strong>20 分鐘無活動</strong>後自動斷線，需重連</li>
+        <li>免費方案只有延遲報價（15 分鐘延遲），正式交易請升級 Pro</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============================ ⑦ vs 比較 ============================ -->
+  <section id="compare">
+    <h2><span class="num">⑦</span> vs Alpaca / Polygon / Quandl 比較</h2>
+
+    <p>Finnhub 在量化圈的定位很清楚 — <strong>基本面與替代數據的王者</strong>，但即時報價不如 Polygon 細膩。</p>
+
+    <table>
+      <thead>
+        <tr><th>面向</th><th>Finnhub</th><th>Alpaca</th><th>Polygon.io</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>主場景</strong></td><td>基本面 / 情緒 / 替代數據</td><td>下單 + 行情</td><td>高頻即時行情</td></tr>
+        <tr><td>即時報價</td><td>✅ Pro $49.99/mo</td><td>✅ Free 即可</td><td>✅ 最即時（<$30/mo）</td></tr>
+        <tr><td>歷史分線</td><td>30 年（All-in-One）</td><td>5 年</td><td>10+ 年</td></tr>
+        <tr><td>下單 API</td><td>❌ 無</td><td>✅ 完整交易</td><td>❌ 無</td></tr>
+        <tr><td>法說會逐字稿</td><td>✅ <strong>15 年</strong>（業界最久）</td><td>❌</td><td>❌</td></tr>
+        <tr><td>SEC 文件全文</td><td>✅ 15 年</td><td>❌</td><td>❌</td></tr>
+        <tr><td>社群情緒</td><td>✅ Reddit/Twitter/Stocktwits</td><td>❌</td><td>❌</td></tr>
+        <tr><td>Insider / 國會議員</td><td>✅</td><td>❌</td><td>❌</td></tr>
+        <tr><td>加密貨幣</td><td>✅ 5+ 交易所</td><td>✅ 主要交易所</td><td>❌</td></tr>
+        <tr><td>選擇權鏈</td><td>✅ Pro</td><td>✅ Free</td><td>✅</td></tr>
+        <tr><td>WebSocket 穩定度</td><td>中等</td><td>穩定</td><td>最穩</td></tr>
+        <tr><td>Free Tier 額度</td><td>60 req/min</td><td>200 req/min</td><td>5 req/min</td></tr>
+      </tbody>
+    </table>
+
+    <div class="compare">
+      <div>
+        <h4>✅ 選 Finnhub 的時機</h4>
+        <ul class="pros">
+          <li>需要做基本面 + 情緒策略</li>
+          <li>回測要 10+ 年歷史</li>
+          <li>想用 insider / 國會議員交易抄作業</li>
+          <li>需要法說會逐字稿做 NLP</li>
+          <li>做 ESG / 專利 / 簽證 等替代數據策略</li>
+        </ul>
+      </div>
+      <div>
+        <h4>❌ 不適合 Finnhub 的時機</h4>
+        <ul class="cons">
+          <li>純高頻 / 量化做市（用 Polygon）</li>
+          <li>需要直接下單（用 Alpaca）</li>
+          <li>只要 K 線 + 技術指標（Alpaca / Yahoo Finance 免費就夠）</li>
+          <li>WebSocket 要求極低延遲（用 Polygon）</li>
+          <li>即時串流 1000+ 個 symbol（Finnhub 訂閱上限 50/Pro）</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="note success">
+      <strong>💡 最佳組合</strong>：<br>
+      📈 <strong>行情 + 下單</strong>：Alpaca（Free）<br>
+      📊 <strong>基本面 + 情緒</strong>：Finnhub Pro ($49.99/mo)<br>
+      🚀 <strong>高頻做市</strong>：Polygon Pro ($29/mo 起)<br>
+      <br>
+      三家 API key 可以並存，依場景切換。
+    </div>
+  </section>
+
+  <!-- ============================ ⑧ 坑 ============================ -->
+  <section id="pitfalls">
+    <h2><span class="num">⑧</span> 常見坑</h2>
+
+    <h3>坑 1：時間戳是 Unix 秒，不是毫秒</h3>
+<pre><code><span class="c-com"># ❌ 錯誤：傳毫秒 timestamp</span>
+res = client.stock_candles(<span class="c-str">"AAPL"</span>, <span class="c-str">"D"</span>, <span class="c-num">1721054400000</span>, <span class="c-num">1721054400000</span>)
+<span class="c-com"># Finnhub 不會報錯,但會回空資料 {s: "no_data"}</span>
+
+<span class="c-com"># ✅ 正確：傳秒</span>
+res = client.stock_candles(<span class="c-str">"AAPL"</span>, <span class="c-str">"D"</span>, <span class="c-num">1721054400</span>, <span class="c-num">1721054400</span>)</code></pre>
+
+    <h3>坑 2：免費方案的 _from/_to 範圍太近會拿到空資料</h3>
+<pre><code><span class="c-com"># 假設今天是 2026-07-11,免費方案只能看最近 15 天分線</span>
+<span class="c-com"># _from 設定成 30 天前會拿到空 dict</span>
+
+<span class="c-com"># ✅ 解決：先檢查 res["s"] 狀態</span>
+res = client.stock_candles(<span class="c-str">"AAPL"</span>, <span class="c-str">"1"</span>, _from, to)
+<span class="c-key">if</span> res[<span class="c-str">"s"</span>] == <span class="c-str">"no_data"</span>:
+    print(<span class="c-str">"此時間範圍無資料,可能是方案限制"</span>)</code></pre>
+
+    <h3>坑 3：API Key 不要寫在程式碼</h3>
+<pre><code><span class="c-com"># ❌ 危險</span>
+client = finnhub.Client(api_key=<span class="c-str">"c123abc456"</span>)
+
+<span class="c-com"># ✅ 用環境變數</span>
+<span class="c-com"># export FINNHUB_API_KEY=c123abc456</span>
+client = finnhub.Client(api_key=os.getenv(<span class="c-str">"FINNHUB_API_KEY"</span>))</code></pre>
+
+    <h3>坑 4：Rate Limit 沒處理會被 ban</h3>
+<pre><code><span class="c-key">import</span> time
+<span class="c-key">from</span> functools <span class="c-key">import</span> wraps
+
+<span class="c-key">def</span> <span class="c-fn">rate_limit</span>(max_per_min=<span class="c-num">60</span>):
+    interval = <span class="c-num">60</span> / max_per_min
+    <span class="c-key">def</span> decorator(fn):
+        <span class="c-fn">@wraps</span>(fn)
+        <span class="c-key">def</span> wrapper(*args, **kwargs):
+            time.sleep(interval)
+            <span class="c-key">return</span> fn(*args, **kwargs)
+        <span class="c-key">return</span> wrapper
+    <span class="c-key">return</span> decorator
+
+<span class="c-com"># 套用在呼叫上</span>
+<span class="c-fn">@rate_limit</span>(max_per_min=<span class="c-num">50</span>)  <span class="c-com"># 留 10 個 buffer</span>
+<span class="c-key">def</span> <span class="c-fn">fetch</span>(symbol):
+    <span class="c-key">return</span> client.quote(symbol)</code></pre>
+
+    <h3>坑 5：股票代號在不同 API 不一樣</h3>
+    <table>
+      <thead>
+        <tr><th>市場</th><th>Finnhub 格式</th><th>備註</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>美股</td><td><code>AAPL</code></td><td>直接代號</td></tr>
+        <tr><td>港股</td><td><code>0700.HK</code></td><td>補 .HK</td></tr>
+        <tr><td>台股</td><td><code>2330.TW</code></td><td>補 .TW</td></tr>
+        <tr><td>外匯</td><td><code>OANDA:EUR_USD</code></td><td>交易所前綴</td></tr>
+        <tr><td>加密</td><td><code>BINANCE:BTCUSDT</code></td><td>交易所前綴</td></tr>
+      </tbody>
+    </table>
+
+    <h3>坑 6：錯誤回傳不像一般 REST 標準</h3>
+<pre><code><span class="c-com"># Finnhub 錯誤時回 {} 或空陣列,不會丟例外</span>
+<span class="c-com"># ❌ 用 try/except 抓不到</span>
+<span class="c-key">try</span>:
+    res = client.quote(<span class="c-str">"INVALID"</span>)
+<span class="c-key">except</span>:
+    print(<span class="c-str">"err"</span>)  <span class="c-com"># 不會執行</span>
+
+<span class="c-com"># ✅ 檢查 res 是否為空</span>
+res = client.quote(<span class="c-str">"INVALID"</span>)
+<span class="c-key">if</span> <span class="c-key">not</span> res:
+    print(<span class="c-str">"API 錯誤或股票代號不存在"</span>)</code></pre>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · Finnhub API 中文速查</p>
+    <p style="margin-top:6px;">
+      設計風格參考：
+      <a href="../design-md/library/vercel/DESIGN.md" target="_blank">Vercel DESIGN.md</a>
+      （隨機抽中 🎲）
+    </p>
+    <p style="margin-top:4px;">
+      資料來源：
+      <a href="https://finnhub.io/docs/api" target="_blank">Finnhub 官方 API</a> ·
+      <a href="https://github.com/Finnhub-Stock-API/finnhub-python" target="_blank">Python SDK</a> (1045+ stars)
+    </p>
+    <p style="margin-top:4px;">
+      ⚠️ API 與價格可能隨時變動,以
+      <a href="https://finnhub.io" target="_blank">finnhub.io</a> 官方公告為準
+    </p>
+  </div>
+
+</div>
+
+<script>
+  // ===== 字級調整器 =====
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      if (valEl) valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { saved = parseFloat(localStorage.getItem(KEY)) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').onclick = () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    };
+    document.getElementById('fa-inc').onclick = () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    };
+    document.getElementById('fa-reset').onclick = () => apply(DEFAULT);
+    document.addEventListener('keydown', (e) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); apply(cur + STEP); }
+      else if (e.key === '-') { e.preventDefault(); apply(cur - STEP); }
+      else if (e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
