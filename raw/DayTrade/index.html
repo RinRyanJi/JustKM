@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>美股交易策略參考手冊</title>
+<style>
+:root {
+  --bg: #0f1117; --surface: #1a1d28; --surface2: #232736;
+  --border: #2d3148; --text: #e0e4f0; --text2: #8890a8;
+  --accent: #6366f1; --green: #22c55e; --red: #ef4444;
+  --yellow: #eab308; --blue: #3b82f6; --purple: #a855f7;
+  --orange: #f97316; --cyan: #06b6d4;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background:var(--bg); color:var(--text); display:flex; min-height:100vh; }
+
+nav {
+  width: 260px; min-width: 260px; background: var(--surface);
+  border-right: 1px solid var(--border); padding: 20px 0;
+  position: fixed; top:0; left:0; bottom:0; overflow-y:auto; z-index:10;
+}
+nav h1 { font-size: 16px; padding: 0 20px 16px; color: var(--accent); border-bottom:1px solid var(--border); }
+nav .section-title { font-size: 11px; text-transform: uppercase; color:var(--text2); padding: 16px 20px 6px; letter-spacing:1px; }
+nav a {
+  display:block; padding:8px 20px; color:var(--text2); text-decoration:none;
+  font-size:13px; transition: all 0.2s; border-left:3px solid transparent;
+}
+nav a:hover { background:var(--surface2); color:var(--text); border-left-color:var(--accent); }
+nav a.active { color:var(--accent); border-left-color:var(--accent); background:rgba(99,102,241,0.08); }
+
+main { margin-left:260px; padding:32px 48px; max-width:1000px; flex:1; }
+
+h2 { font-size:28px; margin-bottom:8px; color:var(--text); }
+h3 { font-size:20px; margin:24px 0 12px; color:var(--accent); }
+h4 { font-size:15px; margin:16px 0 8px; color:var(--yellow); }
+p, li { font-size:14px; line-height:1.7; color:var(--text2); }
+p { margin-bottom:12px; }
+ul, ol { padding-left:20px; margin-bottom:12px; }
+li { margin-bottom:4px; }
+strong { color:var(--text); }
+code { background:var(--surface2); padding:2px 6px; border-radius:3px; font-size:13px; color:var(--cyan); }
+
+.strategy-card {
+  background: var(--surface); border:1px solid var(--border); border-radius:12px;
+  padding:28px; margin:24px 0; position:relative; overflow:hidden;
+}
+.strategy-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+}
+.strategy-card.swing::before { background: linear-gradient(90deg, var(--blue), var(--purple)); }
+.strategy-card.day::before { background: linear-gradient(90deg, var(--orange), var(--red)); }
+
+.badge {
+  display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px;
+  font-weight:600; margin-right:6px; margin-bottom:6px;
+}
+.badge.swing { background:rgba(59,130,246,0.15); color:var(--blue); }
+.badge.day { background:rgba(249,115,22,0.15); color:var(--orange); }
+.badge.beginner { background:rgba(34,197,94,0.15); color:var(--green); }
+.badge.advanced { background:rgba(168,85,247,0.15); color:var(--purple); }
+
+.rules-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:12px 0; }
+.rule-box {
+  background:var(--surface2); border-radius:8px; padding:14px;
+  border-left:3px solid var(--green);
+}
+.rule-box.exit { border-left-color:var(--red); }
+.rule-box h5 { font-size:12px; text-transform:uppercase; color:var(--text2); margin-bottom:8px; letter-spacing:0.5px; }
+.rule-box li { font-size:13px; }
+
+.param-table { width:100%; border-collapse:collapse; margin:12px 0; font-size:13px; }
+.param-table th { background:var(--surface2); padding:8px 12px; text-align:left; color:var(--text2); font-weight:600; border-bottom:1px solid var(--border); }
+.param-table td { padding:8px 12px; border-bottom:1px solid var(--border); }
+.param-table tr:hover td { background:rgba(99,102,241,0.04); }
+
+.pros-cons { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:12px 0; }
+.pros li::marker { color:var(--green); }
+.cons li::marker { color:var(--red); }
+
+.svg-chart {
+  background:var(--bg); border-radius:8px; padding:8px;
+  margin:16px 0; display:flex; justify-content:center; overflow-x:auto;
+}
+
+.appendix {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:12px; padding:28px; margin:24px 0;
+}
+
+.divider { height:1px; background:var(--border); margin:48px 0; }
+
+@media (max-width:768px) {
+  nav { display:none; }
+  main { margin-left:0; padding:20px; }
+  .rules-grid, .pros-cons { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <h1>交易策略手冊</h1>
+  <div class="section-title">波段交易 Swing</div>
+  <a href="#ma-cross">均線交叉 MA Crossover</a>
+  <a href="#macd">MACD 策略</a>
+  <a href="#rsi">RSI 超買超賣</a>
+  <a href="#bollinger">布林帶 Bollinger Bands</a>
+  <a href="#sr-breakout">支撐阻力突破</a>
+  <a href="#fibonacci">斐波那契回撤</a>
+  <div class="section-title">日內交易 Day Trade</div>
+  <a href="#vwap">VWAP 策略</a>
+  <a href="#orb">開盤區間突破 ORB</a>
+  <a href="#momentum">動量剝頭皮</a>
+  <a href="#gap-go">Gap and Go</a>
+  <a href="#macd-rsi">MACD + RSI 組合</a>
+  <a href="#ma-ribbon">均線扇形 MA Ribbon</a>
+  <div class="section-title">附錄</div>
+  <a href="#risk">風險管理原則</a>
+  <a href="#pdt">PDT 規則</a>
+  <a href="#capital">資金建議</a>
+  <a href="#mistakes">新手常見錯誤</a>
+</nav>
+
+<main>
+
+<h2>美股交易策略完整參考手冊</h2>
+<p>涵蓋 6 種波段交易與 6 種日內交易主流策略，每種策略包含核心概念、進出場規則、參數設定、優缺點及圖示。</p>
+
+<div class="divider"></div>
+
+<!-- ==================== SWING 1: MA Crossover ==================== -->
+<div class="strategy-card swing" id="ma-cross">
+  <span class="badge swing">波段</span>
+  <span class="badge beginner">適合入門</span>
+  <h3>1. 均線交叉策略 (Moving Average Crossover)</h3>
+  <p>利用短週期與長週期移動平均線的交叉來判斷趨勢轉折。<strong>黃金交叉（Golden Cross）</strong>為短線上穿長線，為買入訊號；<strong>死亡交叉（Death Cross）</strong>為短線下穿長線，為賣出訊號。</p>
+  <p><strong>原理：</strong>短期均線反映近期價格動能，當其穿越長期均線時，意味著趨勢可能發生改變。</p>
+
+  <div class="svg-chart">
+    <svg width="600" height="280" viewBox="0 0 600 280">
+      <rect width="600" height="280" fill="#0f1117"/>
+      <text x="300" y="18" text-anchor="middle" fill="#8890a8" font-size="12">MA Crossover — Golden Cross & Death Cross</text>
+      <!-- Grid -->
+      <line x1="50" y1="30" x2="50" y2="250" stroke="#2d3148" stroke-width="1"/>
+      <line x1="50" y1="250" x2="580" y2="250" stroke="#2d3148" stroke-width="1"/>
+      <line x1="50" y1="140" x2="580" y2="140" stroke="#2d3148" stroke-width="0.5" stroke-dasharray="4"/>
+      <!-- Price line (gray) -->
+      <polyline fill="none" stroke="#555" stroke-width="1.5"
+        points="60,200 90,190 120,180 150,175 180,160 210,145 240,130 270,120 300,110
+                330,115 360,125 390,140 420,155 450,170 480,185 510,195 540,210 570,220"/>
+      <!-- MA5 (yellow) -->
+      <polyline fill="none" stroke="#eab308" stroke-width="2"
+        points="80,195 110,188 140,178 170,168 200,152 230,138 260,125 290,118 320,112
+                350,118 380,130 410,145 440,162 470,175 500,190 530,200 560,215"/>
+      <!-- MA20 (blue) -->
+      <polyline fill="none" stroke="#3b82f6" stroke-width="2"
+        points="80,205 110,200 140,195 170,190 200,180 230,168 260,155 290,142 320,135
+                350,132 380,135 410,142 440,152 470,162 500,175 530,188 560,200"/>
+      <!-- Golden Cross -->
+      <circle cx="200" cy="166" r="8" fill="none" stroke="#22c55e" stroke-width="2"/>
+      <text x="200" y="156" text-anchor="middle" fill="#22c55e" font-size="11" font-weight="bold">Golden Cross</text>
+      <text x="200" y="190" text-anchor="middle" fill="#22c55e" font-size="10">▲ BUY</text>
+      <!-- Death Cross -->
+      <circle cx="460" cy="168" r="8" fill="none" stroke="#ef4444" stroke-width="2"/>
+      <text x="460" y="158" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="bold">Death Cross</text>
+      <text x="460" y="192" text-anchor="middle" fill="#ef4444" font-size="10">▼ SELL</text>
+      <!-- Legend -->
+      <line x1="60" y1="268" x2="80" y2="268" stroke="#eab308" stroke-width="2"/>
+      <text x="85" y="272" fill="#eab308" font-size="10">MA5</text>
+      <line x1="120" y1="268" x2="140" y2="268" stroke="#3b82f6" stroke-width="2"/>
+      <text x="145" y="272" fill="#3b82f6" font-size="10">MA20</text>
+      <line x1="190" y1="268" x2="210" y2="268" stroke="#555" stroke-width="1.5"/>
+      <text x="215" y="272" fill="#555" font-size="10">Price</text>
+    </svg>
+  </div>
+
+  <div class="rules-grid">
+    <div class="rule-box">
+      <h5>進場規則 Entry</h5>
+      <ul>
+        <li>短期 MA 由下往上穿越長期 MA（Golden Cross）→ 做多</li>
+        <li>確認成交量放大（高於 20 日均量）</li>
+        <li>等待收盤價確認突破（避免假訊號）</li>
+      </ul>
+    </div>
+    <div class="rule-box exit">
+      <h5>出場規則 Exit</h5>
+      <ul>
+        <li>短期 MA 由上往下穿越長期 MA（Death Cross）→ 平倉</li>
+        <li>止損：進場價下方 2-3% 或前低點</li>
+        <li>止盈：風險報酬比 ≥ 2:1</li>
+      </ul>
+    </div>
+  </div>
+
+  <table class="param-table">
+    <tr><th>參數</th><th>波段設定</th><th>中長期設定</th></tr>
+    <tr><td>短期 MA</td><td>9 或 10 日</td><td>50 日</td></tr>
+    <tr><td>長期 MA</td><td>21 或 30 日</td><td>200 日</td></tr>
+    <tr><td>MA 類型</td><td>EMA（更靈敏）</td><td>SMA（更穩定）</td></tr>
+    <tr><td>確認條件</td><td>收盤確認 + 量能配合</td><td>周線確認</td></tr>
+  </table>
+
+  <div class="pros-cons">
+    <div class="pros"><h5 style="color:var(--green)">優點</h5>
+      <ul><li>規則簡單明確，適合初學者</li><li>趨勢行情中表現優異</li><li>容易程式化自動交易</li></ul>
+    </div>
+    <div class="cons"><h5 style="color:var(--red)">缺點</h5>
+      <ul><li>盤整行情會產生大量假訊號</li><li>訊號滯後，無法抓到趨勢最低點</li><li>需要搭配其他指標過濾</li></ul>
+    </div>
+  </div>
+  <p><strong>最佳市場條件：</strong>明顯趨勢行情（trending market）。盤整或震盪市場效果差。</p>
+  <p><strong>建議時間框架：</strong>日線（Daily）、4 小時（4H）</p>
+</div>
+
+<!-- ==================== SWING 2: MACD ==================== -->
+<div class="strategy-card swing" id="macd">
+  <span class="badge swing">波段</span>
+  <h3>2. MACD + Signal Line 策略</h3>
+  <p><strong>MACD</strong>（Moving Average Convergence Divergence）由快線（EMA12 - EMA26）、信號線（MACD 的 9 日 EMA）和柱狀圖組成。交叉點用於判斷買賣時機，<strong>背離（Divergence）</strong>用於預測趨勢反轉。</p>
+
+  <div class="svg-chart">
+    <svg width="600" height="300" viewBox="0 0 600 300">
+      <rect width="600" height="300" fill="#0f1117"/>
+      <text x="300" y="18" text-anchor="middle" fill="#8890a8" font-size="12">MACD Crossover with Histogram</text>
+      <!-- Price area -->
+      <polyline fill="none" stroke="#6366f1" stroke-width="2"
+        points="60,130 100,125 140,115 180,100 220,90 260,95 300,105 340,100 380,85 420,75 460,80 500,90 540,100"/>
+      <text x="55" y="80" fill="#8890a8" font-size="10">Price</text>
+      <!-- Divider -->
+      <line x1="50" y1="160" x2="580" y2="160" stroke="#2d3148" stroke-width="1"/>
+      <text x="55" y="175" fill="#8890a8" font-size="10">MACD</text>
+      <!-- Zero line -->
+      <line x1="50" y1="220" x2="580" y2="220" stroke="#2d3148" stroke-width="0.5" stroke-dasharray="4"/>
+      <!-- MACD line (blue) -->
+      <polyline fill="none" stroke="#3b82f6" stroke-width="2"
+        points="100,235 140,228 180,215 220,200 260,210 300,225 340,218 380,200 420,190 460,198 500,210 540,222"/>
+      <!-- Signal line (orange) -->
+      <polyline fill="none" stroke="#f97316" stroke-width="1.5" stroke-dasharray="4"
+        points="100,238 140,234 180,225 220,212 260,210 300,218 340,220 380,212 420,198 460,196 500,205 540,216"/>
+      <!-- Histogram bars -->
+      <rect x="98" y="220" width="8" height="18" fill="rgba(239,68,68,0.6)"/>
+      <rect x="138" y="220" width="8" height="12" fill="rgba(239,68,68,0.6)"/>
+      <rect x="178" y="210" width="8" height="10" fill="rgba(239,68,68,0.4)"/>
+      <rect x="218" y="208" width="8" height="12" fill="rgba(34,197,94,0.4)"/>
+      <rect x="258" y="220" width="8" height="0" fill="rgba(34,197,94,0.2)"/>
+      <rect x="298" y="220" width="8" height="7" fill="rgba(239,68,68,0.5)"/>
+      <rect x="338" y="218" width="8" height="2" fill="rgba(34,197,94,0.3)"/>
+      <rect x="378" y="208" width="8" height="12" fill="rgba(34,197,94,0.5)"/>
+      <rect x="418" y="196" width="8" height="24" fill="rgba(34,197,94,0.6)"/>
+      <rect x="458" y="198" width="8" height="22" fill="rgba(239,68,68,0.3)"/>
+      <rect x="498" y="210" width="8" height="10" fill="rgba(239,68,68,0.5)"/>
+      <!-- Buy signal -->
+      <text x="220" y="250" text-anchor="middle" fill="#22c55e" font-size="10" font-weight="bold">▲ BUY</text>
+      <text x="380" y="250" text-anchor="middle" fill="#22c55e" font-size="10" font-weight="bold">▲ BUY</text>
+      <!-- Legend -->
+      <line x1="60" y1="288" x2="80" y2="288" stroke="#3b82f6" stroke-width="2"/>
+      <text x="85" y="292" fill="#3b82f6" font-size="10">MACD Line</text>
+      <line x1="160" y1="288" x2="180" y2="288" stroke="#f97316" stroke-width="1.5" stroke-dasharray="4"/>
+      <text x="185" y="292" fill="#f97316" font-size="10">Signal Line</text>
+      <rect x="270" y="283" width="10" height="10" fill="rgba(34,197,94,0.5)"/>
+      <text x="285" y="292" fill="#22c55e" font-size="10">Histogram</text>
+    </svg>
+  </div>
+
+  <div class="rules-grid">
+    <div class="rule-box">
+      <h5>進場規則 Entry</h5>
+      <ul>
+        <li>MACD 線由下往上穿越 Signal 線 → 做多</li>
+        <li>柱狀圖由負轉正確認動能</li>
+        <li>看漲背離：價格創新低但 MACD 未創新低 → 強烈買入訊號</li>
+      </ul>
+    </div>
+    <div class="rule-box exit">
+      <h5>出場規則 Exit</h5>
+      <ul>
+        <li>MACD 線由上往下穿越 Signal 線 → 平倉</li>
+        <li>柱狀圖開始縮短 → 動能減弱，準備出場</li>
+        <li>止損：前波段低點或入場價下方 3%</li>
+      </ul>
+    </div>
+  </div>
+
+  <table class="param-table">
+    <tr><th>參數</th><th>標準設定</th><th>說明</th></tr>
+    <tr><td>快線 EMA</td><td>12</td><td>短期指數移動平均</td></tr>
+    <tr><td>慢線 EMA</td><td>26</td><td>長期指數移動平均</td></tr>
+    <tr><td>Signal Line</td><td>9</td><td>MACD 的 EMA 平滑</td></tr>
+  </table>
+
+  <p><strong>最佳市場條件：</strong>趨勢啟動初期。背離訊號在趨勢末端反轉時最有價值。</p>
+  <p><strong>建議時間框架：</strong>日線、4 小時</p>
+</div>
+
+<!-- ==================== SWING 3: RSI ==================== -->
+<div class="strategy-card swing" id="rsi">
+  <span class="badge swing">波段</span>
+  <span class="badge beginner">適合入門</span>
+  <h3>3. RSI 超買超賣反轉策略</h3>
+  <p><strong>RSI</strong>（Relative Strength Index）衡量價格變動的速度與幅度，數值介於 0-100。超過 70 為超買（可能回落），低於 30 為超賣（可能反彈）。</p>
+  <p><strong>趨勢調整閾值：</strong>多頭市場用 80/40，空頭市場用 60/20，能有效減少假訊號。</p>
+
+  <div class="svg-chart">
+    <svg width="600" height="260" viewBox="0 0 600 260">
+      <rect width="600" height="260" fill="#0f1117"/>
+      <text x="300" y="18" text-anchor="middle" fill="#8890a8" font-size="12">RSI Overbought / Oversold Zones</text>
+      <!-- RSI area -->
+      <line x1="50" y1="30" x2="50" y2="230" stroke="#2d3148"/>
+      <line x1="50" y1="230" x2="580" y2="230" stroke="#2d3148"/>
+      <!-- 70 line -->
+      <line x1="50" y1="78" x2="580" y2="78" stroke="rgba(239,68,68,0.3)" stroke-dasharray="4"/>
+      <text x="35" y="82" fill="#ef4444" font-size="10">70</text>
+      <!-- 30 line -->
+      <line x1="50" y1="182" x2="580" y2="182" stroke="rgba(34,197,94,0.3)" stroke-dasharray="4"/>
+      <text x="35" y="186" fill="#22c55e" font-size="10">30</text>
+      <!-- 50 line -->
+      <line x1="50" y1="130" x2="580" y2="130" stroke="#2d3148" stroke-dasharray="2"/>
+      <text x="35" y="134" fill="#8890a8" font-size="10">50</text>
+      <!-- Overbought zone -->
+      <rect x="50" y="30" width="530" height="48" fill="rgba(239,68,68,0.05)"/>
+      <text x="565" y="55" fill="rgba(239,68,68,0.4)" font-size="10">超買區</text>
+      <!-- Oversold zone -->
+      <rect x="50" y="182" width="530" height="48" fill="rgba(34,197,94,0.05)"/>
+      <text x="565" y="210" fill="rgba(34,197,94,0.4)" font-size="10">超賣區</text>
+      <!-- RSI line -->
+      <polyline fill="none" stroke="#a855f7" stroke-width="2"
+        points="70,130 100,120 130,100 160,80 190,65 220,60 250,70 280,90
+                310,110 340,130 370,150 400,170 430,190 460,195 490,185 520,165 550,140"/>
+      <!-- Sell signal at overbought -->
+      <text x="220" y="52" text-anchor="middle" fill="#ef4444" font-size="10" font-weight="bold">▼ SELL</text>
+      <!-- Buy signal at oversold -->
+      <text x="460" y="215" text-anchor="middle" fill="#22c55e" font-size="10" font-weight="bold">▲ BUY</text>
+      <!-- Labels -->
+      <text x="300" y="252" text-anchor="middle" fill="#8890a8" font-size="10">RSI(14) — 紫線進入超買/超賣區後反轉回中間區域時觸發訊號</text>
+    </svg>
+  </div>
+
+  <div class="rules-grid">
+    <div class="rule-box">
+      <h5>進場規則 Entry</h5>
+      <ul>
+        <li>RSI 跌破 30 後反彈回 30 以上 → 做多</li>
+        <li>RSI 底部背離（價格新低但 RSI 未新低）→ 強烈買入</li>
+        <li>配合支撐位確認</li>
+      </ul>
+    </div>
+    <div class="rule-box exit">
+      <h5>出場規則 Exit</h5>
+      <ul>
+        <li>RSI 升破 70 後回落至 70 以下 → 平多倉</li>
+        <li>止損：近期低點或入場價 -2%</li>
+        <li>目標：RSI 回到 50-60 區域</li>
+      </ul>
+    </div>
+  </div>
+
+  <table class="param-table">
+    <tr><th>參數</th><th>標準</th><th>日內</th></tr>
+    <tr><td>RSI 週期</td><td>14</td><td>7 或 9</td></tr>
+    <tr><td>超買閾值</td><td>70（多頭 80）</td><td>70-80</td></tr>
+    <tr><td>超賣閾值</td><td>30（空頭 20）</td><td>20-30</td></tr>
+  </table>
+  <p><strong>最佳市場條件：</strong>區間震盪市場效果最佳。強趨勢中 RSI 可能長期維持在超買/超賣區。</p>
+</div>
+
+<!-- ==================== SWING 4: Bollinger Bands ==================== -->
+<div class="strategy-card swing" id="bollinger">
+  <span class="badge swing">波段</span>
+  <h3>4. 布林帶 Squeeze/Breakout 策略</h3>
+  <p><strong>Bollinger Bands</strong> 由中軌（20 日 SMA）及上下軌（±2 標準差）組成。當帶寬收窄（Squeeze）表示波動率降低，即將迎來大幅突破。</p>
+
+  <div class="svg-chart">
+    <svg width="600" height="260" viewBox="0 0 600 260">
+      <rect width="600" height="260" fill="#0f1117"/>
+      <text x="300" y="18" text-anchor="middle" fill="#8890a8" font-size="12">Bollinger Bands Squeeze → Breakout</text>
+      <!-- Upper band -->
+      <polyline fill="none" stroke="rgba(99,102,241,0.4)" stroke-width="1.5"
+        points="60,60 100,65 140,80 180,100 220,110 260,115 300,112 340,108 380,80 420,55 460,40 500,35 540,50"/>
+      <!-- Lower band -->
+      <polyline fill="none" stroke="rgba(99,102,241,0.4)" stroke-width="1.5"
+        points="60,180 100,175 140,160 180,145 220,138 260,135 300,132 340,130 380,120 420,110 460,105 500,110 540,130"/>
+      <!-- Middle band (SMA20) -->
+      <polyline fill="none" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="4"
+        points="60,120 100,120 140,120 180,122 220,124 260,125 300,122 340,119 380,100 420,82 460,72 500,72 540,90"/>
+      <!-- Squeeze zone highlight -->
+      <rect x="200" y="105" width="150" height="35" fill="rgba(234,179,8,0.08)" stroke="rgba(234,179,8,0.3)" stroke-dasharray="4" rx="4"/>
+      <text x="275" y="100" text-anchor="middle" fill="#eab308" font-size="11" font-weight="bold">Squeeze</text>
+      <!-- Price candles simplified -->
+      <polyline fill="none" stroke="#e0e4f0" stroke-width="2"
+        points="60,115 100,118 140,116 180,122 220,125 260,124 300,120 340,115 380,95 420,70 460,55 500,60 540,75"/>
+      <!-- Breakout arrow -->
+      <text x="380" y="88" fill="#22c55e" font-size="12" font-weight="bold">↗ Breakout!</text>
+      <!-- Legend -->
+      <line x1="60" y1="248" x2="80" y2="248" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="4"/>
+      <text x="85" y="252" fill="#6366f1" font-size="10">SMA(20)</text>
+      <line x1="160" y1="248" x2="180" y2="248" stroke="rgba(99,102,241,0.4)" stroke-width="1.5"/>
+      <text x="185" y="252" fill="rgba(99,102,241,0.6)" font-size="10">Upper/Lower Band (2σ)</text>
+    </svg>
+  </div>
+
+  <div class="rules-grid">
+    <div class="rule-box">
+      <h5>進場規則 Entry</h5>
+      <ul>
+        <li>帶寬（Bandwidth）收縮至近 6 個月最低 → Squeeze 形成</li>
+        <li>價格向上突破上軌，成交量放大 → 做多</li>
+        <li>可搭配 Keltner Channel 確認（BB 完全收進 KC 內 = 真正 Squeeze）</li>
+      </ul>
+    </div>
+    <div class="rule-box exit">
+      <h5>出場規則 Exit</h5>
+      <ul>
+        <li>價格回落至中軌（SMA20）→ 平倉</li>
+        <li>反向觸及下軌 → 停損</li>
+        <li>帶寬再次收窄 → 動能消退，準備出場</li>
+      </ul>
+    </div>
+  </div>
+  <p><strong>最佳市場條件：</strong>長期盤整後的突破行情。</p>
+  <p><strong>建議時間框架：</strong>日線、周線</p>
+</div>
+
+<!-- ==================== SWING 5: S/R Breakout ==================== -->
+<div class="strategy-card swing" id="sr-breakout">
+  <span class="badge swing">波段</span>
+  <h3>5. 支撐/阻力突破策略 (Support/Resistance Breakout)</h3>
+  <p>識別價格反覆測試但未能突破的水平位，當突破發生時順勢進場。<strong>突破後回測（Retest）再進場</strong>是更保守且成功率更高的方式。</p>
+
+  <div class="svg-chart">
+    <svg width="600" height="260" viewBox="0 0 600 260">
+      <rect width="600" height="260" fill="#0f1117"/>
+      <text x="300" y="18" text-anchor="middle" fill="#8890a8" font-size="12">Resistance Breakout with Retest Entry</text>
+      <!-- Resistance level -->
+      <line x1="50" y1="100" x2="450" y2="100" stroke="#ef4444" stroke-width="2" stroke-dasharray="8,4"/>
+      <text x="45" y="96" fill="#ef4444" font-size="10" text-anchor="end">Resistance</text>
+      <!-- Price touching resistance multiple times -->
+      <polyline fill="none" stroke="#e0e4f0" stroke-width="2"
+        points="60,180 90,160 120,130 150,105 170,115 200,140 230,120 260,102 280,108
+                310,125 340,110 370,103 400,108 420,98 440,85 460,70 480,60 500,65
+                520,80 540,95 545,100 548,95 555,80 570,65"/>
+      <!-- Breakout zone -->
+      <rect x="415" y="60" width="40" height="50" fill="rgba(34,197,94,0.1)" rx="4"/>
+      <text x="435" y="55" text-anchor="middle" fill="#22c55e" font-size="10" font-weight="bold">突破!</text>
+      <!-- Retest -->
+      <text x="545" y="108" text-anchor="middle" fill="#eab308" font-size="10">Retest</text>
+      <text x="560" y="75" text-anchor="middle" fill="#22c55e" font-size="10" font-weight="bold">▲ BUY</text>
+      <!-- Support becomes resistance note -->
+      <line x1="450" y1="100" x2="580" y2="100" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="4"/>
+      <text x="515" y="118" text-anchor="middle" fill="#22c55e" font-size="9">舊阻力 → 新支撐</text>
+    </svg>
+  </div>
+
+  <div class="rules-grid">
+    <div class="rule-box">
+      <h5>進場規則 Entry</h5>
+      <ul>
+        <li>價格突破阻力位（至少 1-2% 以上）</li>
+        <li>成交量明顯放大（≥ 1.5 倍均量）</li>
+        <li>等待回測（Retest）原阻力位（現為支撐），確認守住後進場</li>
+      </ul>
+    </div>
+    <div class="rule-box exit">
+      <h5>出場規則 Exit</h5>
+      <ul>
+        <li>設止損在突破位下方 1-2%</li>
+        <li>目標：突破區間的等距移動</li>
+        <li>跌回突破位以下 → 假突破，立即停損</li>
+      </ul>
+    </div>
+  </div>
+  <p><strong>最佳市場條件：</strong>整理後突破，搭配大盤趨勢方向一致時效果最佳。</p>
+</div>
+
+<!-- ==================== SWING 6: Fibonacci ==================== -->
+<div class="strategy-card swing" id="fibonacci">
+  <span class="badge swing">波段</span>
+  <span class="badge advanced">進階</span>
+  <h3>6. 斐波那契回撤策略 (Fibonacci Retracement)</h3>
+  <p>利用 Fibonacci 比率（23.6%, 38.2%, 50%, 61.8%）作為趨勢回撤的支撐/阻力位。在上升趨勢中，回撤到 38.2%-61.8% 區間後反彈是理想的進場時機。</p>
+
+  <div class="svg-chart">
+    <svg width="600" height="280" viewBox="0 0 600 280">
+      <rect width="600" height="280" fill="#0f1117"/>
+      <text x="300" y="18" text-anchor="middle" fill="#8890a8" font-size="12">Fibonacci Retracement — Pullback Entry in Uptrend</text>
+      <!-- Fib levels -->
+      <line x1="200" y1="60" x2="580" y2="60" stroke="rgba(239,68,68,0.3)" stroke-dasharray="4"/>
+      <text x="585" y="64" fill="#ef4444" font-size="10">0% (High)</text>
+      <line x1="200" y1="108" x2="580" y2="108" stroke="rgba(234,179,8,0.3)" stroke-dasharray="4"/>
+      <text x="585" y="112" fill="#eab308" font-size="10">23.6%</text>
+      <line x1="200" y1="137" x2="580" y2="137" stroke="rgba(234,179,8,0.3)" stroke-dasharray="4"/>
+      <text x="585" y="141" fill="#eab308" font-size="10">38.2%</text>
+      <line x1="200" y1="160" x2="580" y2="160" stroke="rgba(99,102,241,0.4)" stroke-dasharray="4"/>
+      <text x="585" y="164" fill="#6366f1" font-size="10">50%</text>
+      <line x1="200" y1="183" x2="580" y2="183" stroke="rgba(34,197,94,0.4)" stroke-dasharray="4"/>
+      <text x="585" y="187" fill="#22c55e" font-size="10">61.8%</text>
+      <line x1="200" y1="260" x2="580" y2="260" stroke="rgba(34,197,94,0.3)" stroke-dasharray="4"/>
+      <text x="585" y="264" fill="#22c55e" font-size="10">100% (Low)</text>
+      <!-- Golden zone highlight -->
+      <rect x="200" y="137" width="380" height="46" fill="rgba(34,197,94,0.06)" rx="4"/>
+      <text x="210" y="163" fill="rgba(34,197,94,0.6)" font-size="10">Golden Zone</text>
+      <!-- Price movement -->
+      <polyline fill="none" stroke="#e0e4f0" stroke-width="2"
+        points="60,250 90,230 120,200 150,170 180,120 210,80 240,60
+                270,75 300,100 330,130 360,155 380,170 400,160
+                420,140 440,120 460,100 480,85 500,70 520,60 540,50"/>
+      <!-- Buy zone -->
+      <text x="375" y="195" text-anchor="middle" fill="#22c55e" font-size="11" font-weight="bold">▲ BUY ZONE</text>
+      <text x="375" y="210" text-anchor="middle" fill="#8890a8" font-size="10">38.2% ~ 61.8% 回撤</text>
+    </svg>
+  </div>
+
+  <div class="rules-grid">
+    <div class="rule-box">
+      <h5>進場規則 Entry</h5>
+      <ul>
+        <li>確認上升趨勢存在（更高的高點和低點）</li>
+        <li>價格回撤至 38.2%-61.8% 區間（黃金區域）</li>
+        <li>在該區間出現反彈 K 線形態（錘子線、吞噬等）→ 進場</li>
+      </ul>
+    </div>
+    <div class="rule-box exit">
+      <h5>出場規則 Exit</h5>
+      <ul>
+        <li>止損：61.8% 下方或前低點</li>
+        <li>目標 1：前高（0% 位置）</li>
+        <li>目標 2：Fibonacci Extension 127.2% 或 161.8%</li>
+      </ul>
+    </div>
+  </div>
+  <p><strong>關鍵比率：</strong>23.6%, 38.2%, 50%, 61.8%, 78.6% | 延伸目標：127.2%, 161.8%, 261.8%</p>
+  <p><strong>最佳市場條件：</strong>明確趨勢中的健康回調。V 型反轉或持續下跌中不適用。</p>
+</div>
+
+<div class="divider"></div>
+<h2>日內交易策略 Day Trading</h2>
+<p>以下策略適用於盤中操作，通常在當日收盤前平倉。需要更快的反應速度和更嚴格的風控。</p>
+
+<!-- ==================== DAY 1: VWAP ==================== -->
+<div class="strategy-card day" id="vwap">
+  <span class="badge day">日內</span>
+  <span class="badge beginner">適合入門</span>
+  <h3>7. VWAP 策略 (Volume Weighted Average Price)</h3>
+  <p><strong>VWAP</strong> 是成交量加權平均價格，代表當日的「公平價格」。機構交易員大量使用 VWAP 作為基準。價格在 VWAP 上方表示多頭控制，下方表示空頭控制。</p>
+
+  <div class="svg-chart">
+    <svg width="600" height="260" viewBox="0 0 600 260">
+      <rect width="600" height="260" fill="#0f1117"/>
+      <text x="300" y="18" text-anchor="middle" fill="#8890a8" font-size="12">VWAP Bounce & Breakout Strategy (Intraday)</text>
+      <!-- VWAP line -->
+      <polyline fill="none" stroke="#06b6d4" stroke-width="2.5"
+        points="60,140 100,138 140,135 180,132 220,130 260,128 300,130 340,132 380,128 420,125 460,122 500,120 540,118"/>
+      <!-- Upper band -->
+      <polyline fill="none" stroke="rgba(6,182,212,0.3)" stroke-width="1" stroke-dasharray="4"
+        points="60,110 100,108 140,105 180,102 220,100 260,98 300,100 340,102 380,98 420,95 460,92 500,90 540,88"/>
+      <!-- Lower band -->
+      <polyline fill="none" stroke="rgba(6,182,212,0.3)" stroke-width="1" stroke-dasharray="4"
+        points="60,170 100,168 140,165 180,162 220,160 260,158 300,160 340,162 380,158 420,155 460,152 500,150 540,148"/>
+      <!-- Price -->
+      <polyline fill="none" stroke="#e0e4f0" stroke-width="1.5"
+        points="60,120 80,125 100,135 120,145 140,150 160,155 180,148 200,138 220,125 240,118
+                260,122 280,132 300,140 320,145 340,138 360,128 380,120 400,115 420,108 440,112
+                460,118 480,125 500,115 520,108 540,100"/>
+      <!-- Bounce signal -->
+      <circle cx="180" cy="148" r="6" fill="none" stroke="#22c55e" stroke-width="2"/>
+      <text x="180" y="170" text-anchor="middle" fill="#22c55e" font-size="10" font-weight="bold">Bounce ▲</text>
+      <!-- Breakout signal -->
+      <circle cx="400" cy="115" r="6" fill="none" stroke="#22c55e" stroke-width="2"/>
+      <text x="400" y="105" text-anchor="middle" fill="#22c55e" font-size="10" font-weight="bold">Breakout ▲</text>
+      <!-- Legend -->
+      <line x1="60" y1="248" x2="80" y2="248" stroke="#06b6d4" stroke-width="2.5"/>
+      <text x="85" y="252" fill="#06b6d4" font-size="10">VWAP</text>
+      <text x="160" y="252" fill="#8890a8" font-size="10">價格在 VWAP 上方 = 多頭 | 下方 = 空頭</text>
+    </svg>
+  </div>
+
+  <div class="rules-grid">
+    <div class="rule-box">
+      <h5>進場規則 Entry</h5>
+      <ul>
+        <li><strong>Bounce:</strong> 價格從上方回測 VWAP 後反彈 → 做多</li>
+        <li><strong>Breakout:</strong> 價格突破 VWAP 上方 + 成交量確認 → 做多</li>
+        <li>VWAP 上方 1σ 突破 → 強動能確認</li>
+      </ul>
+    </div>
+    <div class="rule-box exit">
+      <h5>出場規則 Exit</h5>
+      <ul>
+        <li>跌破 VWAP → 多頭平倉</li>
+        <li>觸及 VWAP ±2σ → 獲利了結</li>
+        <li>收盤前 15 分鐘強制平倉</li>
+      </ul>
+    </div>
+  </div>
+  <p><strong>建議時間框架：</strong>1 分鐘、5 分鐘 K 線</p>
+  <p><strong>注意：</strong>VWAP 僅適用於日內，每日重置。開盤前 30 分鐘 VWAP 不穩定，建議等待 10:00 AM 後再使用。</p>
+</div>
+
+<!-- ==================== DAY 2: ORB ==================== -->
+<div class="strategy-card day" id="orb">
+  <span class="badge day">日內</span>
+  <span class="badge beginner">適合入門</span>
+  <h3>8. 開盤區間突破 (Opening Range Breakout, ORB)</h3>
+  <p>以開盤後一段時間（5/15/30 分鐘）的最高價和最低價作為區間，突破上緣做多、跌破下緣做空。開盤時段通常有最大的波動性和成交量。</p>
+
+  <div class="svg-chart">
+    <svg width="600" height="260" viewBox="0 0 600 260">
+      <rect width="600" height="260" fill="#0f1117"/>
+      <text x="300" y="18" text-anchor="middle" fill="#8890a8" font-size="12">Opening Range Breakout (15-min ORB)</text>
+      <!-- Opening range box -->
+      <rect x="60" y="100" width="120" height="60" fill="rgba(99,102,241,0.1)" stroke="rgba(99,102,241,0.4)" stroke-width="1.5" rx="4"/>
+      <text x="120" y="95" text-anchor="middle" fill="#6366f1" font-size="10">Opening Range (15 min)</text>
+      <!-- OR High/Low lines extended -->
+      <line x1="180" y1="100" x2="580" y2="100" stroke="rgba(34,197,94,0.4)" stroke-dasharray="6"/>
+      <text x="585" y="104" fill="#22c55e" font-size="9">OR High</text>
+      <line x1="180" y1="160" x2="580" y2="160" stroke="rgba(239,68,68,0.4)" stroke-dasharray="6"/>
+      <text x="585" y="164" fill="#ef4444" font-size="9">OR Low</text>
+      <!-- Price within OR -->
+      <polyline fill="none" stroke="#8890a8" stroke-width="1.5"
+        points="70,140 90,125 110,135 130,110 150,120 170,130"/>
+      <!-- Price breakout upward -->
+      <polyline fill="none" stroke="#22c55e" stroke-width="2"
+        points="170,130 200,115 220,105 240,95 260,80 280,70 300,65 320,60
+                340,65 360,55 380,50 400,55 420,60 440,50 460,45 480,50 500,55"/>
+      <!-- Entry signal -->
+      <circle cx="240" cy="95" r="6" fill="none" stroke="#22c55e" stroke-width="2"/>
+      <text x="240" y="85" text-anchor="middle" fill="#22c55e" font-size="10" font-weight="bold">▲ BUY</text>
+      <!-- Stop loss -->
+      <line x1="240" y1="130" x2="280" y2="130" stroke="#ef4444" stroke-width="1.5"/>
+      <text x="290" y="134" fill="#ef4444" font-size="9">Stop Loss (OR 中點)</text>
+      <!-- Time labels -->
+      <text x="60" y="240" fill="#8890a8" font-size="10">9:30</text>
+      <text x="165" y="240" fill="#8890a8" font-size="10">9:45</text>
+      <text x="300" y="240" fill="#8890a8" font-size="10">10:30</text>
+      <text x="500" y="240" fill="#8890a8" font-size="10">12:00</text>
+    </svg>
+  </div>
+
+  <div class="rules-grid">
+    <div class="rule-box">
+      <h5>進場規則 Entry</h5>
+      <ul>
+        <li>等待 Opening Range 形成（開盤後 5/15/30 分鐘）</li>
+        <li>價格突破 OR High → 做多（成交量需放大）</li>
+        <li>價格跌破 OR Low → 做空</li>
+        <li>避免在 OR 區間內交易</li>
+      </ul>
+    </div>
+    <div class="rule-box exit">
+      <h5>出場規則 Exit</h5>
+      <ul>
+        <li>止損：OR 中點或對側邊界</li>
+        <li>目標：OR 區間的 1.5-2 倍</li>
+        <li>午餐時段（11:30-1:00）動能減弱，考慮減倉</li>
+      </ul>
+    </div>
+  </div>
+
+  <table class="param-table">
+    <tr><th>ORB 變體</th><th>區間時長</th><th>適合</th></tr>
+    <tr><td>5-min ORB</td><td>9:30-9:35</td><td>高波動股、動量交易</td></tr>
+    <tr><td>15-min ORB</td><td>9:30-9:45</td><td>最常用，平衡訊號品質</td></tr>
+    <tr><td>30-min ORB</td><td>9:30-10:00</td><td>更穩定但訊號較少</td></tr>
+  </table>
+</div>
+
+<!-- ==================== DAY 3: Momentum ==================== -->
+<div class="strategy-card day" id="momentum">
+  <span class="badge day">日內</span>
+  <span class="badge advanced">進階</span>
+  <h3>9. 動量剝頭皮 (Momentum Scalping)</h3>
+  <p>追蹤高動量股票的短期價格爆發，利用 Level 2 報價和 Time & Sales 數據判斷買賣壓力。持倉時間通常數秒到數分鐘。</p>
+
+  <div class="svg-chart">
+    <svg width="600" height="200" viewBox="0 0 600 200">
+      <rect width="600" height="200" fill="#0f1117"/>
+      <text x="300" y="18" text-anchor="middle" fill="#8890a8" font-size="12">Momentum Scalp — Fast Entry/Exit on Volume Spike</text>
+      <!-- Volume bars -->
+      <rect x="80" y="160" width="15" height="20" fill="rgba(99,102,241,0.3)"/>
+      <rect x="110" y="155" width="15" height="25" fill="rgba(99,102,241,0.3)"/>
+      <rect x="140" y="150" width="15" height="30" fill="rgba(99,102,241,0.3)"/>
+      <rect x="170" y="130" width="15" height="50" fill="rgba(34,197,94,0.5)"/>
+      <rect x="200" y="110" width="15" height="70" fill="rgba(34,197,94,0.7)"/>
+      <rect x="230" y="100" width="15" height="80" fill="rgba(34,197,94,0.8)"/>
+      <rect x="260" y="120" width="15" height="60" fill="rgba(34,197,94,0.6)"/>
+      <rect x="290" y="135" width="15" height="45" fill="rgba(34,197,94,0.4)"/>
+      <rect x="320" y="145" width="15" height="35" fill="rgba(239,68,68,0.4)"/>
+      <rect x="350" y="150" width="15" height="30" fill="rgba(239,68,68,0.3)"/>
+      <!-- Price -->
+      <polyline fill="none" stroke="#e0e4f0" stroke-width="2"
+        points="87,120 117,115 147,110 177,90 207,65 237,50 267,55 297,68 327,75 357,80"/>
+      <!-- Entry/Exit -->
+      <text x="200" y="55" text-anchor="middle" fill="#22c55e" font-size="10" font-weight="bold">▲ Entry</text>
+      <text x="200" y="43" text-anchor="middle" fill="#8890a8" font-size="9">Volume Spike!</text>
+      <text x="300" y="60" text-anchor="middle" fill="#ef4444" font-size="10" font-weight="bold">▼ Exit</text>
+      <text x="300" y="48" text-anchor="middle" fill="#8890a8" font-size="9">動能減弱</text>
+    </svg>
+  </div>
+
+  <div class="rules-grid">
+    <div class="rule-box">
+      <h5>進場規則 Entry</h5>
+      <ul>
+        <li>成交量突然放大（≥ 3 倍近期均量）</li>
+        <li>價格快速突破近期高點</li>
+        <li>Level 2 買盤堆積 > 賣盤（大單買入）</li>
+        <li>Time & Sales 連續大單買入</li>
+      </ul>
+    </div>
+    <div class="rule-box exit">
+      <h5>出場規則 Exit</h5>
+      <ul>
+        <li>成交量開始萎縮 → 動能消退</li>
+        <li>出現大單賣出 → 立即出場</li>
+        <li>固定止損：入場價 -0.5% 到 -1%</li>
+        <li>持倉不超過 5-10 分鐘</li>
+      </ul>
+    </div>
+  </div>
+  <p><strong>必備工具：</strong>Level 2 報價、Time & Sales、熱鍵下單、低延遲數據源</p>
+  <p><strong>風險：</strong>交易頻率高，手續費累積快。需要極高的紀律和速度。</p>
+</div>
+
+<!-- ==================== DAY 4: Gap and Go ==================== -->
+<div class="strategy-card day" id="gap-go">
+  <span class="badge day">日內</span>
+  <h3>10. Gap and Go 策略</h3>
+  <p>在盤前篩選出有顯著跳空（Gap）的股票，開盤後順勢追入。跳空通常由財報、新聞或大額訂單驅動，代表強烈的方向性動能。</p>
+
+  <div class="svg-chart">
+    <svg width="600" height="240" viewBox="0 0 600 240">
+      <rect width="600" height="240" fill="#0f1117"/>
+      <text x="300" y="18" text-anchor="middle" fill="#8890a8" font-size="12">Gap and Go — Bullish Gap Up Entry</text>
+      <!-- Previous day close -->
+      <line x1="50" y1="160" x2="220" y2="160" stroke="#8890a8" stroke-dasharray="4"/>
+      <text x="135" y="175" text-anchor="middle" fill="#8890a8" font-size="10">前日收盤</text>
+      <!-- Previous day candles -->
+      <line x1="80" y1="140" x2="80" y2="190" stroke="#8890a8" stroke-width="1"/>
+      <rect x="74" y="150" width="12" height="20" fill="#ef4444"/>
+      <line x1="130" y1="145" x2="130" y2="185" stroke="#8890a8" stroke-width="1"/>
+      <rect x="124" y="155" width="12" height="15" fill="#ef4444"/>
+      <line x1="180" y1="150" x2="180" y2="175" stroke="#8890a8" stroke-width="1"/>
+      <rect x="174" y="155" width="12" height="10" fill="#22c55e"/>
+      <!-- Gap zone -->
+      <rect x="210" y="90" width="40" height="70" fill="rgba(234,179,8,0.1)" stroke="rgba(234,179,8,0.3)" stroke-dasharray="4" rx="4"/>
+      <text x="230" y="130" text-anchor="middle" fill="#eab308" font-size="11" font-weight="bold" transform="rotate(-90,230,130)">GAP</text>
+      <!-- Today's candles after gap -->
+      <line x1="270" y1="70" x2="270" y2="100" stroke="#e0e4f0" stroke-width="1"/>
+      <rect x="264" y="75" width="12" height="15" fill="#22c55e"/>
+      <line x1="310" y1="60" x2="310" y2="90" stroke="#e0e4f0" stroke-width="1"/>
+      <rect x="304" y="65" width="12" height="15" fill="#22c55e"/>
+      <line x1="350" y1="50" x2="350" y2="80" stroke="#e0e4f0" stroke-width="1"/>
+      <rect x="344" y="55" width="12" height="15" fill="#22c55e"/>
+      <line x1="390" y1="45" x2="390" y2="70" stroke="#e0e4f0" stroke-width="1"/>
+      <rect x="384" y="48" width="12" height="15" fill="#22c55e"/>
+      <!-- Entry -->
+      <text x="310" y="55" text-anchor="middle" fill="#22c55e" font-size="10" font-weight="bold">▲ BUY</text>
+      <text x="310" y="110" text-anchor="middle" fill="#8890a8" font-size="9">突破盤前高點</text>
+      <!-- Premarket screening criteria -->
+      <text x="500" y="60" fill="#8890a8" font-size="10" font-weight="bold">盤前篩選條件：</text>
+      <text x="500" y="78" fill="#8890a8" font-size="10">• Gap ≥ 4%</text>
+      <text x="500" y="94" fill="#8890a8" font-size="10">• 盤前量 ≥ 100K</text>
+      <text x="500" y="110" fill="#8890a8" font-size="10">• Float &lt; 50M</text>
+      <text x="500" y="126" fill="#8890a8" font-size="10">• 有催化劑(新聞)</text>
+    </svg>
+  </div>
+
+  <div class="rules-grid">
+    <div class="rule-box">
+      <h5>進場規則 Entry</h5>
+      <ul>
+        <li>盤前篩選：Gap ≥ 4%，盤前成交量 ≥ 100K</li>
+        <li>流通股（Float）&lt; 50M（低流通更易暴漲）</li>
+        <li>有明確催化劑（財報、新聞、FDA 等）</li>
+        <li>突破盤前高點時進場</li>
+      </ul>
+    </div>
+    <div class="rule-box exit">
+      <h5>出場規則 Exit</h5>
+      <ul>
+        <li>止損：盤前低點或 VWAP 下方</li>
+        <li>第一目標：Gap 幅度的 50-100%</li>
+        <li>成交量消退 → 減倉或全部平倉</li>
+        <li>前 30 分鐘內最活躍，之後動能衰減</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== DAY 5: MACD + RSI ==================== -->
+<div class="strategy-card day" id="macd-rsi">
+  <span class="badge day">日內</span>
+  <h3>11. MACD + RSI 日內組合策略</h3>
+  <p>結合 MACD 的趨勢判斷與 RSI 的超買超賣過濾，形成雙重確認系統。只有兩個指標同時發出訊號時才進場，顯著降低假訊號率。</p>
+
+  <div class="svg-chart">
+    <svg width="600" height="200" viewBox="0 0 600 200">
+      <rect width="600" height="200" fill="#0f1117"/>
+      <text x="300" y="18" text-anchor="middle" fill="#8890a8" font-size="12">MACD + RSI Dual Confirmation</text>
+      <!-- Two panel layout -->
+      <line x1="300" y1="30" x2="300" y2="180" stroke="#2d3148"/>
+      <!-- Left: MACD -->
+      <text x="150" y="40" text-anchor="middle" fill="#3b82f6" font-size="11" font-weight="bold">MACD Cross ✓</text>
+      <polyline fill="none" stroke="#3b82f6" stroke-width="2" points="60,120 100,110 140,95 180,80 220,85 260,95"/>
+      <polyline fill="none" stroke="#f97316" stroke-width="1.5" stroke-dasharray="4" points="60,125 100,118 140,108 180,95 220,88 260,90"/>
+      <circle cx="180" cy="87" r="6" fill="none" stroke="#22c55e" stroke-width="2"/>
+      <text x="180" y="75" text-anchor="middle" fill="#22c55e" font-size="10">Cross ▲</text>
+      <!-- Right: RSI -->
+      <text x="450" y="40" text-anchor="middle" fill="#a855f7" font-size="11" font-weight="bold">RSI &lt; 30 ✓</text>
+      <line x1="320" y1="70" x2="580" y2="70" stroke="rgba(239,68,68,0.2)" stroke-dasharray="4"/>
+      <text x="585" y="74" fill="#8890a8" font-size="9">70</text>
+      <line x1="320" y1="140" x2="580" y2="140" stroke="rgba(34,197,94,0.2)" stroke-dasharray="4"/>
+      <text x="585" y="144" fill="#8890a8" font-size="9">30</text>
+      <polyline fill="none" stroke="#a855f7" stroke-width="2" points="340,100 380,120 420,145 460,150 500,138 540,115"/>
+      <circle cx="460" cy="150" r="6" fill="none" stroke="#22c55e" stroke-width="2"/>
+      <text x="460" y="168" text-anchor="middle" fill="#22c55e" font-size="10">Oversold ▲</text>
+      <!-- Combined signal -->
+      <text x="300" y="195" text-anchor="middle" fill="#22c55e" font-size="12" font-weight="bold">兩者同時確認 → BUY ✓✓</text>
+    </svg>
+  </div>
+
+  <div class="rules-grid">
+    <div class="rule-box">
+      <h5>進場規則 Entry（同時滿足）</h5>
+      <ul>
+        <li>MACD 線上穿 Signal 線（多頭交叉）</li>
+        <li>RSI 從超賣區（&lt;30）反彈回升</li>
+        <li>兩者訊號在 3 根 K 線內同時出現</li>
+      </ul>
+    </div>
+    <div class="rule-box exit">
+      <h5>出場規則 Exit（任一觸發）</h5>
+      <ul>
+        <li>MACD 死亡交叉 → 平倉</li>
+        <li>RSI 進入超買區（&gt;70）→ 平倉</li>
+        <li>固定止損 -1.5% 或前低</li>
+      </ul>
+    </div>
+  </div>
+
+  <table class="param-table">
+    <tr><th>指標</th><th>日內參數</th><th>說明</th></tr>
+    <tr><td>MACD</td><td>(8, 17, 9)</td><td>比標準 (12,26,9) 更靈敏</td></tr>
+    <tr><td>RSI</td><td>7 或 9</td><td>比標準 14 更適合日內</td></tr>
+    <tr><td>K 線</td><td>5 分鐘</td><td>平衡訊號頻率與品質</td></tr>
+  </table>
+</div>
+
+<!-- ==================== DAY 6: MA Ribbon ==================== -->
+<div class="strategy-card day" id="ma-ribbon">
+  <span class="badge day">日內</span>
+  <span class="badge advanced">進階</span>
+  <h3>12. 均線扇形 (Moving Average Ribbon)</h3>
+  <p>使用一組 Fibonacci 序列的 EMA（8, 13, 21, 34, 55, 89）形成「扇形」。當所有均線排列整齊（多頭排列或空頭排列）時，表示強烈趨勢；均線糾結則表示盤整。</p>
+
+  <div class="svg-chart">
+    <svg width="600" height="220" viewBox="0 0 600 220">
+      <rect width="600" height="220" fill="#0f1117"/>
+      <text x="300" y="18" text-anchor="middle" fill="#8890a8" font-size="12">EMA Ribbon — Bullish Alignment (Fan-out)</text>
+      <!-- EMA 8 -->
+      <polyline fill="none" stroke="#ef4444" stroke-width="1.5" points="60,150 120,140 180,120 240,95 300,80 360,70 420,60 480,55 540,50"/>
+      <!-- EMA 13 -->
+      <polyline fill="none" stroke="#f97316" stroke-width="1.5" points="60,152 120,145 180,128 240,105 300,90 360,82 420,72 480,68 540,62"/>
+      <!-- EMA 21 -->
+      <polyline fill="none" stroke="#eab308" stroke-width="1.5" points="60,154 120,148 180,135 240,115 300,100 360,92 420,84 480,80 540,75"/>
+      <!-- EMA 34 -->
+      <polyline fill="none" stroke="#22c55e" stroke-width="1.5" points="60,155 120,150 180,140 240,125 300,112 360,105 420,98 480,94 540,90"/>
+      <!-- EMA 55 -->
+      <polyline fill="none" stroke="#3b82f6" stroke-width="1.5" points="60,156 120,152 180,145 240,135 300,125 360,118 420,112 480,108 540,105"/>
+      <!-- EMA 89 -->
+      <polyline fill="none" stroke="#a855f7" stroke-width="1.5" points="60,157 120,154 180,150 240,143 300,136 360,130 420,126 480,122 540,120"/>
+      <!-- Squeeze zone -->
+      <rect x="40" y="145" width="60" height="16" fill="rgba(234,179,8,0.1)" stroke="rgba(234,179,8,0.3)" rx="4"/>
+      <text x="70" y="175" text-anchor="middle" fill="#eab308" font-size="10">Squeeze</text>
+      <!-- Fan out zone -->
+      <text x="400" y="45" text-anchor="middle" fill="#22c55e" font-size="11" font-weight="bold">Fan-out ▲ 多頭排列</text>
+      <!-- Legend -->
+      <text x="60" y="205" fill="#ef4444" font-size="10">EMA8</text>
+      <text x="110" y="205" fill="#f97316" font-size="10">EMA13</text>
+      <text x="165" y="205" fill="#eab308" font-size="10">EMA21</text>
+      <text x="220" y="205" fill="#22c55e" font-size="10">EMA34</text>
+      <text x="275" y="205" fill="#3b82f6" font-size="10">EMA55</text>
+      <text x="330" y="205" fill="#a855f7" font-size="10">EMA89</text>
+    </svg>
+  </div>
+
+  <div class="rules-grid">
+    <div class="rule-box">
+      <h5>進場規則 Entry</h5>
+      <ul>
+        <li>均線從糾結（Squeeze）展開為多頭排列（短在上長在下）</li>
+        <li>價格站穩 EMA8 上方</li>
+        <li>回撤到 EMA21 附近反彈 → 進場</li>
+      </ul>
+    </div>
+    <div class="rule-box exit">
+      <h5>出場規則 Exit</h5>
+      <ul>
+        <li>價格跌破 EMA34 → 趨勢減弱，減倉</li>
+        <li>均線開始糾結 → 全部平倉</li>
+        <li>EMA8 下穿 EMA21 → 停損</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ==================== APPENDIX ==================== -->
+<h2>附錄</h2>
+
+<div class="appendix" id="risk">
+  <h3>風險管理原則</h3>
+  <h4>1% 規則</h4>
+  <p>單筆交易的最大虧損不超過總資金的 <strong>1%</strong>。例：$100,000 帳戶，單筆最大虧損 = $1,000。</p>
+
+  <h4>倉位計算公式</h4>
+  <p><code>倉位大小 = (帳戶資金 × 風險比例) / (進場價 - 止損價)</code></p>
+  <p>例：資金 $100K，風險 1%，進場 $150，止損 $147 → 倉位 = $1,000 / $3 = <strong>333 股</strong></p>
+
+  <h4>風險報酬比 (R:R)</h4>
+  <p>最低要求 <strong>2:1</strong>。如果止損 $3，目標獲利至少 $6。長期來看，即使勝率只有 40%，R:R 2:1 也能盈利。</p>
+
+  <h4>日/週損失上限</h4>
+  <ul>
+    <li>單日最大虧損：帳戶的 3%（達到後停止交易）</li>
+    <li>單週最大虧損：帳戶的 6%</li>
+    <li>連續虧損 3 次 → 休息至少 30 分鐘</li>
+  </ul>
+</div>
+
+<div class="appendix" id="pdt">
+  <h3>PDT 規則 (Pattern Day Trader)</h3>
+  <p><strong>定義：</strong>在 5 個交易日內進行 4 次以上日內交易（當日買入賣出同一證券）的交易者。</p>
+  <p><strong>要求：</strong>保證金帳戶（Margin Account）中需維持至少 <strong>$25,000</strong> 的淨值。</p>
+
+  <h4>規避方法</h4>
+  <ul>
+    <li><strong>現金帳戶（Cash Account）：</strong>不受 PDT 限制，但需遵守 T+2 結算（資金隔兩天才可重新使用）</li>
+    <li><strong>多券商策略：</strong>在 2-3 家券商各開帳戶，分散日內交易次數</li>
+    <li><strong>波段替代：</strong>持倉過夜（至少隔日賣出），不計為日內交易</li>
+    <li><strong>離岸券商：</strong>部分非美國券商不受 PDT 限制（需了解稅務影響）</li>
+  </ul>
+</div>
+
+<div class="appendix" id="capital">
+  <h3>建議起始資金</h3>
+  <table class="param-table">
+    <tr><th>交易類型</th><th>最低建議</th><th>理想金額</th><th>說明</th></tr>
+    <tr><td>波段交易</td><td>$5,000</td><td>$25,000+</td><td>不受 PDT 限制，持倉數日</td></tr>
+    <tr><td>日內交易（現金帳戶）</td><td>$10,000</td><td>$30,000+</td><td>受 T+2 限制</td></tr>
+    <tr><td>日內交易（保證金帳戶）</td><td>$25,000</td><td>$50,000+</td><td>PDT 最低要求</td></tr>
+    <tr><td>剝頭皮 Scalping</td><td>$25,000</td><td>$100,000+</td><td>高頻交易需更大資金池</td></tr>
+  </table>
+</div>
+
+<div class="appendix" id="mistakes">
+  <h3>新手常見錯誤</h3>
+  <h4>心理面</h4>
+  <ul>
+    <li><strong>報復性交易：</strong>虧損後急於翻本，加大倉位 → 更大虧損</li>
+    <li><strong>FOMO（錯失恐懼）：</strong>看到股票已經漲了才追入 → 買在高點</li>
+    <li><strong>不設止損：</strong>「它會回來的」→ 小虧變大虧</li>
+    <li><strong>過度交易：</strong>整天盯盤，每個波動都想交易 → 手續費吃掉利潤</li>
+  </ul>
+  <h4>技術面</h4>
+  <ul>
+    <li><strong>指標堆疊：</strong>螢幕上放 10 個指標，訊號互相矛盾 → 選 2-3 個互補指標</li>
+    <li><strong>忽略大盤：</strong>個股逆大盤交易成功率很低</li>
+    <li><strong>不做紙上交易：</strong>直接用真金白銀學習 → 昂貴的學費</li>
+    <li><strong>只看技術不看基本面：</strong>財報季、FOMC 會議等事件會打破所有技術形態</li>
+  </ul>
+  <h4>資金管理</h4>
+  <ul>
+    <li><strong>全倉操作：</strong>一次投入全部資金到一支股票 → 風險極高</li>
+    <li><strong>不記錄交易：</strong>沒有交易日誌，無法回顧改進</li>
+    <li><strong>使用不能虧損的錢：</strong>用生活費或借款交易 → 壓力過大影響決策</li>
+  </ul>
+
+  <h4>建議學習路徑</h4>
+  <ol>
+    <li>模擬交易 2-3 個月（熟悉平台和策略）</li>
+    <li>小資金實盤（驗證策略在真實市場中的表現）</li>
+    <li>記錄每筆交易（進場理由、出場理由、情緒狀態）</li>
+    <li>每週回顧，找出重複犯的錯誤</li>
+    <li>逐步加大資金（連續 3 個月盈利後）</li>
+  </ol>
+</div>
+
+<div style="text-align:center; padding:48px 0; color:var(--text2); font-size:12px;">
+  <p>StockTrade 交易策略參考手冊 — 調研日期：2026-07-11</p>
+  <p>本文檔僅供學習參考，不構成投資建議。交易有風險，入市需謹慎。</p>
+</div>
+
+</main>
+
+<script>
+// Highlight active nav item on scroll
+const sections = document.querySelectorAll('[id]');
+const navLinks = document.querySelectorAll('nav a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (s.getBoundingClientRect().top <= 100) current = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+
+</body>
+</html>
