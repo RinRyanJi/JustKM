@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IBKR TWS API 中文速查 · JustKM</title>
+  <style>
+    /* ========== Figma 設計系統 ==========
+       來源: design-md/library/figma/DESIGN.md
+       風格: 黑白編輯框架 + 大面積粉彩/飽和色塊 + pill 形 CTA
+       概念: 嚴肅技術 + 趣味配色
+    */
+    :root {
+      --ink: #000000;
+      --canvas: #ffffff;
+      --inverse-ink: #ffffff;
+      --inverse-canvas: #000000;
+      --on-inverse-soft: #ffffff;
+      --hairline: #e6e6e6;
+      --hairline-soft: #f1f1f1;
+      --surface-soft: #f7f7f5;
+      /* 粉彩/色塊 */
+      --block-lime: #dceeb1;
+      --block-lilac: #c5b0f4;
+      --block-cream: #f4ecd6;
+      --block-pink: #efd4d4;
+      --block-mint: #c8e6cd;
+      --block-coral: #f3c9b6;
+      --block-navy: #1f1d3d;
+      --magenta: #ff3d8b;
+      /* 字級 */
+      --font-scale: 1;
+      /* 圓角 */
+      --r-xs: 2px;
+      --r-sm: 6px;
+      --r-md: 8px;
+      --r-lg: 24px;
+      --r-xl: 32px;
+      --r-pill: 50px;
+    }
+
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei",
+                   "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
+      background: var(--canvas);
+      color: var(--ink);
+      line-height: 1.5;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== 字級調整器 ===== */
+    .font-adjuster {
+      position: fixed; top: 16px; right: 16px; z-index: 999;
+      background: white; border: 1px solid var(--ink);
+      border-radius: var(--r-pill); padding: 6px 8px;
+      display: flex; align-items: center; gap: 2px;
+      box-shadow: 4px 4px 0 var(--ink);
+    }
+    .font-adjuster button {
+      background: white; border: none;
+      color: var(--ink); width: 32px; height: 32px;
+      border-radius: var(--r-pill); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; font-family: inherit;
+    }
+    .font-adjuster button:hover { background: var(--ink); color: white; }
+    .font-adjuster .fa-label { font-size: 11px; color: var(--ink); margin: 0 6px; font-weight: 600; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 11px; color: var(--ink); font-weight: 700; min-width: 36px; text-align: center; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .font-adjuster .reset { background: var(--magenta); color: white; }
+
+    /* ===== Navbar ===== */
+    nav {
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--ink);
+      background: white;
+    }
+    .nav-inner {
+      max-width: 1280px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 24px;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 12px;
+      font-weight: 700; font-size: 1.125rem;
+      color: var(--ink); text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+    .nav-logo .logo-mark {
+      width: 36px; height: 36px;
+      background: var(--ink);
+      border-radius: var(--r-sm);
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 1.125rem;
+    }
+    .nav-links { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+    .nav-link {
+      padding: 8px 16px; font-size: 0.875rem;
+      color: var(--ink); text-decoration: none;
+      border-radius: var(--r-pill);
+      transition: all 0.15s;
+      font-weight: 500;
+    }
+    .nav-link:hover { background: var(--ink); color: white; }
+    .nav-cta {
+      padding: 10px 20px; font-size: 0.875rem;
+      background: var(--ink); color: white;
+      border: 2px solid var(--ink);
+      border-radius: var(--r-pill); text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+      font-weight: 700;
+    }
+    .nav-cta.magenta {
+      background: var(--magenta); border-color: var(--magenta); color: white;
+    }
+
+    /* ===== Hero ===== */
+    .hero {
+      position: relative;
+      padding: 80px 32px;
+      max-width: 1280px; margin: 0 auto;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.875rem; text-transform: uppercase;
+      letter-spacing: 1.5px; font-weight: 700;
+      padding: 6px 14px; border-radius: var(--r-pill);
+      background: var(--block-lime); color: var(--ink);
+      margin-bottom: 24px;
+      font-family: ui-monospace, SFMono-Regular, monospace;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 7vw, 5.5rem);
+      font-weight: 700; letter-spacing: -0.04em;
+      line-height: 0.95; margin-bottom: 24px;
+      color: var(--ink);
+      max-width: 900px;
+    }
+    .hero h1 .inverse {
+      background: var(--ink); color: white;
+      padding: 0 14px; border-radius: var(--r-md);
+      display: inline-block;
+    }
+    .hero h1 .magenta {
+      color: var(--magenta);
+    }
+    .hero p.lead {
+      font-size: 1.375rem;
+      max-width: 720px;
+      line-height: 1.45;
+      color: var(--ink);
+      font-weight: 400;
+      margin-bottom: 32px;
+    }
+    .hero .badges { display: inline-flex; gap: 10px; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: var(--r-pill);
+      background: white; border: 2px solid var(--ink);
+      font-size: 0.875rem; color: var(--ink);
+      font-weight: 600;
+      box-shadow: 3px 3px 0 var(--ink);
+    }
+    .badge.lilac { background: var(--block-lilac); }
+    .badge.coral { background: var(--block-coral); }
+    .badge.mint { background: var(--block-mint); }
+    .badge.cream { background: var(--block-cream); }
+    .badge.navy { background: var(--block-navy); color: white; }
+
+    /* ===== Container ===== */
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 32px; }
+
+    /* ===== Section (with pastel block design) ===== */
+    section {
+      margin: 64px 0 0;
+    }
+    section.color-block {
+      padding: 64px 32px;
+      border-radius: var(--r-xl);
+      margin: 48px 32px;
+    }
+    section.color-block.lime { background: var(--block-lime); }
+    section.color-block.lilac { background: var(--block-lilac); }
+    section.color-block.cream { background: var(--block-cream); }
+    section.color-block.pink { background: var(--block-pink); }
+    section.color-block.mint { background: var(--block-mint); }
+    section.color-block.coral { background: var(--block-coral); }
+    section.color-block.navy { background: var(--block-navy); color: white; }
+
+    .section-eyebrow {
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 0.875rem; text-transform: uppercase;
+      letter-spacing: 1.5px; font-weight: 700;
+      margin-bottom: 12px;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .section-eyebrow .num {
+      width: 32px; height: 32px;
+      border-radius: var(--r-pill);
+      background: var(--ink); color: white;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    section.navy .section-eyebrow .num { background: var(--magenta); }
+    h2 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em; line-height: 1.05;
+      margin-bottom: 16px; color: var(--ink);
+      max-width: 720px;
+    }
+    section.navy h2 { color: white; }
+    h3 {
+      font-size: 1.5rem; font-weight: 700;
+      letter-spacing: -0.01em;
+      margin: 32px 0 12px; color: var(--ink);
+    }
+    section.navy h3 { color: white; }
+    h4 {
+      font-size: 1.125rem; font-weight: 700;
+      margin: 16px 0 6px; color: var(--ink);
+    }
+    p { margin-bottom: 12px; color: var(--ink); }
+    p.lead { font-size: 1.125rem; }
+    a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 2px; }
+    section.navy a { color: white; }
+    a:hover { color: var(--magenta); }
+    section.navy a:hover { color: var(--magenta); }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.875em;
+      background: var(--surface-soft);
+      padding: 2px 8px; border-radius: var(--r-xs);
+      color: var(--ink);
+      border: 1px solid var(--hairline);
+    }
+    section.navy code { background: rgba(255,255,255,0.15); border-color: transparent; color: white; }
+
+    /* ===== Code Block ===== */
+    pre {
+      background: var(--block-navy); color: #e8ecf4;
+      padding: 24px 28px;
+      border-radius: var(--r-lg);
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.875rem; line-height: 1.7;
+      margin: 16px 0;
+      border: 2px solid var(--ink);
+      box-shadow: 6px 6px 0 var(--ink);
+    }
+    pre code { background: transparent; border: none; padding: 0; color: inherit; font-size: inherit; }
+    pre .c-key { color: #c5b0f4; }
+    pre .c-str { color: #dceeb1; }
+    pre .c-num { color: #f3c9b6; }
+    pre .c-com { color: #888; font-style: italic; }
+    pre .c-fn { color: #efd4d4; }
+
+    /* ===== Endpoint Card (黑白分明) ===== */
+    .endpoint {
+      background: white; border: 2px solid var(--ink);
+      border-radius: var(--r-md);
+      padding: 20px 24px;
+      margin: 16px 0;
+      position: relative;
+    }
+    .endpoint:hover {
+      box-shadow: 4px 4px 0 var(--ink);
+      transform: translate(-2px, -2px);
+    }
+    .ep-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    .ep-method {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.75rem; font-weight: 700;
+      padding: 4px 10px; border-radius: var(--r-pill);
+      background: var(--ink); color: white;
+      letter-spacing: 0.5px;
+    }
+    .ep-name {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 1rem; font-weight: 700;
+      color: var(--ink);
+    }
+    .ep-tag {
+      font-size: 0.6875rem; padding: 3px 10px;
+      border-radius: var(--r-pill);
+      background: var(--block-lime); color: var(--ink);
+      margin-left: auto; font-weight: 700;
+      border: 1px solid var(--ink);
+    }
+    .ep-tag.lilac { background: var(--block-lilac); }
+    .ep-tag.pink { background: var(--block-pink); }
+    .ep-tag.mint { background: var(--block-mint); }
+    .ep-tag.coral { background: var(--block-coral); }
+    .ep-tag.cream { background: var(--block-cream); }
+    .ep-desc { font-size: 1rem; margin-top: 4px; }
+    .ep-params {
+      margin-top: 8px; font-size: 0.8125rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    /* ===== Pricing Pill Cards ===== */
+    .pricing {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px; margin: 32px 0;
+    }
+    .price-card {
+      border: 2px solid var(--ink);
+      border-radius: var(--r-lg);
+      padding: 28px 24px;
+      position: relative;
+      box-shadow: 6px 6px 0 var(--ink);
+    }
+    .price-card.lime { background: var(--block-lime); }
+    .price-card.lilac { background: var(--block-lilac); }
+    .price-card.cream { background: var(--block-cream); }
+    .price-card.coral { background: var(--block-coral); }
+    .price-card.mint { background: var(--block-mint); }
+    .price-card.navy { background: var(--block-navy); color: white; box-shadow: 6px 6px 0 var(--magenta); }
+    .price-card .tier-name {
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 0.75rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .price-card.navy .tier-name { color: var(--magenta); }
+    .price-card .price {
+      font-size: 2.5rem; font-weight: 700;
+      letter-spacing: -1px; line-height: 1;
+      margin: 8px 0;
+    }
+    .price-card .price small {
+      font-size: 1rem; font-weight: 400;
+    }
+    .price-card ul { list-style: none; margin: 16px 0; }
+    .price-card li {
+      font-size: 0.9375rem; padding: 4px 0;
+      display: flex; align-items: start; gap: 8px;
+    }
+    .price-card li::before {
+      content: '✓'; font-weight: 700; flex-shrink: 0;
+    }
+    .price-card li.no::before {
+      content: '✗';
+    }
+    .price-card.feat {
+      transform: translate(-4px, -4px);
+      box-shadow: 8px 8px 0 var(--ink);
+    }
+    .price-card.feat-navy {
+      transform: translate(-4px, -4px);
+      box-shadow: 8px 8px 0 var(--magenta);
+    }
+
+    /* ===== Cards Grid ===== */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .info-card {
+      border: 2px solid var(--ink);
+      border-radius: var(--r-md);
+      padding: 24px;
+      background: white;
+    }
+    .info-card.lime { background: var(--block-lime); }
+    .info-card.lilac { background: var(--block-lilac); }
+    .info-card.mint { background: var(--block-mint); }
+    .info-card.coral { background: var(--block-coral); }
+    .info-card.navy { background: var(--block-navy); color: white; }
+    .info-card h4 { margin-top: 0; }
+    .info-card ul { list-style: none; margin-top: 12px; }
+    .info-card li { font-size: 0.9375rem; padding: 3px 0; }
+    .info-card li::before { content: '▸ '; font-weight: 700; }
+
+    /* ===== Tables ===== */
+    table {
+      width: 100%; border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.9375rem;
+      border: 2px solid var(--ink);
+      border-radius: var(--r-md);
+      overflow: hidden;
+    }
+    section.navy table { border-color: rgba(255,255,255,0.3); }
+    th, td {
+      padding: 12px 16px; text-align: left;
+      border-bottom: 1px solid var(--ink);
+    }
+    section.navy th, section.navy td { border-color: rgba(255,255,255,0.2); }
+    th {
+      background: var(--ink); color: white;
+      font-weight: 700; font-size: 0.8125rem;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    section.navy th { background: var(--magenta); }
+    tr:last-child td { border-bottom: none; }
+    td code { font-size: 0.8125rem; }
+
+    /* ===== Note / Warning ===== */
+    .note {
+      padding: 20px 24px;
+      border-radius: var(--r-md);
+      margin: 16px 0;
+      font-size: 1rem;
+      border: 2px solid var(--ink);
+    }
+    .note.info { background: var(--block-mint); }
+    .note.warn { background: var(--block-coral); }
+    .note.success { background: var(--block-lime); }
+    .note.important { background: var(--block-pink); }
+
+    /* ===== TOC ===== */
+    .toc {
+      background: var(--block-cream);
+      border: 2px solid var(--ink);
+      border-radius: var(--r-xl);
+      padding: 32px;
+      margin: 48px 32px;
+      box-shadow: 6px 6px 0 var(--ink);
+    }
+    .toc-title {
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 0.875rem; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--ink);
+      margin-bottom: 16px; font-weight: 700;
+    }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 8px;
+    }
+    .toc-grid a {
+      padding: 10px 14px;
+      color: var(--ink); text-decoration: none;
+      font-size: 0.9375rem;
+      border-radius: var(--r-pill);
+      transition: all 0.15s;
+      border: 2px solid transparent;
+      font-weight: 600;
+    }
+    .toc-grid a:hover {
+      background: white;
+      border-color: var(--ink);
+    }
+
+    /* ===== Footer ===== */
+    .footer {
+      text-align: center; color: var(--ink);
+      margin-top: 80px; padding: 48px 24px;
+      border-top: 2px solid var(--ink);
+      background: var(--block-lime);
+    }
+    .footer a { color: var(--ink); font-weight: 700; }
+    .footer a:hover { color: var(--magenta); }
+
+    /* Mobile */
+    @media (max-width: 700px) {
+      .hero { padding: 48px 24px; }
+      .hero h1 { font-size: 2.5rem; }
+      section.color-block { margin: 32px 16px; padding: 40px 20px; }
+      .toc { margin: 32px 16px; padding: 24px; }
+      nav { padding: 16px 20px; }
+      .nav-inner { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大" aria-label="字級變大">A+</button>
+  <button id="fa-reset" class="reset" title="重設" style="font-size:11px;">⟲</button>
+</div>
+
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="../index.html">
+      <span class="logo-mark">IB</span>
+      <span>IBKR TWS API 中文速查</span>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="#why">為何</a>
+      <a class="nav-link" href="#pricing">費用</a>
+      <a class="nav-link" href="#auth">認證</a>
+      <a class="nav-link" href="#endpoints">功能</a>
+      <a class="nav-link" href="#examples">範例</a>
+      <a class="nav-cta magenta" href="https://www.interactivebrokers.com/en/trading/tws.php" target="_blank">下載 TWS ↗</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <span class="hero-eyebrow">📐 JustKM × Figma 風格</span>
+  <h1>用 <span class="inverse">IBKR</span> 交易<br><span class="magenta">全球市場</span>的<br>程式交易入口。</h1>
+  <p class="lead">IBKR TWS API 是業界最完整的券商 API — 150+ 個市場、股票/選擇權/期貨/外匯/債券/基金全支援，0 押金帳戶就能用。<br>用 Python 的 <code>ib_insync</code> 或直接刻 Java/C++/C# 客戶端。</p>
+  <div class="badges">
+    <span class="badge">150+ 個市場</span>
+    <span class="badge lilac">股票/選擇權/期貨/外匯/基金</span>
+    <span class="badge coral">0 押金開戶</span>
+    <span class="badge mint">Tiered 最低 $0</span>
+    <span class="badge cream">Paper Trading 永久免費</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ============================ TOC ============================ -->
+<div class="toc">
+  <div class="toc-title">📑 目錄</div>
+  <div class="toc-grid">
+    <a href="#why">① 為何選 IBKR API</a>
+    <a href="#pricing">② 費用方案（Tiered vs Fixed）</a>
+    <a href="#auth">③ 認證與環境</a>
+    <a href="#ib_insync">④ ib_insync 速成</a>
+    <a href="#endpoints">⑤ 功能 / 端點全覽</a>
+    <a href="#examples">⑥ 完整 Python 範例</a>
+    <a href="#paper">⑦ Paper Trading 模擬帳</a>
+    <a href="#compare">⑧ vs Alpaca / Shioaji 比較</a>
+    <a href="#pitfalls">⑨ 常見坑</a>
+  </div>
+</div>
+
+<!-- ============================ ① 為何 ============================ -->
+<section class="color-block lime">
+  <span class="section-eyebrow"><span class="num">①</span> 為何選 IBKR</span>
+  <h2>業界最完整的<br>散戶級券商 API</h2>
+  <p class="lead">如果你想做美股以外的多市場程式交易 — 歐股/港股/期貨/選擇權/外匯 — IBKR TWS API 是唯一一個把「深度 + 廣度 + 法規支援」三項都做到位的散戶券商 API。</p>
+
+  <h3>關鍵數字</h3>
+  <div class="card-grid">
+    <div class="info-card">
+      <h4>🌍 150+ 個市場</h4>
+      <p style="font-size:0.9375rem;">33 個國家、30+ 種貨幣結算。一個帳戶交易 NYSE / NASDAQ / TSE / HKEX / LSE / Eurex / CME / Forex。</p>
+    </div>
+    <div class="info-card mint">
+      <h4>📊 全商品類</h4>
+      <p style="font-size:0.9375rem;">股票 / 選擇權 / 期貨 / 外匯 / 債券 / ETF / 共同基金 / 認股權證 (Warrants) / 大宗商品 CFD。</p>
+    </div>
+    <div class="info-card">
+      <h4>💸 大戶才有的低費率</h4>
+      <p style="font-size:0.9375rem;">美股每股 $0.0035 起（Tiered），比 IB 以前低很多，過去黑平台如 Robinhood 都要 $0。</p>
+    </div>
+    <div class="info-card lilac">
+      <h4>🏛️ 法規級風控</h4>
+      <p style="font-size:0.9375rem;">用 IB 會被 SEC / FINRA / 多重監管保護。L1/L2 即時行情帳戶類別多。</p>
+    </div>
+    <div class="info-card coral">
+      <h4>🧪 Paper Trading 永久免費</h4>
+      <p style="font-size:0.9375rem;">模擬帳內建在 TWS，可即時切換 — 開發完直接上線，無痛切換真實帳。</p>
+    </div>
+    <div class="info-card navy">
+      <h4>⚡ 高頻 API 也支援</h4>
+      <p style="font-size:0.9375rem;">拍賣模式、閃電報價 (PHE) 期貨、order book 訂閱（需 L2 訂閱）— 為 HFT 設計。</p>
+    </div>
+  </div>
+
+  <h3>⚠️ 但它有 3 個天生的缺點</h3>
+  <table>
+    <thead>
+      <tr><th>缺點</th><th>說明</th><th>緩解方式</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>🏋️ TWS 桌面 app 必須開著</td>
+        <td>API 是 TWS / IB Gateway 內部的 socket，不是一個獨立 HTTP 服務。</td>
+        <td>用 IB Gateway（無 GUI）跑雲端，TWS 永遠連著它。</td>
+      </tr>
+      <tr>
+        <td>📜 文件歷史包袱重</td>
+        <td>TWS API 文件超過 1,000 頁，Java/C++/C# 並列，Python 較少。</td>
+        <td>用 <code>ib_insync</code> 套件，語法現代化，把 Socket 細節藏起來。</td>
+      </tr>
+      <tr>
+        <td>💵 月底結算 + 最低月費</td>
+        <td>即使沒交易也可能有月最低費（Tiered 結構依客製而異）。</td>
+        <td>Tiered 是純量的（沒交易就 $0）。</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================ ② 費用 ============================ -->
+<section id="pricing">
+  <span class="section-eyebrow"><span class="num">②</span> 費用方案</span>
+  <h2>IBKR 兩套定價：<br><code style="font-size:0.7em;">Tiered</code> vs <code style="font-size:0.7em;">Fixed</code></h2>
+
+  <p class="lead">IBKR 是少數給你「自己選費率結構」的券商。Tiered 適合大戶（量越大越便宜），Fixed 適合小戶或低頻交易者（每股固定）。</p>
+
+  <div class="note warn">
+    <strong>⚠️ 價格以 <a href="https://www.interactivebrokers.com/en/pricing/commissions-home.php" target="_blank">IBKR 官網</a> 為準</strong>。以下為 2026 年 7 月的美股常見費率，IB 不時調降。實際百分比含匯率 / 最低月費等需查官方。
+  </div>
+
+  <h3>美股 — 兩種結構對照</h3>
+  <div class="pricing">
+    <div class="price-card lime feat">
+      <div class="tier-name">Tiered ⭐大戶首選</div>
+      <div class="price">$0.0035<small>/股</small></div>
+      <ul>
+        <li>每月交易 1-300K 股：每股 $0.0035</li>
+        <li>300K-3M 股：$0.0020/股</li>
+        <li>3M-20M 股：$0.0015/股</li>
+        <li>20M+ 股：$0.0010/股</li>
+        <li>最低 $0.35 / 單筆</li>
+        <li><strong>平台月費：$0</strong>（含無交易帳戶）</li>
+        <li>月交易佣金滿 $10 可免 $10 月活費</li>
+      </ul>
+    </div>
+
+    <div class="price-card coral">
+      <div class="tier-name">Fixed 小戶首選</div>
+      <div class="price">$0.005<small>/股</small></div>
+      <ul>
+        <li>每股固定 $0.005</li>
+        <li>最低 $1.00 / 單筆</li>
+        <li>無分級，沒有量大優惠</li>
+        <li><strong>平台月費：$0</strong></li>
+        <li>適合月交易 ≤ 200 筆的散戶</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>各市場費用速查</h3>
+  <table>
+    <thead>
+      <tr><th>市場</th><th>Tiered 範例</th><th>最低費</th><th>備註</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>🇺🇸 美股 NYSE / NASDAQ</td><td>$0.0035/股起</td><td>$0.35/筆</td><td>兩結構都支援</td></tr>
+      <tr><td>🇭🇰 港股 HKEX</td><td>0.08% × 交易值</td><td>HKD 12/筆</td><td>另有 SEC 交易費</td></tr>
+      <tr><td>🇯🇵 日股 TSE</td><td>0.05% × 交易值</td><td>JPY 80/筆</td><td>Min Chg Auto 計算</td></tr>
+      <tr><td>🇹🇼 台股 TWSE</td><td>0.10% × 交易值</td><td>TWD 200/筆</td><td>透過複委託，可即時切換</td></tr>
+      <tr><td>🇪🇺 歐股 LSE / Xetra</td><td>0.05% × 交易值</td><td>GBP 1.70 / EUR 1.70</td><td>Turbo 結構另有不同</td></tr>
+      <tr><td>📈 美股選擇權</td><td>$0.65/張（per-contract）</td><td>—</td><td>另有 監管 / 結算 / FINRA fees</td></tr>
+      <tr><td>🌾 芝交所期貨 CME</td><td>$0.85/張</td><td>—</td><td>CME 群 還有不同</td></tr>
+      <tr><td>💱 貨幣 Forex</td><td>0.20 bps × notional</td><td>$2.00/筆</td><td>透過 IB 智慧路由</td></tr>
+    </tbody>
+  </table>
+
+  <h3>📰 即時行情 (Market Data) 訂閱費</h3>
+  <p>報價不是免費送的 — 需要每月訂閱（<strong>專業用戶</strong>（一個月內有 ≥ 4 筆交易）每月月底必須訂。業餘用戶可豁免）。</p>
+
+  <div class="card-grid">
+    <div class="info-card lime">
+      <h4>美股 Level 1 (NBBO)</h4>
+      <p style="font-size:0.9375rem;"><strong>$10/月</strong>（NASDAQ / NYSE 各 $10）<br>個別交易所 $1.50/月</p>
+    </div>
+    <div class="info-card lilac">
+      <h4>美股 Level 2 (Book)</h4>
+      <p style="font-size:0.9375rem;"><strong>$30/月</strong>（一個交易所）<br>全包：$60/月</p>
+    </div>
+    <div class="info-card mint">
+      <h4>🌍 海外市場 L1</h4>
+      <p style="font-size:0.9375rem;"><strong>$10/月/市場</strong>起<br>LSE/HKEX 都各 $10</p>
+    </div>
+    <div class="info-card coral">
+      <h4>🎁 業餘用戶 0 元</h4>
+      <p style="font-size:0.9375rem;">當月交易 &lt; 4 筆 → 所有 L1 報價免費！日內交易者不適用。</p>
+    </div>
+  </div>
+
+  <h3>💳 開戶與最低入金</h3>
+  <table>
+    <thead>
+      <tr><th>帳戶類型</th><th>最低入金</th><th>最低月費</th><th>備註</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>個人現金帳 (Cash)</td><td><strong>$0</strong></td><td>$0</td><td>可程式交易, 現金交割 T+0</td></tr>
+      <tr><td>個人保證金帳 (Margin)</td><td>$2,000</td><td>$0</td><td>可放空、做選擇權賣方</td></tr>
+      <tr><td>Reg-T 保證金帳</td><td>$25,000</td><td>$0</td><td>美股日内保證金, PDT 規則豁免</td></tr>
+      <tr><td>Portfolio Margin</td><td>$110,000</td><td>$0</td><td>風險型保證金計算, 可放大選擇權信貸</td></tr>
+      <tr><td>專業交易者 (Pro)</td><td>$0</td><td>$0</td><td>交易成本差, 月結算</td></tr>
+      <tr><td>機構帳戶</td><td>客製</td><td>客製</td><td>需聯絡 IB 業務</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note info">
+    <strong>💡 怎麼選？</strong>
+    <ul style="margin-top:8px; padding-left:20px;">
+      <li><strong>學習 / API 試點</strong>：<code>Paper Trading</code> 帳（永久免費, 真實 TWS 介面）</li>
+      <li><strong>個人美股量化</strong>：Cash Account + Tiered $0/月</li>
+      <li><strong>當沖交易者</strong>：Reg-T Margin $25K，避免 PDT 限制</li>
+      <li><strong>選擇權賣方</strong>：Portfolio Margin $110K（風險型計算, 信貸超寛）</li>
+      <li><strong>全球商品</strong>：Margin $2K+ 即可交易美股以外</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================ ③ 認證與環境 ============================ -->
+<section id="auth" class="color-block lilac">
+  <span class="section-eyebrow"><span class="num">③</span> 認證與環境</span>
+  <h2>3 個元件, 一個 gRPC 連線</h2>
+  <p class="lead">IBKR API 是 socket-based，不是 REST/HTTP。所以開發前需要設定 <strong>TWS / IB Gateway + API port + 程式</strong> 三者。</p>
+
+  <h3>1️⃣ 下載 TWS 或 IB Gateway</h3>
+  <ul style="padding-left: 20px; line-height: 1.9;">
+    <li><a href="https://www.interactivebrokers.com/en/trading/tws.php" target="_blank"><strong>TWS</strong></a> — Trader Workstation, 完整 GUI。開發、debug、看圖表都用它。</li>
+    <li><a href="https://www.interactivebrokers.com/en/trading/ibgateway-stable.php" target="_blank"><strong>IB Gateway</strong></a> — 無 GUI 版本, 適合放在雲端 VPS/容器長期運行。</li>
+  </ul>
+
+  <h3>2️⃣ 啟用 API Port</h3>
+  <p>進入 TWS → <code>File → Global Configuration → API → Settings</code>, 勾選:</p>
+  <ul style="padding-left: 20px; line-height: 1.9;">
+    <li>✅ <strong>Enable ActiveX and Socket Clients</strong></li>
+    <li>✅ <strong>Download open orders on connection</strong>（連線時自動拿到未成交單）</li>
+    <li>設定 <strong>Socket port</strong>：
+      <ul style="margin-top: 6px;">
+        <li>Paper Trading（模擬）：<code>7497</code></li>
+        <li>Live Trading（真實）：<code>7496</code></li>
+      </ul>
+    </li>
+    <li>可選：勾 <strong>Allow connections from localhost only</strong>（安全建議）</li>
+    <li><strong>勾掉 "Read-Only API"</strong>（否則下不了單）</li>
+  </ul>
+
+  <h3>3️⃣ 安裝 ib_insync</h3>
+<pre><code><span class="c-com"># 官方套件（由社群設計, 比官方 ibapi 順手很多）</span>
+pip install ib_insync
+
+<span class="c-com"># 或者是 IB 官方 C++/Java 套件的 Python 版本（低階）</span>
+pip install ibapi
+
+<span class="c-com"># 通常推荐 ib_insync, 99% 的人選這套</span></code></pre>
+
+  <h3>4️⃣ 第一個連線測試</h3>
+<pre><code><span class="c-key">from</span> ib_insync <span class="c-key">import</span> *
+
+<span class="c-com"># util.startLoop()  <span class="c-com"># Jupyter notebook 才需要</span></span>
+
+ib = IB()
+
+<span class="c-com"># Paper Trading 預設 port 7497, Live 是 7496</span>
+ib.connect(<span class="c-str">"127.0.0.1"</span>, <span class="c-num">7497</span>, clientId=<span class="c-num">1</span>)
+
+<span class="c-com"># 抓 AAPL 即時報價</span>
+contract = Stock(<span class="c-str">"AAPL"</span>, <span class="c-str">"SMART"</span>, <span class="c-str">"USD"</span>)
+ticker = ib.reqMktData(contract, snapshot=<span class="c-str">"True"</span>)
+ib.sleep(<span class="c-num">2</span>)
+
+print(ticker.marketPrice())
+print(ticker.bid, ticker.ask)
+ib.disconnect()</code></pre>
+
+  <h3>5️⃣ 兩種認證方式</h3>
+  <table>
+    <thead>
+      <tr><th>方式</th><th>什麼時候用</th><th>設定位置</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Socket 連線（最常見）</strong></td>
+        <td>TWS / IB Gateway 連到<code>127.0.0.1</code> socket port</td>
+        <td>TWS Global Config → API → Settings → Socket port</td>
+      </tr>
+      <tr>
+        <td><strong>IBKR Client Portal API（REST）</strong></td>
+        <td>想跳過 TWS, 用純 REST + OAuth 2.0</td>
+        <td>需申請 <code>CP Gateway</code> + OAuth 流程</td>
+      </tr>
+      <tr>
+        <td><strong>FIX protocol（機構）</strong></td>
+        <td>高頻需要</td>
+        <td>需另外申請</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note success">
+    <strong>✅ 流程快速</strong>：TWS 隨時開著 → 程式 <code>ib.connect()</code> → 就可以了。不需要 API key, 不需要 OAuth, 只要 TWS 啟用 Socket port 就足夠。
+  </div>
+</section>
+
+<!-- ============================ ④ ib_insync ============================ -->
+<section id="ib_insync">
+  <span class="section-eyebrow"><span class="num">④</span> ib_insync 速成</span>
+  <h2>把 Socket 細節藏起來<br>的現代 Python 套件</h2>
+
+  <p class="lead"><code>ib_insync</code> 是社區最常用的 Python 包裝, 提供 <strong>自動同步、asyncio、Jupyter 友善</strong> 等能力, 跳過官方 ibapi 的 callback hell。</p>
+
+  <h3>ib_insync vs 官方 ibapi</h3>
+  <table>
+    <thead>
+      <tr><th>面向</th><th>ib_insync</th><th>官方 ibapi</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>同步模式</td><td>自動 (Jupyter 友善)</td><td>手動 call-back 註冊</td></tr>
+      <tr><td>非同步</td><td>async/await 原生支援</td><td>需手刻 thread/event loop</td></tr>
+      <tr><td>錯誤處理</td><td>Python 例外</td><td>error code 編號手動處理</td></tr>
+      <tr><td>連線重試</td><td>內建</td><td>手刻</td></tr>
+      <tr><td>套件大小</td><td>Python 純潔</td><td>需要 C++ runtime</td></tr>
+      <tr><td>社群活躍</td><td>⭐ 3.4k+ stars, 維護中</td><td>維護中（停滯）</td></tr>
+      <tr><td>學習曲線</td><td>中等</td><td>陡峭</td></tr>
+      <tr><td>Production 使用</td><td>大型機關也有用</td><td>大型機關用</td></tr>
+    </tbody>
+  </table>
+
+  <h3>三個關鍵概念</h3>
+
+  <h4><code>IB()</code> — 連線物件</h4>
+<pre><code><span class="c-key">from</span> ib_insync <span class="c-key">import</span> *
+
+ib = IB()
+ib.connect(<span class="c-str">"127.0.0.1"</span>, <span class="c-num">7497</span>, clientId=<span class="c-num">1</span>)
+
+<span class="c-com"># clientId 必需唯一, 0 是 TWS 內部</span>
+<span class="c-com"># 多程式同 TWS 可用 1, 2, 3, ... 各自連</span>
+print(ib.isConnected())  <span class="c-com"># True</span>
+print(ib.reqCurrentTime())  <span class="c-com"># 服務器時間</span>
+
+<span class="c-com"># 帳戶資料</span>
+accounts = ib.managedAccounts()
+print(accounts)  <span class="c-com"># ['DU1234567']</span></code></pre>
+
+  <h4><code>Contract</code> — 定義商品</h4>
+<pre><code><span class="c-com"># 股票</span>
+aapl = Stock(<span class="c-str">"AAPL"</span>, <span class="c-str">"SMART"</span>, <span class="c-str">"USD"</span>)
+
+<span class="c-com"># 選擇權（200張/接股 + 2027/01/15 到期 + $200 履約價）</span>
+opt = Option(<span class="c-str">"AAPL"</span>, <span class="c-str">"20270115"</span>, <span class="c-num">200</span>, <span class="c-str">"CALL"</span>, <span class="c-str">"SMART"</span>)
+
+<span class="c-com"># 期貨</span>
+es = Future(<span class="c-str">"ES"</span>, <span class="c-str">"20260919"</span>, <span class="c-str">"CME"</span>)
+
+<span class="c-com"># 外匯</span>
+eur = Forex(<span class="c-str">"EURUSD"</span>)
+
+<span class="c-com"># 債券</span>
+ust = Bond(<span class="c-str">"912828YE6"</span>, <span class="c-str">"SMART"</span>, <span class="c-str">"USD"</span>)
+
+<span class="c-com"># 詳細 contract 規格查詢（需分鐘以內）</span>
+details = ib.reqContractDetails(aapl)
+print(details[<span class="c-num">0</span>].longName)  <span class="c-com"># 'Apple Inc.'</span></code></pre>
+
+  <h4><code>reqXxxData()</code> — 數據請求</h4>
+<pre><code><span class="c-com"># 即時行情</span>
+ticker = ib.reqMktData(contract)
+
+<span class="c-com"># 歷史 K 線</span>
+bars = ib.reqHistoricalData(
+    contract,
+    endDateTime=<span class="c-str">''</span>,          <span class="c-com"># 空字串 = 當下</span>
+    durationStr=<span class="c-str">'30 D'</span>,       <span class="c-com"># 30 天</span>
+    barSizeSetting=<span class="c-str">'1 hour'</span>,  <span class="c-com"># 1 小時 K</span>
+    whatToShow=<span class="c-str">'MIDPOINT'</span>,
+    useRTH=<span class="c-num">True</span>             <span class="c-com"># True = 僅 RTH</span>
+)
+
+<span class="c-com"># 帳戶總值</span>
+summary = ib.accountSummary()
+<span class="c-key">for</span> s <span class="c-key">in</span> summary:
+    <span class="c-key">if</span> s.tag <span class="c-key">in</span> (<span class="c-str">'NetLiquidation'</span>, <span class="c-str">'AvailableFunds'</span>):
+        print(f<span class="c-str">"{s.tag}: {s.value} {s.currency}"</span>)
+
+<span class="c-com"># 持倉</span>
+positions = ib.positions()
+<span class="c-key">for</span> p <span class="c-key">in</span> positions:
+    print(p.contract.symbol, p.position, p.avgCost)</code></pre>
+</section>
+
+<!-- ============================ ⑤ Endpoints ============================ -->
+<section id="endpoints" class="color-block cream">
+  <span class="section-eyebrow"><span class="num">⑤</span> 功能 / 端點全覽</span>
+  <h2>IBKR TWS API<br>各領域代表 endpoint</h2>
+
+  <p class="lead">TWS API 在官方有 <strong>100+ 个 function</strong>, 分為 <strong>用戶端請求 (req*)</strong> + <strong>callback 接動 (xxxUpdate*)</strong> 兩類。以下按 ib_insync 套件修飾後的語法分類。</p>
+
+  <h3>📊 行情數據</h3>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">REQ</span>
+      <span class="ep-name">reqMktData(contract)</span>
+      <span class="ep-tag">Tick</span>
+    </div>
+    <div class="ep-desc">即時報價 bid/ask/last/volume, 可訂閱 option chain、某指數、新聞。</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">REQ</span>
+      <span class="ep-name">reqHistoricalData(contract, ...)</span>
+      <span class="ep-tag coral">30 年</span>
+    </div>
+    <div class="ep-desc">歷史 K 線 (1 sec / 5 sec / 1 min / 5 min / 15 min / 30 min / 1 hour / 1 day)。durationStr 最長可達 <strong>5 年</strong>。</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">REQ</span>
+      <span class="ep-name">reqTickers(contracts)</span>
+      <span class="ep-tag pink">一次性</span>
+    </div>
+    <div class="ep-desc">一次性抓多個 symbol 的 snapshot, 避免訂閱堆積。</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">SUB</span>
+      <span class="ep-name">reqMarketDepth(contract, numRows=5)</span>
+      <span class="ep-tag">L2</span>
+    </div>
+    <div class="ep-desc">訂閱 Order Book 深度 (5/10/20/... 檔), 需註冊 L2 行情訂閱。</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">REQ</span>
+      <span class="ep-name">reqRealTimeBars(contract, ...)</span>
+      <span class="ep-tag mint">5秒 K</span>
+    </div>
+    <div class="ep-desc">即時 5 秒 K 線, 適合 HFT 或看見即時變化。</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">REQ</span>
+      <span class="ep-name">reqScannerSubscription(...)  </span>
+      <span class="ep-tag lilac">Scanner</span>
+    </div>
+    <div class="ep-desc">交易所內建掃描器：Highest Gaining / Most Active / Volume Spike / 等。</div>
+  </div>
+
+  <h3>📈 下單/訂單管理</h3>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">POST</span>
+      <span class="ep-name">ib.placeOrder(contract, order)</span>
+      <span class="ep-tag">下單</span>
+    </div>
+    <div class="ep-desc">送出訂單, 回傳 <code>Trade</code> 物件。多種 order 類型：
+      <strong>Market / Limit / Stop / StopLimit / TrailingStop / Algo / Adaptive</strong></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">GET</span>
+      <span class="ep-name">ib.openTrades() / openOrders()</span>
+      <span class="ep-tag">查詢</span>
+    </div>
+    <div class="ep-desc">未成交訂單。</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">CXL</span>
+      <span class="ep-name">ib.cancelOrder(order)</span>
+      <span class="ep-tag">取消</span>
+    </div>
+    <div class="ep-desc">取消未成交訂單。</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">POST</span>
+      <span class="ep-name">ib.whatIfOrder(contract, order)</span>
+      <span class="ep-tag lilac">預演</span>
+    </div>
+    <div class="ep-desc"><strong>「如果下單會怎樣？」</strong>預演訊息, 含手續費、保證金、潛在閡損, 不會下單成功。</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">REQ</span>
+      <span class="ep-name">ib.reqAllOpenOrders() / autoOpenOrders()</span>
+      <span class="ep-tag">全帳戶</span>
+    </div>
+    <div class="ep-desc">獲取同 clientId 全帳戶未平倉單（需設定「 Share WS 訂單」）。</div>
+  </div>
+
+  <h3>💼 帳戶/持倉/成交</h3>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">REQ</span>
+      <span class="ep-name">reqAccountSummary()</span>
+      <span class="ep-tag mint">總值</span>
+    </div>
+    <div class="ep-desc">獲取帳戶總值、保證金、可用資金等重點指標。</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">REQ</span>
+      <span class="ep-name">ib.accountValues()</span>
+      <span class="ep-tag">詳細</span>
+    </div>
+    <div class="ep-desc">獲取 <strong>170+ 個帳戶細項</strong>（cash balance、股倉市值、浮盤、未實現損益…）。</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">REQ</span>
+      <span class="ep-name">reqPositions()</span>
+      <span class="ep-tag">持倉</span>
+    </div>
+    <div class="ep-desc">目前持倉。</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">SUB</span>
+      <span class="ep-name">reqPositionUpdates()</span>
+      <span class="ep-tag coral">即時</span>
+    </div>
+    <div class="ep-desc">訂閱持倉變動推送, 生或監仓警示股用。</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">REQ</span>
+      <span class="ep-name">reqPnL(account)  /  reqPnLSingle()</span>
+      <span class="ep-tag pink">P&L</span>
+    </div>
+    <div class="ep-desc">即時損益報表, 更新在 trade fill 之後。</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">REQ</span>
+      <span class="ep-name">reqExecutions()</span>
+      <span class="ep-tag">成交流水</span>
+    </div>
+    <div class="ep-desc">歷史成交報表, 可選時間範圍。</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">REQ</span>
+      <span class="ep-name">reqFundamentalData()</span>
+      <span class="ep-tag mint">基本面</span>
+    </div>
+    <div class="ep-desc">從 Reuters/Refinitiv 拉取公司財務報表（年/季）, 不像 Finnhub 的多元但穩。</div>
+  </div>
+
+  <h3>🎯 其他進階</h3>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">REQ</span>
+      <span class="ep-name">reqNewsBulletins() / reqNewsArticle()</span>
+      <span class="ep-tag">新聞</span>
+    </div>
+    <div class="ep-desc">拉取特定新聞 (常來自 Benzinga/Reuters)。</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">SUB</span>
+      <span class="ep-name">reqUserStream()  +  ib.news()</span>
+      <span class="ep-tag">新聞 streaming</span>
+    </div>
+    <div class="ep-desc">新聞即時推送。</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">REQ</span>
+      <span class="ep-name">reqManagedAccts()  +  reqFamilyCodes()</span>
+      <span class="ep-tag">多帳戶</span>
+    </div>
+    <div class="ep-desc">取得財務顧問 (FA) 架構下的多個子帳戶, 可同時管理 10+ 個子帳。</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="ep-method">EVENT</span>
+      <span class="ep-name">ib.orderStatusEvent / execDetailsEvent / errorEvent</span>
+      <span class="ep-tag pink">Callback</span>
+    </div>
+    <div class="ep-desc">ib_insync 重新封裝的 event loop, 都包成 nonlocal event handler。</div>
+  </div>
+</section>
+
+<!-- ============================ ⑥ 範例 ============================ -->
+<section id="examples">
+  <span class="section-eyebrow"><span class="num">⑥</span> 完整 Python 範例</span>
+  <h2>下單 / 報價 / 回測 →<br>可直接 copy-paste 跑</h2>
+
+  <h3>範例 1：查詢個股即時報價</h3>
+<pre><code><span class="c-key">from</span> ib_insync <span class="c-key">import</span> *
+
+ib = IB()
+ib.connect(<span class="c-str">"127.0.0.1"</span>, <span class="c-num">7497</span>, clientId=<span class="c-num">1</span>)
+
+aapl = Stock(<span class="c-str">"AAPL"</span>, <span class="c-str">"SMART"</span>, <span class="c-str">"USD"</span>)
+ticker = ib.reqMktData(aapl, snapshot=<span class="c-str">"True"</span>)
+ib.sleep(<span class="c-num">2</span>)  <span class="c-com"># 等待報價進來</span>
+
+print(<span class="c-str">f"AAPL: ${ticker.marketPrice():.2f}"</span>)
+print(<span class="c-str">f"bid={ticker.bid} / ask={ticker.ask}"</span>)
+print(<span class="c-str">f"今日量 = {ticker.volume:,}"</span>)
+
+ib.disconnect()</code></pre>
+
+  <h3>範例 2：抓 30 天歷史 K 線 → DataFrame</h3>
+<pre><code><span class="c-key">import</span> pandas <span class="c-key">as</span> pd
+
+contract = Stock(<span class="c-str">"SPY"</span>, <span class="c-str">"SMART"</span>, <span class="c-str">"USD"</span>)
+
+bars = ib.reqHistoricalData(
+    contract,
+    endDateTime=<span class="c-str">''</span>,          <span class="c-com"># 空字串 = 現在</span>
+    durationStr=<span class="c-str">'30 D'</span>,
+    barSizeSetting=<span class="c-str">'1 hour'</span>,
+    whatToShow=<span class="c-str">'ADJUSTED_LAST'</span>,
+    useRTH=<span class="c-num">True</span>
+)
+
+df = util.df(bars)
+print(df.head())
+print(df.tail())
+
+<span class="c-com"># 可用 barSizeSetting 選項:</span>
+<span class="c-com"># 1 secs / 5 secs / 10 secs / 15 secs / 30 secs</span>
+<span class="c-com"># 1 min / 2 mins / 3 mins / 5 mins / 10 mins / 15 mins / 20 mins / 30 mins</span>
+<span class="c-com"># 1 hour / 2 hours / 3 hours / 4 hours / 8 hours</span>
+<span class="c-com"># 1 day / 1 week / 1 month</span>
+
+<span class="c-com"># durationStr 可選:  '60 S' / '30 D' / '13 W' / '6 M' / '10 Y'</span>
+<span class="c-com"># 最長 5 年 (durationStr='5 Y')</span></code></pre>
+
+  <h3>範例 3：下單市價單 + 回饋訂單狀態</h3>
+<pre><code><span class="c-key">def</span> <span class="c-fn">on_order_status</span>(trade):
+    <span class="c-key">if</span> trade.orderStatus.status == <span class="c-str">"Filled"</span>:
+        print(<span class="c-str">f"✓ 成交 {trade.contract.symbol} {trade.filledQuantity} @ ${trade.avgFillPrice}"</span>)
+    <span class="c-key">elif</span> trade.orderStatus.status <span class="c-key">in</span> (<span class="c-str">"Cancelled"</span>, <span class="c-str">"Inactive"</span>):
+        print(<span class="c-str">f"✗ {trade.contract.symbol} 訂單 {trade.orderStatus.status}"</span>)
+
+ib.orderStatusEvent += on_order_status
+
+<span class="c-com"># 下 100 股 AAPL 市價單</span>
+order = MarketOrder(<span class="c-str">"BUY"</span>, <span class="c-num">100</span>)
+trade = ib.placeOrder(aapl, order)
+
+<span class="c-com"># 等成交/超時 (5 秒)</span>
+ib.sleep(<span class="c-num">5</span>)
+print(<span class="c-str">f"訂單狀態: {trade.orderStatus.status}"</span>)
+print(<span class="c-str">f"已成交: {trade.filledQuantity} / {trade.order.totalQuantity}"</span>)</code></pre>
+
+  <h3>範例 4：限價單 + 取消</h3>
+<pre><code><span class="c-com"># 限價單: 限定價 $185 買 100 股 AAPL</span>
+order = LimitOrder(<span class="c-str">"BUY"</span>, <span class="c-num">100</span>, lmtPrice=<span class="c-num">185.00</span>)
+trade = ib.placeOrder(aapl, order)
+trade.log  <span class="c-com"># 查看下單記錄</span>
+
+<span class="c-key">import</span> time
+time.sleep(<span class="c-num">30</span>)  <span class="c-com"># 等 30 秒</span>
+
+<span class="c-key">if</span> trade.orderStatus.status == <span class="c-str">"Filled"</span>:
+    print(<span class="c-str">"成交!"</span>)
+<span class="c-key">else</span>:
+    <span class="c-com"># 沒成交, 取消</span>
+    ib.cancelOrder(order)
+    print(<span class="c-str">f"已取消: {trade.orderStatus.status}"</span>)</code></pre>
+
+  <h3>範例 5：動態策略 — 均線交叉下單</h3>
+<pre><code><span class="c-key">import</span> pandas <span class="c-key">as</span> pd
+
+<span class="c-key">def</span> <span class="c-fn">get_sma_signal</span>(symbol, fast=<span class="c-num">20</span>, slow=<span class="c-num">50</span>):
+    contract = Stock(symbol, <span class="c-str">"SMART"</span>, <span class="c-str">"USD"</span>)
+    bars = ib.reqHistoricalData(
+        contract, endDateTime=<span class="c-str">''</span>,
+        durationStr=<span class="c-str">'120 D'</span>,
+        barSizeSetting=<span class="c-str">'1 day'</span>,
+        whatToShow=<span class="c-str">'ADJUSTED_LAST'</span>
+    )
+    df = util.df(bars)
+    df[<span class="c-str">'fast'</span>] = df[<span class="c-str">'close'</span>].rolling(fast).mean()
+    df[<span class="c-str">'slow'</span>] = df[<span class="c-str">'close'</span>].rolling(slow).mean()
+    <span class="c-key">return</span> df.iloc[-<span class="c-num">1</span>][<span class="c-str">'fast'</span>] > df.iloc[-<span class="c-num">1</span>][<span class="c-str">'slow'</span>]
+
+<span class="c-key">def</span> <span class="c-fn">strategy</span>():
+    <span class="c-key">while</span> <span class="c-num">True</span>:
+        price = ticker.marketPrice()
+        signal = get_sma_signal(<span class="c-str">"AAPL"</span>)
+
+        position = ib.portfolio()  <span class="c-com"># 拿倉位</span>
+        has_position = <span class="c-key">any</span>(p.contract.symbol == <span class="c-str">"AAPL"</span> <span class="c-key">for</span> p <span class="c-key">in</span> position)
+
+        <span class="c-key">if</span> signal <span class="c-key">and not</span> has_position:
+            order = MarketOrder(<span class="c-str">"BUY"</span>, <span class="c-num">100</span>)
+            ib.placeOrder(aapl, order)
+            print(<span class="c-str">f"[{ib.reqCurrentTime()}] 買 AAPL @ ${price}"</span>)
+        <span class="c-key">elif</span> <span class="c-key">not</span> signal <span class="c-key">and</span> has_position:
+            order = MarketOrder(<span class="c-str">"SELL"</span>, <span class="c-num">100</span>)
+            ib.placeOrder(aapl, order)
+            print(<span class="c-str">f"[{ib.reqCurrentTime()}] 賣 AAPL @ ${price}"</span>)
+
+        ib.sleep(<span class="c-num">60</span>)  <span class="c-com"># 每分鐘檢查</span>
+
+strategy()</code></pre>
+
+  <h3>範例 6：訂單預演 (whatIfOrder) — 避免爆保證金</h3>
+<pre><code><span class="c-com"># 以「如果下單會怎樣」試一個四根黒跨式跨期 (Vertical Call Spread)</span>
+buy_call = Option(<span class="c-str">"AAPL"</span>, <span class="c-str">"20270717"</span>, <span class="c-num">200</span>, <span class="c-str">"CALL"</span>, <span class="c-str">"SMART"</span>)
+sell_call = Option(<span class="c-str">"AAPL"</span>, <span class="c-str">"20270717"</span>, <span class="c-num">210</span>, <span class="c-str">"CALL"</span>, <span class="c-str">"SMART"</span>)
+
+<span class="c-com"># 預演買單</span>
+buy_order = LimitOrder(<span class="c-str">"BUY"</span>, <span class="c-num">1</span>, lmtPrice=<span class="c-num">3.0</span>)
+whatif = ib.whatIfOrder(buy_call, buy_order)
+
+<span class="c-key">for</span> v <span class="c-key">in</span> whatif:
+    <span class="c-key">if</span> v.tag <span class="c-key">in</span> (<span class="c-str">"InitMargin"</span>, <span class="c-str">"MaintMargin"</span>, <span class="c-str">"Commission"</span>):
+        print(<span class="c-str">f"{v.tag}: {v.value} {v.currency}"</span>)</code></pre>
+
+  <div class="note success">
+    <strong>💡 記在心裡</strong>：這些例子的下單是直接對真實帳送出 — Paper Trading (模擬帳) 才不會衝動成交。要把上列切到模擬帳, 只要把 <code>clientId</code> 後連線時加進符合 Paper 登入帳設定、或把 <code>port</code> 改 <code>7497</code>。
+  </div>
+</section>
+
+<!-- ============================ ⑦ Paper Trading ============================ -->
+<section id="paper" class="color-block mint">
+  <span class="section-eyebrow"><span class="num">⑦</span> Paper Trading</span>
+  <h2>永久免費的<br>「隔離模擬」帳</h2>
+
+  <p class="lead">IBKR 提供 Paper Trading — 獨立使用者名 + 獨立帳戶 ID + 獨立使用記錄, 跟 Live 是完全隔離的。永久免費, 可以捧一直到他關公司。</p>
+
+  <h3>怎麼開 Paper 帳</h3>
+  <ul style="padding-left: 20px; line-height: 1.9;">
+    <li>點 <a href="https://www.interactivebrokers.com/en/trading/tws.php" target="_blank">TWS</a> 進去就能重新創 Paper 帳戶</li>
+    <li>紙上帳戶金額是真的市場仔 USD 100 萬浮動起始 (你可以改)</li>
+    <li>複委託作業: 同樣使用 clientId 端口 = <strong>7497</strong> (Live 是 7496)</li>
+  </ul>
+
+  <h3>Paper vs Live 關鍵差</h3>
+  <table>
+    <thead>
+      <tr><th>面向</th><th>Paper</th><th>Live</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Socket port</td><td>7497</td><td>7496</td></tr>
+      <tr><td>帳戶類型 ID</td><td>DUxxx</td><td>DUxxx 或 Uxxx</td></tr>
+      <tr><td>起始資金</td><td>USD 100 萬</td><td>實際入金</td></tr>
+      <tr><td>下單</td><td>不會真成交</td><td>真實金流</td></tr>
+      <tr><td>行情訂閱費</td><td>免費, 全部打開</td><td>收取 (客戶需訂)</td></tr>
+      <tr><td>Margin 規則</td><td>使用 Reg-T</td><td>使用實記</td></tr>
+      <tr><td>選擇權 contract 規格</td><td>可能略緩</td><td>標準</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note info">
+    <strong>💡 最佳實踐</strong>：同一個 <code>ib_insync</code> 脚本, 加上簡單的 <code>if PAPER</code> flag 切換 — Paper Trading 測試完 → 同樣程式連 Live 7496 port 就上線。
+  </div>
+</section>
+
+<!-- ============================ ⑧ vs 比較 ============================ -->
+<section id="compare">
+  <span class="section-eyebrow"><span class="num">⑧</span> 比較</span>
+  <h2>vs Alpaca / Shioaji<br>三大券商 API</h2>
+
+  <p class="lead">選擇不是絕對的「最佳」, 而是「適合你」。</p>
+
+  <table>
+    <thead>
+      <tr><th>面向</th><th>IBKR</th><th>Alpaca</th><th>Shioaji</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>主場景</strong></td><td>多市場、全商品</td><td>美股純入訊</td><td>台股期貨</td></tr>
+      <tr><td>支援市場</td><td>150+</td><td>美股 + 加密貨幣</td><td>台股 + 台股期貨 + 台股選擇權</td></tr>
+      <tr><td>介面類型</td><td>Socket</td><td>REST + WebSocket</td><td>Python 函數載體 (Syncronous)</td></tr>
+      <tr><td>語言</td><td>Python/Java/C++/C#</td><td>Python/JS/Go</td><td>Python 限定</td></tr>
+      <tr><td>Paper Trading</td><td>✅ 模擬帳</td><td>✅ 永久帳</td><td>✅ 視下單時間分交易</td></tr>
+      <tr><td>下單閃電下單</td><td>✅ <10ms</td><td>一般 (~50ms)</td><td>視下單時間</td></tr>
+      <tr><td>API key 認證</td><td>無 (走 TWS 登入)</td><td>需註冊 API key</td><td>需 PK + 憑證碼</td></tr>
+      <tr><td>開戶時間</td><td>需審查 / 個入証明</td><td>3 分鐘線上</td><td>需財力証明</td></tr>
+      <tr><td>開發者友善</td><td>中等 (TWS 陪冊)</td><td>高 (REST 探劤)</td><td>中 (中文)</td></tr>
+      <tr><td>費用</td><td>Tiered 低量大佔優</td><td>Free</td><td>有</td></tr>
+      <tr><td>使用案例</td><td>全球交易 + 多資產</td><td>美股個人量化</td><td>台股/台股期貨交易</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card-grid">
+    <div class="info-card lime">
+      <h4>✅ 選 IBKR 的時機</h4>
+      <ul>
+        <li>需要交易美股以外的市場</li>
+        <li>想做選擇權 / 期貨 / 外匯</li>
+        <li>需要 Reg-T / Portfolio Margin</li>
+        <li>大量交易, 想拿 Tiered 低價</li>
+        <li>需要 L2 訂單簿的 HFT 策略</li>
+        <li>投資是長久計畫</li>
+      </ul>
+    </div>
+    <div class="info-card lilac">
+      <h4>✅ 選 Alpaca 的時機</h4>
+      <ul>
+        <li>只需美股 + 加密貨幣</li>
+        <li>想快速原型：3 分鐘開戶</li>
+        <li>不用裝 TWS, 跨平台雲端運行</li>
+        <li>不需要全球市場</li>
+      </ul>
+    </div>
+    <div class="info-card mint">
+      <h4>✅ 選 Shioaji 的時機</h4>
+      <ul>
+        <li>只要在台股/台股期貨/選擇權交易</li>
+        <li>需要中文市場原生下單</li>
+        <li>腳本皆從台股下單</li>
+      </ul>
+    </div>
+    <div class="info-card coral">
+      <h4>❌ 不要選 IBKR 的時機</h4>
+      <ul>
+        <li>只要美股實驗 — 過重, 用 Alpaca 更快</li>
+        <li>不想裝任何桌面用 TWS/Gateway</li>
+        <li>一個月只下幾筆單 — 別選 Fixed</li>
+        <li>需要 24/7 加密貨幣下單</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note success">
+    <strong>💡 最佳組合</strong><br>
+    📈 <strong>美股</strong>：Alpaca (快速原型) — 或 IBKR (主要資金) <br>
+    🌍 <strong>多市場</strong>：IBKR Paper (轉股、選擇權、期貨) <br>
+    🐯 <strong>台股/台股期貨</strong>：Shioaji (主要) — 選 IBKR 補足複委託 <br>
+    🚀 <strong>HFT/選擇權</strong>：IBKR Pro + L2 訂閱<br>
+    <br>三者不可互患, 是互補。
+  </div>
+</section>
+
+<!-- ============================ ⑨ 坑 ============================ -->
+<section id="pitfalls" class="color-block coral">
+  <span class="section-eyebrow"><span class="num">⑨</span> 常見坑</span>
+  <h2>跳坑手冊</h2>
+
+  <h3>坑 1：clientId 重複 → 連不上</h3>
+<pre><code><span class="c-com"># ❌ 多個腳本都用 clientId=1, 後者被推</span>
+<span class="c-com"># ✅ 為每個腳本取不同 ID</span>
+ib_策略1 = IB().connect(<span class="c-str">"127.0.0.1"</span>, <span class="c-num">7497</span>, clientId=<span class="c-num">1</span>)
+ib_策略2 = IB().connect(<span class="c-str">"127.0.0.1"</span>, <span class="c-num">7497</span>, clientId=<span class="c-num">2</span>)
+
+<span class="c-com"># 或開啟 TWS 「Allow connections from localhost only」關 → 可以重複 ID</span>
+<span class="c-com"># 但生產不建議</span></code></pre>
+
+  <h3>坑 2：TWS 不在跑 → connect 毒倵一時找不上 port</h3>
+<pre><code><span class="c-key">from</span> ib_insync <span class="c-key">import</span> IB
+
+ib = IB()
+<span class="c-key">try</span>:
+    ib.connect(<span class="c-str">"127.0.0.1"</span>, <span class="c-num">7497</span>, clientId=<span class="c-num">1</span>, timeout=<span class="c-num">5</span>)
+<span class="c-key">except</span> Exception <span class="c-key">as</span> e:
+    <span class="c-key">if</span> <span class="c-str">"Connection refused"</span> <span class="c-key">in</span> str(e):
+        print(<span class="c-str">"請啟動 TWS / IB Gateway"</span>)</code></pre>
+
+  <h3>坑 3：reqMktData 不返回 × 沒 ib.sleep()</h3>
+<pre><code><span class="c-com"># ❌ 下個一個就讀 ticket, 報價還沒進來</span>
+ticker = ib.reqMktData(aapl)
+print(ticker.bid)  <span class="c-com"># nan / None</span>
+
+<span class="c-com"># ✅ 給它 0.5-2 秒讓報價進來</span>
+ticker = ib.reqMktData(aapl)
+ib.sleep(<span class="c-num">2</span>)
+print(ticker.bid)  <span class="c-com"># 有了!</span>
+
+<span class="c-com"># 或用 snapshot=True 一次性的</span>
+ticker = ib.reqMktData(aapl, snapshot=<span class="c-str">"True"</span>)
+ib.sleep(<span class="c-num">2</span>)</code></pre>
+
+  <h3>坑 4：Paper / Live 切錯 port</h3>
+<pre><code><span class="c-com"># 記口訣</span>
+<span class="c-com"># 7497 = Paper</span>
+<span class="c-com"># 7496 = Live</span>
+<span class="c-com"># 4002 = IB Gateway (Live)</span>
+<span class="c-com"># 4001 = IB Gateway (Paper)</span>
+
+<span class="c-com"># 下單前心口訣、設環境變數</span>
+<span class="c-key">import</span> os
+PORT = <span class="c-key">int</span>(os.getenv(<span class="c-str">"IBKR_PORT"</span>, <span class="c-str">"7497"</span>))  <span class="c-com"># 預設 paper</span>
+ib.connect(<span class="c-str">"127.0.0.1"</span>, PORT, clientId=<span class="c-num">1</span>)</code></pre>
+
+  <h3>坑 5：同一個ticker 多個 reqMktData → 訂閱叠造成</h3>
+<pre><code><span class="c-com"># ib_insync 會自動去重</span>
+<span class="c-key">for</span> _ <span class="c-key">in</span> <span class="c-fn">range</span>(<span class="c-num">3</span>):
+    ticker = ib.reqMktData(aapl)  <span class="c-com"># 不會建 3 個訂閱</span>
+
+<span class="c-com"># 但取消要手動:</span>
+ib.cancelMktData(aapl)</code></pre>
+
+  <h3>坑 6：用 MarketOrder 卻寫 tif=GTC</h3>
+  <table>
+    <thead>
+      <tr><th>Order type</th><th>time-in-force (tif) 適用</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Market</strong> / MarketOnClose</td><td>DAY (GTC 無效)</td></tr>
+      <tr><td><strong>Limit</strong></td><td>DAY / GTC / IOC / GTD</td></tr>
+      <tr><td><strong>Stop</strong> / StopLimit</td><td>DAY / GTC</td></tr>
+      <tr><td><strong>TrailingStop</strong></td><td>DAY / GTC</td></tr>
+    </tbody>
+  </table>
+
+  <h3>坑 7：socket 斷線不重接 → 策略静默失誤</h3>
+<pre><code><span class="c-key">import</span> time
+
+<span class="c-key">def</span> <span class="c-fn">keep_connection</span>(ib):
+    <span class="c-key">while</span> <span class="c-num">True</span>:
+        <span class="c-key">if not</span> ib.isConnected():
+            <span class="c-fn">print</span>(<span class="c-str">"⚠️ 離線, 重連中..."</span>)
+            ib.sleep(<span class="c-num">2</span>)
+            ib.connect(<span class="c-str">"127.0.0.1"</span>, <span class="c-num">7497</span>, clientId=<span class="c-num">1</span>)
+        ib.sleep(<span class="c-num">5</span>)
+
+<span class="c-com"># 在背景 thread 中跑</span>
+<span class="c-key">from</span> threading <span class="c-key">import</span> Thread
+Thread(target=keep_connection, args=(ib,), daemon=<span class="c-num">True</span>).start()</code></pre>
+
+  <div class="note important">
+    <strong>🚨 現實提醒</strong>：回溯測試中保證 100% 重現是不現實的。取消訂單、PT 結算、夜間交易限制這些規則不是 API 可以完全控制的。認真升級到 Live 前, 請先在 Paper 跑 1 個月。
+  </div>
+</section>
+
+<div class="footer">
+  <p><strong>JustKM · IBKR TWS API 中文速查</strong></p>
+  <p style="margin-top:6px;">
+    設計風格參考：
+    <a href="../design-md/library/figma/DESIGN.md" target="_blank">Figma DESIGN.md</a>
+    （隨機抽中 🎲）
+  </p>
+  <p style="margin-top:4px;">
+    資料來源：
+    <a href="https://interactivebrokers.github.io/tws-api/" target="_blank">TWS API 官方文件</a> ·
+    <a href="https://github.com/erdewit/ib_insync" target="_blank">ib_insync Python 套件</a> (3.4k+ stars) ·
+    <a href="https://www.interactivebrokers.com/en/pricing/commissions-home.php" target="_blank">IBKR 定價</a>
+  </p>
+  <p style="margin-top:6px; font-size: 0.875rem; opacity: 0.7;">
+    ⚠️ API 與價格可能隨時變動, 以 <a href="https://www.interactivebrokers.com" target="_blank">interactivebrokers.com</a> 官方公告為準
+  </p>
+</div>
+
+</div>
+
+<script>
+  // ===== 字級調整器（與站內其他 5 頁同步） =====
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      if (valEl) valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { saved = parseFloat(localStorage.getItem(KEY)) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').onclick = () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    };
+    document.getElementById('fa-inc').onclick = () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    };
+    document.getElementById('fa-reset').onclick = () => apply(DEFAULT);
+    document.addEventListener('keydown', (e) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); apply(cur + STEP); }
+      else if (e.key === '-') { e.preventDefault(); apply(cur - STEP); }
+      else if (e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
