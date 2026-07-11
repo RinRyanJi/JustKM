@@ -329,6 +329,32 @@
 
   </div>
 
+  <h2 class="section-title">🗂️ 原始資料（未整理）</h2>
+  <div class="grid" id="raw-materials">
+
+    <a class="topic-card" data-tags="daytrade 美股 交易策略 內線 玩法 籌碼 主力 vwap 主力 炒單 短線" href="./raw/DayTrade/index.html">
+      <div class="topic-icon">📊</div>
+      <div class="topic-name">美股交易策略參考手冊</div>
+      <div class="topic-meta">50KB · DayTrade · 1014 行</div>
+      <div class="topic-desc">日內交易策略集：盤前/盤中/盤後時段、進場訊號、停損停利、籌碼面、技術面、案例研究。深色介面 + 側邊導航</div>
+    </a>
+
+    <a class="topic-card" data-tags="自動化 美股 自動交易 專案計畫 階段 roadmap 量化 production" href="./raw/Survery/Automated_US_Stocks_Project_Plan.md">
+      <div class="topic-icon">🛣️</div>
+      <div class="topic-name">自動化美股分析+自動交易 階段性專案計畫</div>
+      <div class="topic-meta">8.6KB · Survery · 入門→專業 5 階段</div>
+      <div class="topic-desc">從理解環境到 production-grade 自動下單的完整 roadmap。每階段含目標、產出、技術選型、資料來源、測試清單與工時估算</div>
+    </a>
+
+    <a class="topic-card" data-tags="api 調研 比較 美股 即時 行情 yahoo finnhub polygon alpaca ibkr tiingo twelvedata 12家" href="./raw/Survery/US_Stock_Data_API_Survey.md">
+      <div class="topic-icon">🔍</div>
+      <div class="topic-name">美股即時數據 API 調研報告（2025-2026）</div>
+      <div class="topic-meta">7.5KB · Survery · 12 家 API 平台</div>
+      <div class="topic-desc">12 家美股行情 API 完整比較：Y/Finnhub/Polygon/Alpaca/IBKR/Tiingo/Twelve Data/Schwab ... 含費用、WebSocket、逐筆、Python SDK 支援表</div>
+    </a>
+
+  </div>
+
   <p class="empty" id="empty" style="display:none;">沒有符合的結果</p>
 
   <div class="footer">
@@ -351,6 +377,11 @@
       const match = !q || tags.includes(q) || text.includes(q);
       c.style.display = match ? '' : 'none';
       if (match) visible++;
+    });
+    // 兩個 grid 同時搜
+    ['topics', 'raw-materials'].forEach(id => {
+      const g = document.getElementById(id);
+      if (g) g.style.display = g.querySelectorAll('.topic-card:not([style*="display: none"])').length === 0 ? 'none' : '';
     });
     empty.style.display = visible === 0 ? '' : 'none';
   });
