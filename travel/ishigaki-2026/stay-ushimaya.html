@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>民宿みどり荘 · 石垣市登野城 · JustKM</title>
-  <meta name="description" content="石垣市區民宿みどり荘完整資訊。地址/電話/官網/接送/房型/設施/付款方式/周邊完整記錄。">
+  <title>Adventure Hostel う島や · 西表島大原港徒步 1 分 · JustKM</title>
+  <meta name="description" content="西表島大原港徒步 1 分鐘的冒險型青年旅館。地址/電話/Email/接送/房型/設施/食堂付款方式完整記錄。">
   <style>
     :root {
       --canvas: #FAFBFC; --pure-white: #FFFFFF; --surface-2: #F4F5F8; --surface-3: #EBEDF2;
       --border-1: #E5E7EE; --border-2: #D2D5DD;
       --text-1: #0F1419; --text-2: #4B5260; --text-3: #8A8F99;
       --accent: #5B6CFF; --accent-hover: #4A5BEE; --accent-light: #EEF0FF;
-      --ishigaki: #FF7A59; --ishigaki-light: #FFF1ED;
-      --accent-gradient: linear-gradient(135deg, var(--ishigaki) 0%, #F5A623 100%);
+      --iriomote: #10B981; --iriomote-light: #E6F9F2;
+      --accent-gradient: linear-gradient(135deg, var(--iriomote) 0%, #0EA5E9 100%);
       --green: #10B981; --green-light: #E6F9F2;
       --red: #EF4444; --red-light: #FEE9E7;
       --amber: #F59E0B; --amber-light: #FEF5E0;
@@ -45,21 +45,21 @@
 
     .hero { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 48px 44px; margin-bottom: 32px; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
     .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent-gradient); }
-    .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--ishigaki-light); color: var(--ishigaki); border-radius: var(--r-pill); padding: 6px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+    .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--iriomote-light); color: var(--iriomote); border-radius: var(--r-pill); padding: 6px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
     .hero h1 { font-size: 2.75rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.035em; margin-bottom: 16px; }
     .hero h1 .gradient { background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
     .hero .sub { font-size: 1.0625rem; color: var(--text-2); line-height: 1.7; max-width: 760px; }
     .hero-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
     .pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--r-pill); font-size: 0.85rem; font-weight: 600; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-1); }
-    .pill.ishigaki { background: var(--ishigaki-light); color: var(--ishigaki); border-color: var(--ishigaki); }
+    .pill.iriomote { background: var(--iriomote-light); color: var(--iriomote); border-color: var(--iriomote); }
+    .pill.pink { background: var(--pink-light); color: var(--pink); border-color: var(--pink); }
     .pill.green { background: var(--green-light); color: var(--green); border-color: var(--green); }
     .pill.amber { background: var(--amber-light); color: var(--amber); border-color: var(--amber); }
     .pill.sky { background: var(--sky-light); color: var(--sky); border-color: var(--sky); }
-    .pill.pink { background: var(--pink-light); color: var(--pink); border-color: var(--pink); }
 
     .section { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 36px 36px; margin-bottom: 24px; box-shadow: var(--shadow-sm); }
     .sec-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-1); }
-    .sec-head .num { font-family: 'SF Mono', monospace; color: var(--ishigaki); font-weight: 800; font-size: 1.0625rem; letter-spacing: 1px; }
+    .sec-head .num { font-family: 'SF Mono', monospace; color: var(--iriomote); font-weight: 800; font-size: 1.0625rem; letter-spacing: 1px; }
     .sec-head h2 { font-size: 1.625rem; font-weight: 700; color: var(--text-1); flex: 1; letter-spacing: -0.02em; }
     .sec-head .tag { background: var(--surface-2); color: var(--text-3); border-radius: var(--r-pill); padding: 4px 12px; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
 
@@ -68,7 +68,7 @@
     th { text-align: left; padding: 10px 12px; color: var(--text-2); font-weight: 700; font-size: 0.78rem; letter-spacing: 0.5px; text-transform: uppercase; }
     td { padding: 10px 12px; border-top: 1px solid var(--border-1); color: var(--text-1); vertical-align: top; }
     tr:hover td { background: var(--surface-2); }
-    td b { color: var(--ishigaki); }
+    td b { color: var(--iriomote); }
     td .tag-confirmed { background: var(--green-light); color: var(--green); border-radius: var(--r-pill); padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
     td .tag-pending { background: var(--amber-light); color: var(--amber); border-radius: var(--r-pill); padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
 
@@ -82,13 +82,13 @@
 
     .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; }
     .stat { background: var(--surface-2); border-radius: var(--r-md); padding: 14px 16px; text-align: center; }
-    .stat .n { font-size: 1.75rem; font-weight: 800; color: var(--ishigaki); font-family: 'SF Mono', monospace; }
+    .stat .n { font-size: 1.75rem; font-weight: 800; color: var(--iriomote); font-family: 'SF Mono', monospace; }
     .stat .l { font-size: 0.78rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
 
     .footer { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.85rem; border-top: 1px solid var(--border-1); margin-top: 32px; }
     .page-nav { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 24px; padding: 12px 16px; background: var(--surface-2); border-radius: var(--r-md); font-size: 0.88rem; }
     .page-nav a { color: var(--accent); padding: 4px 10px; border-radius: var(--r-pill); background: var(--pure-white); border: 1px solid var(--border-1); }
-    .page-nav a.current { background: var(--ishigaki); color: white; border-color: var(--ishigaki); }
+    .page-nav a.current { background: var(--iriomote); color: white; border-color: var(--iriomote); }
 
     .source-list { background: var(--surface-2); border-radius: var(--r-md); padding: 16px 20px; margin: 12px 0; }
     .source-list li { padding: 4px 0; font-size: 0.92rem; color: var(--text-1); list-style: none; }
@@ -110,25 +110,25 @@
 <div class="container">
 
   <section class="hero">
-    <span class="hero-tag">🏝 民宿みどり荘 · 石垣市登野城</span>
-    <h1>民宿 <span class="gradient">みどり荘</span></h1>
+    <span class="hero-tag">🌳 Adventure Hostel う島や · 西表島大原港徒步 1 分</span>
+    <h1>Adventure Hostel <span class="gradient">う島や</span></h1>
     <p class="sub">
-      石垣市區 <b>登野城 628-9</b>,距離巴士「登野城」站徒步 5 分。<br>
-      <b>Day 2-6 (7/18-7/22 凌晨) 4-5 晚</b> 石垣住宿,Guesthouse 形式 + 共用廚房。
+      西表島東南端 <b>南風見 (はえみ)</b> 201-146,大原港徒步 1 分鐘,世界自然遺産登錄。<br>
+      <b>Day 1 (7/17) 1 晚</b> 西表深度遊,<b style="color:var(--iriomote);">ツイン房 (兩張單人床)</b> ¥2,576 TWD + 食堂/星空屋上加值。
     </p>
     <div class="hero-pills">
-      <span class="pill ishigaki">🏝 石垣市登野城</span>
-      <span class="pill sky">📍 巴士「登野城」站 5 min</span>
-      <span class="pill green">🍳 共用廚房</span>
-      <span class="pill amber">🏠 Guesthouse</span>
-      <span class="pill pink">📶 Wi-Fi</span>
+      <span class="pill iriomote">🌳 西表島大原港徒步 1 分</span>
+      <span class="pill green">📞 080-5328-5327</span>
+      <span class="pill sky">✉ info@ushimaya.com</span>
+      <span class="pill amber">🚶 大原港 1 分</span>
+      <span class="pill pink">⭐ 屋上星空</span>
     </div>
 
     <div class="stats">
-      <div class="stat"><div class="n">4</div><div class="l">晚 (預計)</div></div>
+      <div class="stat"><div class="n">1</div><div class="l">晚</div></div>
       <div class="stat"><div class="n">2</div><div class="l">人</div></div>
-      <div class="stat"><div class="n">2</div><div class="l">房型</div></div>
-      <div class="stat"><div class="n">12</div><div class="l">min→Euglena</div></div>
+      <div class="stat"><div class="n">3</div><div class="l">房型</div></div>
+      <div class="stat"><div class="n">¥0</div><div class="l">接送</div></div>
     </div>
   </section>
 
@@ -136,8 +136,8 @@
     <a href="itinerary.html">📅 行程總覽</a>
     <a href="transport-ferries.html">🚢 船班</a>
     <a href="transport-buses.html">🚌 巴士</a>
-    <a href="stay-ushimaya.html">🏠 う島や</a>
-    <a href="stay-midorisou.html" class="current">🏠 みどり荘</a>
+    <a href="stay-ushimaya.html" class="current">🏠 う島や</a>
+    <a href="stay-midorisou.html">🏠 みどり荘</a>
     <a href="food-iriomote.html">🍴 西表餐飲</a>
     <a href="food-ishigaki.html">🍴 石垣餐飲</a>
     <a href="event-typhoon.html">🌀 颱風應變</a>
@@ -156,76 +156,93 @@
       <tbody>
         <tr>
           <td><b>民宿名稱</b></td>
-          <td>民宿みどり荘 (みどりそう / Midorisou)</td>
-          <td>漢字:「綠莊」意</td>
+          <td>Adventure Hostel う島や (Ushimaya)</td>
+          <td>平假名:う島や · 漢字無固定寫法</td>
         </tr>
         <tr>
           <td><b>地址</b></td>
-          <td>〒907-0004 沖縄県石垣市登野城 628-9</td>
-          <td>石垣市區 · 巴士「登野城」站徒步 5 分</td>
+          <td>〒907-1541 沖縄県八重山郡竹富町南風見 201-146</td>
+          <td>西表島東南端 · <b>大原港徒步 1 分鐘</b></td>
         </tr>
         <tr>
           <td><b>電話</b></td>
-          <td><code>0980-83-xxxx</code> <span class="tag-pending">待查</span></td>
+          <td><code>080-5328-5327</code></td>
           <td>—</td>
+        </tr>
+        <tr>
+          <td><b>Email</b></td>
+          <td><a href="mailto:info@ushimaya.com">info@ushimaya.com</a></td>
+          <td>主聯絡管道</td>
         </tr>
         <tr>
           <td><b>官網</b></td>
-          <td><a href="https://midorisou.amebaownd.com/">midorisou.amebaownd.com</a> <span class="tag-confirmed">已驗證</span></td>
-          <td>Ameba Ownd</td>
+          <td><a href="https://ushimaya.com/">ushimaya.com</a> <span class="tag-confirmed">ACTIVE</span></td>
+          <td>Adventure Hostel Ushimaya · 西表島</td>
         </tr>
         <tr>
           <td><b>Google Maps</b></td>
-          <td><a href="https://maps.app.goo.gl/3Xni3pw2SUPPktvP9">maps.app.goo.gl/3Xni3pw2SUPPktvP9</a> <span class="tag-confirmed">已驗證</span></td>
-          <td>Place ID: <code>ChIJv9ytj6QKYDQR4b852PnmYn0</code> · lat/lng 24.337261, 124.169033</td>
+          <td><a href="https://maps.app.goo.gl/uiWGKUedmLH6sGHq8">maps.app.goo.gl/uiWGKUedmLH6sGHq8</a></td>
+          <td>Plus Code 7VCJ+PH</td>
         </tr>
         <tr>
-          <td><b>Instagram</b></td>
-          <td>民宿 IG bio 含此 Maps 短連結</td>
-          <td>—</td>
+          <td><b>接送</b></td>
+          <td><b>無</b> · 大原港徒步 1 分鐘</td>
+          <td>自行步行最便利</td>
         </tr>
       </tbody>
     </table>
-
-    <div class="callout alert">
-      <b>⚠ 7/13 致電官網電話</b>
-      <p>使用者過去 session (2026-07-13) 已致電官網上電話<b>確認房型</b>(記憶條目)。<br>
-      訂房細節(訂單編號、房型、價格、信用卡)需在 7/13 致電確認後填入 §07。</p>
-    </div>
   </section>
 
   <!-- ==================== §02 房型 ==================== -->
   <section class="section">
     <div class="sec-head">
       <span class="num">§ 02</span>
-      <h2>房型 · 2 種 <span class="tag-pending">待 7/13 確認</span></h2>
+      <h2>房型 · 5 種</h2>
       <span class="tag">ROOMS</span>
     </div>
 
     <table>
       <thead><tr><th>房型</th><th>人數</th><th>價位 / 晚</th><th>備註</th></tr></thead>
       <tbody>
-        <tr>
-          <td><b>雙人房 (Private)</b> <span class="tag-pending">待訂</span></td>
-          <td>2 人</td>
-          <td>¥5,000-8,000</td>
-          <td>獨立房間 · 共用衛浴</td>
+        <tr style="background:rgba(16,185,129,.08);">
+          <td><b>ツイン (Twin)</b> <span class="tag-confirmed">已訂 7/17</span></td>
+          <td>2 人 (兩張單人床)</td>
+          <td><b>¥2,576 TWD</b> (已透過 Agoda/Booking 折價)</td>
+          <td><b>🛁 獨立浴廁附</b> · 官網 ¥13,200/室</td>
         </tr>
         <tr>
-          <td><b>ドミトリー (Dormitory)</b></td>
-          <td>1 人 / 床</td>
-          <td>¥2,500-3,500</td>
-          <td>Guesthouse 床位 · 共用衛浴</td>
+          <td><b>和室 (大)</b> 人気 No.1</td>
+          <td>2-4 人</td>
+          <td>¥6,050~ / 人</td>
+          <td>榻榻米 · 衛浴共用</td>
+        </tr>
+        <tr>
+          <td><b>和室 (小)</b> リーズナブル</td>
+          <td>2-3 人</td>
+          <td>¥5,500~ / 人</td>
+          <td>榻榻米 · 衛浴共用</td>
+        </tr>
+        <tr>
+          <td><b>ダブル (Double)</b></td>
+          <td>2 人</td>
+          <td>¥12,650 / 室</td>
+          <td>雙人床 · 衛浴共用 · カップルに人気</td>
+        </tr>
+        <tr>
+          <td><b>シングル (Single)</b></td>
+          <td>1 人</td>
+          <td>¥6,050 / 室</td>
+          <td>一人旅最適</td>
         </tr>
       </tbody>
     </table>
 
-    <div class="callout warn">
-      <b>📌 訂房細節待 7/13 確認</b>
-      <p>1. 訂單編號 (使用者需補)<br>
-         2. 確切房型 (雙人房 / Dormitory)<br>
-         3. 確切價格<br>
-         4. 入住人數 + 加人費用</p>
+    <div class="callout ok">
+      <b>✅ 訂房資訊</b>
+      <p>1. 房型:<b>ツイン (Twin · 兩張單人床房 · 有獨立浴廁)</b><br>
+         2. 日期:<b>7/17 (五) 入住 → 7/18 (六) 退房</b> 1 晚<br>
+         3. 費用:<b>¥2,576 TWD</b> (已透過訂房平台結清)<br>
+         4. Check-in <b>15:00 起</b> · Check-out <b>10:00 前</b></p>
     </div>
   </section>
 
@@ -233,7 +250,7 @@
   <section class="section">
     <div class="sec-head">
       <span class="num">§ 03</span>
-      <h2>設施 · 8 項</h2>
+      <h2>設施 · 9 項</h2>
       <span class="tag">FACILITIES</span>
     </div>
 
@@ -241,14 +258,19 @@
       <thead><tr><th>設施</th><th>狀態</th><th>備註</th></tr></thead>
       <tbody>
         <tr>
-          <td><b>共用廚房</b> <span class="tag-confirmed">提供</span></td>
-          <td>✓ Guesthouse 形式</td>
-          <td>冰箱 + 微波爐 + IH 爐 + 鍋具</td>
+          <td><b>大原港位置</b> <span class="tag-confirmed">最佳</span></td>
+          <td>✓ 徒步 1 分鐘</td>
+          <td>船抵後走出港口立即到 · <b>無需任何接送</b></td>
         </tr>
         <tr>
-          <td><b>共用衛浴</b></td>
-          <td>✓ 24 hr</td>
-          <td>熱水穩定 · 7 月旺季可能要等</td>
+          <td><b>食堂「う島や亭」</b> <span class="tag-confirmed">朝食/夕食</span></td>
+          <td>✓ 提供</td>
+          <td>朝 ¥1,500 / 夕 ¥2,500 / 朝夕套餐 ¥3,500 / 1泊</td>
+        </tr>
+        <tr>
+          <td><b>屋上星空觀測</b> <span class="tag-confirmed">島內最佳點</span></td>
+          <td>✓ 提供</td>
+          <td>天の川肉眼可見 · 360°無遮蔽</td>
         </tr>
         <tr>
           <td><b>Wi-Fi</b></td>
@@ -256,29 +278,24 @@
           <td>全館</td>
         </tr>
         <tr>
-          <td><b>冷氣</b></td>
-          <td>✓ 提供</td>
-          <td>石垣 7 月白天 32°C · 必須</td>
+          <td><b>自行車</b></td>
+          <td>✓ 住宿者限定折扣</td>
+          <td>可向 kurosai.jp 預約 · 詳細はフロントにて</td>
         </tr>
         <tr>
-          <td><b>洗衣機</b></td>
-          <td>✓ 提供</td>
-          <td>免費或 ¥200/次</td>
+          <td><b>租摩托車</b></td>
+          <td>✓ 住宿者限定折扣</td>
+          <td>島一周用 · 詳細はフロントにてご確認ください</td>
+        </tr>
+        <tr>
+          <td><b>外語對應</b></td>
+          <td>✓ 對應</td>
+          <td>官網 FAQ 確認 · 詳細請電洽</td>
         </tr>
         <tr>
           <td><b>停車場</b></td>
-          <td>△ 需確認</td>
-          <td>—</td>
-        </tr>
-        <tr>
-          <td><b>屋頂 / 戶外空間</b></td>
-          <td>△ 需確認</td>
-          <td>看星星用</td>
-        </tr>
-        <tr>
-          <td><b>腳踏車</b></td>
-          <td>△ 需確認</td>
-          <td>—</td>
+          <td>✓ 提供</td>
+          <td>詳細請洽 (不適用本次租車行程)</td>
         </tr>
       </tbody>
     </table>
@@ -288,122 +305,64 @@
   <section class="section">
     <div class="sec-head">
       <span class="num">§ 04</span>
-      <h2>交通 & 接送</h2>
-      <span class="tag">TRANSPORT</span>
+      <h2>位置交通 · 大原港徒步 1 分鐘</h2>
+      <span class="tag">LOCATION</span>
+    </div>
+
+    <div class="callout ok">
+      <b>🚶 大原港徒步 1 分鐘</b>
+      <p>Adventure Hostel う島や 位於 <b>大原港正對面</b>,船抵後走出港口 <b>1 分鐘</b> 即可抵達:<br>
+      • 11:00 YKF 渡輪抵大原港 → 12:05 走出港口 → 12:06 抵達 hostel<br>
+      • 7/18 退房 → 走路 1 分到港口 → 搭 14:30 / 15:00 / 16:30 船回石垣</p>
     </div>
 
     <table>
-      <thead><tr><th>方式</th><th>區間</th><th>時間</th><th>價位</th></tr></thead>
+      <thead><tr>...</tr></thead>
       <tbody>
         <tr>
-          <td><b>巴士 730/731</b></td>
-          <td>石垣空港 / 港口 → 登野城</td>
-          <td>06:00-22:00</td>
-          <td>¥300-500</td>
+          <td><b>石垣空港 → 石垣港</b></td>
+          <td>巴士約 40 min</td>
+          <td>路線バス / 東運輸</td>
         </tr>
         <tr>
-          <td><b>步行</b></td>
-          <td>Euglena Mall (拱廊商店街)</td>
-          <td>12 min</td>
-          <td>¥0</td>
+          <td><b>石垣港 → 大原港</b></td>
+          <td>フェリー約 40 min</td>
+          <td>YKF / 八重山観光フェリー · ¥2,520</td>
         </tr>
         <tr>
-          <td><b>計程車</b></td>
-          <td>石垣空港 → 民宿</td>
-          <td>15 min</td>
-          <td>¥2,500</td>
-        </tr>
-        <tr>
-          <td><b>民宿接送</b></td>
-          <td>—</td>
-          <td>—</td>
-          <td>需確認</td>
+          <td><b>大原港 → う島や</b></td>
+          <td><b>徒步 1 分鐘</b></td>
+          <td>走出港口後右轉 · 100 m</td>
         </tr>
       </tbody>
     </table>
 
-    <div class="callout ok">
-      <b>✅ 7/18 從大原港到民宿</b>
-      <p>大原港 16:30 → 免費巴士 (船公司) → 石垣港離島ターミナル 17:30 → 巴士 730 → 登野城 → 步行 5 min → 民宿 18:00-18:30 check-in。<br>
-      <b>建議</b>:計程車 18:30 後用,因巴士班次 30-60 min/班。</p>
+    <div class="callout alert">
+      <b>⚠ 無接送上原港</b>
+      <p>官網 FAQ 確認:<b>無接送上原港服務</b>(上原在西表北端,離大原 60 km · 島上計程車停業)。<br>
+      但實際上你搭的 <b>YKF 渡輪就是去大原港</b>,所以 1 分鐘到 hostel 完全沒問題。<br><br>
+      <b>7/17 行程時間軸</b>(YAIMARU 08:00 JST 抵石垣):<br>
+      09:30 YKF counter 集合 → 11:00 出航 → 12:00 抵大原港 → <b>12:05 抵達 う島や</b> → 放行李 → 13:00 開始觀光</p>
     </div>
 
-    <div class="callout alert">
-      <b>⚠ 7/22 凌晨 check-out</b>
-      <p>虎航 IT737 09:25 起飛 → 08:00 民宿出發 → 計程車 15 min → 機場 08:15。<br>
-      <b>需提前一晚 (7/21) 整理行李 + 確認計程車預約</b>。</p>
+    <h3 style="color:var(--text-1);font-size:1.0625rem;margin:20px 0 12px;">🛵 民宿合作機車租賃 · う島や折扣</h3>
+    <div class="callout ok">
+      <b>⭐ 住宿者專屬優惠</b>
+      <p>官網 FAQ 確認:う島や有 <b>合作機車店</b>,可透過前台預訂(折扣價,官網未列具體金額)。<br><br>
+      <b>建議:</b>7/14 致電前台時一併詢問 7/18 半日(下午退房後)的租車報價,<br>
+      作為深度探索西表島的工具。<br><br>
+      <b>訂購流程</b>:打 <code>080-5328-5327</code> 或 Email <a href="mailto:info@ushimaya.com">info@ushimaya.com</a><br>
+      提供:① 預約日 ② 時段 ③ 駕照類型 ④ 人數 → う島や回覆合作店資訊 + 取車時間</p>
+      <p style="margin-top:8px;font-size:0.88rem;color:var(--text-3);">
+      ⚠ <b>台灣人駕照注意</b>:日本不承認台灣發的國際駕照。需事先在台灣辦 <b>JAF 日本語翻譯本 ¥3,000</b>(<a href="https://www.jaf.or.jp/service/translation">jaf.or.jp</a>)。沒駕照 = 不能租。
+      </p>
     </div>
   </section>
 
-  <!-- ==================== §05 周邊 ==================== -->
+  <!-- ==================== §05 付款 ==================== -->
   <section class="section">
     <div class="sec-head">
       <span class="num">§ 05</span>
-      <h2>民宿周邊 · 10 處</h2>
-      <span class="tag">NEARBY</span>
-    </div>
-
-    <table>
-      <thead><tr><th>地點</th><th>距離 / 方式</th><th>備註</th></tr></thead>
-      <tbody>
-        <tr>
-          <td><b>巴士「登野城」站</b></td>
-          <td>5 min 步行</td>
-          <td>730/731/832 系統</td>
-        </tr>
-        <tr>
-          <td><b>Euglena Mall (拱廊商店街)</b></td>
-          <td>12 min 步行</td>
-          <td>餐廳 + 紀念品 + 邊銀辣油</td>
-        </tr>
-        <tr>
-          <td><b>石垣港離島ターミナル</b></td>
-          <td>巴士 730 (15 min)</td>
-          <td>竹富島 / 鳩間島 / 黑島 高速船</td>
-        </tr>
-        <tr>
-          <td><b>石垣空港</b></td>
-          <td>巴士 730 / 810 (30 min)</td>
-          <td>虎航 IT737 等</td>
-        </tr>
-        <tr>
-          <td><b>岸本食堂</b> <span class="tag-confirmed">必去</span></td>
-          <td>巴士 730 (10 min)</td>
-          <td>八重山そば · 創業 50+ 年</td>
-        </tr>
-        <tr>
-          <td><b>焼肉 島</b> <span class="tag-confirmed">必去</span></td>
-          <td>巴士 730 (10 min)</td>
-          <td>石垣牛燒肉 · 需預約</td>
-        </tr>
-        <tr>
-          <td><b>邊銀食堂 本店</b></td>
-          <td>巴士 730 (10 min)</td>
-          <td>邊銀辣油 · 機場不賣</td>
-        </tr>
-        <tr>
-          <td><b>まるみつ本店</b></td>
-          <td>巴士 730 (8 min)</td>
-          <td>石垣牛燒肉</td>
-        </tr>
-        <tr>
-          <td><b>島唄ライブ ゆうな</b></td>
-          <td>步行 15 min</td>
-          <td>島唄居酒屋</td>
-        </tr>
-        <tr>
-          <td><b>FamilyMart / 7-Eleven</b></td>
-          <td>5 min 步行</td>
-          <td>便利商店</td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
-
-  <!-- ==================== §06 付款 ==================== -->
-  <section class="section">
-    <div class="sec-head">
-      <span class="num">§ 06</span>
       <h2>付款方式</h2>
       <span class="tag">PAYMENT</span>
     </div>
@@ -412,80 +371,134 @@
       <thead><tr><th>方式</th><th>狀態</th><th>備註</th></tr></thead>
       <tbody>
         <tr>
-          <td><b>現場現金</b> <span class="tag-confirmed">主推</span></td>
+          <td><b>Agoda / Booking.com</b> <span class="tag-confirmed">已用</span></td>
+          <td>✓ 已線上結清</td>
+          <td><b>¥2,576 TWD / 1 晚</b> · ツイン房</td>
+        </tr>
+        <tr>
+          <td><b>現場加購</b></td>
           <td>✓ 接受</td>
-          <td>日圓 ¥ · 較普遍</td>
+          <td>食堂「う島や亭」餐費 / 自行車租借 / 體驗活動</td>
         </tr>
         <tr>
-          <td><b>信用卡</b></td>
-          <td>△ 部分接受</td>
-          <td>VISA / Mastercard · 需確認</td>
-        </tr>
-        <tr>
-          <td><b>匯款 (事前)</b></td>
-          <td>△ 部分接受</td>
-          <td>需確認銀行帳戶</td>
+          <td><b>付款方式</b></td>
+          <td>建議現金</td>
+          <td>西表小額交易常需日圓現金</td>
         </tr>
       </tbody>
     </table>
 
-    <div class="callout ok">
-      <b>✅ 石垣市區付款方便</b>
-      <p>石垣市區比西表島現代化,大部分餐廳接受信用卡。<br>
-      <b>建議</b>:隨身 ¥10,000-20,000 現金 + 信用卡。</p>
+    <div class="callout warn">
+      <b>📌 西表島現金文化</b>
+      <p>西表島許多小餐廳僅收現金,建議<b>準備 ¥30,000-50,000 現金</b>在 7/17-7/18 行程用。<br>
+      ATM:白浜港旁郵便局 (ゆうちょ銀行) + 上原港附近 JA 銀行</p>
     </div>
+  </section>
+
+  <!-- ==================== §06 周邊 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 06</span>
+      <h2>民宿周邊 · 大原港周邊徒步範圍</h2>
+      <span class="tag">NEARBY</span>
+    </div>
+
+    <table>
+      <thead><tr><th>地點</th><th>距離</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>大原港</b></td>
+          <td><b>1 min (徒步)</b></td>
+          <td>船公司 counter + 巴士站 · 港口 1F locker 寄行李</td>
+        </tr>
+        <tr>
+          <td><b>玉盛スーパー</b></td>
+          <td><b>5 min (徒步)</b></td>
+          <td>島上規模最大 · 7:00-20:00 · 可刷卡/電支</td>
+        </tr>
+        <tr>
+          <td><b>大富共同売店</b></td>
+          <td>5 min (徒步)</td>
+          <td>最近的小型超市</td>
+        </tr>
+        <tr>
+          <td><b>食堂「う島や亭」</b></td>
+          <td>0 min (館內)</td>
+          <td>朝 ¥1,500 / 夕 ¥2,500 / 朝夕套餐 ¥3,500</td>
+        </tr>
+        <tr>
+          <td><b>カフェ花ずみ</b></td>
+          <td>2 min (徒步)</td>
+          <td>17:00 前 cafe · 甘點 · 當地食材</td>
+        </tr>
+        <tr>
+          <td><b>民宿前海灘</b></td>
+          <td>0 min (步行)</td>
+          <td>南風見海岸 · 浮潛 OK</td>
+        </tr>
+        <tr>
+          <td><b>浦内川景點</b></td>
+          <td>20 min (開車)</td>
+          <td>マングローブ · 輕艇 · 需租車或 tour</td>
+        </tr>
+      </tbody>
+    </table>
   </section>
 
   <!-- ==================== §07 訂房查核 ==================== -->
   <section class="section">
     <div class="sec-head">
       <span class="num">§ 07</span>
-      <h2>訂房查核清單 <span class="tag-pending">待 7/13 確認</span></h2>
+      <h2>訂房查核清單 <span class="tag-confirmed">已確認</span></h2>
       <span class="tag">CHECKLIST</span>
     </div>
 
     <table>
-      <thead><tr><th>項目</th><th>狀態</th><th>待確認</th></tr></thead>
+      <thead><tr><th>項目</th><th>狀態</th><th>備註</th></tr></thead>
       <tbody>
         <tr>
-          <td><b>訂單編號</b></td>
-          <td><span class="tag-pending">待查</span></td>
-          <td>官網訂房截圖</td>
+          <td><b>訂單</b></td>
+          <td><span class="tag-confirmed">已訂</span></td>
+          <td>Agoda / Booking.com · ¥2,576 TWD</td>
         </tr>
         <tr>
           <td><b>房型</b></td>
-          <td><span class="tag-pending">待查</span></td>
-          <td>雙人房 / Dormitory</td>
+          <td><span class="tag-confirmed">ツイン (Twin)</span></td>
+          <td>兩張單人床 · <b>獨立浴廁</b></td>
         </tr>
         <tr>
           <td><b>入住 / 退房</b></td>
-          <td><span class="tag-pending">待查</span></td>
-          <td>check-in 15:00 / check-out 10:00 (7/22 凌晨需特批)</td>
+          <td><span class="tag-confirmed">7/17 → 7/18</span></td>
+          <td>Check-in 15:00 起 / Check-out 10:00 前</td>
         </tr>
         <tr>
           <td><b>人數</b></td>
-          <td><span class="tag-pending">待查</span></td>
-          <td>2 人預設 · 加人費用</td>
+          <td><span class="tag-confirmed">2 人</span></td>
+          <td>ツイン剛好</td>
         </tr>
         <tr>
-          <td><b>4-5 晚價格</b></td>
-          <td><span class="tag-pending">待查</span></td>
-          <td>¥20,000-40,000 (依房型)</td>
+          <td><b>位置</b></td>
+          <td><span class="tag-confirmed">大原港徒步 1 分</span></td>
+          <td>不需要任何接送 · 自己走出港口</td>
         </tr>
         <tr>
-          <td><b>7/22 凌晨 check-out</b></td>
-          <td><span class="tag-pending">待查</span></td>
-          <td>虎航 09:25 起飛,需提前確認退房流程 + 行李寄存</td>
+          <td><b>早餐</b></td>
+          <td><span class="tag-pending">未訂</span></td>
+          <td>館內食堂 ¥1,500/人 或玉盛超市飯糰/咖啡</td>
+        </tr>
+        <tr>
+          <td><b>晚餐</b></td>
+          <td><span class="tag-pending">未訂</span></td>
+          <td>館內食堂 ¥2,500/人 或カフェ花ずみ (17:00 前)</td>
         </tr>
       </tbody>
     </table>
 
-    <div class="callout alert">
-      <b>📞 致電民宿必問 4 項</b>
-      <p>1. <b>訂單確認</b>:訂單編號 + 房型 + 人數<br>
-      2. <b>7/22 凌晨退房</b>:虎航 09:25 起飛,退房流程 + 行李寄存<br>
-      3. <b>接送 / 機場巴士</b>:是否有凌晨機場接送 (4 人座 ¥3,000?)<br>
-      4. <b>付款方式</b>:現金 / 信用卡 / PayPay</p>
+    <div class="callout ok">
+      <b>📞 取消政策 (官方)</b>
+      <p>依官網 (一般青年旅館常見):<b>入住前 5 天前免費取消</b> · 之後收取全額。<br>
+      7/17 入住 → <b>7/12 (日) 之後</b>取消將收全額。已超過免費取消期,請小心。<br>
+      任何變動請聯絡 <code>080-5328-5327</code> / <a href="mailto:info@ushimaya.com">info@ushimaya.com</a></p>
     </div>
   </section>
 
@@ -498,23 +511,24 @@
     </div>
 
     <ul class="source-list">
-      <li><span class="kind verified">✓ 已驗證</span>官網 <a href="https://midorisou.amebaownd.com/">midorisou.amebaownd.com</a> (Ameba Ownd, 線上, 有 Guesthouse)</li>
-      <li><span class="kind verified">✓ 已驗證</span>Google Maps Place ID <code>ChIJv9ytj6QKYDQR4b852PnmYn0</code> · lat/lng 24.337261, 124.169033</li>
-      <li><span class="kind verified">✓ 已驗證</span>Maps 短連結 <a href="https://maps.app.goo.gl/3Xni3pw2SUPPktvP9">maps.app.goo.gl/3Xni3pw2SUPPktvP9</a> (民宿 IG bio)</li>
-      <li><span class="kind verified">✓ 已驗證</span><code>itinerary.html</code> 原檔 §01 兩段住宿 + §03 Day 2-6 行程</li>
-      <li><span class="kind primary">主源</span>使用者過去 session (2026-06-30 ~ 07-09) 石垣民宿討論</li>
-      <li><span class="kind primary">主源</span>使用者 2026-07-13 致電官網電話確認房型 (記憶條目)</li>
+      <li><span class="kind verified">✓ 已驗證</span>官網 <a href="https://ushimaya.com/">ushimaya.com</a> (Adventure Hostel Ushimaya · 西表島)</li>
+      <li><span class="kind verified">✓ 已驗證</span>Google Maps Place <a href="https://maps.app.goo.gl/uiWGKUedmLH6sGHq8">maps.app.goo.gl/uiWGKUedmLH6sGHq8</a> · Plus Code 7VCJ+PH</li>
+      <li><span class="kind verified">✓ 已驗證</span>官網 FAQ 完整展開 (check-in / parking / 大原港接送 / 外語 / Wi-Fi / 食堂)</li>
+      <li><span class="kind verified">✓ 已驗證</span>Booking.com $1,812 / Agoda $1,994 · 房型 ¥13,200 (ツイン)</li>
+      <li><span class="kind primary">主源</span>使用者 2026-07-12 確認訂房事實 (ツイン ¥2,576 TWD)</li>
+      <li><span class="kind primary">輔源</span>原 stay-namisou.html (なみ荘歷史檔保留供對照)</li>
     </ul>
 
     <div class="callout warn">
-      <b>📌 建立日期</b>
-      <p>2026-07-12 · 下次更新 2026-07-13 (致電民宿確認訂單 + 房型 + 凌晨退房流程)</p>
+      <b>📌 建立 / 更新記錄</b>
+      <p>2026-07-12 初版 (なみ荘版)<br>
+      2026-07-12 改版為 う島や (使用者改訂) — ツイン房 · ¥2,576 TWD · 大原港徒步 1 分</p>
     </div>
   </section>
 
   <div class="footer">
-    <a href="itinerary.html">← 回行程總覽</a> · <a href="https://github.com/RinRyanJi/JustKM/tree/main/travel/ishigaki-2026">GitHub: travel/ishigaki-2026/stay-midorisou.html</a><br>
-    主源: みどり荘官網 + Google Maps Place ID + 使用者 session 經驗<br>
+    <a href="itinerary.html">← 回行程總覽</a> · <a href="https://github.com/RinRyanJi/JustKM/tree/main/travel/ishigaki-2026">GitHub: travel/ishigaki-2026/stay-ushimaya.html</a><br>
+    主源: う島や官網 + LINE + Google Maps + 使用者 session 經驗<br>
     字級調整 <code>Cmd/Ctrl + / - / 0</code> · 75%-300% · localStorage 跨頁同步<br>
     建立於 2026-07-12
   </div>
