@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>巴士交通 · 西表島 + 石垣市 · JustKM</title>
+  <meta name="description" content="西表島免費巴士 + 路線巴士 + 石垣市 730/731 系統。涵蓋上原-祖納-白浜 + 市區-機場-川平灣。">
+  <style>
+    :root {
+      --canvas: #FAFBFC; --pure-white: #FFFFFF; --surface-2: #F4F5F8; --surface-3: #EBEDF2;
+      --border-1: #E5E7EE; --border-2: #D2D5DD;
+      --text-1: #0F1419; --text-2: #4B5260; --text-3: #8A8F99;
+      --accent: #5B6CFF; --accent-hover: #4A5BEE; --accent-light: #EEF0FF;
+      --bus: #F59E0B; --bus-light: #FEF5E0;
+      --accent-gradient: linear-gradient(135deg, var(--bus) 0%, #FB923C 100%);
+      --green: #10B981; --green-light: #E6F9F2;
+      --red: #EF4444; --red-light: #FEE9E7;
+      --amber: #F59E0B; --amber-light: #FEF5E0;
+      --sky: #0EA5E9; --sky-light: #E0F4FE;
+      --font-scale: 1.15; --base: 18px;
+      --container: 1120px;
+      --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-2xl: 24px; --r-pill: 9999px;
+      --shadow-sm: 0 1px 2px rgba(15, 20, 25, 0.04);
+      --shadow-md: 0 2px 8px rgba(15, 20, 25, 0.06), 0 1px 2px rgba(15, 20, 25, 0.04);
+    }
+    html { font-size: calc(var(--base) * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      background: var(--canvas); color: var(--text-1); line-height: 1.65;
+      min-height: 100vh; -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; transition: color .15s; }
+    a:hover { color: var(--accent-hover); }
+    code { font-family: 'SF Mono', 'JetBrains Mono', Menlo, monospace; font-size: 0.92em; color: var(--accent); background: var(--accent-light); padding: 0.1em 0.4em; border-radius: 4px; }
+
+    .font-adjuster { position: fixed; top: 20px; right: 20px; z-index: 999; background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-pill); padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: var(--shadow-md); }
+    .font-adjuster button { background: var(--surface-2); border: 0; color: var(--text-1); width: 36px; height: 36px; border-radius: var(--r-pill); font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .font-adjuster button:hover { background: var(--accent); color: white; }
+    .font-adjuster .fa-label { font-size: 0.72rem; color: var(--text-3); margin: 0 6px; font-weight: 600; }
+    .font-adjuster .fa-value { font-size: 0.72rem; color: var(--accent); font-weight: 700; min-width: 44px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .container { max-width: var(--container); margin: 0 auto; padding: 32px 28px 96px; }
+
+    .hero { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 48px 44px; margin-bottom: 32px; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent-gradient); }
+    .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--bus-light); color: var(--bus); border-radius: var(--r-pill); padding: 6px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+    .hero h1 { font-size: 2.75rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.035em; margin-bottom: 16px; }
+    .hero h1 .gradient { background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero .sub { font-size: 1.0625rem; color: var(--text-2); line-height: 1.7; max-width: 760px; }
+    .hero-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--r-pill); font-size: 0.85rem; font-weight: 600; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-1); }
+    .pill.bus { background: var(--bus-light); color: var(--bus); border-color: var(--bus); }
+    .pill.green { background: var(--green-light); color: var(--green); border-color: var(--green); }
+    .pill.amber { background: var(--amber-light); color: var(--amber); border-color: var(--amber); }
+    .pill.sky { background: var(--sky-light); color: var(--sky); border-color: var(--sky); }
+    .pill.red { background: var(--red-light); color: var(--red); border-color: var(--red); }
+
+    .section { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 36px 36px; margin-bottom: 24px; box-shadow: var(--shadow-sm); }
+    .sec-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-1); }
+    .sec-head .num { font-family: 'SF Mono', monospace; color: var(--bus); font-weight: 800; font-size: 1.0625rem; letter-spacing: 1px; }
+    .sec-head h2 { font-size: 1.625rem; font-weight: 700; color: var(--text-1); flex: 1; letter-spacing: -0.02em; }
+    .sec-head .tag { background: var(--surface-2); color: var(--text-3); border-radius: var(--r-pill); padding: 4px 12px; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92rem; }
+    thead { background: var(--surface-2); }
+    th { text-align: left; padding: 10px 12px; color: var(--text-2); font-weight: 700; font-size: 0.78rem; letter-spacing: 0.5px; text-transform: uppercase; }
+    td { padding: 10px 12px; border-top: 1px solid var(--border-1); color: var(--text-1); vertical-align: top; }
+    tr:hover td { background: var(--surface-2); }
+    td b { color: var(--bus); }
+    td .tag-free { background: var(--green-light); color: var(--green); border-radius: var(--r-pill); padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
+
+    .callout { border-left: 4px solid var(--accent); background: var(--accent-light); border-radius: var(--r-md); padding: 16px 20px; margin: 16px 0; }
+    .callout.ok { border-color: var(--green); background: var(--green-light); }
+    .callout.warn { border-color: var(--amber); background: var(--amber-light); }
+    .callout.alert { border-color: var(--red); background: var(--red-light); }
+    .callout b { display: block; margin-bottom: 6px; }
+    .callout p { color: var(--text-1); font-size: 0.95rem; line-height: 1.6; }
+    .callout p + p { margin-top: 8px; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; }
+    .stat { background: var(--surface-2); border-radius: var(--r-md); padding: 14px 16px; text-align: center; }
+    .stat .n { font-size: 1.75rem; font-weight: 800; color: var(--bus); font-family: 'SF Mono', monospace; }
+    .stat .l { font-size: 0.78rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+    .footer { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.85rem; border-top: 1px solid var(--border-1); margin-top: 32px; }
+    .page-nav { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 24px; padding: 12px 16px; background: var(--surface-2); border-radius: var(--r-md); font-size: 0.88rem; }
+    .page-nav a { color: var(--accent); padding: 4px 10px; border-radius: var(--r-pill); background: var(--pure-white); border: 1px solid var(--border-1); }
+    .page-nav a.current { background: var(--bus); color: white; border-color: var(--bus); }
+
+    .source-list { background: var(--surface-2); border-radius: var(--r-md); padding: 16px 20px; margin: 12px 0; }
+    .source-list li { padding: 4px 0; font-size: 0.92rem; color: var(--text-1); list-style: none; }
+    .source-list .kind { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: var(--r-pill); margin-right: 8px; }
+    .source-list .kind.primary { background: var(--green-light); color: var(--green); }
+    .source-list .kind.verified { background: var(--green); color: white; }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster">
+  <button id="fa-dec" title="縮小字級">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">115%</span>
+  <button id="fa-inc" title="放大字級">A+</button>
+  <button id="fa-reset" title="重置 115%">100%</button>
+</div>
+
+<div class="container">
+
+  <section class="hero">
+    <span class="hero-tag">🚌 巴士交通 · 西表 + 石垣</span>
+    <h1>巴士 <span class="gradient">交通地圖</span></h1>
+    <p class="sub">
+      <b>西表島</b>免費巴士 + 路線巴士(僅接駁)+ <b>石垣市</b> 730/731/810/812 系統公車。<br>
+      涵蓋 <b>上原-祖納-白浜</b>(西表三港口)+ <b>市區-機場-川平灣</b>(石垣 4 路線)。
+    </p>
+    <div class="hero-pills">
+      <span class="pill bus">🆓 西表免費巴士</span>
+      <span class="pill amber">💴 西表路線巴士</span>
+      <span class="pill sky">🚎 730/731 系統</span>
+      <span class="pill green">🚐 810 機場線</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n">2</div><div class="l">島嶼</div></div>
+      <div class="stat"><div class="n">12+</div><div class="l">路線</div></div>
+      <div class="stat"><div class="n">¥200</div><div class="l">起跳</div></div>
+      <div class="stat"><div class="n">¥0</div><div class="l">免費巴士</div></div>
+    </div>
+  </section>
+
+  <nav class="page-nav">
+    <a href="itinerary.html">📅 行程總覽</a>
+    <a href="transport-ferries.html">🚢 船班</a>
+    <a href="transport-flights.html">✈ 航班</a>
+    <a href="transport-buses.html" class="current">🚌 巴士</a>
+    <a href="stay-namisou.html">🏠 なみ荘</a>
+    <a href="stay-midorisou.html">🏠 みどり荘</a>
+    <a href="food-iriomote.html">🍴 西表餐飲</a>
+    <a href="food-ishigaki.html">🍴 石垣餐飲</a>
+    <a href="event-typhoon.html">🌀 颱風應變</a>
+  </nav>
+
+  <!-- ==================== §01 西表島免費巴士 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 01</span>
+      <h2>西表島 · 免費巴士 <span class="tag-free">FREE</span></h2>
+      <span class="tag">TOLL-FREE</span>
+    </div>
+
+    <div class="callout ok">
+      <b>🆓 西表島免費巴士</b>
+      <p>船公司(八重山觀光フェリー + 安栄觀光)提供:<b>上原港 ⇄ 祖納 ⇄ 白浜</b> 免費接駁巴士,僅服務<b>當日搭船乘客</b>。<br>
+      需出示當日船票 / 訂票代號,座位有限(<b>14 人</b> 廂型車)。<br>
+      路線: <b>上原港 → 住吉 → 祖納 → 大原 → 白浜</b> (反方向亦同)</p>
+    </div>
+
+    <table>
+      <thead><tr><th>路線</th><th>時段</th><th>停靠站</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>上原 → 白浜</b></td>
+          <td>跟船班 (船抵後約 10-15 min)</td>
+          <td>上原港 → 住吉 → 祖納(星野 resort) → 大原 → 白浜港</td>
+          <td>約 60 min · 座位 14 人 · 預約制</td>
+        </tr>
+        <tr>
+          <td><b>白浜 → 上原</b></td>
+          <td>跟船班 (船開前 60 min 接駁)</td>
+          <td>白浜港 → 大原 → 祖納 → 住吉 → 上原港</td>
+          <td>同上</td>
+        </tr>
+        <tr>
+          <td><b>南風見方向</b> <span style="color:var(--red);font-weight:700;">⚠</span></td>
+          <td>—</td>
+          <td>需轉西表島交通巴士 / 民宿自家接送</td>
+          <td>免費巴士<b>不直接到南風見</b>(民宿なみ荘方向)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout alert">
+      <b>⚠ 到南風見(民宿なみ荘)</b>
+      <p>免費巴士<b>只到白浜港</b>,民宿在南風見(白浜以南約 15 km),需:
+      <br>• 選項 A: <b>請民宿接送</b>(免費,但需提前致電預約)
+      <br>• 選項 B: <b>搭西表島交通巴士</b>(¥500 起,班次少)
+      <br>• 選項 C: <b>搭計程車</b>(白浜 → 南風見約 ¥3,000)</p>
+    </div>
+  </section>
+
+  <!-- ==================== §02 西表島交通巴士 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 02</span>
+      <h2>西表島交通 · 路線巴士</h2>
+      <span class="tag">PAID BUS</span>
+    </div>
+
+    <table>
+      <thead><tr><th>路線</th><th>區間</th><th>時段</th><th>價位</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>白浜 ⇄ 上原 ⇄ 大原港 ⇄ 豊原</b></td>
+          <td>全島主要公路</td>
+          <td>1 hr 1 班 (尖峰 30 min)</td>
+          <td>¥200-800 (依距離)</td>
+        </tr>
+        <tr>
+          <td><b>祖納 → 星野 resort</b></td>
+          <td>短程接駁</td>
+          <td>配合船班</td>
+          <td>¥300</td>
+        </tr>
+        <tr>
+          <td><b>大原 → 西表島西部</b></td>
+          <td>西部景點方向</td>
+          <td>1 hr 1 班</td>
+          <td>¥500-1,200</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <b>⚠ 班次極少</b>
+      <p>西表島交通巴士<b>班次 1 hr 1 班</b>(部分時段 2 hr),錯過需等 1-2 hr。<br>
+      建議出發前查 <a href="https://iriomote.com/local-bus/">iriomote.com/local-bus</a> 時刻表。<br>
+      <b>7/17 7 月旺季部分增班</b>,但仍需預留緩衝。</p>
+    </div>
+  </section>
+
+  <!-- ==================== §03 石垣市公車 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 03</span>
+      <h2>石垣市 · 巴士 6 路線</h2>
+      <span class="tag">CITY BUS</span>
+    </div>
+
+    <table>
+      <thead><tr><th>系統</th><th>路線</th><th>主要停靠</th><th>價位</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>730 / 731</b></td>
+          <td>市區循環</td>
+          <td>石垣空港 ⇄ 石垣港離島 ⇄ 巴士中心 ⇄ 登野城</td>
+          <td>¥300-500</td>
+        </tr>
+        <tr>
+          <td><b>810</b></td>
+          <td>機場快線</td>
+          <td>石垣空港 ⇄ 巴士中心 ⇄ 730/731 共線</td>
+          <td>¥500</td>
+        </tr>
+        <tr>
+          <td><b>812 / 813 / 814</b></td>
+          <td>北部川平線</td>
+          <td>巴士中心 ⇄ 川平灣 ⇄ 平久保崎</td>
+          <td>¥500-1,200</td>
+        </tr>
+        <tr>
+          <td><b>832 / 833</b></td>
+          <td>西部玉取崎</td>
+          <td>巴士中心 ⇄ 玉取崎展望台 ⇄ 御神崎</td>
+          <td>¥500-900</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout ok">
+      <b>✅ 三日票推薦</b>
+      <p>石垣市巴士三日票 <b>¥2,000</b>,7/18-7/20 任意三日無限搭。<br>
+      購買地點:石垣空港 / 石垣港離島ターミナル / 巴士中心窗口。</p>
+    </div>
+  </section>
+
+  <!-- ==================== §04 機場巴士 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 04</span>
+      <h2>石垣空港巴士</h2>
+      <span class="tag">AIRPORT</span>
+    </div>
+
+    <table>
+      <thead><tr><th>系統</th><th>路線</th><th>時段</th><th>價位</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>730/731 系統</b></td>
+          <td>機場 ⇄ 巴士中心 ⇄ 登野城 ⇄ 石垣港離島</td>
+          <td>06:00-22:00 (30-60 min/班)</td>
+          <td>¥500</td>
+          <td>虎航航班必搭</td>
+        </tr>
+        <tr>
+          <td><b>810 機場快線</b></td>
+          <td>機場 → 巴士中心直達</td>
+          <td>配合航班密集班次</td>
+          <td>¥500</td>
+          <td>15 min 直達</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <b>⚠ 7/22 凌晨 02:00 虎航班機</b>
+      <p>虎航 IT231 7/22 凌晨 02:00 起飛,<b>7/21 23:30 為最後一班機場巴士</b>。<br>
+      選項:
+      <br>• 選項 A: 7/22 凌晨 <b>01:30 搭計程車</b>(みどり荘 → 機場 ¥2,500,15 min)
+      <br>• 選項 B: 7/21 23:30 搭末班巴士(需提前 21:30 整理好行李)</p>
+    </div>
+  </section>
+
+  <!-- ==================== §05 川平灣巴士 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 05</span>
+      <h2>川平灣 / 平久保崎 巴士</h2>
+      <span class="tag">KABIRA / HIRAKUBO</span>
+    </div>
+
+    <table>
+      <thead><tr><th>系統</th><th>路線</th><th>時段</th><th>價位</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>812 系統</b></td>
+          <td>巴士中心 ⇄ 川平灣</td>
+          <td>08:00-17:00 (1-2 hr/班)</td>
+          <td>¥800</td>
+          <td>川平灣主要班次</td>
+        </tr>
+        <tr>
+          <td><b>813/814 系統</b></td>
+          <td>川平灣 ⇄ 平久保崎</td>
+          <td>10:00-15:00 (3-4 班/日)</td>
+          <td>¥1,200</td>
+          <td>需搭配 812 轉乘</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout ok">
+      <b>✅ 川平灣一日券</b>
+      <p>石垣市巴士一日券 <b>¥1,000</b>,可搭 730/731/810/812/813/814 全系統。<br>
+      Day 2 (7/19) 川平灣日遊建議<b>買一日券</b>。</p>
+    </div>
+  </section>
+
+  <!-- ==================== §06 計程車 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 06</span>
+      <h2>計程車 · 緊急選項</h2>
+      <span class="tag">TAXI</span>
+    </div>
+
+    <table>
+      <thead><tr><th>區間</th><th>價位</th><th>電話</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>石垣空港 → みどり荘</b></td>
+          <td>¥2,500</td>
+          <td><code>石垣空港タクシー 0980-82-5555</code></td>
+          <td>15 min · 24 hr 可叫車</td>
+        </tr>
+        <tr>
+          <td><b>みどり荘 → 石垣空港 (7/22 凌晨)</b></td>
+          <td>¥2,500</td>
+          <td><code>同上 / 東陽タクシ 0980-82-1166</code></td>
+          <td>01:30 出發 · 虎航 02:00 起飛必備</td>
+        </tr>
+        <tr>
+          <td><b>白浜港 → なみ荘 (南風見)</b></td>
+          <td>¥3,000</td>
+          <td><code>西表島タクシー 0980-85-5123</code></td>
+          <td>免費巴士只到白浜,需轉</td>
+        </tr>
+        <tr>
+          <td><b>上原港 → なみ荘</b></td>
+          <td>¥4,000</td>
+          <td><code>同上</code></td>
+          <td>30 km · 60 min</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §07 行程搭配 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 07</span>
+      <h2>行程巴士搭配建議</h2>
+      <span class="tag">ITINERARY</span>
+    </div>
+
+    <table>
+      <thead><tr><th>日</th><th>行程</th><th>主要巴士</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>Day 1 (7/17)</b></td>
+          <td>石垣港 → 上原港 → なみ荘</td>
+          <td>免費巴士 (船公司) → 民宿自家接送</td>
+          <td>船抵後 10-15 min 內發車</td>
+        </tr>
+        <tr>
+          <td><b>Day 2 (7/18)</b></td>
+          <td>大原港 → 石垣港 → みどり荘 → 市區晚餐</td>
+          <td>免費巴士 (船公司) → 730/731</td>
+          <td>三段接駁</td>
+        </tr>
+        <tr>
+          <td><b>Day 3 (7/19)</b></td>
+          <td>川平灣日遊</td>
+          <td>812 → 813/814 → 730/731</td>
+          <td>建議買 <b>石垣市巴士一日券 ¥1,000</b></td>
+        </tr>
+        <tr>
+          <td><b>Day 4 (7/20)</b></td>
+          <td>竹富島日歸</td>
+          <td>步行みどり荘 → 港口 + 高速船</td>
+          <td>島上租單車</td>
+        </tr>
+        <tr>
+          <td><b>Day 5 (7/21)</b></td>
+          <td>石垣市全日</td>
+          <td>730/731 步行 + 市區美食</td>
+          <td>三日票可再用一天</td>
+        </tr>
+        <tr>
+          <td><b>Day 6 (7/22)</b></td>
+          <td>凌晨虎航 02:00</td>
+          <td>01:30 計程車</td>
+          <td>巴士 23:30 為末班</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §08 原始出處 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 08</span>
+      <h2>原始出處彙整</h2>
+      <span class="tag">SOURCES</span>
+    </div>
+
+    <ul class="source-list">
+      <li><span class="kind verified">✓ 已驗</span><code>itinerary.html</code> 原檔 §2.5 西表島交通巴士 + 免費巴士</li>
+      <li><span class="kind primary">主源</span>八重山觀光フェリー <a href="https://www.yaeyama.co.jp/">yaeyama.co.jp</a> · 免費巴士</li>
+      <li><span class="kind primary">主源</span>安栄觀光 <a href="https://www.aneikankou.co.jp/">aneikankou.co.jp</a> · 免費巴士</li>
+      <li><span class="kind primary">主源</span>西表島交通 <a href="https://iriomote.com/local-bus/">iriomote.com/local-bus</a> · 路線巴士時刻表</li>
+      <li><span class="kind primary">主源</span>東運輸 <a href="https://www.azumagroup.co.jp/">azumagroup.co.jp</a> · 石垣市 730/731/810/812</li>
+      <li><span class="kind primary">主源</span>石垣空港タクシー 0980-82-5555 · 東陽タクシ 0980-82-1166 · 西表島タクシー 0980-85-5123</li>
+    </ul>
+
+    <div class="callout warn">
+      <b>📌 待 7/13 確認</b>
+      <p>1. 7/18 大原港 → 石垣港 免費巴士船班配合時刻表<br>
+         2. 石垣市巴士三日票 / 一日券 7 月旺季是否停售<br>
+         3. 川平灣 813/814 平久保崎線 班次 (3-4 班/日)</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    <a href="itinerary.html">← 回行程總覽</a> · <a href="https://github.com/RinRyanJi/JustKM/tree/main/travel/ishigaki-2026">GitHub: travel/ishigaki-2026/transport-buses.html</a><br>
+    主源: 八重山觀光フェリー + 安栄觀光 + 西表島交通 + 東運輸<br>
+    字級調整 <code>Cmd/Ctrl + / - / 0</code> · 75%-300% · localStorage 跨頁同步<br>
+    建立於 2026-07-12 · 下次更新 2026-07-13 (免費巴士船班配合 + 川平灣班次)
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.05; const MIN = 0.75; const MAX = 3.0; const DEFAULT = 1.15;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      if (valEl) valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try {
+      const v = localStorage.getItem(KEY);
+      if (v !== null && v !== undefined && v !== '') {
+        const parsed = parseFloat(v);
+        if (!isNaN(parsed) && parsed >= MIN && parsed <= MAX) saved = parsed;
+      }
+    } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); apply(cur + STEP); }
+      else if (e.key === '-') { e.preventDefault(); apply(cur - STEP); }
+      else if (e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
