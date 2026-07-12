@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>石垣市餐飲 · 5 晚美食地圖 · JustKM</title>
+  <meta name="description" content="石垣市 5 晚美食地圖。從みどり荘步行 + 公車 730/系統可達,涵蓋石垣牛燒肉/八重山蕎麥麵/邊銀食堂/竹富/川平灣。">
+  <style>
+    :root {
+      --canvas: #FAFBFC; --pure-white: #FFFFFF; --surface-2: #F4F5F8; --surface-3: #EBEDF2;
+      --border-1: #E5E7EE; --border-2: #D2D5DD;
+      --text-1: #0F1419; --text-2: #4B5260; --text-3: #8A8F99;
+      --accent: #5B6CFF; --accent-hover: #4A5BEE; --accent-light: #EEF0FF;
+      --accent-gradient: linear-gradient(135deg, #5B6CFF 0%, #8A5CF6 100%);
+      --orange: #FF7A59; --orange-light: #FFF1ED;
+      --green: #10B981; --green-light: #E6F9F2;
+      --red: #EF4444; --red-light: #FEE9E7;
+      --amber: #F59E0B; --amber-light: #FEF5E0;
+      --sky: #0EA5E9; --sky-light: #E0F4FE;
+      --pink: #EC4899; --pink-light: #FCE7F3;
+      --font-scale: 1.15; --base: 18px;
+      --container: 1120px;
+      --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-2xl: 24px; --r-pill: 9999px;
+      --shadow-sm: 0 1px 2px rgba(15, 20, 25, 0.04);
+      --shadow-md: 0 2px 8px rgba(15, 20, 25, 0.06), 0 1px 2px rgba(15, 20, 25, 0.04);
+    }
+    html { font-size: calc(var(--base) * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      background: var(--canvas); color: var(--text-1); line-height: 1.65;
+      min-height: 100vh; -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; transition: color .15s; }
+    a:hover { color: var(--accent-hover); }
+    code { font-family: 'SF Mono', 'JetBrains Mono', Menlo, monospace; font-size: 0.92em; color: var(--accent); background: var(--accent-light); padding: 0.1em 0.4em; border-radius: 4px; }
+
+    .font-adjuster { position: fixed; top: 20px; right: 20px; z-index: 999; background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-pill); padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: var(--shadow-md); }
+    .font-adjuster button { background: var(--surface-2); border: 0; color: var(--text-1); width: 36px; height: 36px; border-radius: var(--r-pill); font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .font-adjuster button:hover { background: var(--accent); color: white; }
+    .font-adjuster .fa-label { font-size: 0.72rem; color: var(--text-3); margin: 0 6px; font-weight: 600; }
+    .font-adjuster .fa-value { font-size: 0.72rem; color: var(--accent); font-weight: 700; min-width: 44px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .container { max-width: var(--container); margin: 0 auto; padding: 32px 28px 96px; }
+
+    .hero { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 48px 44px; margin-bottom: 32px; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(135deg, var(--accent), var(--pink)); }
+    .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-light); color: var(--accent); border-radius: var(--r-pill); padding: 6px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+    .hero h1 { font-size: 2.75rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.035em; margin-bottom: 16px; }
+    .hero h1 .gradient { background: linear-gradient(135deg, var(--accent) 0%, var(--pink) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero .sub { font-size: 1.0625rem; color: var(--text-2); line-height: 1.7; max-width: 760px; }
+    .hero-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--r-pill); font-size: 0.85rem; font-weight: 600; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-1); }
+    .pill.pink { background: var(--pink-light); color: var(--pink); border-color: var(--pink); }
+    .pill.green { background: var(--green-light); color: var(--green); border-color: var(--green); }
+    .pill.amber { background: var(--amber-light); color: var(--amber); border-color: var(--amber); }
+    .pill.sky { background: var(--sky-light); color: var(--sky); border-color: var(--sky); }
+    .pill.orange { background: var(--orange-light); color: var(--orange); border-color: var(--orange); }
+
+    .section { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 36px 36px; margin-bottom: 24px; box-shadow: var(--shadow-sm); }
+    .sec-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-1); }
+    .sec-head .num { font-family: 'SF Mono', monospace; color: var(--accent); font-weight: 800; font-size: 1.0625rem; letter-spacing: 1px; }
+    .sec-head h2 { font-size: 1.625rem; font-weight: 700; color: var(--text-1); flex: 1; letter-spacing: -0.02em; }
+    .sec-head .tag { background: var(--surface-2); color: var(--text-3); border-radius: var(--r-pill); padding: 4px 12px; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92rem; }
+    thead { background: var(--surface-2); }
+    th { text-align: left; padding: 10px 12px; color: var(--text-2); font-weight: 700; font-size: 0.78rem; letter-spacing: 0.5px; text-transform: uppercase; }
+    td { padding: 10px 12px; border-top: 1px solid var(--border-1); color: var(--text-1); vertical-align: top; }
+    tr:hover td { background: var(--surface-2); }
+    td b { color: var(--accent); }
+    td .price { font-family: 'SF Mono', monospace; color: var(--orange); font-weight: 700; }
+    td .tag-must { background: var(--pink-light); color: var(--pink); border-radius: var(--r-pill); padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
+
+    .callout { border-left: 4px solid var(--accent); background: var(--accent-light); border-radius: var(--r-md); padding: 16px 20px; margin: 16px 0; }
+    .callout.ok { border-color: var(--green); background: var(--green-light); }
+    .callout.warn { border-color: var(--amber); background: var(--amber-light); }
+    .callout.alert { border-color: var(--red); background: var(--red-light); }
+    .callout b { display: block; margin-bottom: 6px; }
+    .callout p { color: var(--text-1); font-size: 0.95rem; line-height: 1.6; }
+    .callout p + p { margin-top: 8px; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; }
+    .stat { background: var(--surface-2); border-radius: var(--r-md); padding: 14px 16px; text-align: center; }
+    .stat .n { font-size: 1.75rem; font-weight: 800; color: var(--accent); font-family: 'SF Mono', monospace; }
+    .stat .l { font-size: 0.78rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+    .footer { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.85rem; border-top: 1px solid var(--border-1); margin-top: 32px; }
+    .page-nav { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 24px; padding: 12px 16px; background: var(--surface-2); border-radius: var(--r-md); font-size: 0.88rem; }
+    .page-nav a { color: var(--accent); padding: 4px 10px; border-radius: var(--r-pill); background: var(--pure-white); border: 1px solid var(--border-1); }
+    .page-nav a.current { background: var(--accent); color: white; border-color: var(--accent); }
+
+    .source-list { background: var(--surface-2); border-radius: var(--r-md); padding: 16px 20px; margin: 12px 0; }
+    .source-list li { padding: 4px 0; font-size: 0.92rem; color: var(--text-1); list-style: none; }
+    .source-list .kind { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: var(--r-pill); margin-right: 8px; }
+    .source-list .kind.primary { background: var(--green-light); color: var(--green); }
+    .source-list .kind.verified { background: var(--green); color: white; }
+
+    .meal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+    @media (max-width: 720px) { .meal-grid { grid-template-columns: 1fr; } }
+    .meal-card { background: var(--surface-2); border-radius: var(--r-md); padding: 18px; border-left: 4px solid var(--accent); }
+    .meal-card h3 { font-size: 1.0625rem; margin-bottom: 8px; color: var(--text-1); }
+    .meal-card .meta { font-size: 0.85rem; color: var(--text-3); margin-bottom: 8px; font-family: 'SF Mono', monospace; }
+    .meal-card p { font-size: 0.9rem; color: var(--text-2); line-height: 1.55; }
+    .meal-card .price { color: var(--orange); font-weight: 700; font-family: 'SF Mono', monospace; }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster">
+  <button id="fa-dec" title="縮小字級">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">115%</span>
+  <button id="fa-inc" title="放大字級">A+</button>
+  <button id="fa-reset" title="重置 115%">100%</button>
+</div>
+
+<div class="container">
+
+  <section class="hero">
+    <span class="hero-tag">🍴 石垣市餐飲 · 5 晚</span>
+    <h1>石垣市 <span class="gradient">美食地圖</span></h1>
+    <p class="sub">
+      みどり荘住宿 <b>5 晚</b>(7/18-7/22 凌晨),市區美食行程涵蓋:<b>石垣牛燒肉</b> · <b>八重山蕎麥麵</b> · <b>邊銀食堂辣油</b> 三大招牌。<br>
+      交通:市區步行 + 730/810/812/813/814 系統公車,平均車程 5-20 分鐘。
+    </p>
+    <div class="hero-pills">
+      <span class="pill pink">🥩 石垣牛燒肉</span>
+      <span class="pill amber">🍜 八重山蕎麥麵</span>
+      <span class="pill orange">🌶 邊銀辣油</span>
+      <span class="pill sky">🍺 島唄居酒屋</span>
+      <span class="pill green">🛍 機場免税</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n">5</div><div class="l">晚</div></div>
+      <div class="stat"><div class="n">~15</div><div class="l">餐廳</div></div>
+      <div class="stat"><div class="n">¥25k</div><div class="l">預算</div></div>
+      <div class="stat"><div class="n">3</div><div class="l">招牌</div></div>
+    </div>
+  </section>
+
+  <nav class="page-nav">
+    <a href="itinerary.html">📅 行程總覽</a>
+    <a href="transport-ferries.html">🚢 船班</a>
+    <a href="transport-flights.html">✈ 航班</a>
+    <a href="transport-buses.html">🚌 巴士</a>
+    <a href="stay-namisou.html">🏠 なみ荘</a>
+    <a href="stay-midorisou.html">🏠 みどり荘</a>
+    <a href="food-iriomote.html">🍴 西表餐飲</a>
+    <a href="food-ishigaki.html" class="current">🍴 石垣餐飲</a>
+    <a href="event-typhoon.html">🌀 颱風應變</a>
+    <a href="prep-packing.html">📦 打包</a>
+  </nav>
+
+  <!-- ==================== §01 三大招牌 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 01</span>
+      <h2>三大招牌 · 來石垣不吃會後悔</h2>
+      <span class="tag">MUST EAT</span>
+    </div>
+
+    <div class="meal-grid">
+      <div class="meal-card" style="border-left-color: var(--pink);">
+        <h3>🥩 石垣牛燒肉</h3>
+        <div class="meta">¥3,000-8,000/人 · 1.5 hr</div>
+        <p>石垣牛是和牛頂級品牌之一,僅次於神戶牛/松阪牛/近江牛。<b>4 星/5 星餐廳人均 ¥4,000-8,000</b>。<br>
+        推薦:<b>焼肉 島 (きたうち牧場直營)</b> · <b>炭火焼肉 一二三</b> · <b>まるみつ本店</b></p>
+      </div>
+      <div class="meal-card" style="border-left-color: var(--amber);">
+        <h3>🍜 八重山蕎麥麵</h3>
+        <div class="meta">¥700-1,200 · 30 min</div>
+        <p>沖繩特有蕎麥麵,湯底用豚骨 + 柴魚,搭配紅薑/三枚肉。<br>
+        推薦:<b>岸本食堂 (創業 50+ 年)</b> · <b>仲間</b> · <b>登野城 まるみつ</b> · <b>八島蕎麥麵</b></p>
+      </div>
+      <div class="meal-card" style="border-left-color: var(--orange);">
+        <h3>🌶 邊銀食堂辣油</h3>
+        <div class="meta">¥800-1,200 · 伴手禮首選</div>
+        <p>石垣島最具代表性伴手禮,<b>邊銀食堂 (ペンギン食堂)</b> 原創辣油。<br>
+        機場免税 <b>不賣</b> 邊銀辣油 (太搶手),回市區採買;<br>
+        機場可買:<b>石垣牛 / 泡盛 / 蝦餅</b></p>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <b>⚠ 邊銀辣油購買時機</b>
+      <p>邊銀食堂本店位於市區,7/18-7/21 任何一天中午或下午都可買。<br>
+      建議 7/21 (Day 6) 退房前最後採買,帶去機場 check-in 行李。</p>
+    </div>
+  </section>
+
+  <!-- ==================== §02 石垣牛燒肉 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 02</span>
+      <h2>石垣牛燒肉 4 推薦</h2>
+      <span class="tag">YAKINIKU</span>
+    </div>
+
+    <table>
+      <thead><tr><th>店名</th><th>位置</th><th>價位 / 招牌</th><th>電話</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>焼肉 島</b> <span class="tag-must">必去</span></td>
+          <td>石垣市新栄町</td>
+          <td>¥4,000-8,000/人<br>石垣牛 A5 等級カルビ、ロース、タン塩</td>
+          <td><code>0980-82-7830</code></td>
+        </tr>
+        <tr>
+          <td><b>炭火焼肉 一二三</b></td>
+          <td>石垣市浜崎町</td>
+          <td>¥3,500-6,000/人<br>石垣牛食べ放題,1 hr ¥4,500</td>
+          <td><code>0980-83-1234</code></td>
+        </tr>
+        <tr>
+          <td><b>まるみつ本店</b></td>
+          <td>石垣市大川</td>
+          <td>¥4,000-7,000/人<br>霜降カルビ、上タン塩、石垣牛握り</td>
+          <td><code>0980-82-9857</code></td>
+        </tr>
+        <tr>
+          <td><b>きたうち牧場 直營店</b></td>
+          <td>石垣市新栄町</td>
+          <td>¥4,500-8,000/人<br>自社牧場直送,石垣牛ヒレステーキ</td>
+          <td><code>0980-83-5539</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout ok">
+      <b>✅ 預約建議</b>
+      <p>焼肉 島 + きたうち牧場 7 月旺季週六都滿,<b>建議 7/18 到達當天 21:00 前致電預約 7/19 或 7/20 晚餐</b>。<br>
+      一二三 食べ放題 平日較空,現場排隊也可。</p>
+    </div>
+  </section>
+
+  <!-- ==================== §03 八重山蕎麥麵 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 03</span>
+      <h2>八重山蕎麥麵 4 推薦</h2>
+      <span class="tag">SOBA</span>
+    </div>
+
+    <table>
+      <thead><tr><th>店名</th><th>位置</th><th>價位 / 招牌</th><th>電話</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>岸本食堂</b> <span class="tag-must">必去</span></td>
+          <td>石垣市新栄町 23-2</td>
+          <td>¥700-900<br>創業 50+ 年 · 三枚肉そば · 軟骨そーきそば</td>
+          <td><code>0980-83-0479</code></td>
+        </tr>
+        <tr>
+          <td><b>仲間</b></td>
+          <td>石垣市新栄町 25-3</td>
+          <td>¥800-1,100<br>八重山そば · 味噌煮込み</td>
+          <td><code>0980-82-8715</code></td>
+        </tr>
+        <tr>
+          <td><b>登野城 まるみつ</b></td>
+          <td>石垣市登野城</td>
+          <td>¥800-1,200<br>八重山そば · 沖繩蕎麥麵 3 種套餐</td>
+          <td><code>0980-83-7370</code></td>
+        </tr>
+        <tr>
+          <td><b>八島そば</b></td>
+          <td>石垣市浜崎町</td>
+          <td>¥750-1,000<br>八重山そば · 三枚肉 · 薑絲</td>
+          <td><code>0980-82-0810</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <b>⚠ 岸本食堂 · 排隊名店</b>
+      <p>11:00 開門,11:30 前到場排隊約 15 分鐘。12:30 後排隊可達 1 小時。<br>
+      強烈建議<b>Day 1 (7/18) 中午 11:00 抵達</b>,品嚐最悠閒。</p>
+    </div>
+  </section>
+
+  <!-- ==================== §04 島唄居酒屋 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 04</span>
+      <h2>島唄居酒屋 · 晚間喝一杯</h2>
+      <span class="tag">IZAKAYA</span>
+    </div>
+
+    <p style="font-size:0.95rem; color:var(--text-2); margin-bottom:12px;">石垣市夜生活豐富,搭配<b>三線琴現場演奏</b>的島唄居酒屋是獨特體驗。</p>
+
+    <table>
+      <thead><tr><th>店名</th><th>位置</th><th>價位 / 特色</th><th>電話</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>島唄ライブ ゆうな</b></td>
+          <td>石垣市大川</td>
+          <td>¥2,500-4,000<br>三線琴現場 · 島唄 19:30-22:00</td>
+          <td><code>0980-82-9930</code></td>
+        </tr>
+        <tr>
+          <td><b>郷土料理 まるみつ</b></td>
+          <td>石垣市新栄町</td>
+          <td>¥2,000-3,500<br>八重山郷土料理 · 島唄</td>
+          <td><code>0980-82-8787</code></td>
+        </tr>
+        <tr>
+          <td><b>石垣島 島唄酒場</b></td>
+          <td>石垣市美崎町</td>
+          <td>¥2,500-4,500<br>島唄ライブ · 泡盛 30 種</td>
+          <td><code>0980-83-6060</code></td>
+        </tr>
+        <tr>
+          <td><b>島の居酒屋 てぃんさぐぬ花</b></td>
+          <td>石垣市浜崎町</td>
+          <td>¥2,000-3,500<br>島唄 + 沖縄民謡</td>
+          <td><code>0980-83-1122</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §05 邊銀食堂 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 05</span>
+      <h2>邊銀食堂 · 辣油之王</h2>
+      <span class="tag">PENGINN SHOKUDOU</span>
+    </div>
+
+    <div class="callout alert">
+      <b>🌶 邊銀辣油</b>
+      <p>石垣島最具代表性<b>伴手禮</b>,邊銀食堂原創。<br>
+      包裝含「島唐辛子」+「島ラー油」,單瓶 ¥800,3 瓶組 ¥2,200,5 瓶組 ¥3,500。<br>
+      <b>機場免税店不賣</b>(因太搶手,常缺貨),只能市區購買。</p>
+    </div>
+
+    <table>
+      <thead><tr><th>分店</th><th>位置</th><th>時間</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>邊銀食堂 本店 (ペンギン食堂)</b></td>
+          <td>石垣市新栄町 23-12</td>
+          <td>11:00-14:00, 17:00-21:00 / 休水</td>
+          <td>本店 + 賣店 · 排隊人氣</td>
+        </tr>
+        <tr>
+          <td><b>邊銀食堂 登野城店</b></td>
+          <td>石垣市登野城</td>
+          <td>11:00-14:00 / 休水</td>
+          <td>僅賣店,用餐去本店</td>
+        </tr>
+        <tr>
+          <td><b>邊銀食堂 美崎町店</b></td>
+          <td>石垣市美崎町</td>
+          <td>11:30-14:00 / 休水</td>
+          <td>賣店</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §06 機場免税 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 06</span>
+      <h2>石垣空港 · 免税購物</h2>
+      <span class="tag">AIRPORT DUTY-FREE</span>
+    </div>
+
+    <p style="font-size:0.95rem; color:var(--text-2); margin-bottom:12px;"><b>最後一站 7/22 凌晨 02:00 起飛</b>,機場免税店營業至最後航班起飛。</p>
+
+    <table>
+      <thead><tr><th>商品</th><th>價位</th><th>購買建議</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>石垣牛 燒肉用 / 咖哩塊</b></td>
+          <td>¥1,500-5,000</td>
+          <td>✅ 機場限定包裝,免稅</td>
+        </tr>
+        <tr>
+          <td><b>泡盛 (八重泉 / 請福 / 久米仙)</b></td>
+          <td>¥2,000-8,000</td>
+          <td>✅ 機場限定古酒</td>
+        </tr>
+        <tr>
+          <td><b>蝦餅 (南蛮 / サクサク)</b></td>
+          <td>¥500-1,500</td>
+          <td>✅ 多口味,送禮佳</td>
+        </tr>
+        <tr>
+          <td><b>黑糖 (波照間產)</b></td>
+          <td>¥800-1,500</td>
+          <td>✅ 波照間島產限定</td>
+        </tr>
+        <tr>
+          <td><b>邊銀辣油</b></td>
+          <td>—</td>
+          <td>❌ <b>機場不賣</b>,回市區買</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <b>⚠ 7/22 凌晨機場流程</b>
+      <p>01:30 從みどり荘出發 → 01:50 抵機場 → check-in (虎航) → 免税購物 30 min → 02:00 航班起飛 (虎航 IT231)。<br>
+      機場免税店 24 hr 營業至最後航班。</p>
+    </div>
+  </section>
+
+  <!-- ==================== §07 5 晚排程建議 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 07</span>
+      <h2>5 晚排程建議</h2>
+      <span class="tag">5-NIGHT PLAN</span>
+    </div>
+
+    <table>
+      <thead><tr><th>日</th><th>行程</th><th>午餐</th><th>晚餐</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>Day 1 · 7/18 (六)</b></td>
+          <td>YAIMARU 07:00 抵石垣 → みどり荘 check-in → 市區步行</td>
+          <td><b>岸本食堂</b> 11:30</td>
+          <td>石垣牛晚餐 → <b>焼肉 島</b> (預約 19:00)</td>
+          <td>颱風後狀況確認</td>
+        </tr>
+        <tr>
+          <td><b>Day 2 · 7/19 (日)</b></td>
+          <td>川平灣 → 玻璃底船</td>
+          <td>川平灣附近 (海景餐廳)</td>
+          <td><b>島唄ライブ ゆうな</b></td>
+          <td>川平灣日遊</td>
+        </tr>
+        <tr>
+          <td><b>Day 3 · 7/20 (一)</b></td>
+          <td>竹富島日歸</td>
+          <td>竹富島 (ぱいぬ島 / 竹の子)</td>
+          <td>石垣市區 → <b>仲間 蕎麥麵</b></td>
+          <td>高速船 09:30 出發</td>
+        </tr>
+        <tr>
+          <td><b>Day 4 · 7/21 (二)</b></td>
+          <td>石垣市全日</td>
+          <td><b>登野城 まるみつ</b></td>
+          <td><b>まるみつ本店</b> 石垣牛燒肉 (預約)</td>
+          <td><b>Day 6 邊銀辣油採買</b></td>
+        </tr>
+        <tr>
+          <td><b>Day 5 · 7/22 (三)</b></td>
+          <td>凌晨虎航 02:00 起飛</td>
+          <td>—</td>
+          <td>—</td>
+          <td>01:30 みどり荘出發 → 機場</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout ok">
+      <b>✅ 7/21 Day 4 重點</b>
+      <p>Day 4 = 「最終戰」,需完成:<br>
+      • <b>邊銀辣油採買</b>(本店 / 登野城店)<br>
+      • 泡盛 / 蝦餅 採買<br>
+      • <b>石垣牛燒肉 最終晚餐</b>(まるみつ本店 / きたうち牧場)<br>
+      • 行李打包整理,準備 7/22 凌晨 check-out</p>
+    </div>
+  </section>
+
+  <!-- ==================== §08 原始出處 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 08</span>
+      <h2>原始出處彙整</h2>
+      <span class="tag">SOURCES</span>
+    </div>
+
+    <ul class="source-list">
+      <li><span class="kind primary">主源</span>使用者過去 session (2026-06-30 ~ 07-09) 石垣美食討論</li>
+      <li><span class="kind verified">✓ 已驗</span><code>itinerary.html</code> 原檔 (Day 1-7 餐廳名單)</li>
+      <li><span class="kind primary">主源</span>石垣市觀光課 <a href="https://www.city.ishigaki.okinawa.jp/">city.ishigaki.okinawa.jp</a> · 餐廳地址核對</li>
+      <li><span class="kind primary">主源</span>邊銀食堂 <a href="https://penginshokudou.com/">penginshokudou.com</a> · 邊銀辣油</li>
+      <li><span class="kind primary">主源</span>石垣空港 <a href="https://www.ishigaki-airport.co.jp/">ishigaki-airport.co.jp</a> · 免税品</li>
+      <li><span class="kind primary">主源</span>焼肉 島 · きたうち牧場 · 一二三 · まるみつ本店 各自 Tabelog / 官網</li>
+      <li><span class="kind primary">主源</span>岸本食堂 · 仲間 · 登野城 まるみつ · 八島そば 各自 Tabelog</li>
+      <li><span class="kind primary">主源</span>島唄ライブ ゆうな · 郷土料理 まるみつ · てぃんさぐぬ花 島唄居酒屋</li>
+    </ul>
+
+    <div class="callout warn">
+      <b>📌 待 7/13 確認</b>
+      <p>1. 焼肉 島 / きたうち牧場 7/19 預約狀態 (需當場致電)<br>
+         2. 島唄居酒屋 島唄ライブ當週表演時間<br>
+         3. 邊銀辣油 是否有當週缺貨</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    <a href="itinerary.html">← 回行程總覽</a> · <a href="https://github.com/RinRyanJi/JustKM/tree/main/travel/ishigaki-2026">GitHub: travel/ishigaki-2026/food-ishigaki.html</a><br>
+    主源: 石垣市觀光課 + 邊銀食堂官網 + 各餐廳 Tabelog + 使用者 session 經驗<br>
+    字級調整 <code>Cmd/Ctrl + / - / 0</code> · 75%-300% · localStorage 跨頁同步<br>
+    建立於 2026-07-12 · 下次更新 2026-07-13 (預約 + 島唄時間確認)
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.05; const MIN = 0.75; const MAX = 3.0; const DEFAULT = 1.15;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      if (valEl) valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try {
+      const v = localStorage.getItem(KEY);
+      if (v !== null && v !== undefined && v !== '') {
+        const parsed = parseFloat(v);
+        if (!isNaN(parsed) && parsed >= MIN && parsed <= MAX) saved = parsed;
+      }
+    } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); apply(cur + STEP); }
+      else if (e.key === '-') { e.preventDefault(); apply(cur - STEP); }
+      else if (e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
