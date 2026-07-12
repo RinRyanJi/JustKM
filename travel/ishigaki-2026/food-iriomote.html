@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>西表島餐飲 · 30+ 餐廳地圖 · JustKM</title>
+  <meta name="description" content="西表島 30+ 餐廳地圖,從なみ荘步行 5 分鐘到開車 40 分,分類於南風見/上原/星野/祖納/大原/白浜六區。">
+  <style>
+    :root {
+      --canvas: #FAFBFC; --pure-white: #FFFFFF; --surface-2: #F4F5F8; --surface-3: #EBEDF2;
+      --border-1: #E5E7EE; --border-2: #D2D5DD;
+      --text-1: #0F1419; --text-2: #4B5260; --text-3: #8A8F99;
+      --accent: #5B6CFF; --accent-hover: #4A5BEE; --accent-light: #EEF0FF;
+      --accent-gradient: linear-gradient(135deg, #5B6CFF 0%, #8A5CF6 100%);
+      --orange: #FF7A59; --orange-light: #FFF1ED;
+      --green: #10B981; --green-light: #E6F9F2;
+      --red: #EF4444; --red-light: #FEE9E7;
+      --amber: #F59E0B; --amber-light: #FEF5E0;
+      --sky: #0EA5E9; --sky-light: #E0F4FE;
+      --font-scale: 1.15; --base: 18px;
+      --container: 1120px;
+      --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-2xl: 24px; --r-pill: 9999px;
+      --shadow-sm: 0 1px 2px rgba(15, 20, 25, 0.04);
+      --shadow-md: 0 2px 8px rgba(15, 20, 25, 0.06), 0 1px 2px rgba(15, 20, 25, 0.04);
+    }
+    html { font-size: calc(var(--base) * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      background: var(--canvas); color: var(--text-1); line-height: 1.65;
+      min-height: 100vh; -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; transition: color .15s; }
+    a:hover { color: var(--accent-hover); }
+    code { font-family: 'SF Mono', 'JetBrains Mono', Menlo, monospace; font-size: 0.92em; color: var(--accent); background: var(--accent-light); padding: 0.1em 0.4em; border-radius: 4px; }
+
+    .font-adjuster { position: fixed; top: 20px; right: 20px; z-index: 999; background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-pill); padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: var(--shadow-md); }
+    .font-adjuster button { background: var(--surface-2); border: 0; color: var(--text-1); width: 36px; height: 36px; border-radius: var(--r-pill); font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .font-adjuster button:hover { background: var(--accent); color: white; }
+    .font-adjuster .fa-label { font-size: 0.72rem; color: var(--text-3); margin: 0 6px; font-weight: 600; }
+    .font-adjuster .fa-value { font-size: 0.72rem; color: var(--accent); font-weight: 700; min-width: 44px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .container { max-width: var(--container); margin: 0 auto; padding: 32px 28px 96px; }
+
+    .hero { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 48px 44px; margin-bottom: 32px; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(135deg, #10B981, #5B6CFF); }
+    .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--green-light); color: var(--green); border-radius: var(--r-pill); padding: 6px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+    .hero h1 { font-size: 2.75rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.035em; margin-bottom: 16px; }
+    .hero h1 .gradient { background: linear-gradient(135deg, #10B981 0%, #5B6CFF 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero .sub { font-size: 1.0625rem; color: var(--text-2); line-height: 1.7; max-width: 760px; }
+    .hero-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--r-pill); font-size: 0.85rem; font-weight: 600; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-1); }
+    .pill.green { background: var(--green-light); color: var(--green); border-color: var(--green); }
+    .pill.amber { background: var(--amber-light); color: var(--amber); border-color: var(--amber); }
+    .pill.red { background: var(--red-light); color: var(--red); border-color: var(--red); }
+    .pill.sky { background: var(--sky-light); color: var(--sky); border-color: var(--sky); }
+
+    .section { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 36px 36px; margin-bottom: 24px; box-shadow: var(--shadow-sm); }
+    .sec-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-1); }
+    .sec-head .num { font-family: 'SF Mono', monospace; color: var(--green); font-weight: 800; font-size: 1.0625rem; letter-spacing: 1px; }
+    .sec-head h2 { font-size: 1.625rem; font-weight: 700; color: var(--text-1); flex: 1; letter-spacing: -0.02em; }
+    .sec-head .tag { background: var(--surface-2); color: var(--text-3); border-radius: var(--r-pill); padding: 4px 12px; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.9rem; }
+    thead { background: var(--surface-2); }
+    th { text-align: left; padding: 10px 12px; color: var(--text-2); font-weight: 700; font-size: 0.78rem; letter-spacing: 0.5px; text-transform: uppercase; }
+    td { padding: 10px 12px; border-top: 1px solid var(--border-1); color: var(--text-1); vertical-align: top; }
+    tr:hover td { background: var(--surface-2); }
+    td b { color: var(--accent); }
+    td .tag-y { background: var(--amber-light); color: var(--amber); border-radius: var(--r-pill); padding: 2px 8px; font-size: 0.72rem; font-weight: 600; }
+    td .tag-g { background: var(--green-light); color: var(--green); border-radius: var(--r-pill); padding: 2px 8px; font-size: 0.72rem; font-weight: 600; }
+    td .tag-r { background: var(--red-light); color: var(--red); border-radius: var(--r-pill); padding: 2px 8px; font-size: 0.72rem; font-weight: 600; }
+
+    .callout { border-left: 4px solid var(--accent); background: var(--accent-light); border-radius: var(--r-md); padding: 16px 20px; margin: 16px 0; }
+    .callout.ok { border-color: var(--green); background: var(--green-light); }
+    .callout.warn { border-color: var(--amber); background: var(--amber-light); }
+    .callout.alert { border-color: var(--red); background: var(--red-light); }
+    .callout b { display: block; margin-bottom: 6px; }
+    .callout p { color: var(--text-1); font-size: 0.95rem; line-height: 1.6; }
+    .callout p + p { margin-top: 8px; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; }
+    .stat { background: var(--surface-2); border-radius: var(--r-md); padding: 14px 16px; text-align: center; }
+    .stat .n { font-size: 1.75rem; font-weight: 800; color: var(--green); font-family: 'SF Mono', monospace; }
+    .stat .l { font-size: 0.78rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+    .footer { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.85rem; border-top: 1px solid var(--border-1); margin-top: 32px; }
+    .page-nav { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 24px; padding: 12px 16px; background: var(--surface-2); border-radius: var(--r-md); font-size: 0.88rem; }
+    .page-nav a { color: var(--accent); padding: 4px 10px; border-radius: var(--r-pill); background: var(--pure-white); border: 1px solid var(--border-1); }
+    .page-nav a.current { background: var(--green); color: white; border-color: var(--green); }
+
+    .source-list { background: var(--surface-2); border-radius: var(--r-md); padding: 16px 20px; margin: 12px 0; }
+    .source-list li { padding: 4px 0; font-size: 0.92rem; color: var(--text-1); list-style: none; }
+    .source-list .kind { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: var(--r-pill); margin-right: 8px; }
+    .source-list .kind.primary { background: var(--green-light); color: var(--green); }
+    .source-list .kind.verified { background: var(--green); color: white; }
+
+    .legend { display: flex; gap: 12px; flex-wrap: wrap; padding: 10px 14px; background: var(--surface-2); border-radius: var(--r-md); font-size: 0.85rem; margin: 12px 0; }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; color: var(--text-2); }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster">
+  <button id="fa-dec" title="縮小字級">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">115%</span>
+  <button id="fa-inc" title="放大字級">A+</button>
+  <button id="fa-reset" title="重置 115%">100%</button>
+</div>
+
+<div class="container">
+
+  <section class="hero">
+    <span class="hero-tag">🍴 西表島餐飲 · 30+ 餐廳</span>
+    <h1>西表島 <span class="gradient">餐廳地圖</span></h1>
+    <p class="sub">
+      從 <b>なみ荘住宿 (南風見 201-60)</b> 步行 5 分鐘到開車 40 分,六區 30+ 餐廳,涵蓋超市、早餐、午餐、晚餐、咖啡、夜間飲料。<br>
+      <b>重要事實</b>:西表島<b>完全沒有便利商店</b>(LAWSON/FamilyMart/7-11 都沒有),島上 5 家超市最晚 20:00 關門。
+    </p>
+    <div class="hero-pills">
+      <span class="pill red">🚨 無便利商店</span>
+      <span class="pill amber">⚠ 多數僅收現金</span>
+      <span class="pill green">🌳 なみ荘步行 5 分</span>
+      <span class="pill sky">🚗 預約重要</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n">30+</div><div class="l">餐廳</div></div>
+      <div class="stat"><div class="n">6</div><div class="l">區域</div></div>
+      <div class="stat"><div class="n">5</div><div class="l">超市 (20:00 關)</div></div>
+      <div class="stat"><div class="n">2</div><div class="l">日夜餐</div></div>
+    </div>
+  </section>
+
+  <nav class="page-nav">
+    <a href="itinerary.html">📅 行程總覽</a>
+    <a href="transport-ferries.html">🚢 船班</a>
+    <a href="transport-flights.html">✈ 航班</a>
+    <a href="transport-buses.html">🚌 巴士</a>
+    <a href="stay-namisou.html">🏠 なみ荘</a>
+    <a href="stay-midorisou.html">🏠 みどり荘</a>
+    <a href="food-iriomote.html" class="current">🍴 西表餐飲</a>
+    <a href="food-ishigaki.html">🍴 石垣餐飲</a>
+    <a href="event-typhoon.html">🌀 颱風應變</a>
+    <a href="prep-packing.html">📦 打包</a>
+  </nav>
+
+  <div class="callout alert">
+    <b>🚨 重要事實 · 西表島無便利商店</b>
+    <p>西表島<b>完全沒有便利商店</b>(LAWSON / FamilyMart / 7-11 都沒有)。島上 5 家超市最晚 20:00 關門,夜間需備糧。建議出發前在石垣採買零食/飲料/水。</p>
+  </div>
+
+  <!-- ==================== §01 南風見集落 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 01</span>
+      <h2>なみ荘 步行 5 分鐘內 · 南風見集落</h2>
+      <span class="tag">FROM NAMISOU</span>
+    </div>
+
+    <div class="legend">
+      <span class="legend-item"><span class="tag-g">現</span> 現金</span>
+      <span class="legend-item"><span class="tag-y">卡</span> 現金+卡</span>
+      <span class="legend-item"><span class="tag-r">預</span> 需預約</span>
+    </div>
+
+    <table>
+      <thead><tr><th>店名</th><th>類型</th><th>時間 / 休日</th><th>人氣 / 付款</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>カフェ花ずみ西表島</b></td>
+          <td>健康定食・ティーハウス</td>
+          <td>11:30-17:00 / <b>休火</b></td>
+          <td>グルテンフリーベジカレー、おまかせご膳、紅茶<br><span class="tag-y">現金 only</span></td>
+        </tr>
+        <tr>
+          <td><b>なみ荘喫茶部</b></td>
+          <td>カフェ・甘味 (就是你住的民宿)</td>
+          <td>午後營業 / <b>休日月</b></td>
+          <td>ナミムナー焼き人形燒、自家栽培シークヮサーソーダ、アフォガート<br><span class="tag-g">現金・卡・電支</span></td>
+        </tr>
+        <tr>
+          <td><b>南の島のテイクアウト食堂 あい</b></td>
+          <td>焼き立てピザ / ハンバーガー弁当</td>
+          <td>12:00-14:00, 17:00-20:00 / <b>休月</b></td>
+          <td>ピザ、ハンバーガー、みや豚のしょうが焼き弁当<br><span class="tag-y">現金 only</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:1.0625rem;margin:20px 0 8px;">🛒 超市 (步行 2 分鐘)</h3>
+    <table>
+      <thead><tr><th>超市</th><th>地址</th><th>時間</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr><td><b>玉盛スーパー</b> ⭐</td><td>南風見 201-73</td><td>7:00-20:00</td><td>島上最大,可刷卡/電子支付</td></tr>
+        <tr><td><b>大富共同売店</b></td><td>南風見仲 29-52</td><td>較短</td><td>較小但最近</td></tr>
+        <tr><td><b>川満スーパー</b></td><td>—</td><td>7:00-20:30</td><td>關最晚</td></tr>
+        <tr><td><b>西表島食品スーパー</b></td><td>—</td><td>7:00-20:00</td><td>—</td></tr>
+        <tr><td><b>みなとのやおや (星砂)</b></td><td>—</td><td>—</td><td>蔬果</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout ok">
+      <b>✅ 7/17 晚餐建議</b>
+      <p>走路 2 分鐘到 <b>カフェ花ずみ</b>(17:00 前)或 5 分鐘到 <b>なみ荘喫茶部</b>(咖啡+甘點)。7/18 早餐民宿本身提供,或走到 <b>花ずみ</b> / <b>玉盛超市</b>。</p>
+    </div>
+  </section>
+
+  <!-- ==================== §02 上原港 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 02</span>
+      <h2>上原港周邊 · 開車 30-40 分鐘</h2>
+      <span class="tag">UEHARA PORT</span>
+    </div>
+
+    <table>
+      <thead><tr><th>店名</th><th>類型</th><th>時間 / 休日</th><th>人氣 / 付款</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>西表の少年</b></td>
+          <td>早午餐・カフェ</td>
+          <td>7:30-15:00 / <b>休冬季 12-2 月</b></td>
+          <td>エッグベネディクト、黒糖フレンチトースト、キーマタコライス<br><span class="tag-y">現金</span></td>
+        </tr>
+        <tr>
+          <td><b>ラフ・ラ・ガーデン</b></td>
+          <td>ハンバーガー / 和食</td>
+          <td>11:30-14:00, 18:30-21:00 / <b>休木</b></td>
+          <td>タコスチーズバーガー、石垣豚の味噌カツ定食、ソフトクリーム<br><span class="tag-g">現金・卡・電支</span></td>
+        </tr>
+        <tr>
+          <td><b>Cafe なかゆくい</b></td>
+          <td>海景カフェ</td>
+          <td>13:00-17:00 / <b>休火水+不定休</b></td>
+          <td>カプチーノ、自家製チーズケーキ<br><span class="tag-y">現金</span></td>
+        </tr>
+        <tr>
+          <td><b>Coffee etomoiri</b></td>
+          <td>コーヒー専門店</td>
+          <td>10:00-14:00 / <b>不定休</b></td>
+          <td>ブラックコーヒー、ラテ、自家焙煎豆<br><span class="tag-y">現金</span></td>
+        </tr>
+        <tr>
+          <td><b>美々 (パーラー美々)</b></td>
+          <td>沖縄そば・ジュース</td>
+          <td>11:00-14:00, 18:00-21:00 / <b>休火月(夜)</b></td>
+          <td>軟骨ソーキそば、生マンゴージュース<br><span class="tag-y">現金</span></td>
+        </tr>
+        <tr>
+          <td><b>南国ごはん じーなー Jeener</b></td>
+          <td>南洋家庭料理</td>
+          <td>11:30-14:00, 17:00-21:00 / <b>休水(夜)</b></td>
+          <td>南国家庭料理<br><span class="tag-y">現金</span></td>
+        </tr>
+        <tr>
+          <td><b>一隼 (いちたか)</b></td>
+          <td>居酒屋・石窯ピザ</td>
+          <td>17:00-23:00 / <b>不定休</b></td>
+          <td>石窯ピザ、アダンのサクサク揚げ、ソーキ窯焼き、ピザ可帶回<br><span class="tag-g">現金・卡・接送有</span></td>
+        </tr>
+        <tr>
+          <td><b>デンサ―食堂</b></td>
+          <td>定食・そば</td>
+          <td>11:30-17:00 / <b>休水</b></td>
+          <td>八重山そば定食<br><span class="tag-y">現金</span></td>
+        </tr>
+        <tr>
+          <td><b>島ぐるめ ROCO</b></td>
+          <td>魚料理居酒屋</td>
+          <td>18:00-21:30 / <b>休水</b></td>
+          <td>島魚のマース煮、アヒージョ、海人老闆當天釣的魚<br><span class="tag-y">現金・接送有</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §03 星野區 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 03</span>
+      <h2>上原→住吉 · 星野 resort 區 · 車 5-15 分</h2>
+      <span class="tag">HOSHINO AREA</span>
+    </div>
+
+    <table>
+      <thead><tr><th>店名</th><th>類型</th><th>時間 / 休日</th><th>人氣 / 付款</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>島イタリアン en</b></td>
+          <td>義大利餐</td>
+          <td>18:00-23:00 / <b>休土日</b></td>
+          <td>島魚アクアパッツァ、黒毛和牛ラグーパスタ、窯焼きピザ<br><span class="tag-y">現金</span></td>
+        </tr>
+        <tr>
+          <td><b>巴里のごはんや</b></td>
+          <td>洋食 (北海道×島)</td>
+          <td>18:00-23:00 / <b>休火水</b></td>
+          <td>イカスミ入り焼きミートカレー、ソーキ赤ワイン煮<br><span class="tag-y">現金・1 杯飲料可接送</span></td>
+        </tr>
+        <tr>
+          <td><b>ほしずな亭</b></td>
+          <td>沖縄家庭料理</td>
+          <td>12:00-14:00, 18:00-20:00 / <b>不定休</b></td>
+          <td>ふーちゃんぷる定食(島民 No.1)、パパイアちゃんぷる<br><span class="tag-y">現金</span></td>
+        </tr>
+        <tr>
+          <td><b>唐変木 (とうへんぼく)</b> ⭐</td>
+          <td>沖縄郷土</td>
+          <td>11:30-17:00 / <b>休火水</b></td>
+          <td><b>イカのスミ汁そば (島內必吃 No.1!)</b>、カマイチャンプル<br><span class="tag-y">現金・免預約</span></td>
+        </tr>
+        <tr>
+          <td><b>HOOK BY BRIDGE</b></td>
+          <td>海鮮居酒屋 (月ヶ浜海景)</td>
+          <td>18:00-23:00 / <b>休木</b></td>
+          <td>島魚カルパッチョ、アクアパッツァ、明太もずくパスタ<br><span class="tag-g">現金・卡・電支</span></td>
+        </tr>
+        <tr>
+          <td><b>里主 (さとぬし)</b></td>
+          <td>海景居酒屋 (うなりざき)</td>
+          <td>18:00-22:00 / <b>休火</b></td>
+          <td>カマイの刺身、グルクン香草焼き、ピザ<br><span class="tag-g">現金・VISA</span></td>
+        </tr>
+        <tr>
+          <td><b>キッチン inaba</b> ⭐</td>
+          <td>沖縄+洋食</td>
+          <td>11:30-14:30, 18:00-22:30 / <b>休月</b></td>
+          <td><b>イラブー汁 (島內唯一)</b>、ラフテー丼<br><span class="tag-g">現金・TS3/VISA/Master</span></td>
+        </tr>
+        <tr>
+          <td><b>HANG</b></td>
+          <td>海邊島バル</td>
+          <td>不定</td>
+          <td>アウトドア氣氛,島料理<br><span class="tag-r">待確認</span></td>
+        </tr>
+        <tr>
+          <td><b>ぽけっとはうす</b></td>
+          <td>居酒屋・Bar</td>
+          <td>18:00-21:30 居酒屋 / 21:30 後變 Bar</td>
+          <td>居酒屋メニュー<br><span class="tag-y">現金・接送有</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §04 祖納/干立 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 04</span>
+      <h2>祖納/干立 · 西表島中心 · 車 20-30 分</h2>
+      <span class="tag">SONAI / HIDATE</span>
+    </div>
+
+    <table>
+      <thead><tr><th>店名</th><th>類型</th><th>時間 / 休日</th><th>人氣 / 付款</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>リストランテ・テラ・イリオモテ</b></td>
+          <td>本格義大利+ジェラート</td>
+          <td>昼 11:30-16:00, 夜 19:00-21:00 <span class="tag-r">(完全預約)</span> / <b>休日月</b></td>
+          <td>週替わりパスタランチ、ジェラート (月桃/パッションフルーツ)<br><span class="tag-y">現金</span></td>
+        </tr>
+        <tr>
+          <td><b>カフェリコ</b></td>
+          <td>古民家カフェ</td>
+          <td>13:30-16:00 (週 3~4 天) / <b>不定休</b></td>
+          <td>自家焙りコーヒー、黒糖ガレット、かき氷、畳席可躺<br><span class="tag-y">現金</span></td>
+        </tr>
+        <tr>
+          <td><b>島のカレー処ひよこ</b></td>
+          <td>スパイスカレー</td>
+          <td>昼 11:00-14:00, 夜 18:00-20:00 / <b>休火</b></td>
+          <td>チキンカレー、ひよこ豆カレー、日替カレー (カマイ等)<br><span class="tag-y">現金</span></td>
+        </tr>
+        <tr>
+          <td><b>片桐</b></td>
+          <td>手打ち中華蕎麦</td>
+          <td>昼 11:30-14:00, 夜 18:00-21:00 / <b>休水</b></td>
+          <td>醬油ラーメン、味噌、タンタンメン、手打ち餃子<br><span class="tag-y">現金・免預約</span></td>
+        </tr>
+        <tr>
+          <td><b>百香果 (ももかか)</b></td>
+          <td>アジア料理</td>
+          <td>11:00-16:00 / <b>休日月</b></td>
+          <td>週替りアジアおばんざい,已<b>閉店</b></td>
+        </tr>
+        <tr>
+          <td><b>Mei Mei</b></td>
+          <td>中華・居酒屋</td>
+          <td>18:00-21:00 / <b>休日水</b></td>
+          <td>中華居酒屋<br><span class="tag-y">現金</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §05 大原/白浜 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 05</span>
+      <h2>大原港/白浜 · 車 30-40 分</h2>
+      <span class="tag">OHARA / SHIRAHAMA</span>
+    </div>
+
+    <table>
+      <thead><tr><th>店名</th><th>類型</th><th>時間 / 休日</th><th>人氣 / 付款</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>キッチンまつやま</b></td>
+          <td>洋食</td>
+          <td>11:00-14:00, 18:00-20:00 / <b>休土日</b></td>
+          <td>タコライス、ラフテー丼、ヒレカツ<br><span class="tag-y">現金</span></td>
+        </tr>
+        <tr>
+          <td><b>KamuRe (カムレ) 釣&喫茶</b></td>
+          <td>釣魚+喫茶</td>
+          <td>不定</td>
+          <td>釣魚+餐飲體驗<br><span class="tag-r">待確認</span></td>
+        </tr>
+        <tr>
+          <td><b>AZAHAEMI (字南風見)</b></td>
+          <td>—</td>
+          <td>—</td>
+          <td>—<br><span class="tag-r">待確認</span></td>
+        </tr>
+        <tr>
+          <td><b>白浜そば</b> (一隼經營)</td>
+          <td>沖縄そば・居酒屋</td>
+          <td>昼 11:00-14:00, 夜 17:00-21:00 / <b>休月火</b></td>
+          <td>平麺沖縄そば、夜有居酒屋メニュー<br><span class="tag-y">現金</span></td>
+        </tr>
+        <tr>
+          <td><b>ナナシカフェ</b></td>
+          <td>台灣・越南風アジア料理</td>
+          <td>13:00-16:00 / <b>休火水</b></td>
+          <td>鶏フォー、生春巻き、越南咖啡、マンゴーデザート<br><span class="tag-y">現金</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §06 使用者提到但無法驗證 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 06</span>
+      <h2>無法驗證的店家 · 建議現場詢問</h2>
+      <span class="tag">UNVERIFIED</span>
+    </div>
+
+    <div class="callout alert">
+      <b>⚠ 使用者特別提到但子代理無法驗證</b>
+      <p>下列店名在 pipi / teisan-shima-life / TripAdvisor / Brave Search 都未確認。可能是<b>名稱誤記、私營店、臨時屋台</b>,建議到現場詢問當地人或民宿老闆。</p>
+    </div>
+
+    <table>
+      <thead><tr><th>店名</th><th>狀態</th></tr></thead>
+      <tbody>
+        <tr><td><b>まるみつ商店</b></td><td>多數攻略網未列為西表島餐廳。pipi 部落格文題雖有此字,但內文無此店資訊。可能是名稱誤記。</td></tr>
+        <tr><td><b>さよこの店</b></td><td>在 pipi 等在地來源完全找不到記錄。</td></tr>
+        <tr><td><b>とかしき</b></td><td>同上,無法驗證。</td></tr>
+        <tr><td><b>竹盛食堂</b></td><td><b>竹盛</b> 是民宿名(たけもり inn)而非食堂。</td></tr>
+        <tr><td><b>南風見花風車 café</b></td><td><span class="tag-r">不存在</span>。kazaguruma-iriomote.jp 是カヌーツア業者(風車),不是 café。</td></tr>
+        <tr><td><b>Pipi café</b></td><td><span class="tag-r">不存在</span>。PiPi 是當地旅行社品牌(iriomote-pipi.com)。</td></tr>
+        <tr><td><b>神福草地かまい屋台 / 爽夏屋台 / 秋祈ビーチ / マリューシュタンド爽夏 / 食ふだ外寿呂</b></td><td>在公開資料中<b>無法驗證</b>,可能是非公開/臨時/個人營業,<b>建議現場詢問</b>。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §07 6 大建議 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 07</span>
+      <h2>實用建議 · 6 條</h2>
+      <span class="tag">TIPS</span>
+    </div>
+
+    <ol style="padding-left:24px;line-height:1.85;color:var(--text-1);font-size:0.95rem;">
+      <li><b>7/17 晚餐</b>:走路 2 分鐘到 <b>カフェ花ずみ</b>(17:00 前)或 5 分鐘到 <b>なみ荘喫茶部</b>(咖啡+甘點)</li>
+      <li><b>7/18 早上早餐</b>:民宿本身提供早餐,或走路到 <b>花ずみ</b> / <b>玉盛超市</b></li>
+      <li><b>晚上 18:00 後想正餐</b>:幾乎所有餐廳都在上原港一帶,需開車 30+ 分鐘;或請 なみ荘 老闆介紹附近食堂</li>
+      <li><b>預約重要</b>:島上多數晚餐店家週六/旺季時段都滿,<b>請於當天 14:00 前打電話確認</b></li>
+      <li><b>務必備現金</b>:多數店只收現金;一隼 / HOOK / en / ラフ・ラ / 花ずみ 收卡</li>
+      <li><b>夜間無便利商店</b>:玉盛超市 7:00-20:00,川満超市 7:00-20:30;超時可從超市買便當/飲料回民宿</li>
+    </ol>
+  </section>
+
+  <!-- ==================== §08 原始出處 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 08</span>
+      <h2>原始出處彙整</h2>
+      <span class="tag">SOURCES</span>
+    </div>
+
+    <ul class="source-list">
+      <li><span class="kind primary">主源</span><a href="https://teisan-shima-life.com">teisan-shima-life.com</a> · 西表島在地夫婦駐站 (2021~2025) — <b>最完整店家資料庫</b></li>
+      <li><span class="kind primary">主源</span><a href="https://iriomote-tour.com">iriomote-tour.com</a> · 2026 最新晚餐/咖啡廳專文</li>
+      <li><span class="kind primary">主源</span><a href="https://iriomotehotel-concierge.com">iriomotehotel-concierge.com</a> · 星野 resort 官方周邊餐廳</li>
+      <li><span class="kind primary">主源</span><a href="https://iriomote-pipi.com">iriomote-pipi.com</a> · 在地旅行社 10 家餐廳+超市文</li>
+      <li><span class="kind primary">主源</span><a href="https://trip-u-log.com">trip-u-log.com</a> · 超市/賣店</li>
+      <li><span class="kind verified">✓ 已驗</span>子代理 2026-07-12 報告 <code>/Users/caro/.hermes/cache/delegation/subagent-summary-1-20260712_095627_002365.txt</code></li>
+      <li><span class="kind verified">✓ 已驗</span>使用者 session 2026-07-12 西表島地圖規劃</li>
+    </ul>
+  </section>
+
+  <div class="footer">
+    <a href="itinerary.html">← 回行程總覽</a> · <a href="https://github.com/RinRyanJi/JustKM/tree/main/travel/ishigaki-2026">GitHub: travel/ishigaki-2026/food-iriomote.html</a><br>
+    主源: teisan-shima-life.com + iriomote-tour.com + 星野 concierge + iriomote-pipi.com + trip-u-log.com<br>
+    字級調整 <code>Cmd/Ctrl + / - / 0</code> · 75%-300% · localStorage 跨頁同步<br>
+    建立於 2026-07-12 · 子代理繞過 Google/Bing/Jalan/Tabelog 反爬蟲,改用 Brave Search 突破
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.05; const MIN = 0.75; const MAX = 3.0; const DEFAULT = 1.15;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      if (valEl) valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try {
+      const v = localStorage.getItem(KEY);
+      if (v !== null && v !== undefined && v !== '') {
+        const parsed = parseFloat(v);
+        if (!isNaN(parsed) && parsed >= MIN && parsed <= MAX) saved = parsed;
+      }
+    } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); apply(cur + STEP); }
+      else if (e.key === '-') { e.preventDefault(); apply(cur - STEP); }
+      else if (e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
