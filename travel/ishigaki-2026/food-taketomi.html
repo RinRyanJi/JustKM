@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>竹富島餐飲 · ぱいぬ島/竹の子/水牛車 · JustKM</title>
+  <meta name="description" content="竹富島日歸美食。ぱいぬ島 (霜淇淋) / 竹の子 (八重山そば) / 民宿餐廳 5 間,半日可達。">
+  <style>
+    :root {
+      --canvas: #FAFBFC; --pure-white: #FFFFFF; --surface-2: #F4F5F8; --surface-3: #EBEDF2;
+      --border-1: #E5E7EE; --border-2: #D2D5DD;
+      --text-1: #0F1419; --text-2: #4B5260; --text-3: #8A8F99;
+      --accent: #5B6CFF; --accent-hover: #4A5BEE; --accent-light: #EEF0FF;
+      --taketomi: #FF7A59; --taketomi-light: #FFF1ED;
+      --accent-gradient: linear-gradient(135deg, var(--taketomi) 0%, #F5A623 100%);
+      --green: #10B981; --green-light: #E6F9F2;
+      --red: #EF4444; --red-light: #FEE9E7;
+      --amber: #F59E0B; --amber-light: #FEF5E0;
+      --sky: #0EA5E9; --sky-light: #E0F4FE;
+      --font-scale: 1.15; --base: 18px;
+      --container: 1120px;
+      --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-2xl: 24px; --r-pill: 9999px;
+      --shadow-sm: 0 1px 2px rgba(15, 20, 25, 0.04);
+      --shadow-md: 0 2px 8px rgba(15, 20, 25, 0.06), 0 1px 2px rgba(15, 20, 25, 0.04);
+    }
+    html { font-size: calc(var(--base) * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      background: var(--canvas); color: var(--text-1); line-height: 1.65;
+      min-height: 100vh; -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; transition: color .15s; }
+    a:hover { color: var(--accent-hover); }
+    code { font-family: 'SF Mono', 'JetBrains Mono', Menlo, monospace; font-size: 0.92em; color: var(--accent); background: var(--accent-light); padding: 0.1em 0.4em; border-radius: 4px; }
+
+    .font-adjuster { position: fixed; top: 20px; right: 20px; z-index: 999; background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-pill); padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: var(--shadow-md); }
+    .font-adjuster button { background: var(--surface-2); border: 0; color: var(--text-1); width: 36px; height: 36px; border-radius: var(--r-pill); font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .font-adjuster button:hover { background: var(--accent); color: white; }
+    .font-adjuster .fa-label { font-size: 0.72rem; color: var(--text-3); margin: 0 6px; font-weight: 600; }
+    .font-adjuster .fa-value { font-size: 0.72rem; color: var(--accent); font-weight: 700; min-width: 44px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .container { max-width: var(--container); margin: 0 auto; padding: 32px 28px 96px; }
+
+    .hero { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 48px 44px; margin-bottom: 32px; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent-gradient); }
+    .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--taketomi-light); color: var(--taketomi); border-radius: var(--r-pill); padding: 6px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+    .hero h1 { font-size: 2.75rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.035em; margin-bottom: 16px; }
+    .hero h1 .gradient { background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero .sub { font-size: 1.0625rem; color: var(--text-2); line-height: 1.7; max-width: 760px; }
+    .hero-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--r-pill); font-size: 0.85rem; font-weight: 600; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-1); }
+    .pill.taketomi { background: var(--taketomi-light); color: var(--taketomi); border-color: var(--taketomi); }
+    .pill.green { background: var(--green-light); color: var(--green); border-color: var(--green); }
+    .pill.amber { background: var(--amber-light); color: var(--amber); border-color: var(--amber); }
+    .pill.sky { background: var(--sky-light); color: var(--sky); border-color: var(--sky); }
+    .pill.red { background: var(--red-light); color: var(--red); border-color: var(--red); }
+
+    .section { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 36px 36px; margin-bottom: 24px; box-shadow: var(--shadow-sm); }
+    .sec-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-1); }
+    .sec-head .num { font-family: 'SF Mono', monospace; color: var(--taketomi); font-weight: 800; font-size: 1.0625rem; letter-spacing: 1px; }
+    .sec-head h2 { font-size: 1.625rem; font-weight: 700; color: var(--text-1); flex: 1; letter-spacing: -0.02em; }
+    .sec-head .tag { background: var(--surface-2); color: var(--text-3); border-radius: var(--r-pill); padding: 4px 12px; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92rem; }
+    thead { background: var(--surface-2); }
+    th { text-align: left; padding: 10px 12px; color: var(--text-2); font-weight: 700; font-size: 0.78rem; letter-spacing: 0.5px; text-transform: uppercase; }
+    td { padding: 10px 12px; border-top: 1px solid var(--border-1); color: var(--text-1); vertical-align: top; }
+    tr:hover td { background: var(--surface-2); }
+    td b { color: var(--taketomi); }
+    td .tag-must { background: var(--taketomi-light); color: var(--taketomi); border-radius: var(--r-pill); padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
+
+    .callout { border-left: 4px solid var(--accent); background: var(--accent-light); border-radius: var(--r-md); padding: 16px 20px; margin: 16px 0; }
+    .callout.ok { border-color: var(--green); background: var(--green-light); }
+    .callout.warn { border-color: var(--amber); background: var(--amber-light); }
+    .callout.alert { border-color: var(--red); background: var(--red-light); }
+    .callout b { display: block; margin-bottom: 6px; }
+    .callout p { color: var(--text-1); font-size: 0.95rem; line-height: 1.6; }
+    .callout p + p { margin-top: 8px; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; }
+    .stat { background: var(--surface-2); border-radius: var(--r-md); padding: 14px 16px; text-align: center; }
+    .stat .n { font-size: 1.75rem; font-weight: 800; color: var(--taketomi); font-family: 'SF Mono', monospace; }
+    .stat .l { font-size: 0.78rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+    .footer { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.85rem; border-top: 1px solid var(--border-1); margin-top: 32px; }
+    .page-nav { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 24px; padding: 12px 16px; background: var(--surface-2); border-radius: var(--r-md); font-size: 0.88rem; }
+    .page-nav a { color: var(--accent); padding: 4px 10px; border-radius: var(--r-pill); background: var(--pure-white); border: 1px solid var(--border-1); }
+    .page-nav a.current { background: var(--taketomi); color: white; border-color: var(--taketomi); }
+
+    .source-list { background: var(--surface-2); border-radius: var(--r-md); padding: 16px 20px; margin: 12px 0; }
+    .source-list li { padding: 4px 0; font-size: 0.92rem; color: var(--text-1); list-style: none; }
+    .source-list .kind { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: var(--r-pill); margin-right: 8px; }
+    .source-list .kind.primary { background: var(--green-light); color: var(--green); }
+    .source-list .kind.verified { background: var(--green); color: white; }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster">
+  <button id="fa-dec" title="縮小字級">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">115%</span>
+  <button id="fa-inc" title="放大字級">A+</button>
+  <button id="fa-reset" title="重置 115%">100%</button>
+</div>
+
+<div class="container">
+
+  <section class="hero">
+    <span class="hero-tag">🌴 竹富島餐飲 · 日歸 5 hr</span>
+    <h1>竹富島 <span class="gradient">日歸美食</span></h1>
+    <p class="sub">
+      石垣港高速船 <b>10 min</b> → 竹富島港口 → 租單車環島 (3-4 hr) → 船回石垣。<br>
+      竹富島面積 <b>5.4 km²</b>(約 2 hr 騎完),5+ 餐廳 + <b>ぱいぬ島霜淇淋</b> 招牌必吃。
+    </p>
+    <div class="hero-pills">
+      <span class="pill taketomi">🍦 ぱいぬ島霜淇淋</span>
+      <span class="pill amber">🍜 竹の子蕎麥麵</span>
+      <span class="pill sky">🐂 水牛車觀光</span>
+      <span class="pill green">🚲 租單車 1,000</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n">5.4</div><div class="l">km²</div></div>
+      <div class="stat"><div class="n">~5</div><div class="l">餐廳</div></div>
+      <div class="stat"><div class="n">2-4</div><div class="l">hr 騎完</div></div>
+      <div class="stat"><div class="n">10</div><div class="l">min 船程</div></div>
+    </div>
+  </section>
+
+  <nav class="page-nav">
+    <a href="itinerary.html">📅 行程總覽</a>
+    <a href="transport-ferries.html">🚢 船班</a>
+    <a href="transport-flights.html">✈ 航班</a>
+    <a href="transport-buses.html">🚌 巴士</a>
+    <a href="stay-namisou.html">🏠 なみ荘</a>
+    <a href="stay-midorisou.html">🏠 みどり荘</a>
+    <a href="food-iriomote.html">🍴 西表餐飲</a>
+    <a href="food-ishigaki.html">🍴 石垣餐飲</a>
+    <a href="food-taketomi.html" class="current">🌴 竹富餐飲</a>
+    <a href="event-typhoon.html">🌀 颱風應變</a>
+  </nav>
+
+  <!-- ==================== §01 行程規劃 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 01</span>
+      <h2>Day 3 (7/20) 半日跳島行程</h2>
+      <span class="tag">ITINERARY</span>
+    </div>
+
+    <table>
+      <thead><tr><th>時間</th><th>活動</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>08:00</b></td>
+          <td>みどり荘 出發 → 石垣港離島ターミナル</td>
+          <td>步行 8 min,巴士 730 系統 10 min</td>
+        </tr>
+        <tr>
+          <td><b>09:30</b></td>
+          <td>高速船出發 (安栄觀光)</td>
+          <td><b>¥690/單程 · ¥1,320/來回</b></td>
+        </tr>
+        <tr>
+          <td><b>09:40</b></td>
+          <td>竹富島港口抵達</td>
+          <td>港口旁可租單車 + 寄行李</td>
+        </tr>
+        <tr>
+          <td><b>10:00-12:30</b></td>
+          <td>租單車環島 (3 hr)</td>
+          <td>¥1,000/人 · KONDOI 浜 + 星砂 + 西棧橋</td>
+        </tr>
+        <tr>
+          <td><b>12:30-13:30</b></td>
+          <td>竹富集落午餐 + ぱいぬ島霜淇淋</td>
+          <td>必吃: ぱいぬ島紅芋霜淇淋 ¥400</td>
+        </tr>
+        <tr>
+          <td><b>13:30-14:30</b></td>
+          <td>水牛車觀光 (optional)</td>
+          <td>¥1,500/人 · 30 min · 集落內緩行</td>
+        </tr>
+        <tr>
+          <td><b>14:30-15:00</b></td>
+          <td>港口還單車 + 等船</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><b>15:00</b></td>
+          <td>高速船回石垣</td>
+          <td>10 min</td>
+        </tr>
+        <tr>
+          <td><b>15:30</b></td>
+          <td>石垣港 → 市區晚餐</td>
+          <td>仲間 蕎麥麵 / 島唄居酒屋</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §02 必吃招牌 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 02</span>
+      <h2>必吃招牌 · ぱいぬ島 + 竹の子</h2>
+      <span class="tag">MUST EAT</span>
+    </div>
+
+    <div class="callout alert">
+      <b>🍦 ぱいぬ島 · 紅芋霜淇淋</b>
+      <p>竹富島港口步行 5 分鐘,<b>パーラー ぱいぬ島</b> 是在地 50+ 年老店。<br>
+      <b>紅芋霜淇淋 ¥400</b>(必吃)、芒果霜淇淋 ¥450、黑糖霜淇淋 ¥350。<br>
+      7 月旺季排隊約 10-15 分鐘,但可外帶邊走邊吃。</p>
+    </div>
+
+    <table>
+      <thead><tr><th>店名</th><th>招牌</th><th>價位</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>パーラー ぱいぬ島</b> <span class="tag-must">必去</span></td>
+          <td>紅芋霜淇淋、芒果霜淇淋、黑糖</td>
+          <td>¥350-450</td>
+          <td>在地 50+ 年老店 · 港口步行 5 分鐘</td>
+        </tr>
+        <tr>
+          <td><b>竹の子</b> <span class="tag-must">必去</span></td>
+          <td>八重山そば、宮古そば、軟骨そーき</td>
+          <td>¥800-1,200</td>
+          <td>集落中心 · 創業 30+ 年 · 排隊 20 min</td>
+        </tr>
+        <tr>
+          <td><b>おみやげ館 竹富</b></td>
+          <td>沖繩紅芋塔、黑糖餅、星砂瓶</td>
+          <td>¥300-1,500</td>
+          <td>伴手禮集散地 · 港口旁</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §03 竹富集落餐廳 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 03</span>
+      <h2>竹富集落餐廳 · 5 間</h2>
+      <span class="tag">5 RESTAURANTS</span>
+    </div>
+
+    <table>
+      <thead><tr><th>店名</th><th>類型</th><th>時間</th><th>人氣</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>竹の子</b> <span class="tag-must">必去</span></td>
+          <td>沖縄そば</td>
+          <td>11:00-15:00 / 不定休</td>
+          <td>八重山そば ¥800 · 軟骨そーき ¥900</td>
+        </tr>
+        <tr>
+          <td><b>パーラー ぱいぬ島</b> <span class="tag-must">必去</span></td>
+          <td>霜淇淋 + 軽食</td>
+          <td>10:00-18:00</td>
+          <td>紅芋霜淇淋 ¥400 · 芒果 ¥450</td>
+        </tr>
+        <tr>
+          <td><b>竹盛民宿 食堂</b></td>
+          <td>民宿餐廳</td>
+          <td>11:30-14:00 / 住客優先</td>
+          <td>八重山そば · 民宿套餐</td>
+        </tr>
+        <tr>
+          <td><b>レストラン ゆんた</b></td>
+          <td>沖縄家庭料理</td>
+          <td>11:00-15:00 / 休火</td>
+          <td>ふーちゃんぷる · ラフテー · ¥1,000-1,500</td>
+        </tr>
+        <tr>
+          <td><b>花ごよる</b></td>
+          <td>カフェ・甘味</td>
+          <td>11:00-17:00 / 不定休</td>
+          <td>紅芋ぜんざい · 黒糖白玉 · ¥500-900</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <b>⚠ 竹盛食堂</b>
+      <p>使用者過去 session 提到「竹盛食堂」,但子代理 2026-07-12 報告指出<b>竹盛是民宿名(たけもり inn)而非食堂</b>。<br>
+      建議現場確認是否提供午餐給非住客。</p>
+    </div>
+  </section>
+
+  <!-- ==================== §04 環島景點 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 04</span>
+      <h2>環島景點 · 4 站</h2>
+      <span class="tag">4 SPOTS</span>
+    </div>
+
+    <table>
+      <thead><tr><th>景點</th><th>類型</th><th>時間</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>KONDOI 浜 (コンドイ浜)</b> ⭐</td>
+          <td>海灘</td>
+          <td>30 min</td>
+          <td>竹富島最美沙灘 · 游泳 + 浮潛</td>
+        </tr>
+        <tr>
+          <td><b>星砂海灘 (カイジ浜)</b></td>
+          <td>海灘 + 星砂</td>
+          <td>30 min</td>
+          <td>沙子是星形有孔蟲殼 · 可帶紀念品</td>
+        </tr>
+        <tr>
+          <td><b>西棧橋 (にしさんばし)</b></td>
+          <td>拍照景點</td>
+          <td>15 min</td>
+          <td>水牛車 + 海景 · 經典 IG 點</td>
+        </tr>
+        <tr>
+          <td><b>竹富集落 (赤瓦屋根)</b></td>
+          <td>傳統建築</td>
+          <td>1 hr</td>
+          <td>白砂路 + 赤瓦屋根 · 重要傳統建築群</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §05 交通 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 05</span>
+      <h2>竹富島交通</h2>
+      <span class="tag">TRANSPORT</span>
+    </div>
+
+    <table>
+      <thead><tr><th>方式</th><th>價位</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>租單車 (推薦)</b></td>
+          <td>¥1,000/人 (1 day)</td>
+          <td>港口旁多家可選 · 環島必備</td>
+        </tr>
+        <tr>
+          <td><b>電動車</b></td>
+          <td>¥3,000-4,000/車</td>
+          <td>2 人合資較划算 · 不會騎單車者備案</td>
+        </tr>
+        <tr>
+          <td><b>水牛車</b></td>
+          <td>¥1,500/人 (30 min)</td>
+          <td>集落內觀光 · 慢速體驗</td>
+        </tr>
+        <tr>
+          <td><b>巴士 (島內)</b></td>
+          <td>¥200/次</td>
+          <td>班次少 (1 hr 1 班) · 不推薦</td>
+        </tr>
+        <tr>
+          <td><b>高速船 (石垣↔竹富)</b></td>
+          <td>¥690/單程 · ¥1,320/來回</td>
+          <td>安栄觀光 / 八重山觀光フェリー</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout ok">
+      <b>✅ 推薦行程</b>
+      <p>單車 + 水牛車 = 必備體驗。<br>
+      環島 3 hr + 午餐 1 hr + 水牛車 30 min = <b>5 hr</b> 充裕半日遊。</p>
+    </div>
+  </section>
+
+  <!-- ==================== §06 原始出處 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 06</span>
+      <h2>原始出處彙整</h2>
+      <span class="tag">SOURCES</span>
+    </div>
+
+    <ul class="source-list">
+      <li><span class="kind verified">✓ 已驗</span><code>itinerary.html</code> 原檔 Day 3 (7/20) 竹富日歸段落</li>
+      <li><span class="kind primary">主源</span>使用者過去 session (2026-06-30 ~ 07-09) 竹富島討論</li>
+      <li><span class="kind primary">主源</span>安栄觀光 <a href="https://www.aneikankou.co.jp/">aneikankou.co.jp</a> · 高速船時刻表</li>
+      <li><span class="kind primary">主源</span>竹富町役場 <a href="https://www.town.taketomi.lg.jp/">town.taketomi.lg.jp</a> · 觀光資訊</li>
+      <li><span class="kind primary">主源</span>ぱいぬ島 · 竹の子 · ゆんた · 花ごよる 各自 Tabelog / 官網</li>
+      <li><span class="kind primary">主源</span>子代理 2026-07-12 報告 (竹盛是民宿非食堂)</li>
+    </ul>
+
+    <div class="callout warn">
+      <b>📌 待 7/13 確認</b>
+      <p>1. 安栄觀光 / 八重山觀光フェリー 7/20 高速船開航狀態<br>
+         2. 竹盛民宿 食堂是否開放非住客<br>
+         3. ぱいぬ島 霜淇淋口味庫存 (7 月旺季紅芋常賣完)</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    <a href="itinerary.html">← 回行程總覽</a> · <a href="https://github.com/RinRyanJi/JustKM/tree/main/travel/ishigaki-2026">GitHub: travel/ishigaki-2026/food-taketomi.html</a><br>
+    主源: 竹富町役場 + 安栄觀光 + 各餐廳 Tabelog + 使用者 session 經驗<br>
+    字級調整 <code>Cmd/Ctrl + / - / 0</code> · 75%-300% · localStorage 跨頁同步<br>
+    建立於 2026-07-12 · 下次更新 2026-07-13 (高速船 + 竹盛食堂)
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.05; const MIN = 0.75; const MAX = 3.0; const DEFAULT = 1.15;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      if (valEl) valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try {
+      const v = localStorage.getItem(KEY);
+      if (v !== null && v !== undefined && v !== '') {
+        const parsed = parseFloat(v);
+        if (!isNaN(parsed) && parsed >= MIN && parsed <= MAX) saved = parsed;
+      }
+    } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); apply(cur + STEP); }
+      else if (e.key === '-') { e.preventDefault(); apply(cur - STEP); }
+      else if (e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
