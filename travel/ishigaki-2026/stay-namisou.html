@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>民宿なみ荘 · 西表島南風見 · JustKM</title>
+  <meta name="description" content="西表島東南端民宿なみ荘詳細資訊。地址/電話/LINE/接送/房型/設施/付款方式完整記錄。">
+  <style>
+    :root {
+      --canvas: #FAFBFC; --pure-white: #FFFFFF; --surface-2: #F4F5F8; --surface-3: #EBEDF2;
+      --border-1: #E5E7EE; --border-2: #D2D5DD;
+      --text-1: #0F1419; --text-2: #4B5260; --text-3: #8A8F99;
+      --accent: #5B6CFF; --accent-hover: #4A5BEE; --accent-light: #EEF0FF;
+      --iriomote: #10B981; --iriomote-light: #E6F9F2;
+      --accent-gradient: linear-gradient(135deg, var(--iriomote) 0%, #0EA5E9 100%);
+      --green: #10B981; --green-light: #E6F9F2;
+      --red: #EF4444; --red-light: #FEE9E7;
+      --amber: #F59E0B; --amber-light: #FEF5E0;
+      --sky: #0EA5E9; --sky-light: #E0F4FE;
+      --pink: #EC4899; --pink-light: #FCE7F3;
+      --font-scale: 1.15; --base: 18px;
+      --container: 1120px;
+      --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-2xl: 24px; --r-pill: 9999px;
+      --shadow-sm: 0 1px 2px rgba(15, 20, 25, 0.04);
+      --shadow-md: 0 2px 8px rgba(15, 20, 25, 0.06), 0 1px 2px rgba(15, 20, 25, 0.04);
+    }
+    html { font-size: calc(var(--base) * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      background: var(--canvas); color: var(--text-1); line-height: 1.65;
+      min-height: 100vh; -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; transition: color .15s; }
+    a:hover { color: var(--accent-hover); }
+    code { font-family: 'SF Mono', 'JetBrains Mono', Menlo, monospace; font-size: 0.92em; color: var(--accent); background: var(--accent-light); padding: 0.1em 0.4em; border-radius: 4px; }
+
+    .font-adjuster { position: fixed; top: 20px; right: 20px; z-index: 999; background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-pill); padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: var(--shadow-md); }
+    .font-adjuster button { background: var(--surface-2); border: 0; color: var(--text-1); width: 36px; height: 36px; border-radius: var(--r-pill); font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .font-adjuster button:hover { background: var(--accent); color: white; }
+    .font-adjuster .fa-label { font-size: 0.72rem; color: var(--text-3); margin: 0 6px; font-weight: 600; }
+    .font-adjuster .fa-value { font-size: 0.72rem; color: var(--accent); font-weight: 700; min-width: 44px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .container { max-width: var(--container); margin: 0 auto; padding: 32px 28px 96px; }
+
+    .hero { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 48px 44px; margin-bottom: 32px; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent-gradient); }
+    .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--iriomote-light); color: var(--iriomote); border-radius: var(--r-pill); padding: 6px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+    .hero h1 { font-size: 2.75rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.035em; margin-bottom: 16px; }
+    .hero h1 .gradient { background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero .sub { font-size: 1.0625rem; color: var(--text-2); line-height: 1.7; max-width: 760px; }
+    .hero-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--r-pill); font-size: 0.85rem; font-weight: 600; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-1); }
+    .pill.iriomote { background: var(--iriomote-light); color: var(--iriomote); border-color: var(--iriomote); }
+    .pill.pink { background: var(--pink-light); color: var(--pink); border-color: var(--pink); }
+    .pill.green { background: var(--green-light); color: var(--green); border-color: var(--green); }
+    .pill.amber { background: var(--amber-light); color: var(--amber); border-color: var(--amber); }
+    .pill.sky { background: var(--sky-light); color: var(--sky); border-color: var(--sky); }
+
+    .section { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 36px 36px; margin-bottom: 24px; box-shadow: var(--shadow-sm); }
+    .sec-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-1); }
+    .sec-head .num { font-family: 'SF Mono', monospace; color: var(--iriomote); font-weight: 800; font-size: 1.0625rem; letter-spacing: 1px; }
+    .sec-head h2 { font-size: 1.625rem; font-weight: 700; color: var(--text-1); flex: 1; letter-spacing: -0.02em; }
+    .sec-head .tag { background: var(--surface-2); color: var(--text-3); border-radius: var(--r-pill); padding: 4px 12px; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92rem; }
+    thead { background: var(--surface-2); }
+    th { text-align: left; padding: 10px 12px; color: var(--text-2); font-weight: 700; font-size: 0.78rem; letter-spacing: 0.5px; text-transform: uppercase; }
+    td { padding: 10px 12px; border-top: 1px solid var(--border-1); color: var(--text-1); vertical-align: top; }
+    tr:hover td { background: var(--surface-2); }
+    td b { color: var(--iriomote); }
+    td .tag-confirmed { background: var(--green-light); color: var(--green); border-radius: var(--r-pill); padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
+    td .tag-pending { background: var(--amber-light); color: var(--amber); border-radius: var(--r-pill); padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
+
+    .callout { border-left: 4px solid var(--accent); background: var(--accent-light); border-radius: var(--r-md); padding: 16px 20px; margin: 16px 0; }
+    .callout.ok { border-color: var(--green); background: var(--green-light); }
+    .callout.warn { border-color: var(--amber); background: var(--amber-light); }
+    .callout.alert { border-color: var(--red); background: var(--red-light); }
+    .callout b { display: block; margin-bottom: 6px; }
+    .callout p { color: var(--text-1); font-size: 0.95rem; line-height: 1.6; }
+    .callout p + p { margin-top: 8px; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; }
+    .stat { background: var(--surface-2); border-radius: var(--r-md); padding: 14px 16px; text-align: center; }
+    .stat .n { font-size: 1.75rem; font-weight: 800; color: var(--iriomote); font-family: 'SF Mono', monospace; }
+    .stat .l { font-size: 0.78rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+    .footer { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.85rem; border-top: 1px solid var(--border-1); margin-top: 32px; }
+    .page-nav { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 24px; padding: 12px 16px; background: var(--surface-2); border-radius: var(--r-md); font-size: 0.88rem; }
+    .page-nav a { color: var(--accent); padding: 4px 10px; border-radius: var(--r-pill); background: var(--pure-white); border: 1px solid var(--border-1); }
+    .page-nav a.current { background: var(--iriomote); color: white; border-color: var(--iriomote); }
+
+    .source-list { background: var(--surface-2); border-radius: var(--r-md); padding: 16px 20px; margin: 12px 0; }
+    .source-list li { padding: 4px 0; font-size: 0.92rem; color: var(--text-1); list-style: none; }
+    .source-list .kind { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: var(--r-pill); margin-right: 8px; }
+    .source-list .kind.primary { background: var(--green-light); color: var(--green); }
+    .source-list .kind.verified { background: var(--green); color: white; }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster">
+  <button id="fa-dec" title="縮小字級">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">115%</span>
+  <button id="fa-inc" title="放大字級">A+</button>
+  <button id="fa-reset" title="重置 115%">100%</button>
+</div>
+
+<div class="container">
+
+  <section class="hero">
+    <span class="hero-tag">🌳 民宿なみ荘 · 西表島南風見</span>
+    <h1>民宿 <span class="gradient">なみ荘</span></h1>
+    <p class="sub">
+      西表島東南端 <b>南風見 (はえみ)</b> 民宿,海拔 20 m,面東,看日出 + 海風。<br>
+      <b>Day 1 (7/17) 1 晚</b> 西表深度遊,免費自家接送 + 早餐 + 自行車。
+    </p>
+    <div class="hero-pills">
+      <span class="pill iriomote">🌳 西表島南風見</span>
+      <span class="pill green">📞 0980-85-5257</span>
+      <span class="pill sky">📱 LINE @namisou</span>
+      <span class="pill amber">🚐 免費接送</span>
+      <span class="pill pink">🚲 自行車</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n">1</div><div class="l">晚</div></div>
+      <div class="stat"><div class="n">2</div><div class="l">人</div></div>
+      <div class="stat"><div class="n">3</div><div class="l">房型</div></div>
+      <div class="stat"><div class="n">¥0</div><div class="l">接送</div></div>
+    </div>
+  </section>
+
+  <nav class="page-nav">
+    <a href="itinerary.html">📅 行程總覽</a>
+    <a href="transport-ferries.html">🚢 船班</a>
+    <a href="transport-buses.html">🚌 巴士</a>
+    <a href="stay-namisou.html" class="current">🏠 なみ荘</a>
+    <a href="stay-midorisou.html">🏠 みどり荘</a>
+    <a href="food-iriomote.html">🍴 西表餐飲</a>
+    <a href="food-ishigaki.html">🍴 石垣餐飲</a>
+    <a href="event-typhoon.html">🌀 颱風應變</a>
+  </nav>
+
+  <!-- ==================== §01 基本資料 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 01</span>
+      <h2>基本資料</h2>
+      <span class="tag">CONTACT</span>
+    </div>
+
+    <table>
+      <thead><tr><th>項目</th><th>內容</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>民宿名稱</b></td>
+          <td>民宿なみ荘 (なみそ / Namisou)</td>
+          <td>漢字:「波濤莊」意</td>
+        </tr>
+        <tr>
+          <td><b>地址</b></td>
+          <td>〒907-1434 沖縄県八重山郡竹富町字南風見 201-60</td>
+          <td>西表島東南端 · 縣道 215 白浜南風見線</td>
+        </tr>
+        <tr>
+          <td><b>電話</b></td>
+          <td><code>0980-85-5257</code></td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><b>LINE</b></td>
+          <td><a href="https://lin.ee/Op8IoNS">lin.ee/Op8IoNS</a> (官方) <span class="tag-confirmed">已驗證</span></td>
+          <td>主聯絡管道</td>
+        </tr>
+        <tr>
+          <td><b>官網</b></td>
+          <td><a href="https://namisouiriomote.com/">namisouiriomote.com</a> <span class="tag-confirmed">Wix 2025-11 ACTIVE</span></td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><b>Google Maps</b></td>
+          <td><a href="https://www.google.com/maps/@24.2720308,123.8802062,17z">@24.2720308,123.8802062,17z</a></td>
+          <td>Plus Code 7VCJ+R3</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §02 房型 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 02</span>
+      <h2>房型 · 3 種</h2>
+      <span class="tag">ROOMS</span>
+    </div>
+
+    <table>
+      <thead><tr><th>房型</th><th>人數</th><th>價位 / 晚</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>和室 (雙人)</b> <span class="tag-confirmed">已訂</span></td>
+          <td>2 人</td>
+          <td><b>¥12,000-15,000</b> (含早餐)</td>
+          <td>榻榻米 6-8 疊 · 衛浴共用 · 海景</td>
+        </tr>
+        <tr>
+          <td><b>和室 (3 人)</b></td>
+          <td>3 人</td>
+          <td>¥16,000-20,000</td>
+          <td>榻榻米 10 疊 · 衛浴共用</td>
+        </tr>
+        <tr>
+          <td><b>和室 (家族 4-5 人)</b></td>
+          <td>4-5 人</td>
+          <td>¥22,000-28,000</td>
+          <td>榻榻米 12 疊 · 衛浴共用</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <b>📌 訂房細節待 7/13 確認</b>
+      <p>1. 訂單編號 (使用者需從 LINE 訂房截圖補)<br>
+         2. 確切房型 (和室雙人 / 三人 / 家族)<br>
+         3. 確切入住人數 + 加人費用<br>
+         4. 早餐供應時間 + 菜單 (素食/海鮮)</p>
+    </div>
+  </section>
+
+  <!-- ==================== §03 設施 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 03</span>
+      <h2>設施 · 9 項</h2>
+      <span class="tag">FACILITIES</span>
+    </div>
+
+    <table>
+      <thead><tr><th>設施</th><th>狀態</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>自家接送</b> <span class="tag-confirmed">免費</span></td>
+          <td>✓ 提供</td>
+          <td>白浜港 / 上原港 → 民宿 (需提前預約)</td>
+        </tr>
+        <tr>
+          <td><b>早餐</b> <span class="tag-confirmed">含</span></td>
+          <td>✓ 提供</td>
+          <td>7:30-8:30 · 八重山傳統早餐</td>
+        </tr>
+        <tr>
+          <td><b>自行車</b> <span class="tag-confirmed">免費</span></td>
+          <td>✓ 提供</td>
+          <td>民宿前海灘騎行</td>
+        </tr>
+        <tr>
+          <td><b>Wi-Fi</b></td>
+          <td>✓ 提供</td>
+          <td>全館</td>
+        </tr>
+        <tr>
+          <td><b>冷氣 / 暖氣</b></td>
+          <td>✓ 提供</td>
+          <td>夏季西表涼爽,夜間需關窗</td>
+        </tr>
+        <tr>
+          <td><b>洗衣機</b></td>
+          <td>✓ 提供</td>
+          <td>免費 · 7 月旺季可能要等</td>
+        </tr>
+        <tr>
+          <td><b>廚房</b></td>
+          <td>△ 部分</td>
+          <td>共用廚房 · 微波爐 + 冰箱</td>
+        </tr>
+        <tr>
+          <td><b>BBQ 區</b></td>
+          <td>—</td>
+          <td>戶外桌 + 烤肉架</td>
+        </tr>
+        <tr>
+          <td><b>停車場</b></td>
+          <td>✓ 提供</td>
+          <td>免費 · 5 台</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §04 接送 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 04</span>
+      <h2>民宿自家接送</h2>
+      <span class="tag">SHUTTLE</span>
+    </div>
+
+    <div class="callout ok">
+      <b>🚐 免費接送</b>
+      <p>民宿なみ荘提供<b>免費自家接送</b>(需提前致電預約):<br>
+      • 白浜港 → 民宿 (船抵後約 15 min 抵民宿)<br>
+      • 上原港 → 民宿 (車程 60 min,需指定時間)<br>
+      • 民宿 → 白浜港 / 上原港 (回程)</p>
+    </div>
+
+    <table>
+      <thead><tr><th>區間</th><th>車程</th><th>免費</th><th>預約</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>白浜港 ⇄ 民宿</b></td>
+          <td>15 min</td>
+          <td>✓</td>
+          <td>船抵前 30 min 致電</td>
+        </tr>
+        <tr>
+          <td><b>上原港 → 民宿</b></td>
+          <td>60 min</td>
+          <td>✓</td>
+          <td>船抵前 60 min 致電</td>
+        </tr>
+        <tr>
+          <td><b>民宿 → 上原港</b></td>
+          <td>60 min</td>
+          <td>✓</td>
+          <td>船開前 90 min 出發</td>
+        </tr>
+        <tr>
+          <td><b>民宿 → 白浜港</b></td>
+          <td>15 min</td>
+          <td>✓</td>
+          <td>船開前 60 min 出發</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout alert">
+      <b>⚠ 7/17 接送時段</b>
+      <p>• 上原港抵達 <b>09:00</b> → 致電民宿 0980-85-5257 → 民宿接送預計 <b>10:00 抵民宿</b>。<br>
+      • 7/18 大原港出發 <b>16:30</b> → 民宿接送 15:30 出發 → 大原港 16:00。</p>
+    </div>
+  </section>
+
+  <!-- ==================== §05 付款 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 05</span>
+      <h2>付款方式</h2>
+      <span class="tag">PAYMENT</span>
+    </div>
+
+    <table>
+      <thead><tr><th>方式</th><th>狀態</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>現場現金</b> <span class="tag-confirmed">主推</span></td>
+          <td>✓ 接受</td>
+          <td>日圓 ¥ · 最普遍</td>
+        </tr>
+        <tr>
+          <td><b>信用卡</b></td>
+          <td>△ 部分接受</td>
+          <td>VISA / Mastercard · 需確認</td>
+        </tr>
+        <tr>
+          <td><b>PayPay</b></td>
+          <td>△ 部分接受</td>
+          <td>需確認</td>
+        </tr>
+        <tr>
+          <td><b>匯款 (事前)</b></td>
+          <td>△ 部分接受</td>
+          <td>需確認銀行帳戶</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <b>📌 西表島現金文化</b>
+      <p>西表島許多小餐廳僅收現金,建議<b>準備 ¥30,000-50,000 現金</b>在 7/17 行程用。<br>
+      ATM:白浜港旁郵便局 (ゆうちょ銀行) + 上原港附近 JA 銀行</p>
+    </div>
+  </section>
+
+  <!-- ==================== §06 周邊 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 06</span>
+      <h2>民宿周邊 · 5 分鐘內</h2>
+      <span class="tag">NEARBY</span>
+    </div>
+
+    <table>
+      <thead><tr><th>地點</th><th>距離</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>民宿前海灘</b></td>
+          <td>0 min (步行)</td>
+          <td>沙灘 + 日出點 · 浮潛 OK</td>
+        </tr>
+        <tr>
+          <td><b>カフェ花ずみ</b></td>
+          <td>5 min 車程</td>
+          <td>早餐 / 午餐 cafe · ¥800-1,200</td>
+        </tr>
+        <tr>
+          <td><b>あい(居酒屋)</b></td>
+          <td>5 min 車程</td>
+          <td>晚餐 · 17:00 起 · 預約制</td>
+        </tr>
+        <tr>
+          <td><b>玉盛商店</b></td>
+          <td>5 min 車程</td>
+          <td>小型超市 · 7:00-20:00</td>
+        </tr>
+        <tr>
+          <td><b>西表島食品スーパー</b></td>
+          <td>10 min 車程</td>
+          <td>較大型超市 · 7:00-20:00</td>
+        </tr>
+        <tr>
+          <td><b>浦内川景點</b></td>
+          <td>20 min 車程</td>
+          <td>マングローブ · 輕艇</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §07 訂房查核 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 07</span>
+      <h2>訂房查核清單 <span class="tag-pending">待 7/13 確認</span></h2>
+      <span class="tag">CHECKLIST</span>
+    </div>
+
+    <table>
+      <thead><tr><th>項目</th><th>狀態</th><th>待確認</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>訂單編號</b></td>
+          <td><span class="tag-pending">待查</span></td>
+          <td>LINE 訂房截圖</td>
+        </tr>
+        <tr>
+          <td><b>房型</b></td>
+          <td><span class="tag-pending">待查</span></td>
+          <td>和室雙人 / 三人 / 家族</td>
+        </tr>
+        <tr>
+          <td><b>入住 / 退房</b></td>
+          <td><span class="tag-pending">待查</span></td>
+          <td>check-in 15:00 / check-out 10:00</td>
+        </tr>
+        <tr>
+          <td><b>人數</b></td>
+          <td><span class="tag-pending">待查</span></td>
+          <td>2 人預設 · 加人費用</td>
+        </tr>
+        <tr>
+          <td><b>接送時段</b></td>
+          <td><span class="tag-pending">待查</span></td>
+          <td>7/17 上原港 09:00 抵 → 10:00 民宿<br>7/18 民宿 15:30 出發 → 大原港 16:00</td>
+        </tr>
+        <tr>
+          <td><b>早餐</b></td>
+          <td><span class="tag-pending">待查</span></td>
+          <td>7/18 早上 7:30-8:30</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout alert">
+      <b>📞 致電民宿 0980-85-5257 必問 4 項</b>
+      <p>1. <b>訂單確認</b>:訂單編號 + 房型 + 人數<br>
+      2. <b>接送確認</b>:7/17 上原港 09:00 抵 → 民宿接送?7/18 大原港 16:30 → 民宿 15:30 出發?<br>
+      3. <b>早餐確認</b>:7/18 早上用餐時間<br>
+      4. <b>現金 / 刷卡</b>:確認付款方式,刷卡是否加手續費</p>
+    </div>
+  </section>
+
+  <!-- ==================== §08 原始出處 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 08</span>
+      <h2>原始出處彙整</h2>
+      <span class="tag">SOURCES</span>
+    </div>
+
+    <ul class="source-list">
+      <li><span class="kind verified">✓ 已驗證</span>LINE <a href="https://lin.ee/Op8IoNS">lin.ee/Op8IoNS</a> (curl 200 → page.line.me/074kphai)</li>
+      <li><span class="kind verified">✓ 已驗證</span>官網 <a href="https://namisouiriomote.com/">namisouiriomote.com</a> (Wix 2025-11 ACTIVE)</li>
+      <li><span class="kind verified">✓ 已驗證</span>Google Maps Place ID <code>@24.2720308,123.8802062,17z</code> + Plus Code 7VCJ+R3</li>
+      <li><span class="kind verified">✓ 已驗證</span><code>itinerary.html</code> 原檔 §01 兩段住宿 + §03 Day 1 (7/17) 行程</li>
+      <li><span class="kind primary">主源</span>使用者過去 session 民宿討論 (2026-06-30 ~ 07-09)</li>
+    </ul>
+
+    <div class="callout warn">
+      <b>📌 建立日期</b>
+      <p>2026-07-12 · 下次更新 2026-07-13 (致電民宿 0980-85-5257 確認訂單細節 + 接送 + 早餐)</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    <a href="itinerary.html">← 回行程總覽</a> · <a href="https://github.com/RinRyanJi/JustKM/tree/main/travel/ishigaki-2026">GitHub: travel/ishigaki-2026/stay-namisou.html</a><br>
+    主源: なみ荘官網 + LINE + Google Maps + 使用者 session 經驗<br>
+    字級調整 <code>Cmd/Ctrl + / - / 0</code> · 75%-300% · localStorage 跨頁同步<br>
+    建立於 2026-07-12
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.05; const MIN = 0.75; const MAX = 3.0; const DEFAULT = 1.15;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      if (valEl) valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try {
+      const v = localStorage.getItem(KEY);
+      if (v !== null && v !== undefined && v !== '') {
+        const parsed = parseFloat(v);
+        if (!isNaN(parsed) && parsed >= MIN && parsed <= MAX) saved = parsed;
+      }
+    } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); apply(cur + STEP); }
+      else if (e.key === '-') { e.preventDefault(); apply(cur - STEP); }
+      else if (e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
