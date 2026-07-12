@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>颱風應變 · 9 號過境 SOP · JustKM</title>
+  <meta name="description" content="2026 颱風 9 號 (巴威) 過境前後應變 SOP,含氣象廳、機場應變電話、6 級應變等級、出發前 24 hr 必掃 4 個來源。">
+  <style>
+    :root {
+      --canvas: #FAFBFC; --pure-white: #FFFFFF; --surface-2: #F4F5F8; --surface-3: #EBEDF2;
+      --border-1: #E5E7EE; --border-2: #D2D5DD;
+      --text-1: #0F1419; --text-2: #4B5260; --text-3: #8A8F99;
+      --accent: #5B6CFF; --accent-hover: #4A5BEE; --accent-light: #EEF0FF;
+      --accent-gradient: linear-gradient(135deg, #5B6CFF 0%, #8A5CF6 100%);
+      --orange: #FF7A59; --orange-light: #FFF1ED;
+      --green: #10B981; --green-light: #E6F9F2;
+      --red: #EF4444; --red-light: #FEE9E7;
+      --amber: #F59E0B; --amber-light: #FEF5E0;
+      --sky: #0EA5E9; --sky-light: #E0F4FE;
+      --typhoon: #EF4444; --typhoon-bg: #FEE9E7;
+      --font-scale: 1.15; --base: 18px;
+      --container: 1120px;
+      --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-2xl: 24px; --r-pill: 9999px;
+      --shadow-sm: 0 1px 2px rgba(15, 20, 25, 0.04);
+      --shadow-md: 0 2px 8px rgba(15, 20, 25, 0.06), 0 1px 2px rgba(15, 20, 25, 0.04);
+    }
+    html { font-size: calc(var(--base) * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      background: var(--canvas); color: var(--text-1); line-height: 1.65;
+      min-height: 100vh; -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; transition: color .15s; }
+    a:hover { color: var(--accent-hover); }
+    code { font-family: 'SF Mono', 'JetBrains Mono', Menlo, monospace; font-size: 0.92em; color: var(--accent); background: var(--accent-light); padding: 0.1em 0.4em; border-radius: 4px; }
+
+    .font-adjuster { position: fixed; top: 20px; right: 20px; z-index: 999; background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-pill); padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: var(--shadow-md); }
+    .font-adjuster button { background: var(--surface-2); border: 0; color: var(--text-1); width: 36px; height: 36px; border-radius: var(--r-pill); font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .font-adjuster button:hover { background: var(--accent); color: white; }
+    .font-adjuster .fa-label { font-size: 0.72rem; color: var(--text-3); margin: 0 6px; font-weight: 600; }
+    .font-adjuster .fa-value { font-size: 0.72rem; color: var(--accent); font-weight: 700; min-width: 44px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .container { max-width: var(--container); margin: 0 auto; padding: 32px 28px 96px; }
+
+    .hero { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 48px 44px; margin-bottom: 32px; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(135deg, var(--red), var(--orange)); }
+    .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--typhoon-bg); color: var(--red); border-radius: var(--r-pill); padding: 6px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+    .hero h1 { font-size: 2.75rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.035em; margin-bottom: 16px; }
+    .hero h1 .gradient { background: linear-gradient(135deg, var(--red) 0%, var(--orange) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero .sub { font-size: 1.0625rem; color: var(--text-2); line-height: 1.7; max-width: 760px; }
+    .hero-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--r-pill); font-size: 0.85rem; font-weight: 600; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-1); }
+    .pill.red { background: var(--red-light); color: var(--red); border-color: var(--red); }
+    .pill.amber { background: var(--amber-light); color: var(--amber); border-color: var(--amber); }
+    .pill.green { background: var(--green-light); color: var(--green); border-color: var(--green); }
+    .pill.sky { background: var(--sky-light); color: var(--sky); border-color: var(--sky); }
+
+    .section { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 36px 36px; margin-bottom: 24px; box-shadow: var(--shadow-sm); }
+    .sec-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-1); }
+    .sec-head .num { font-family: 'SF Mono', monospace; color: var(--red); font-weight: 800; font-size: 1.0625rem; letter-spacing: 1px; }
+    .sec-head h2 { font-size: 1.625rem; font-weight: 700; color: var(--text-1); flex: 1; letter-spacing: -0.02em; }
+    .sec-head .tag { background: var(--surface-2); color: var(--text-3); border-radius: var(--r-pill); padding: 4px 12px; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+    .callout { border-left: 4px solid var(--accent); background: var(--accent-light); border-radius: var(--r-md); padding: 16px 20px; margin: 16px 0; }
+    .callout.ok { border-color: var(--green); background: var(--green-light); }
+    .callout.warn { border-color: var(--amber); background: var(--amber-light); }
+    .callout.alert { border-color: var(--red); background: var(--red-light); }
+    .callout b { display: block; margin-bottom: 6px; }
+    .callout p { color: var(--text-1); font-size: 0.95rem; line-height: 1.6; }
+    .callout p + p { margin-top: 8px; }
+
+    .timeline { display: flex; flex-direction: column; gap: 14px; }
+    .lvl { background: var(--surface-2); border-radius: var(--r-md); padding: 18px 22px; border-left: 4px solid var(--text-3); }
+    .lvl h3 { display: flex; align-items: center; gap: 10px; font-size: 1.0625rem; margin-bottom: 8px; }
+    .lvl .lvl-num { background: var(--text-3); color: white; border-radius: var(--r-pill); padding: 4px 12px; font-size: 0.78rem; font-weight: 800; }
+    .lvl p { color: var(--text-2); font-size: 0.92rem; line-height: 1.6; margin-top: 6px; }
+    .lvl.lvl-1 { border-left-color: var(--green); }
+    .lvl.lvl-1 .lvl-num { background: var(--green); }
+    .lvl.lvl-2 { border-left-color: var(--sky); }
+    .lvl.lvl-2 .lvl-num { background: var(--sky); }
+    .lvl.lvl-3 { border-left-color: var(--amber); }
+    .lvl.lvl-3 .lvl-num { background: var(--amber); }
+    .lvl.lvl-4 { border-left-color: var(--orange); }
+    .lvl.lvl-4 .lvl-num { background: var(--orange); }
+    .lvl.lvl-5 { border-left-color: var(--red); }
+    .lvl.lvl-5 .lvl-num { background: var(--red); }
+    .lvl.lvl-6 { border-left-color: var(--red); animation: pulse 2s ease-in-out infinite; }
+    .lvl.lvl-6 .lvl-num { background: var(--red); }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,.3); } 50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); } }
+
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92rem; }
+    thead { background: var(--surface-2); }
+    th { text-align: left; padding: 10px 14px; color: var(--text-2); font-weight: 700; font-size: 0.82rem; letter-spacing: 0.5px; text-transform: uppercase; }
+    td { padding: 10px 14px; border-top: 1px solid var(--border-1); color: var(--text-1); }
+    tr:hover td { background: var(--surface-2); }
+    td b { color: var(--accent); }
+    td .phone { font-family: 'SF Mono', monospace; color: var(--red); font-weight: 700; }
+
+    .source-list { background: var(--surface-2); border-radius: var(--r-md); padding: 16px 20px; margin: 12px 0; }
+    .source-list li { padding: 4px 0; font-size: 0.92rem; color: var(--text-1); list-style: none; }
+    .source-list .kind { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: var(--r-pill); margin-right: 8px; }
+    .source-list .kind.primary { background: var(--green-light); color: var(--green); }
+    .source-list .kind.verified { background: var(--green); color: white; }
+    .source-list .kind.pending { background: var(--amber-light); color: var(--amber); }
+    .source-list .verified-time { font-size: 0.78rem; color: var(--text-3); margin-left: 6px; font-family: 'SF Mono', monospace; }
+
+    .footer { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.85rem; border-top: 1px solid var(--border-1); margin-top: 32px; }
+    .page-nav { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 24px; padding: 12px 16px; background: var(--surface-2); border-radius: var(--r-md); font-size: 0.88rem; }
+    .page-nav a { color: var(--accent); padding: 4px 10px; border-radius: var(--r-pill); background: var(--pure-white); border: 1px solid var(--border-1); }
+    .page-nav a.current { background: var(--accent); color: white; border-color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster">
+  <button id="fa-dec" title="縮小字級">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">115%</span>
+  <button id="fa-inc" title="放大字級">A+</button>
+  <button id="fa-reset" title="重置 115%">100%</button>
+</div>
+
+<div class="container">
+
+  <section class="hero">
+    <span class="hero-tag">🌀 颱風應變 · 即時資訊</span>
+    <h1>颱風 9 號 (巴威) <span class="gradient">應變 SOP</span></h1>
+    <p class="sub">
+      2026-07-09 起過境的第 9 號颱風(巴威/HAISHEN),7/11 全航路欠航、7/12 午前仍全欠航。本頁列出:<br>
+      <b>① 4 個必掃官方來源</b> · <b>② 6 級應變等級</b> · <b>③ 7/16 夜船 + 7/22 凌晨虎航兩段關鍵決策點</b> · <b>④ 不便險理賠 SOP</b>
+    </p>
+    <div class="hero-pills">
+      <span class="pill red">🔴 9 號 已過境</span>
+      <span class="pill amber">🟡 7/13 起恢復</span>
+      <span class="pill sky">🔵 24 hr 前重掃</span>
+      <span class="pill green">🟢 不便險備妥</span>
+    </div>
+  </section>
+
+  <nav class="page-nav">
+    <a href="itinerary.html">📅 行程總覽</a>
+    <a href="transport-ferries.html">🚢 船班</a>
+    <a href="transport-flights.html">✈ 航班</a>
+    <a href="transport-buses.html">🚌 巴士</a>
+    <a href="stay-namisou.html">🏠 なみ荘</a>
+    <a href="stay-midorisou.html">🏠 みどり荘</a>
+    <a href="food-iriomote.html">🍴 西表餐飲</a>
+    <a href="event-typhoon.html" class="current">🌀 颱風應變</a>
+  </nav>
+
+  <!-- ==================== §01 4 個必掃來源 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 01</span>
+      <h2>出發前 24 hr 必掃的 4 個官方來源</h2>
+      <span class="tag">PRIMARY SOURCES</span>
+    </div>
+
+    <table>
+      <thead><tr><th>用途</th><th>URL</th><th>更新頻率</th><th>語言</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>八重山觀光フェリー</b><br>(石垣↔上原/竹富/小浜)</td>
+          <td><a href="https://www.yaeyama.co.jp/">yaeyama.co.jp</a></td>
+          <td>每 30 min</td>
+          <td>日本語</td>
+        </tr>
+        <tr>
+          <td><b>安栄觀光</b><br>(石垣↔大原/竹富/鳩間)</td>
+          <td><a href="https://www.aneikankou.co.jp/condition">aneikankou.co.jp/condition</a></td>
+          <td>每 30 min</td>
+          <td>日本語</td>
+        </tr>
+        <tr>
+          <td><b>石垣市官方防災</b><br>(警報/避難/路況)</td>
+          <td><a href="https://www.city.ishigaki.okinawa.jp/">city.ishigaki.okinawa.jp</a></td>
+          <td>即時</td>
+          <td>日本語</td>
+        </tr>
+        <tr>
+          <td><b>JMA 氣象廳</b><br>(颱風路徑/暴風)</td>
+          <td><a href="https://www.jma.go.jp/bosai/map.html#5/20/120/2000/&typhoon=TC2609&contents=typhoon">jma.go.jp/bosai</a></td>
+          <td>每 hr</td>
+          <td>日本語</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <b>⚠ 出發前掃描順序</b>
+      <p>1. <b>JMA 氣象廳</b>看 24 hr 內暴風圈是否影響八重山<br>
+         2. <b>八重山觀光フェリー</b>確認石垣↔上原/竹富是否欠航<br>
+         3. <b>安栄觀光</b>確認石垣↔大原航線<br>
+         4. <b>石垣市防災</b>看是否有避難指示/市區狀態</p>
+    </div>
+  </section>
+
+  <!-- ==================== §02 6 級應變 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 02</span>
+      <h2>6 級應變等級</h2>
+      <span class="tag">Risk Ladder</span>
+    </div>
+
+    <div class="timeline">
+
+      <div class="lvl lvl-1">
+        <h3><span class="lvl-num">Lv 1</span>觀察期 · 7/11-7/13</h3>
+        <p><b>行動</b>:每天 20:00 掃 JMA + 八重観 + 安栄,確認 7/16 開航狀態。<br>
+        <b>判斷</b>:若 9 號過境後海象穩定 → 等級下降至 Lv 0 (正常)。</p>
+      </div>
+
+      <div class="lvl lvl-2">
+        <h3><span class="lvl-num">Lv 2</span>確認期 · 7/14 (二)</h3>
+        <p><b>行動</b>:致電 <code>0980-85-5257</code>(民宿なみ荘) 確認接送、最近巴士班次、屋況。<br>
+        <b>同時</b>:上 <a href="https://yaeyama.co.jp">yaeyama.co.jp</a> 預訂 7/17 11:00 船票 (前一日 18:00 截止)。</p>
+      </div>
+
+      <div class="lvl lvl-3">
+        <h3><span class="lvl-num">Lv 3</span>預備方案 · 7/15 (三)</h3>
+        <p><b>行動</b>:若 7/17 仍不穩 → <b>改訂 Day 1-5 全住石垣</b>(みどり荘),西表改為 Day 5-6 單日遊。<br>
+        <b>換日幣</b>:準備 ¥25,000 (2 人 6 天備用,純現金應急)。</p>
+      </div>
+
+      <div class="lvl lvl-4">
+        <h3><span class="lvl-num">Lv 4</span>決策日 · 7/16 (四)</h3>
+        <p><b>行動</b>:船公司若 7/17 全日欠航 → 改訂 YAIMAMARU 7/18 船次 / 取消整趟。<br>
+        <b>同時</b>:虎航客服 <code>02-2536-7117</code> 確認 7/22 02:00 起飛狀態 (過境後通常先復飛國內線,國際線延後)。</p>
+      </div>
+
+      <div class="lvl lvl-5">
+        <h3><span class="lvl-num">Lv 5</span>滯留石垣 · 7/17 起</h3>
+        <p><b>行動</b>:石垣市區 5 整天可改為:<br>
+        • 竹富島日歸 (離石垣 10 min 高速船)<br>
+        • 川平灣日遊 (玻璃底船 + 牧草地帶)<br>
+        • 機場購物 (石垣牛/泡盛/蝦餅免稅)<br>
+        • 市區美食巡禮 (邊銀食堂/岸本食堂/石垣牛燒肉)<br>
+        <b>住宿</b>:みどり荘 是市區 Guesthouse,續住最彈性。</p>
+      </div>
+
+      <div class="lvl lvl-6">
+        <h3><span class="lvl-num">Lv 6</span>回程應變 · 7/22 (三)</h3>
+        <p><b>行動</b>:虎航 IT231 公告取消 → 改訂下一班 + 石垣空港飯店 1 晚 + 啟動不便險理賠。<br>
+        <b>保險必備文件</b>:原訂票證明 + 改訂新票證明 + 食宿收據 + 航空公司延誤證明。<br>
+        <b>時效</b>:回程後 30 日內申請。</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== §03 關鍵電話表 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 03</span>
+      <h2>關鍵電話表</h2>
+      <span class="tag">Emergency Phone</span>
+    </div>
+
+    <table>
+      <thead><tr><th>對象</th><th>電話</th><th>時間</th><th>語言</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>民宿なみ荘</b></td>
+          <td><span class="phone">0980-85-5257</span></td>
+          <td>9:00-20:00</td>
+          <td>日文</td>
+        </tr>
+        <tr>
+          <td><b>八重山觀光フェリー</b></td>
+          <td><span class="phone">0980-82-5010</span></td>
+          <td>8:00-17:00</td>
+          <td>日文</td>
+        </tr>
+        <tr>
+          <td><b>安栄觀光</b></td>
+          <td><span class="phone">0980-83-0055</span></td>
+          <td>7:00-18:00</td>
+          <td>日文</td>
+        </tr>
+        <tr>
+          <td><b>虎航客服</b></td>
+          <td><span class="phone">02-2536-7117</span></td>
+          <td>9:00-18:00</td>
+          <td>中文</td>
+        </tr>
+        <tr>
+          <td><b>東聯航運 (YAIMARU)</b></td>
+          <td><span class="phone">02-2424-6800</span></td>
+          <td>9:00-17:00</td>
+          <td>中文</td>
+        </tr>
+        <tr>
+          <td><b>石垣空港</b></td>
+          <td><span class="phone">0980-87-0466</span></td>
+          <td>24 hr</td>
+          <td>日文</td>
+        </tr>
+        <tr>
+          <td><b>石垣市觀光課</b></td>
+          <td><span class="phone">0980-82-1535</span></td>
+          <td>平日 8:30-17:00</td>
+          <td>日文</td>
+        </tr>
+        <tr>
+          <td><b>JNTO 觀光案內</b></td>
+          <td><span class="phone">050-3816-2787</span></td>
+          <td>24 hr</td>
+          <td>中/英/日</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <b>⚠ 凌晨緊急聯絡</b>
+      <p>石垣市內 24 hr 服務的 TAXI 中心 <code>0980-82-1111</code>(石垣第一交通)。<br>
+      7/22 凌晨 01:30 從登野城出發需事前預約,颱風過境後機場接送 TAXI 供應緊張,需提前 2-3 天預約。</p>
+    </div>
+  </section>
+
+  <!-- ==================== §04 不便險理賠 SOP ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 04</span>
+      <h2>旅遊不便險理賠 SOP</h2>
+      <span class="tag">Insurance Claim</span>
+    </div>
+
+    <h3 style="font-size:1.0625rem;margin:8px 0 12px;">📋 理賠必備文件</h3>
+    <ol style="padding-left:24px;line-height:1.8;color:var(--text-1);font-size:0.95rem;">
+      <li><b>原訂票證明</b>:虎航 IT231 訂位代號、YAIMARU F2026070300006</li>
+      <li><b>改訂證明</b>:新規則下改訂的新航班/船次訂位代號 + e-ticket</li>
+      <li><b>航空公司延誤證明</b>:虎航客服 email / 現場機場櫃台申請「遅延証明書」</li>
+      <li><b>食宿收據</b>:改訂滯留期間的飯店發票 + 正餐收據</li>
+      <li><b>不便險保單</b>:發票號、保單號、保險公司客服專線</li>
+    </ol>
+
+    <h3 style="font-size:1.0625rem;margin:20px 0 12px;">⏱ 申請時效</h3>
+    <table>
+      <thead><tr><th>保險公司</th><th>時效</th><th>管道</th></tr></thead>
+      <tbody>
+        <tr><td><b>國泰產險</b></td><td>回程後 30 日內</td><td>官網 / 0800-212-888</td></tr>
+        <tr><td><b>富邦產險</b></td><td>回程後 30 日內</td><td>官網 / 0800-009-888</td></tr>
+        <tr><td><b>新光產險</b></td><td>回程後 30 日內</td><td>官網 / 0800-014-111</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout ok">
+      <b>✅ 出發前一日確認</b>
+      <p>1. 帶齊保險公司客服電話<br>
+         2. 攜帶手機可即時 email<br>
+         3. 現場索取「遅延証明書」/「欠航証明書」 (日文/英文皆可,中文需翻譯)<br>
+         4. 所有改訂新票/食宿都要收據 (含稅,金額需對應保額上限)</p>
+    </div>
+  </section>
+
+  <!-- ==================== §05 颱風 9 號個案 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 05</span>
+      <h2>颱風 9 號 (巴威) 個案資料</h2>
+      <span class="tag">TY 2509</span>
+    </div>
+
+    <table>
+      <thead><tr><th>日期</th><th>事件</th><th>影響</th></tr></thead>
+      <tbody>
+        <tr><td><b>2026-07-07 (二)</b></td><td>JMA 發布熱帶低氣壓警報</td><td>—</td></tr>
+        <tr><td><b>2026-07-08 (三)</b></td><td>升格輕度颱風</td><td>—</td></tr>
+        <tr><td><b>2026-07-09 (四)</b></td><td>第 9 號颱風 (HAISHEN/巴威) 命名</td><td>石垣發海上颱風警報</td></tr>
+        <tr><td><b>2026-07-10 (五)</b></td><td>接近八重山群島</td><td>陸上颱風警報發布</td></tr>
+        <tr><td><b>2026-07-11 (六)</b></td><td>八重山全航路欠航</td><td>8 重観 + 安栄全便 1 日停航</td></tr>
+        <tr><td><b>2026-07-12 (日)</b></td><td>午後逐步恢復</td><td>午後未定,部分國內線恢復</td></tr>
+        <tr><td><b>2026-07-13 (一)</b></td><td>預定全航路恢復</td><td>需逐班次確認 7/16/22 開航</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout alert">
+      <b>🌀 9 號過境後注意事項</b>
+      <p>1. 海象仍可能不穩定,7/14-7/16 仍有長浪警報風險<br>
+         2. 西表島上樹木倒榻,巴士可能停駛<br>
+         3. 民宿屋況需電話確認 (是否有漏水/冷氣故障/玻璃破損)<br>
+         4. 7/16 夜船若海上警報,可能延誤 2-4 小時或提前停航</p>
+    </div>
+
+    <div class="callout warn">
+      <b>📌 不能假裝</b>
+      <p>此頁「9 號已過境 + 7/13 恢復」是基於 2026-07-12 上午 10:00 的 session 記憶 + 7/11 八重観欠航公告。實際狀況需在 7/13 後掃描 JMA 確認。</p>
+    </div>
+  </section>
+
+  <!-- ==================== §06 原始出處 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 06</span>
+      <h2>原始出處彙整</h2>
+      <span class="tag">SOURCES</span>
+    </div>
+
+    <ul class="source-list">
+      <li><span class="kind verified">✓ 已驗</span><a href="https://www.yaeyama.co.jp/">八重山觀光フェリー 官網</a> <span class="verified-time">curl 200 OK · 2026-07-12</span> · 7/11 全航路欠航公告</li>
+      <li><span class="kind verified">✓ 已驗</span><a href="https://www.aneikankou.co.jp/condition">安栄觀光 /condition</a> <span class="verified-time">curl 200 OK · 2026-07-12</span> · 航路狀況頁</li>
+      <li><span class="kind pending">⚠ 待查</span><a href="https://www.city.ishigaki.okinawa.jp/">石垣市官方防災</a> · 7/11 警報狀態</li>
+      <li><span class="kind pending">⚠ 待查</span><a href="https://www.jma.go.jp/bosai/map.html#5/20/120/2000/&typhoon=TC2509&contents=typhoon">JMA 氣象廳 9 號路徑</a></li>
+      <li><span class="kind primary">主源</span>使用者過去 session (2026-07-11 ~ 07-12) 9 號觀察紀錄</li>
+      <li><span class="kind primary">主源</span>民宿なみ荘 LINE 對話 (颱風影響期間回覆)</li>
+    </ul>
+  </section>
+
+  <div class="footer">
+    <a href="itinerary.html">← 回行程總覽</a> · <a href="https://github.com/RinRyanJi/JustKM/tree/main/travel/ishigaki-2026">GitHub: travel/ishigaki-2026/event-typhoon.html</a><br>
+    主源: JMA 氣象廳 + 八重山觀光フェリー + 安栄觀光 + 石垣市官方<br>
+    字級調整 <code>Cmd/Ctrl + / - / 0</code> · 75%-300% · localStorage 跨頁同步<br>
+    建立於 2026-07-12 · 9 號過境後下一次更新 2026-07-13
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.05; const MIN = 0.75; const MAX = 3.0; const DEFAULT = 1.15;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      if (valEl) valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try {
+      const v = localStorage.getItem(KEY);
+      if (v !== null && v !== undefined && v !== '') {
+        const parsed = parseFloat(v);
+        if (!isNaN(parsed) && parsed >= MIN && parsed <= MAX) saved = parsed;
+      }
+    } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); apply(cur + STEP); }
+      else if (e.key === '-') { e.preventDefault(); apply(cur - STEP); }
+      else if (e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
