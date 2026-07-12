@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>行前打包 · 行李清單 · JustKM</title>
+  <meta name="description" content="石垣島 × 西表島 × 竹富島 7 日行前打包清單。證件/現金/換日幣/衣著/裝備/藥品/電子/住宿應備,7/15 截止查核。">
+  <style>
+    :root {
+      --canvas: #FAFBFC; --pure-white: #FFFFFF; --surface-2: #F4F5F8; --surface-3: #EBEDF2;
+      --border-1: #E5E7EE; --border-2: #D2D5DD;
+      --text-1: #0F1419; --text-2: #4B5260; --text-3: #8A8F99;
+      --accent: #5B6CFF; --accent-hover: #4A5BEE; --accent-light: #EEF0FF;
+      --accent-gradient: linear-gradient(135deg, #5B6CFF 0%, #8A5CF6 100%);
+      --orange: #FF7A59; --orange-light: #FFF1ED;
+      --green: #10B981; --green-light: #E6F9F2;
+      --red: #EF4444; --red-light: #FEE9E7;
+      --amber: #F59E0B; --amber-light: #FEF5E0;
+      --sky: #0EA5E9; --sky-light: #E0F4FE;
+      --font-scale: 1.15; --base: 18px;
+      --container: 1120px;
+      --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-2xl: 24px; --r-pill: 9999px;
+      --shadow-sm: 0 1px 2px rgba(15, 20, 25, 0.04);
+      --shadow-md: 0 2px 8px rgba(15, 20, 25, 0.06), 0 1px 2px rgba(15, 20, 25, 0.04);
+    }
+    html { font-size: calc(var(--base) * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      background: var(--canvas); color: var(--text-1); line-height: 1.65;
+      min-height: 100vh; -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; transition: color .15s; }
+    a:hover { color: var(--accent-hover); }
+    code { font-family: 'SF Mono', 'JetBrains Mono', Menlo, monospace; font-size: 0.92em; color: var(--accent); background: var(--accent-light); padding: 0.1em 0.4em; border-radius: 4px; }
+
+    .font-adjuster { position: fixed; top: 20px; right: 20px; z-index: 999; background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-pill); padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: var(--shadow-md); }
+    .font-adjuster button { background: var(--surface-2); border: 0; color: var(--text-1); width: 36px; height: 36px; border-radius: var(--r-pill); font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .font-adjuster button:hover { background: var(--accent); color: white; }
+    .font-adjuster .fa-label { font-size: 0.72rem; color: var(--text-3); margin: 0 6px; font-weight: 600; }
+    .font-adjuster .fa-value { font-size: 0.72rem; color: var(--accent); font-weight: 700; min-width: 44px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .container { max-width: var(--container); margin: 0 auto; padding: 32px 28px 96px; }
+
+    .hero { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 48px 44px; margin-bottom: 32px; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent-gradient); }
+    .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-light); color: var(--accent); border-radius: var(--r-pill); padding: 6px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+    .hero h1 { font-size: 2.75rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.035em; margin-bottom: 16px; }
+    .hero h1 .gradient { background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero .sub { font-size: 1.0625rem; color: var(--text-2); line-height: 1.7; max-width: 760px; }
+    .hero-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--r-pill); font-size: 0.85rem; font-weight: 600; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-1); }
+    .pill.green { background: var(--green-light); color: var(--green); border-color: var(--green); }
+    .pill.amber { background: var(--amber-light); color: var(--amber); border-color: var(--amber); }
+    .pill.red { background: var(--red-light); color: var(--red); border-color: var(--red); }
+    .pill.sky { background: var(--sky-light); color: var(--sky); border-color: var(--sky); }
+
+    .section { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 36px 36px; margin-bottom: 24px; box-shadow: var(--shadow-sm); }
+    .sec-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-1); }
+    .sec-head .num { font-family: 'SF Mono', monospace; color: var(--accent); font-weight: 800; font-size: 1.0625rem; letter-spacing: 1px; }
+    .sec-head h2 { font-size: 1.625rem; font-weight: 700; color: var(--text-1); flex: 1; letter-spacing: -0.02em; }
+    .sec-head .tag { background: var(--surface-2); color: var(--text-3); border-radius: var(--r-pill); padding: 4px 12px; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+    .check-list { list-style: none; padding: 0; }
+    .check-list li { display: flex; align-items: flex-start; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border-1); font-size: 0.95rem; color: var(--text-1); }
+    .check-list li:last-child { border-bottom: 0; }
+    .check-list li::before { content: '☐'; font-size: 1.25rem; color: var(--accent); flex-shrink: 0; padding-top: 2px; }
+    .check-list .meta { color: var(--text-3); font-size: 0.82rem; margin-left: 6px; font-family: 'SF Mono', monospace; }
+    .check-list b { color: var(--accent); }
+    .check-list .alert { color: var(--red); font-weight: 700; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 16px 0; }
+    @media (max-width: 720px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .callout { border-left: 4px solid var(--accent); background: var(--accent-light); border-radius: var(--r-md); padding: 16px 20px; margin: 16px 0; }
+    .callout.ok { border-color: var(--green); background: var(--green-light); }
+    .callout.warn { border-color: var(--amber); background: var(--amber-light); }
+    .callout.alert { border-color: var(--red); background: var(--red-light); }
+    .callout b { display: block; margin-bottom: 6px; }
+    .callout p { color: var(--text-1); font-size: 0.95rem; line-height: 1.6; }
+    .callout p + p { margin-top: 8px; }
+
+    .footer { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.85rem; border-top: 1px solid var(--border-1); margin-top: 32px; }
+    .page-nav { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 24px; padding: 12px 16px; background: var(--surface-2); border-radius: var(--r-md); font-size: 0.88rem; }
+    .page-nav a { color: var(--accent); padding: 4px 10px; border-radius: var(--r-pill); background: var(--pure-white); border: 1px solid var(--border-1); }
+    .page-nav a.current { background: var(--accent); color: white; border-color: var(--accent); }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; }
+    .stat { background: var(--surface-2); border-radius: var(--r-md); padding: 14px 16px; text-align: center; }
+    .stat .n { font-size: 1.75rem; font-weight: 800; color: var(--accent); font-family: 'SF Mono', monospace; }
+    .stat .l { font-size: 0.78rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster">
+  <button id="fa-dec" title="縮小字級">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">115%</span>
+  <button id="fa-inc" title="放大字級">A+</button>
+  <button id="fa-reset" title="重置 115%">100%</button>
+</div>
+
+<div class="container">
+
+  <section class="hero">
+    <span class="hero-tag">📦 行前打包 · 7/15 截止</span>
+    <h1>行李 <span class="gradient">打包清單</span></h1>
+    <p class="sub">
+      7/16 出發前必備。涵蓋<b>證件 / 現金 / 換日幣 / 衣著 / 裝備 / 藥品 / 電子 / 住宿應備</b> 8 大類,2 人 6 天備援共約 ¥25,000。<br>
+      <b>西表島無便利店</b>,所有藥品/化妝品/零食/防曬 需事前在台備齊。
+    </p>
+    <div class="hero-pills">
+      <span class="pill green">✓ 7/15 截止</span>
+      <span class="pill amber">⚠ 西表無便利商店</span>
+      <span class="pill sky">💴 ¥25,000 備援</span>
+      <span class="pill red">🚨 護照 6 月效期</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n">8</div><div class="l">類別</div></div>
+      <div class="stat"><div class="n">~40</div><div class="l">品項</div></div>
+      <div class="stat"><div class="n">2</div><div class="l">人 6 天</div></div>
+      <div class="stat"><div class="n">~¥25k</div><div class="l">備援日幣</div></div>
+    </div>
+  </section>
+
+  <nav class="page-nav">
+    <a href="itinerary.html">📅 行程總覽</a>
+    <a href="transport-ferries.html">🚢 船班</a>
+    <a href="transport-flights.html">✈ 航班</a>
+    <a href="transport-buses.html">🚌 巴士</a>
+    <a href="stay-namisou.html">🏠 なみ荘</a>
+    <a href="stay-midorisou.html">🏠 みどり荘</a>
+    <a href="food-iriomite.html">🍴 西表餐飲</a>
+    <a href="event-typhoon.html">🌀 颱風應變</a>
+    <a href="prep-packing.html" class="current">📦 打包</a>
+  </nav>
+
+  <!-- ==================== §01 證件 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 01</span>
+      <h2>證件類 · 不可漏</h2>
+      <span class="tag">CRITICAL</span>
+    </div>
+
+    <div class="callout alert">
+      <b>🚨 護照必備 · 6 月以上效期</b>
+      <p>出發日 7/16,需有 <b>2027-01-16 後</b> 之護照效期。日本入境要求 6 個月以上效期。<br>
+      若護照 <b>2027-01 前到期</b> → 立即申請換發(外交部領事事務局 02-2343-2929,5-7 工作天)。</p>
+    </div>
+
+    <ul class="check-list">
+      <li><b>護照</b> <span class="alert">⚠ 6 月效期</span> <span class="meta">2 本</span></li>
+      <li><b>台灣身分證</b> <span class="meta">2 張</span></li>
+      <li><b>駕照 (國際)</b> <span class="meta">預備租車 7/20 北部環島</span></li>
+      <li><b>健保卡</b> <span class="meta">備用</span></li>
+      <li><b>登機/船 e-ticket 列印</b> <span class="meta">YAIMARU F2026070300006 · IT231</span></li>
+      <li><b>訂房憑證 (なみ荘/みどり荘)</b> <span class="meta">email + LINE 對話備份</span></li>
+      <li><b>保險公司電話 + 保單影本</b> <span class="meta">不便險必備</span></li>
+    </ul>
+  </section>
+
+  <!-- ==================== §02 現金 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 02</span>
+      <h2>現金 + 換日幣</h2>
+      <span class="tag">YEN · ¥</span>
+    </div>
+
+    <div class="callout warn">
+      <b>💴 西表島無 ATM (僅郵便局)</b>
+      <p>上原/白浜/大原 三個主要港區中,只有郵便局 (ゆうちょ銀行) 可提款。<br>
+      部分餐廳 <b>僅收現金</b>(無信用卡),建議備 ¥30,000-50,000 現金 + 2 張信用卡(分開帶)。</p>
+    </div>
+
+    <ul class="check-list">
+      <li><b>日幣現金</b> <span class="meta">2 人 ¥50,000 (= NT$11,000)</span></li>
+      <li><b>日幣小鈔 ¥1,000</b> <span class="meta">¥10,000 (巴士/小額)</span></li>
+      <li><b>台幣備用</b> <span class="meta">¥3,000</span></li>
+      <li><b>信用卡 × 2 張</b> <span class="meta">Visa/Master,分人帶</span></li>
+      <li><b>提款卡 (有海外提款功能)</b> <span class="meta">予備</span></li>
+      <li><b>7/15 換日幣</b> <span class="meta">兆豐/台銀, 匯率約 0.22 (NT$1 = ¥4.5)</span></li>
+    </ul>
+
+    <h3 style="font-size:1.0625rem;margin:16px 0 8px;">💡 信用卡提醒</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:0.92rem;">
+      <thead style="background:var(--surface-2);"><tr><th style="text-align:left;padding:10px 14px;">場景</th><th style="text-align:left;padding:10px 14px;">接受度</th></tr></thead>
+      <tbody>
+        <tr><td style="padding:8px 14px;border-top:1px solid var(--border-1);">石垣市區大餐廳</td><td style="padding:8px 14px;border-top:1px solid var(--border-1);">✅ V/M/JCB</td></tr>
+        <tr><td style="padding:8px 14px;border-top:1px solid var(--border-1);">西表民宿</td><td style="padding:8px 14px;border-top:1px solid var(--border-1);">⚠ 建議現金</td></tr>
+        <tr><td style="padding:8px 14px;border-top:1px solid var(--border-1);">西表小餐廳</td><td style="padding:8px 14px;border-top:1px solid var(--border-1);">❌ 現金 only</td></tr>
+        <tr><td style="padding:8px 14px;border-top:1px solid var(--border-1);">租車 (Toyota 等)</td><td style="padding:8px 14px;border-top:1px solid var(--border-1);">✅ V/M</td></tr>
+        <tr><td style="padding:8px 14px;border-top:1px solid var(--border-1);">巴士/計程車</td><td style="padding:8px 14px;border-top:1px solid var(--border-1);">❌ 現金 only</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §03 衣著 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 03</span>
+      <h2>衣著 · 7 月夏季</h2>
+      <span class="tag">CLOTHING</span>
+    </div>
+
+    <div class="callout warn">
+      <b>🌡 7 月石垣/西表氣溫</b>
+      <p>日間 <b>30-33°C</b>,夜間 <b>26-28°C</b>。<br>
+      海風 + 午後雷陣雨機率高,建議 <b>薄外套 + 雨衣</b>。船公司內部冷氣強,夜船必備 <b>薄長袖</b>。</p>
+    </div>
+
+    <ul class="check-list">
+      <li><b>T 恤/短袖</b> <span class="meta">2 人各 5 件</span></li>
+      <li><b>短褲</b> <span class="meta">2 人各 2 件</span></li>
+      <li><b>薄外套/防曬衫</b> <span class="meta">2 件 (船公司冷氣/午後轉涼)</span></li>
+      <li><b>泳衣 + 泳褲</b> <span class="meta">竹富/川平灣浮潛用</span></li>
+      <li><b>防曬外套 / UV 衫</b> <span class="meta">7 月日照強,長袖防曬</span></li>
+      <li><b>雨衣 (輕便)</b> <span class="meta">午後雷陣雨 (西表山林午後陣雨機率 60%)</span></li>
+      <li><b>涼鞋 / 拖鞋</b> <span class="meta">民宿/船公司通用</span></li>
+      <li><b>運動鞋 (防水)</b> <span class="meta">西表叢林/星野/瀑布必備</span></li>
+      <li><b>襪子</b> <span class="meta">2 人各 4-5 雙</span></li>
+      <li><b>內衣褲</b> <span class="meta">2 人各 5 套</span></li>
+    </ul>
+  </section>
+
+  <!-- ==================== §04 裝備 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 04</span>
+      <h2>戶外裝備 · 西表島必備</h2>
+      <span class="tag">GEAR</span>
+    </div>
+
+    <div class="callout alert">
+      <b>🚨 西表島是叢林/紅樹林/海灘</b>
+      <p>準備不齊全 = 全身濕透 + 蚊蟲叮滿身。建議 <b>防水背包 + 防蚊液 + 防水袋</b> 三件套必備。</p>
+    </div>
+
+    <ul class="check-list">
+      <li><b>防水背包 20-30L</b> <span class="meta">一日遊用</span></li>
+      <li><b>防水袋 (手機/相機)</b> <span class="meta">瀑布/獨木舟必備</span></li>
+      <li><b>防蚊液 (含 DEET)</b> <span class="meta">叢林蚊蟲兇猛</span></li>
+      <li><b>防曬乳 SPF 50+</b> <span class="meta">2 罐 (西表無便利店補貨)</span></li>
+      <li><b>太陽眼鏡</b> <span class="meta">2 副 (含備用)</span></li>
+      <li><b>遮陽帽</b> <span class="meta">2 頂</span></li>
+      <li><b>手電筒</b> <span class="meta">西表夜間/夜船房間無燈</span></li>
+      <li><b>登山杖 (折疊)</b> <span class="meta">浦内川/星野/瀑布</span></li>
+      <li><b>水壺 (1L)</b> <span class="meta">西表無飲水機,需自備</span></li>
+      <li><b>防水手錶</b> <span class="meta">海邊活動</span></li>
+    </ul>
+  </section>
+
+  <!-- ==================== §05 藥品 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 05</span>
+      <h2>藥品 · 西表無藥局</h2>
+      <span class="tag">MEDICATION</span>
+    </div>
+
+    <div class="callout alert">
+      <b>🚨 西表島僅有 1 間藥局</b>
+      <p>白浜的「白浜薬局」營業時間不固定,且 7/17 晚可能已關。建議 7 日份藥品<b>全部台灣帶齊</b>。</p>
+    </div>
+
+    <ul class="check-list">
+      <li><b>暈船藥</b> <span class="meta">7 日份 (夜船 9 小時必備)</span></li>
+      <li><b>防蚊液 + 防蟲貼片</b> <span class="meta">叢林必備</span></li>
+      <li><b>腸胃藥 (正露丸/表飛鳴)</b> <span class="meta">異地飲食可能水土不服</span></li>
+      <li><b>感冒藥</b> <span class="meta">3 日份</span></li>
+      <li><b>OK 繃 + 小包面速力達母</b> <span class="meta">割傷/蚊蟲咬</span></li>
+      <li><b>個人處方藥</b> <span class="meta">2 人各自 7 日份</span></li>
+      <li><b>退燒藥</b> <span class="meta">普拿疼伏冒熱飲</span></li>
+      <li><b>眼藥水</b> <span class="meta">2 瓶 (船公司/海風)</span></li>
+    </ul>
+  </section>
+
+  <!-- ==================== §06 電子 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 06</span>
+      <h2>電子產品</h2>
+      <span class="tag">ELECTRONICS</span>
+    </div>
+
+    <ul class="check-list">
+      <li><b>手機</b> <span class="meta">2 支</span></li>
+      <li><b>充電器 + 線 (Type-C/Lightning)</b> <span class="meta">多帶一條備用</span></li>
+      <li><b>行動電源 (10,000 mAh)</b> <span class="meta">西表山路無電/民宿插座少</span></li>
+      <li><b>日本 SIM 卡 (eSIM 7 日)</b> <span class="meta">DJB/IIJ/UQ,約 NT$500-800</span></li>
+      <li><b>日本插座轉接頭 (B 型)</b> <span class="meta">2 個 (民宿/船公司)</span></li>
+      <li><b>相機 + 記憶卡</b> <span class="meta">竹富/川平灣拍照</span></li>
+      <li><b>耳機</b> <span class="meta">夜船/長途車</span></li>
+      <li><b>平板 (optional)</b> <span class="meta">待機時間長備用</span></li>
+    </ul>
+
+    <h3 style="font-size:1.0625rem;margin:20px 0 8px;">📡 網路方案</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:0.92rem;">
+      <thead style="background:var(--surface-2);"><tr><th style="text-align:left;padding:10px 14px;">方案</th><th style="text-align:left;padding:10px 14px;">價格</th><th style="text-align:left;padding:10px 14px;">優缺</th></tr></thead>
+      <tbody>
+        <tr><td style="padding:8px 14px;border-top:1px solid var(--border-1);"><b>DJB eSIM</b></td><td style="padding:8px 14px;border-top:1px solid var(--border-1);">NT$499/7 日</td><td style="padding:8px 14px;border-top:1px solid var(--border-1);">✅ 推薦 · 免實體卡</td></tr>
+        <tr><td style="padding:8px 14px;border-top:1px solid var(--border-1);"><b>IIJmio 實體 SIM</b></td><td style="padding:8px 14px;border-top:1px solid var(--border-1);">NT$750/7 日</td><td style="padding:8px 14px;border-top:1px solid var(--border-1);">⚠ 收訊穩定但需實體卡</td></tr>
+        <tr><td style="padding:8px 14px;border-top:1px solid var(--border-1);"><b>Wi-Fi 機租借</b></td><td style="padding:8px 14px;border-top:1px solid var(--border-1);">NT$300-500/日</td><td style="padding:8px 14px;border-top:1px solid var(--border-1);">⚠ 機場取還 + 西表深山收訊差</td></tr>
+        <tr><td style="padding:8px 14px;border-top:1px solid var(--border-1);"><b>原號漫遊</b></td><td style="padding:8px 14px;border-top:1px solid var(--border-1);">依電信商</td><td style="padding:8px 14px;border-top:1px solid var(--border-1);">⚠ 7 日可能 NT$1,000+</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §07 住宿應備 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 07</span>
+      <h2>住宿應備 · なみ荘 + みどり荘</h2>
+      <span class="tag">STAY SPECIFIC</span>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <h3 style="font-size:1.0625rem;color:var(--green);margin-bottom:8px;">🌳 なみ荘 (西表 · 1 晚)</h3>
+        <ul class="check-list">
+          <li><b>毛巾/浴巾</b> <span class="meta">なみ荘有提供,可免帶</span></li>
+          <li><b>牙刷</b> <span class="meta">需自備 (日式民宿無提供)</span></li>
+          <li><b>睡衣</b> <span class="meta">和室內著,民宿有浴衣</span></li>
+          <li><b>涼鞋</b> <span class="meta">屋外用 (拖鞋)</span></li>
+          <li><b>現金</b> <span class="meta">民宿可能收費 (早餐 +¥500)</span></li>
+          <li><b>筆記本 + 筆</b> <span class="meta">接送時間/密碼登記</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="font-size:1.0625rem;color:var(--accent);margin-bottom:8px;">🏝 みどり荘 (石垣 · 5 晚)</h3>
+        <ul class="check-list">
+          <li><b>毛巾/浴巾</b> <span class="meta">需自備 (Guesthouse 不提供)</span></li>
+          <li><b>牙刷/牙膏</b> <span class="meta">需自備</span></li>
+          <li><b>洗髮精/沐浴乳</b> <span class="meta">提供,可免帶</span></li>
+          <li><b>室內拖鞋</b> <span class="meta">需自備</span></li>
+          <li><b>洗衣袋</b> <span class="meta">5 晚衣物集中</span></li>
+          <li><b>晾衣繩 (小型)</b> <span class="meta">海島溼度高,室內晾衣</span></li>
+          <li><b>除濕/防潮</b> <span class="meta">小型除濕盒</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== §08 行前 D-7 / D-3 / D-1 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 08</span>
+      <h2>行前檢核 · D-7 / D-3 / D-1</h2>
+      <span class="tag">CHECKLIST</span>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <h3 style="font-size:1.0625rem;color:var(--accent);margin-bottom:8px;">📅 7/9 (D-7) 確認</h3>
+        <ul class="check-list">
+          <li>護照效期 +6 月 ✓</li>
+          <li>虎航 e-ticket 訂位代號 ✓</li>
+          <li>YAIMARU F2026070300006 ✓</li>
+          <li>なみ荘 + みどり荘 訂房信 ✓</li>
+          <li>保險保單下載 ✓</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="font-size:1.0625rem;color:var(--orange);margin-bottom:8px;">📅 7/13 (D-3) 行動</h3>
+        <ul class="check-list">
+          <li>致電東聯 02-2424-6800 確認 7/16 開航</li>
+          <li>虎航 IT231 訂位代號 + e-ticket</li>
+          <li>查石垣 24hr TAXI 號碼</li>
+          <li>換日幣 ¥50,000</li>
+          <li>買日本 eSIM</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <h3 style="font-size:1.0625rem;color:var(--green);margin-bottom:8px;">📅 7/15 (D-1) 最後檢核</h3>
+        <ul class="check-list">
+          <li>手機 eSIM 設定測試 ✓</li>
+          <li>行李秤重 (虎航手提 7kg)</li>
+          <li>YAIMARU 報到碼 F2026070300006</li>
+          <li>桃園機場捷運 + 高鐵班次確認</li>
+          <li>手機備份滿電</li>
+          <li>充電線 + 行動電源 ✓</li>
+          <li>防曬 + 防蚊 + 暈船藥 ✓</li>
+          <li>現金 ¥50,000 分兩處放</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="font-size:1.0625rem;color:var(--red);margin-bottom:8px;">📅 7/16 (D-day) 出門</h3>
+        <ul class="check-list">
+          <li><b>護照 + 身分證</b> ⚠</li>
+          <li>YAIMARU e-ticket 列印 ✓</li>
+          <li>手機滿電 + 行動電源 ✓</li>
+          <li>現金 + 信用卡分兩處</li>
+          <li>防曬 + 雨衣 + 暈船藥</li>
+          <li>民宿訂房 LINE 對話備份</li>
+          <li>保険公司電話 + 保單影本</li>
+          <li>21:00 抵基隆東岸碼頭</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">
+    <a href="itinerary.html">← 回行程總覽</a> · <a href="https://github.com/RinRyanJi/JustKM/tree/main/travel/ishigaki-2026">GitHub: travel/ishigaki-2026/prep-packing.html</a><br>
+    主源: なみ荘 + みどり荘 設施資訊 · 虎航/東聯 手提行李限制 · 使用者 session 經驗<br>
+    字級調整 <code>Cmd/Ctrl + / - / 0</code> · 75%-300% · localStorage 跨頁同步<br>
+    建立於 2026-07-12 · D-1 (7/15) 最後核對
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.05; const MIN = 0.75; const MAX = 3.0; const DEFAULT = 1.15;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      if (valEl) valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try {
+      const v = localStorage.getItem(KEY);
+      if (v !== null && v !== undefined && v !== '') {
+        const parsed = parseFloat(v);
+        if (!isNaN(parsed) && parsed >= MIN && parsed <= MAX) saved = parsed;
+      }
+    } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); apply(cur + STEP); }
+      else if (e.key === '-') { e.preventDefault(); apply(cur - STEP); }
+      else if (e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
