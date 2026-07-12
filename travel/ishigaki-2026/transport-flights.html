@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>航班 · 船班資料庫 · YAIMARU 夜船 + IT231 虎航 · JustKM</title>
+  <meta name="description" content="YAIMARU 夜船 (基隆→石垣) + 虎航 IT231 (石垣→桃園) 全資料。包含訂位代號、出發/抵達時間、check-in 流程、行李限制、颱風 9 號後改訂 SOP。">
+  <style>
+    /* 共用 CSS (與 transport-ferries.html 同源) */
+    :root {
+      --canvas: #FAFBFC; --pure-white: #FFFFFF; --surface-2: #F4F5F8; --surface-3: #EBEDF2;
+      --border-1: #E5E7EE; --border-2: #D2D5DD;
+      --text-1: #0F1419; --text-2: #4B5260; --text-3: #8A8F99;
+      --accent: #5B6CFF; --accent-hover: #4A5BEE; --accent-light: #EEF0FF;
+      --accent-gradient: linear-gradient(135deg, #5B6CFF 0%, #8A5CF6 100%);
+      --orange: #FF7A59; --orange-light: #FFF1ED;
+      --green: #10B981; --green-light: #E6F9F2;
+      --red: #EF4444; --red-light: #FEE9E7;
+      --amber: #F59E0B; --amber-light: #FEF5E0;
+      --sky: #0EA5E9; --sky-light: #E0F4FE;
+      --iriomote: #10B981; --iriomote-bg: #E6F9F2;
+      --ishigaki: #5B6CFF; --ishigaki-bg: #EEF0FF;
+      --taketomi: #FF7A59; --taketomi-bg: #FFF1ED;
+      --typhoon: #EF4444; --typhoon-bg: #FEE9E7;
+      --font-scale: 1.15; --base: 18px;
+      --container: 1120px;
+      --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-2xl: 24px; --r-pill: 9999px;
+      --shadow-sm: 0 1px 2px rgba(15, 20, 25, 0.04);
+      --shadow-md: 0 2px 8px rgba(15, 20, 25, 0.06), 0 1px 2px rgba(15, 20, 25, 0.04);
+    }
+    html { font-size: calc(var(--base) * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      background: var(--canvas); color: var(--text-1); line-height: 1.65;
+      min-height: 100vh; -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; transition: color .15s; }
+    a:hover { color: var(--accent-hover); }
+    code { font-family: 'SF Mono', 'JetBrains Mono', Menlo, monospace; font-size: 0.92em; color: var(--accent); background: var(--accent-light); padding: 0.1em 0.4em; border-radius: 4px; }
+
+    .font-adjuster { position: fixed; top: 20px; right: 20px; z-index: 999; background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-pill); padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: var(--shadow-md); }
+    .font-adjuster button { background: var(--surface-2); border: 0; color: var(--text-1); width: 36px; height: 36px; border-radius: var(--r-pill); font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--accent); color: white; }
+    .font-adjuster .fa-label { font-size: 0.72rem; color: var(--text-3); margin: 0 6px; font-weight: 600; }
+    .font-adjuster .fa-value { font-size: 0.72rem; color: var(--accent); font-weight: 700; min-width: 44px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .container { max-width: var(--container); margin: 0 auto; padding: 32px 28px 96px; }
+
+    .hero { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 48px 44px; margin-bottom: 32px; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent-gradient); }
+    .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-light); color: var(--accent); border-radius: var(--r-pill); padding: 6px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+    .hero h1 { font-size: 2.75rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.035em; margin-bottom: 16px; color: var(--text-1); }
+    .hero h1 .gradient { background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero .sub { font-size: 1.0625rem; color: var(--text-2); line-height: 1.7; max-width: 760px; }
+    .hero-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--r-pill); font-size: 0.85rem; font-weight: 600; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-1); }
+    .pill.ship { background: var(--sky-light); color: var(--sky); border-color: var(--sky); }
+    .pill.flight { background: var(--orange-light); color: var(--orange); border-color: var(--orange); }
+    .pill.typhoon { background: var(--typhoon-bg); color: var(--typhoon); border-color: var(--typhoon); }
+
+    .section { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 36px 36px; margin-bottom: 24px; box-shadow: var(--shadow-sm); }
+    .sec-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-1); }
+    .sec-head .num { font-family: 'SF Mono', monospace; color: var(--accent); font-weight: 800; font-size: 1.0625rem; letter-spacing: 1px; }
+    .sec-head h2 { font-size: 1.625rem; font-weight: 700; color: var(--text-1); flex: 1; letter-spacing: -0.02em; }
+    .sec-head .tag { background: var(--surface-2); color: var(--text-3); border-radius: var(--r-pill); padding: 4px 12px; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92rem; }
+    thead { background: var(--surface-2); }
+    th { text-align: left; padding: 10px 14px; color: var(--text-2); font-weight: 700; font-size: 0.82rem; letter-spacing: 0.5px; text-transform: uppercase; }
+    td { padding: 10px 14px; border-top: 1px solid var(--border-1); color: var(--text-1); }
+    tr:hover td { background: var(--surface-2); }
+    td b { color: var(--accent); }
+
+    .callout { border-left: 4px solid var(--accent); background: var(--accent-light); border-radius: var(--r-md); padding: 16px 20px; margin: 16px 0; }
+    .callout.ok { border-color: var(--green); background: var(--green-light); }
+    .callout.warn { border-color: var(--amber); background: var(--amber-light); }
+    .callout.alert { border-color: var(--red); background: var(--red-light); }
+    .callout b { display: block; margin-bottom: 6px; }
+    .callout p { color: var(--text-1); font-size: 0.95rem; line-height: 1.6; }
+    .callout p + p { margin-top: 8px; }
+
+    .ferry-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 18px; margin: 20px 0; }
+    .ferry-card { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-lg); padding: 22px 24px; box-shadow: var(--shadow-sm); }
+    .ferry-card .label { font-size: 0.82rem; font-weight: 800; color: var(--accent); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; }
+    .ferry-card .route { font-size: 1.0625rem; font-weight: 700; color: var(--text-1); margin-bottom: 14px; }
+    .ferry-card .times { background: var(--surface-2); border-radius: var(--r-md); padding: 12px 14px; margin-bottom: 12px; }
+    .ferry-card .times .row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.92rem; }
+    .ferry-card .times .d { color: var(--text-3); font-weight: 600; }
+    .ferry-card .times .t { color: var(--text-1); font-weight: 700; font-family: 'SF Mono', monospace; }
+    .ferry-card .alert { background: var(--amber-light); color: #B45309; border-radius: var(--r-sm); padding: 8px 12px; font-size: 0.85rem; margin: 8px 0; border-left: 3px solid var(--amber); }
+    .ferry-card .note { font-size: 0.88rem; color: var(--text-2); margin-top: 6px; line-height: 1.5; }
+
+    .source-list { background: var(--surface-2); border-radius: var(--r-md); padding: 16px 20px; margin: 12px 0; }
+    .source-list li { padding: 4px 0; font-size: 0.92rem; color: var(--text-1); }
+    .source-list .kind { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: var(--r-pill); margin-right: 8px; }
+    .source-list .kind.primary { background: var(--green-light); color: var(--green); }
+    .source-list .kind.secondary { background: var(--accent-light); color: var(--accent); }
+    .source-list .kind.verified { background: var(--green); color: white; }
+    .source-list .kind.pending { background: var(--amber-light); color: var(--amber); }
+    .source-list .verified-time { font-size: 0.78rem; color: var(--text-3); margin-left: 6px; font-family: 'SF Mono', monospace; }
+
+    .footer { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.85rem; border-top: 1px solid var(--border-1); margin-top: 32px; }
+    .page-nav { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 24px; padding: 12px 16px; background: var(--surface-2); border-radius: var(--r-md); font-size: 0.88rem; }
+    .page-nav a { color: var(--accent); padding: 4px 10px; border-radius: var(--r-pill); background: var(--pure-white); border: 1px solid var(--border-1); }
+    .page-nav a.current { background: var(--accent); color: white; border-color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster">
+  <button id="fa-dec" title="縮小字級">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">115%</span>
+  <button id="fa-inc" title="放大字級">A+</button>
+  <button id="fa-reset" title="重置 115%">100%</button>
+</div>
+
+<div class="container">
+
+  <section class="hero">
+    <span class="hero-tag">📚 知識庫 · 航班</span>
+    <h1>航班 · <span class="gradient">長程交通</span></h1>
+    <p class="sub">
+      YAIMARU 夜船 (基隆→石垣) + 虎航 IT231 (石垣→桃園凌晨) — 訂位代號、出發/抵達、check-in 流程、行李、颱風 9 號後改訂 SOP。<br>
+      <b>涵蓋 7/16 夜船去程</b> + <b>7/22 凌晨虎航回程</b>。
+    </p>
+    <div class="hero-pills">
+      <span class="pill ship">🚢 YAIMARU 夜船</span>
+      <span class="pill flight">✈️ 虎航 IT231</span>
+      <span class="pill typhoon">⚠ 颱風 9 號影響中</span>
+    </div>
+  </section>
+
+  <nav class="page-nav">
+    <a href="itinerary.html">📅 行程總覽</a>
+    <a href="transport-ferries.html">🚢 船班</a>
+    <a href="transport-flights.html" class="current">✈ 航班</a>
+    <a href="transport-buses.html">🚌 巴士</a>
+    <a href="stay-namisou.html">🏠 なみ荘</a>
+    <a href="stay-midorisou.html">🏠 みどり荘</a>
+    <a href="food-iriomote.html">🍴 西表餐飲</a>
+    <a href="event-typhoon.html">🌀 颱風應變</a>
+  </nav>
+
+  <!-- ==================== §01 為什麼重要 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 01</span>
+      <h2>為什麼這份資料庫重要?</h2>
+      <span class="tag">Context</span>
+    </div>
+
+    <p>石垣島無台灣直飛廉價時段(虎航唯一凌晨班),使用者選擇 <b>夜船過夜模式</b>:17:00 從台北出發 → 21:30 基隆 check-in → 23:00 YAIMARU 開航 → 睡 9 小時 → 07:00 抵石垣港。多出整個白天玩西表,不浪費旅遊時間。</p>
+
+    <div class="callout warn">
+      <b>⚠ 夜船 vs 飛機的抉擇</b>
+      <p>夜船單程 <b>約 NT$3,500-5,000/人</b>(依房型),比虎航單程 NT$5,000-8,000 略便宜,且<b>省一晚住宿費</b>(船上過夜)。但:<br>
+         • 不適合怕暈船者 (夜船單程 9-12 小時,基隆到石垣)<br>
+         • 遇颱風/大浪會延誤 2-4 小時或停航<br>
+         • 房型/船公司選擇較少(僅東聯航運 / 臺華輪等少數)</p>
+    </div>
+
+    <div class="callout alert">
+      <b>🌀 颱風 9 號 (2026-07-09 起) 影響</b>
+      <p>7/16 啟航前需確認 YAIMARU 開航狀況;7/22 凌晨虎航 IT231 若公告取消,需改訂隔日或啟動不便險理賠。建議保留 24 hr 改訂彈性。</p>
+    </div>
+  </section>
+
+  <!-- ==================== §02 YAIMARU 夜船 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 02</span>
+      <h2>YAIMARU 夜船 · 基隆→石垣</h2>
+      <span class="tag">Night Ferry · 9 hr</span>
+    </div>
+
+    <div class="ferry-grid">
+      <div class="ferry-card">
+        <div class="label">公司基本資料</div>
+        <div class="route">基隆港東岸碼頭 → 石垣港 (7/16 23:00 → 7/17 07:00)</div>
+        <div class="times">
+          <div class="row"><span class="d">訂位代號</span><span class="t" style="color:var(--green);font-weight:800;">F2026070300006 ✓</span></div>
+          <div class="row"><span class="d">出發 (基隆)</span><span class="t">2026-07-16 23:00</span></div>
+          <div class="row"><span class="d">抵達 (石垣)</span><span class="t">2026-07-17 07:00</span></div>
+          <div class="row"><span class="d">航程</span><span class="t">~9 hr</span></div>
+          <div class="row"><span class="d">房型</span><span class="t">標準房 SC-569 雙床</span></div>
+        </div>
+        <div class="alert">⚠ 公司公告「23:00」;行程頁「23:30」— 30 分差,出發前再確認</div>
+      </div>
+
+      <div class="ferry-card">
+        <div class="label">Check-in 流程</div>
+        <div class="route">基隆東岸旅運中心</div>
+        <div class="times">
+          <div class="row"><span class="d">報到開始</span><span class="t">20:00 (提早 3 hr)</span></div>
+          <div class="row"><span class="d">報到截止</span><span class="t" style="color:var(--red);">21:30 (開航前 1.5 hr)</span></div>
+          <div class="row"><span class="d">必帶</span><span class="t">護照、台灣身分證、訂位代號</span></div>
+          <div class="row"><span class="d">位置</span><span class="t" style="font-size:0.85rem;">基隆港東岸旅運中心 1F</span></div>
+        </div>
+        <div class="note">✅ 建議 19:30 抵達基隆,機場捷運 + 高鐵/國光客運至基隆,再 TAXI 至東岸碼頭</div>
+      </div>
+
+      <div class="ferry-card">
+        <div class="label">船上設施</div>
+        <div class="route">21,688 噸 · 545 人客艙 · 標準房 SC-569</div>
+        <div class="times">
+          <div class="row"><span class="d">床型</span><span class="t">標準雙床 (2 名)</span></div>
+          <div class="row"><span class="d">含</span><span class="t">衛浴、空調、枕被</span></div>
+          <div class="row"><span class="d">餐廳</span><span class="t">1F 簡餐 (營業至深夜)</span></div>
+          <div class="row"><span class="d">無線網路</span><span class="t" style="color:var(--text-3);">ⓘ 不穩 (衛星鏈路)</span></div>
+          <div class="row"><span class="d">淋浴</span><span class="t">公共浴場</span></div>
+        </div>
+        <div class="note">📌 建議自備: 暈船藥、充電器、輕便拖鞋、耳塞、眼罩</div>
+      </div>
+
+      <div class="ferry-card">
+        <div class="label">船公司資料</div>
+        <div class="route">東聯航運</div>
+        <div class="times">
+          <div class="row"><span class="d">官網</span><span class="t" style="font-size:0.85rem;"><span class="kind pending">待驗</span><a href="https://www.yamamaru.com.tw/">yamamaru.com.tw</a></span></div>
+          <div class="row"><span class="d">客服</span><span class="t" style="font-size:0.85rem;">02-2424-6800 (基隆)</span></div>
+          <div class="row"><span class="d">基隆報到</span><span class="t">東岸旅運中心 1F</span></div>
+        </div>
+        <div class="alert">⚠ yamamaru.com.tw DNS 解析失敗 (2026-07-12);建議 7/13 致電客服 02-2424-6800 確認 23:00 開航</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:28px;color:var(--text-1);font-size:1.125rem;">📌 原始出處</h3>
+    <ul class="source-list">
+      <li><span class="kind pending">⚠ 待 7/13 確認</span><span style="color:var(--text-3);">yamamaru.com.tw 官網(目前 DNS 解析失敗,待子代理查證)</span></li>
+      <li><span class="kind pending">⚠ 待 7/13 確認</span><span style="color:var(--text-3);">東聯航運客服電話: 02-2424-6800</span></li>
+      <li><span class="kind verified">✓ 已驗</span>使用者訂位確認信: 代號 <code>F2026070300006</code> · SC-569 · 雙床</li>
+    </ul>
+  </section>
+
+  <!-- ==================== §03 虎航 IT231 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 03</span>
+      <h2>虎航 IT231 · 石垣→桃園</h2>
+      <span class="tag">凌晨航班 · 1h 20m</span>
+    </div>
+
+    <div class="ferry-grid">
+      <div class="ferry-card">
+        <div class="label">航班基本資料</div>
+        <div class="route">石垣空港 (ISG) → 桃園機場 (TPE)</div>
+        <div class="times">
+          <div class="row"><span class="d">航班號</span><span class="t" style="color:var(--orange);font-weight:800;">IT231</span></div>
+          <div class="row"><span class="d">出發 (ISG)</span><span class="t">2026-07-22 02:00 (凌晨)</span></div>
+          <div class="row"><span class="d">抵達 (TPE)</span><span class="t">2026-07-22 05:00</span></div>
+          <div class="row"><span class="d">航程</span><span class="t">~1h 20min</span></div>
+          <div class="row"><span class="d">機型</span><span class="t">A320 (虎航典型)</span></div>
+        </div>
+        <div class="alert">⚠ 凌晨航班,建議 00:00 前抵達機場 (報到 + 安檢需 1.5-2 hr)</div>
+      </div>
+
+      <div class="ferry-card">
+        <div class="label">Check-in 流程</div>
+        <div class="route">石垣空港 (新石垣空港)</div>
+        <div class="times">
+          <div class="row"><span class="d">報到開始</span><span class="t">起飛前 2 hr (00:00)</span></div>
+          <div class="row"><span class="d">報到截止</span><span class="t" style="color:var(--red);">起飛前 45 min (01:15)</span></div>
+          <div class="row"><span class="d">必帶</span><span class="t">護照、台灣身分證、e-ticket</span></div>
+          <div class="row"><span class="d">位置</span><span class="t" style="font-size:0.85rem;">新石垣空港国際線 1F</span></div>
+        </div>
+        <div class="note">✅ 機場 24 hr 開放,可超早報到;建議 00:30 前抵達,01:00 過安檢</div>
+      </div>
+
+      <div class="ferry-card">
+        <div class="label">登野城→石垣機場</div>
+        <div class="route">深夜 TAXI (約 30-40 分車程)</div>
+        <div class="times">
+          <div class="row"><span class="d">車程</span><span class="t">~30-40 分 (深夜)</span></div>
+          <div class="row"><span class="d">費用</span><span class="t">¥1,800-2,500</span></div>
+          <div class="row"><span class="d">出發時間</span><span class="t">01:30 (登野城)</span></div>
+          <div class="row"><span class="d">預約</span><span class="t" style="color:var(--text-3);">⚠ 需事前查 24hr TAXI 號碼</span></div>
+        </div>
+        <div class="note">📌 みどり荘 check-out 需事前協調(一般 10:00,凌晨 check-out 可協商)</div>
+      </div>
+
+      <div class="ferry-card">
+        <div class="label">行李 + 票務</div>
+        <div class="route">虎航典型配置</div>
+        <div class="times">
+          <div class="row"><span class="d">手提</span><span class="t">7 kg (1 件)</span></div>
+          <div class="row"><span class="d">託運</span><span class="t" style="color:var(--text-3);">ⓘ 需事前加購 (15/20/25 kg)</span></div>
+          <div class="row"><span class="d">票務</span><span class="t" style="color:var(--text-3);">⚠ 待 7/13 查訂位代號</span></div>
+          <div class="row"><span class="d">不便險</span><span class="t" style="color:var(--green);">✓ 已保 (待查保單)</span></div>
+        </div>
+        <div class="note">📌 虎航付款後改票手續費高,改訂前致電客服 02-2536-7117</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:28px;color:var(--text-1);font-size:1.125rem;">📌 原始出處</h3>
+    <ul class="source-list">
+      <li><span class="kind pending">⚠ 待 7/13 查證</span><a href="https://www.tigerair.com.tw/">虎航官網</a> · 訂位代號、e-ticket 細節</li>
+      <li><span class="kind verified">✓</span><a href="https://www.ishigaki-airport.co.jp/">石垣空港官網 (curl 200 OK)</a> · 國際線時刻表</li>
+      <li><span class="kind pending">⚠ 待 7/13 確認</span><a href="tel:0225367117">虎航客服 02-2536-7117</a> · 颱風改票/退款</li>
+    </ul>
+  </section>
+
+  <!-- ==================== §04 颱風應變 SOP ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 04</span>
+      <h2>颱風 9 號應變 SOP · 兩段都需確認</h2>
+      <span class="tag">Risk Plan</span>
+    </div>
+
+    <div class="callout alert">
+      <b>🌀 颱風 9 號 (巴威) 過境後狀態</b>
+      <p>7/9-7/11 連續全航路欠航,7/12 午前仍全欠航;<b>7/13 起預定恢復</b>。但 7/16 夜船 + 7/22 凌晨虎航仍需 24 hr 前重掃。</p>
+    </div>
+
+    <h3 style="color:var(--text-1);font-size:1.0625rem;margin-top:20px;">🚢 YAIMARU 7/16 夜船應變</h3>
+    <ol style="padding-left:24px;color:var(--text-1);font-size:0.95rem;line-height:1.8;">
+      <li><b>7/13 一 · 確認</b>:致電東聯航運 <code>02-2424-6800</code>,問 7/16 基隆→石垣 23:00 開航是否正常</li>
+      <li><b>7/14 二 · 二次確認</b>:再掃 yamamaru.com.tw (DNS 修好後) 或當日新聞</li>
+      <li><b>7/15 三 · 最後決定</b>:
+        <ul style="margin-top:6px;">
+          <li>若 <b>7/16 正常</b>:照既定 19:00 從台北出發</li>
+          <li>若 <b>7/16 延誤 2-4 hr</b>:可接受 (7/17 早上仍能搭 YKF 08:00 → 09:00 抵上原)</li>
+          <li>若 <b>7/16 全日停航</b>:
+            <ul>
+              <li>方案 A:改訂 7/17 航班(虎航 + 石垣空港飯店 1 晚)</li>
+              <li>方案 B:改訂虎航 IT231 7/22 回程延期,西表島 Day 1-5 縮為 Day 1-4</li>
+              <li>方案 C:改訂整趟行程,啟動不便險理賠</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ol>
+
+    <h3 style="color:var(--text-1);font-size:1.0625rem;margin-top:24px;">✈️ 虎航 IT231 7/22 凌晨應變</h3>
+    <ol style="padding-left:24px;color:var(--text-1);font-size:0.95rem;line-height:1.8;">
+      <li><b>7/20 一 · 確認</b>:虎航官網查 IT231 狀態 (tigerair.com.tw)</li>
+      <li><b>7/21 二 · 致電</b>:<code>02-2536-7117</code> 詢 7/22 02:00 起飛是否正常</li>
+      <li><b>7/21 22:00 · 最後掃描</b>:虎航推播 + APP 通知 + 機場公告</li>
+      <li>若 <b>7/22 全日取消</b>:
+        <ul style="margin-top:6px;">
+          <li>改訂虎航隔日 (7/23) 班次 + 石垣空港飯店 1 晚</li>
+          <li>啟動旅遊不便險理賠 (需保留原訂票證明 + 改訂新票證明 + 食宿收據)</li>
+        </ul>
+      </li>
+    </ol>
+
+    <div class="callout ok">
+      <b>✅ 7/13 三行動清單</b>
+      <p>1. 致電東聯航運 02-2424-6800 確認 7/16 開航<br>
+         2. 上虎航官網查 IT231 訂位代號 + e-ticket 號<br>
+         3. 查石垣機場 24hr TAXI 號碼 (預約 7/22 01:30 從登野城出發)</p>
+    </div>
+  </section>
+
+  <!-- ==================== §05 待 7/13 子代理查證事項 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 05</span>
+      <h2>待 7/13 確認事項</h2>
+      <span class="tag">Pending · 子代理查證中</span>
+    </div>
+
+    <table>
+      <thead><tr><th>截止</th><th>事項</th><th>來源</th><th>狀態</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>7/13</code></td>
+          <td>YAIMARU 開航時間確認 (23:00 vs 23:30)</td>
+          <td>東聯航運 02-2424-6800</td>
+          <td style="color:var(--amber);font-weight:700;">⚠ 待確認</td>
+        </tr>
+        <tr>
+          <td><code>7/13</code></td>
+          <td>虎航 IT231 訂位代號 / e-ticket</td>
+          <td>虎航 APP / 客服</td>
+          <td style="color:var(--amber);font-weight:700;">⚠ 待確認</td>
+        </tr>
+        <tr>
+          <td><code>7/13</code></td>
+          <td>石垣機場 24hr TAXI 號碼 (登野城)</td>
+          <td>石垣空港 0980-XX-XXXX</td>
+          <td style="color:var(--amber);font-weight:700;">⚠ 子代理查證中</td>
+        </tr>
+        <tr>
+          <td><code>7/13</code></td>
+          <td>yamamaru.com.tw DNS 修復 / 替代查詢</td>
+          <td>子代理</td>
+          <td style="color:var(--amber);font-weight:700;">⚠ 子代理查證中</td>
+        </tr>
+        <tr>
+          <td><code>7/14</code></td>
+          <td>虎航行李加購方案 (15kg/20kg/25kg 價格)</td>
+          <td>虎航官網</td>
+          <td style="color:var(--text-3);">待 7/14 加購</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <b>📌 我不能假裝</b>
+      <p>虎航官網目前從我的環境 curl 解析失敗 (DNS 0),這次 session_search 找到的虎航/YAIMARU 細節都是使用者過去 session 留下的記憶。我刻意在這個頁面標 ⚠「待 7/13 確認」,而不是編造 URL 或細節。子代理目前正在跑,結果會更新這份頁面。</p>
+    </div>
+  </section>
+
+  <!-- ==================== FOOTER ==================== -->
+  <div class="footer">
+    <a href="itinerary.html">← 回行程總覽</a> · <a href="https://github.com/RinRyanJi/JustKM/tree/main/travel/ishigaki-2026">GitHub: travel/ishigaki-2026/transport-flights.html</a><br>
+    主源優先: 船公司 + 航空公司官網 · 輔源: 使用者過去 session 資料<br>
+    字級調整 <code>Cmd/Ctrl + / - / 0</code> · 75%-300% · localStorage 跨頁同步<br>
+    建立於 2026-07-12 · 7/13 子代理查證後再修訂
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.05; const MIN = 0.75; const MAX = 3.0; const DEFAULT = 1.15;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      if (valEl) valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try {
+      const v = localStorage.getItem(KEY);
+      if (v !== null && v !== undefined && v !== '') {
+        const parsed = parseFloat(v);
+        if (!isNaN(parsed) && parsed >= MIN && parsed <= MAX) saved = parsed;
+      }
+    } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); apply(cur + STEP); }
+      else if (e.key === '-') { e.preventDefault(); apply(cur - STEP); }
+      else if (e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
