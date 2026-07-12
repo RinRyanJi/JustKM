@@ -4,487 +4,676 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>石垣島 × 西表島 × 竹富島 行程總覽 (2026-07-16 → 07-22) · JustKM</title>
-  <meta name="description" content="Sanity 風格兩段住宿行程表。Day 1 西表過夜（民宿なみ荘）+ Day 2-6 石垣住宿（みどり荘），含颱風 9 號後的最新渡輪/巴士狀態與應變 SOP。">
+  <meta name="description" content="線性時序風格兩段住宿行程表。Day 1 西表過夜（民宿なみ荘）+ Day 2-6 石垣住宿（みどり荘），含颱風 9 號後的最新渡輪/巴士狀態與應變 SOP。">
   <style>
     /* ============================================================
-       SANITY 風格 — JustKM × travel/ishigaki-2026/itinerary
-       來源: design-md/library/sanity/DESIGN.md
-       概念: near-black 畫布 + 電光藍 #0052EF 互動
-              + 珊瑚紅 #F36458 CTA + Neon Green 進度
-              + IBM Plex Mono 數字 + Pill 按鈕 (99999px)
+       BRIGHT LINEAR-INSPIRED — JustKM × travel/ishigaki-2026/itinerary
+       來源: popular-web-designs / Linear gradient system
+       概念: 純白畫布 + 漸層紫藍 #5B6CFF → #8A5CF6 accent
+              + 暖橘 #FF7A59 CTA + 薄荷綠 #10B981 成功
+              + 大量留白 + 卡片柔和陰影 + 16-20px 圓角
+              + Inter 字體 + 預設字級 115% (大更好讀)
        ============================================================ */
 
     :root {
-      --canvas:         #0b0b0b;
-      --pure-black:     #000000;
-      --surface-1:      #212121;
-      --surface-2:      #353535;
-      --text-1:         #ffffff;
-      --text-2:         #b9b9b9;
-      --text-3:         #797979;
+      /* ===== 背景 / 文字 ===== */
+      --canvas:         #FAFBFC;
+      --pure-white:     #FFFFFF;
+      --surface-1:      #FFFFFF;
+      --surface-2:      #F4F5F8;
+      --surface-3:      #EBEDF2;
+      --border-1:       #E5E7EE;
+      --border-2:       #D2D5DD;
+      --text-1:         #0F1419;
+      --text-2:         #4B5260;
+      --text-3:         #8A8F99;
+      --text-4:         #B5B9C2;
 
-      --red-cta:        #f36458;
-      --blue-hover:     #0052ef;
-      --blue-light:     #55beff;
-      --green-neon:     #19d600;
-      --error-red:      #dd0000;
+      /* ===== 主色 ===== */
+      --accent:         #5B6CFF;       /* 主紫藍 */
+      --accent-hover:   #4A5BEE;
+      --accent-light:   #EEF0FF;
+      --accent-gradient: linear-gradient(135deg, #5B6CFF 0%, #8A5CF6 100%);
+      --violet:         #8A5CF6;
+      --orange:         #FF7A59;       /* CTA 橘 */
+      --orange-hover:   #E96B4A;
+      --orange-light:   #FFF1ED;
+      --green:          #10B981;       /* 成功 / 西表綠 */
+      --green-light:    #E6F9F2;
+      --red:            #EF4444;       /* 颱風 / 警示 */
+      --red-light:      #FEE9E7;
+      --amber:          #F59E0B;       /* 警示 */
+      --amber-light:    #FEF5E0;
+      --sky:            #0EA5E9;       /* 船 / 連結 */
+      --sky-light:      #E0F4FE;
 
-      --iriomote:       #19d600;  /* 西表綠 */
-      --ishigaki:       #0052ef;  /* 石垣藍 */
-      --taketomi:       #f36458;  /* 竹富珊瑚 */
-      --typhoon:        #dd0000;  /* 颱風紅 */
+      /* ===== 語意色 (對應島嶼) ===== */
+      --iriomote:       #10B981;       /* 西表綠 */
+      --iriomote-bg:    #E6F9F2;
+      --ishigaki:       #5B6CFF;       /* 石垣紫藍 */
+      --ishigaki-bg:    #EEF0FF;
+      --taketomi:       #FF7A59;       /* 竹富珊瑚橘 */
+      --taketomi-bg:    #FFF1ED;
+      --typhoon:        #EF4444;
+      --typhoon-bg:     #FEE9E7;
 
-      --font-scale:     1;
-      --container:      1080px;
+      /* ===== 字級 ===== */
+      --font-scale:     1.15;          /* ★ 預設 115% (亮色版預設更大) */
+      --base:           18px;          /* ★ 基礎字級 16 → 18 (更大更好讀) */
 
-      --r-xs: 3px;
-      --r-sm: 6px;
+      /* ===== 容器 / 圓角 ===== */
+      --container:      1120px;
+      --r-xs: 4px;
+      --r-sm: 8px;
       --r-md: 12px;
-      --r-lg: 18px;
-      --r-pill: 99999px;
+      --r-lg: 16px;
+      --r-xl: 20px;
+      --r-2xl: 24px;
+      --r-pill: 9999px;
+
+      /* ===== 陰影 (柔和) ===== */
+      --shadow-sm:      0 1px 2px rgba(15, 20, 25, 0.04);
+      --shadow-md:      0 2px 8px rgba(15, 20, 25, 0.06), 0 1px 2px rgba(15, 20, 25, 0.04);
+      --shadow-lg:      0 8px 24px rgba(15, 20, 25, 0.08), 0 2px 6px rgba(15, 20, 25, 0.04);
+      --shadow-xl:      0 16px 48px rgba(15, 20, 25, 0.10), 0 4px 12px rgba(15, 20, 25, 0.04);
+      --shadow-accent:  0 8px 24px rgba(91, 108, 255, 0.20);
     }
 
-    html { font-size: calc(16px * var(--font-scale)); }
+    /* ★ 重點：font-size 改用 --base 變數，整體放大 */
+    html { font-size: calc(var(--base) * var(--font-scale)); }
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang TC", "Microsoft JhengHei", "Helvetica Neue", system-ui, sans-serif;
       background: var(--canvas);
       color: var(--text-1);
-      line-height: 1.55;
+      line-height: 1.65;
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      letter-spacing: -0.005em;
     }
-    a { color: var(--blue-hover); text-decoration: none; transition: color .15s; }
-    a:hover { color: var(--blue-light); }
-    code { font-family: 'IBM Plex Mono', 'SF Mono', Menlo, monospace; }
 
-    /* ===== 字級調整器 ===== */
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color .15s;
+    }
+    a:hover { color: var(--accent-hover); }
+    code {
+      font-family: 'SF Mono', 'JetBrains Mono', 'IBM Plex Mono', Menlo, monospace;
+      font-size: 0.92em;
+      color: var(--accent);
+      background: var(--accent-light);
+      padding: 0.1em 0.4em;
+      border-radius: 4px;
+    }
+
+    /* ===== 字級調整器 (放大版 + 顯示 % 直觀) ===== */
     .font-adjuster {
       position: fixed;
-      top: 16px; right: 16px;
+      top: 20px; right: 20px;
       z-index: 999;
-      background: var(--surface-1);
-      border: 1px solid var(--surface-2);
+      background: var(--pure-white);
+      border: 1px solid var(--border-1);
       border-radius: var(--r-pill);
-      padding: 4px 6px;
+      padding: 6px 8px;
       display: flex; align-items: center; gap: 4px;
-      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow-md);
     }
     .font-adjuster button {
       background: var(--surface-2);
       border: 0;
       color: var(--text-1);
-      width: 32px; height: 32px;
+      width: 36px; height: 36px;
       border-radius: var(--r-pill);
-      font-size: 13px; font-weight: 700;
+      font-size: 0.78rem; font-weight: 700;
       cursor: pointer;
-      transition: background .15s;
+      transition: all .15s;
       font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
-    .font-adjuster button:hover { background: var(--blue-hover); color: var(--text-1); }
-    .font-adjuster .fa-label { font-size: 11px; color: var(--text-3); margin: 0 4px; letter-spacing: .5px; }
-    .font-adjuster .fa-value { font-size: 11px; color: var(--blue-light); font-weight: 700; min-width: 36px; text-align: center; font-family: 'IBM Plex Mono', monospace; }
+    .font-adjuster button:hover {
+      background: var(--accent);
+      color: white;
+      transform: scale(1.05);
+    }
+    .font-adjuster .fa-label {
+      font-size: 0.72rem; color: var(--text-3);
+      margin: 0 6px; letter-spacing: .5px;
+      font-weight: 600;
+    }
+    .font-adjuster .fa-value {
+      font-size: 0.72rem;
+      color: var(--accent);
+      font-weight: 700;
+      min-width: 44px; text-align: center;
+      font-family: 'SF Mono', monospace;
+    }
 
     /* ===== Layout ===== */
-    .container { max-width: var(--container); margin: 0 auto; padding: 32px 20px 80px; }
+    .container { max-width: var(--container); margin: 0 auto; padding: 32px 28px 96px; }
 
     /* ===== Hero ===== */
     .hero {
-      border: 1px solid var(--surface-2);
-      border-radius: var(--r-lg);
-      padding: 40px 36px;
+      background: var(--pure-white);
+      border: 1px solid var(--border-1);
+      border-radius: var(--r-2xl);
+      padding: 56px 48px;
       margin-bottom: 32px;
-      background: var(--surface-1);
+      box-shadow: var(--shadow-md);
       position: relative;
       overflow: hidden;
     }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: var(--accent-gradient);
+    }
     .hero-tag {
-      display: inline-block;
-      background: var(--canvas);
-      color: var(--blue-light);
-      border: 1px solid var(--blue-hover);
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent-light);
+      color: var(--accent);
       border-radius: var(--r-pill);
-      padding: 4px 14px;
-      font-size: 11px; font-weight: 600;
+      padding: 6px 16px;
+      font-size: 0.78rem; font-weight: 700;
       letter-spacing: 1px; text-transform: uppercase;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
     .hero h1 {
-      font-size: 48px;
-      font-weight: 700;
-      line-height: 1.1;
-      letter-spacing: -2px;
-      margin-bottom: 12px;
+      font-size: 3rem;               /* ★ 從 48px → 54px 實字級 */
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.035em;
+      margin-bottom: 16px;
+      color: var(--text-1);
+      word-break: keep-all;           /* ★ 中文不要被拆字到下一行 */
+      overflow-wrap: break-word;
+    }
+    .hero h1 .gradient {
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
     .hero .sub {
-      font-size: 15px; color: var(--text-2); line-height: 1.6;
-      max-width: 720px;
+      font-size: 1.0625rem;          /* ★ 17px (加大) */
+      color: var(--text-2);
+      line-height: 1.7;
+      max-width: 760px;
     }
     .hero-pills {
-      display: flex; gap: 8px; flex-wrap: wrap;
-      margin-top: 20px;
+      display: flex; gap: 10px; flex-wrap: wrap;
+      margin-top: 24px;
     }
     .pill {
       display: inline-flex; align-items: center; gap: 6px;
-      padding: 4px 12px;
+      padding: 7px 14px;
       border-radius: var(--r-pill);
-      font-size: 12px; font-weight: 600;
-      letter-spacing: .3px;
+      font-size: 0.85rem; font-weight: 600;
       background: var(--surface-2);
-      color: var(--text-1);
+      color: var(--text-2);
+      border: 1px solid var(--border-1);
     }
-    .pill.iriomote { background: rgba(25, 214, 0, .15); color: var(--iriomote); border: 1px solid var(--iriomote); }
-    .pill.ishigaki { background: rgba(0, 82, 239, .15); color: var(--blue-light); border: 1px solid var(--blue-hover); }
-    .pill.taketomi { background: rgba(243, 100, 88, .15); color: var(--red-cta); border: 1px solid var(--red-cta); }
-    .pill.typhoon  { background: rgba(221, 0, 0, .15); color: var(--error-red); border: 1px solid var(--error-red); }
-    .pill.ship     { background: rgba(85, 190, 255, .15); color: var(--blue-light); border: 1px solid var(--blue-light); }
+    .pill.iriomote { background: var(--iriomote-bg); color: var(--iriomote); border-color: var(--iriomote); }
+    .pill.ishigaki { background: var(--ishigaki-bg); color: var(--ishigaki); border-color: var(--ishigaki); }
+    .pill.taketomi { background: var(--taketomi-bg); color: var(--taketomi); border-color: var(--taketomi); }
+    .pill.typhoon  { background: var(--typhoon-bg); color: var(--typhoon); border-color: var(--typhoon); }
+    .pill.ship     { background: var(--sky-light); color: var(--sky); border-color: var(--sky); }
 
-    /* ===== Stats ===== */
+    /* ===== Stats (亮色卡片) ===== */
     .stats {
-      margin-top: 24px;
+      margin-top: 32px;
       display: grid; grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
+      gap: 14px;
     }
     .stat {
-      background: var(--canvas);
-      border: 1px solid var(--surface-2);
-      border-radius: var(--r-md);
-      padding: 14px 16px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-1);
+      border-radius: var(--r-lg);
+      padding: 18px 20px;
+      transition: all .2s;
+    }
+    .stat:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--accent);
     }
     .stat .n {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 28px; font-weight: 700;
+      font-family: 'SF Mono', 'IBM Plex Mono', monospace;
+      font-size: 1.875rem;           /* ★ 從 28px → 33px */
+      font-weight: 800;
       line-height: 1;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
+      color: var(--text-1);
+      letter-spacing: -0.02em;
     }
-    .stat .l { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .8px; }
+    .stat .l {
+      font-size: 0.75rem;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
 
     /* ===== Typhoon Banner ===== */
     .typhoon-banner {
-      background: linear-gradient(135deg, rgba(221,0,0,.15), rgba(243,100,88,.1));
-      border: 2px solid var(--error-red);
-      border-radius: var(--r-md);
-      padding: 20px 24px;
+      background: linear-gradient(135deg, var(--red-light) 0%, #FFF5F3 100%);
+      border: 1px solid var(--typhoon);
+      border-left: 5px solid var(--typhoon);
+      border-radius: var(--r-lg);
+      padding: 24px 28px;
       margin-bottom: 32px;
       display: flex;
-      gap: 16px;
+      gap: 18px;
       align-items: flex-start;
+      box-shadow: var(--shadow-sm);
     }
     .typhoon-banner .icon {
-      font-size: 32px;
+      font-size: 2rem;               /* ★ 從 32px → 36px */
       flex-shrink: 0;
       animation: pulse 2s ease-in-out infinite;
     }
-    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .6; } }
+    @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .7; transform: scale(1.05); } }
     .typhoon-banner h3 {
-      font-size: 18px; font-weight: 700;
-      color: var(--error-red);
-      margin-bottom: 4px;
+      font-size: 1.2rem;             /* ★ 18 → 21.6px */
+      font-weight: 800;
+      color: var(--typhoon);
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
     }
-    .typhoon-banner p { font-size: 13px; color: var(--text-2); line-height: 1.6; }
-    .typhoon-banner p + p { margin-top: 4px; }
+    .typhoon-banner p {
+      font-size: 0.95rem;            /* ★ 13 → 17.1px */
+      color: var(--text-2);
+      line-height: 1.7;
+    }
+    .typhoon-banner p + p { margin-top: 6px; }
 
     /* ===== Section ===== */
-    .section {
-      margin-bottom: 48px;
-    }
+    .section { margin-bottom: 56px; }
     .sec-head {
-      display: flex; align-items: baseline; gap: 12px;
-      margin-bottom: 16px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--surface-2);
+      display: flex; align-items: baseline; gap: 14px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-1);
     }
     .sec-head .num {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 14px;
-      color: var(--blue-light);
+      font-family: 'SF Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--accent);
       font-weight: 700;
+      padding: 4px 10px;
+      background: var(--accent-light);
+      border-radius: var(--r-sm);
     }
     .sec-head h2 {
-      font-size: 22px; font-weight: 700;
-      letter-spacing: -.5px;
+      font-size: 1.75rem;            /* ★ 22 → 31.5px */
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: var(--text-1);
     }
     .sec-head .tag {
-      font-size: 11px;
+      font-size: 0.75rem;
       color: var(--text-3);
-      letter-spacing: .5px;
+      letter-spacing: 1px;
       text-transform: uppercase;
       margin-left: auto;
+      font-weight: 600;
     }
 
-    /* ===== Stay Cards (兩段住宿) ===== */
+    /* ===== Stay Cards ===== */
     .stays {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 20px;
       margin-bottom: 24px;
     }
-    @media (max-width: 720px) { .stays { grid-template-columns: 1fr; } }
+    @media (max-width: 760px) { .stays { grid-template-columns: 1fr; } }
 
     .stay-card {
-      background: var(--surface-1);
-      border: 1px solid var(--surface-2);
-      border-left: 4px solid var(--iriomote);
-      border-radius: var(--r-md);
-      padding: 20px 22px;
+      background: var(--pure-white);
+      border: 1px solid var(--border-1);
+      border-radius: var(--r-xl);
+      padding: 28px 28px;
+      box-shadow: var(--shadow-md);
+      transition: all .25s;
+      position: relative;
+      overflow: hidden;
     }
-    .stay-card.ishigaki { border-left-color: var(--blue-hover); }
+    .stay-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+    .stay-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 5px; height: 100%;
+      background: var(--iriomote);
+    }
+    .stay-card.ishigaki::before { background: var(--ishigaki); }
+
     .stay-card h3 {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 8px;
+      font-size: 1.375rem;           /* ★ 18 → 24.75px */
+      font-weight: 800;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      letter-spacing: -0.02em;
     }
     .stay-card .badge {
-      display: inline-block;
-      padding: 2px 8px;
+      display: inline-flex; align-items: center;
+      padding: 4px 10px;
       border-radius: var(--r-pill);
-      font-size: 10px; font-weight: 700;
-      letter-spacing: .5px;
+      font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.8px;
       text-transform: uppercase;
     }
-    .stay-card .badge.irio   { background: var(--iriomote); color: var(--canvas); }
-    .stay-card .badge.ishi   { background: var(--blue-hover); color: var(--text-1); }
+    .stay-card .badge.irio   { background: var(--iriomote); color: white; }
+    .stay-card .badge.ishi   { background: var(--ishigaki); color: white; }
+
     .stay-card .row {
-      display: flex; gap: 8px;
-      font-size: 13px;
+      display: flex; gap: 12px;
+      font-size: 0.95rem;            /* ★ 13 → 17.1px */
       color: var(--text-2);
-      margin-top: 6px;
-      line-height: 1.5;
+      margin-top: 10px;
+      line-height: 1.6;
     }
     .stay-card .row .k {
-      flex: 0 0 70px;
+      flex: 0 0 78px;
       color: var(--text-3);
-      font-size: 12px;
+      font-size: 0.78rem;
       text-transform: uppercase;
-      letter-spacing: .5px;
-      padding-top: 2px;
+      letter-spacing: 0.8px;
+      padding-top: 3px;
+      font-weight: 600;
     }
-    .stay-card .row .v {
-      flex: 1;
-    }
+    .stay-card .row .v { flex: 1; }
     .stay-card .row .v code {
-      font-size: 12px;
-      color: var(--blue-light);
+      font-size: 0.92em;
+      background: var(--accent-light);
+      color: var(--accent);
     }
     .stay-card .footer-row {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--surface-2);
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-1);
       display: flex; justify-content: space-between; align-items: center;
-      font-size: 12px;
+      font-size: 0.85rem;
       color: var(--text-3);
     }
-    .stay-card .price { color: var(--green-neon); font-family: 'IBM Plex Mono', monospace; font-weight: 700; }
+    .stay-card .price {
+      color: var(--green);
+      font-family: 'SF Mono', monospace;
+      font-weight: 700;
+      font-size: 1rem;
+    }
 
-    /* ===== Timeline (Day by Day) ===== */
+    /* ===== Timeline ===== */
     .timeline {
       position: relative;
-      padding-left: 36px;
+      padding-left: 44px;
     }
     .timeline::before {
       content: '';
       position: absolute;
-      left: 12px;
+      left: 14px;
       top: 14px; bottom: 14px;
-      width: 1px;
-      background: linear-gradient(180deg, var(--blue-hover), var(--iriomote), var(--red-cta));
+      width: 2px;
+      background: linear-gradient(180deg, var(--ishigaki), var(--iriomote), var(--taketomi));
+      border-radius: 1px;
     }
 
     .day {
       position: relative;
-      margin-bottom: 20px;
-      padding-bottom: 20px;
-      border-bottom: 1px dashed var(--surface-2);
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px dashed var(--border-1);
     }
     .day:last-child { border-bottom: 0; padding-bottom: 0; margin-bottom: 0; }
 
     .day::before {
       content: '';
       position: absolute;
-      left: -29px; top: 8px;
-      width: 13px; height: 13px;
+      left: -36px; top: 10px;
+      width: 16px; height: 16px;
       border-radius: 50%;
-      background: var(--canvas);
-      border: 2px solid var(--blue-hover);
+      background: var(--pure-white);
+      border: 3px solid var(--ishigaki);
+      box-shadow: 0 0 0 3px var(--pure-white), var(--shadow-sm);
     }
     .day.iriomote::before { border-color: var(--iriomote); }
-    .day.taketomi::before { border-color: var(--red-cta); }
-    .day.typhoon::before  { border-color: var(--error-red); }
+    .day.taketomi::before { border-color: var(--taketomi); }
+    .day.ship::before     { border-color: var(--sky); }
+    .day.typhoon::before  { border-color: var(--typhoon); }
 
     .day-head {
-      display: flex; align-items: center; gap: 12px;
-      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
     }
     .day-head .date {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 14px;
+      font-family: 'SF Mono', monospace;
+      font-size: 0.85rem;
       color: var(--text-3);
-      letter-spacing: .5px;
+      letter-spacing: 0.8px;
+      padding: 4px 10px;
+      background: var(--surface-2);
+      border-radius: var(--r-sm);
+      font-weight: 600;
     }
     .day-head .title {
-      font-size: 18px; font-weight: 700;
-      letter-spacing: -.3px;
+      font-size: 1.2rem;             /* ★ 18 → 21.6px */
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-1);
     }
     .day-head .stay {
       margin-left: auto;
-      font-size: 10px;
+      font-size: 0.72rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: .5px;
-      padding: 3px 10px;
+      letter-spacing: 0.8px;
+      padding: 5px 12px;
       border-radius: var(--r-pill);
     }
-    .day-head .stay.iriomote { background: rgba(25,214,0,.15); color: var(--iriomote); border: 1px solid var(--iriomote); }
-    .day-head .stay.ishigaki { background: rgba(0,82,239,.15); color: var(--blue-light); border: 1px solid var(--blue-hover); }
-    .day-head .stay.home { background: rgba(221,0,0,.15); color: var(--error-red); border: 1px solid var(--error-red); }
+    .day-head .stay.iriomote { background: var(--iriomote-bg); color: var(--iriomote); border: 1px solid var(--iriomote); }
+    .day-head .stay.ishigaki { background: var(--ishigaki-bg); color: var(--ishigaki); border: 1px solid var(--ishigaki); }
+    .day-head .stay.home     { background: var(--typhoon-bg); color: var(--typhoon); border: 1px solid var(--typhoon); }
+    .day-head .stay.ship     { background: var(--sky-light); color: var(--sky); border: 1px solid var(--sky); }
 
     .day-body {
-      background: var(--surface-1);
-      border: 1px solid var(--surface-2);
-      border-radius: var(--r-md);
-      padding: 16px 20px;
-      font-size: 13px;
+      background: var(--pure-white);
+      border: 1px solid var(--border-1);
+      border-radius: var(--r-lg);
+      padding: 20px 24px;
+      font-size: 0.95rem;            /* ★ 13 → 17.1px */
       color: var(--text-2);
-      line-height: 1.7;
+      line-height: 1.75;
+      box-shadow: var(--shadow-sm);
     }
 
     .day-body .slot {
-      display: flex; gap: 12px; padding: 4px 0;
+      display: flex; gap: 14px; padding: 8px 0;
     }
-    .day-body .slot + .slot { border-top: 1px dashed var(--surface-2); margin-top: 4px; padding-top: 8px; }
+    .day-body .slot + .slot {
+      border-top: 1px dashed var(--border-1);
+      margin-top: 8px; padding-top: 12px;
+    }
     .day-body .slot .time {
-      flex: 0 0 88px;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 12px;
-      color: var(--blue-light);
+      flex: 0 0 100px;
+      font-family: 'SF Mono', monospace;
+      font-size: 0.85rem;            /* ★ 12 → 15.3px */
+      color: var(--accent);
       font-weight: 700;
-      padding-top: 2px;
+      padding-top: 3px;
     }
-    .day-body .slot .what {
-      flex: 1;
-    }
-    .day-body .slot .what b { color: var(--text-1); }
+    .day-body .slot .what { flex: 1; }
+    .day-body .slot .what b { color: var(--text-1); font-weight: 700; }
     .day-body .slot .what .note {
       display: block;
-      font-size: 11px;
+      font-size: 0.82rem;            /* ★ 11 → 14.76px */
       color: var(--text-3);
-      margin-top: 2px;
+      margin-top: 4px;
+      line-height: 1.6;
     }
-    .day-body .slot .what .ok    { color: var(--green-neon); font-size: 11px; }
-    .day-body .slot .what .warn  { color: var(--red-cta); font-size: 11px; }
-    .day-body .slot .what .alert { color: var(--error-red); font-weight: 700; font-size: 11px; }
+    .day-body .slot .what .ok    { color: var(--green); font-size: 0.82rem; font-weight: 600; }
+    .day-body .slot .what .warn  { color: var(--orange); font-size: 0.82rem; font-weight: 600; }
+    .day-body .slot .what .alert { color: var(--typhoon); font-weight: 700; font-size: 0.82rem; }
 
     /* ===== Ferry Card ===== */
     .ferry-grid {
-      display: grid; gap: 12px;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      display: grid; gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     }
     .ferry-card {
-      background: var(--surface-1);
-      border: 1px solid var(--surface-2);
-      border-radius: var(--r-md);
-      padding: 14px 18px;
+      background: var(--pure-white);
+      border: 1px solid var(--border-1);
+      border-radius: var(--r-lg);
+      padding: 20px 22px;
       position: relative;
+      box-shadow: var(--shadow-sm);
+      transition: all .2s;
+    }
+    .ferry-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
     }
     .ferry-card .label {
-      font-size: 10px;
+      font-size: 0.72rem;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 1.2px;
       color: var(--text-3);
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+      font-weight: 700;
     }
     .ferry-card .route {
-      font-size: 16px; font-weight: 700;
-      margin-bottom: 12px;
+      font-size: 1.1rem;             /* ★ 16 → 19.8px */
+      font-weight: 800;
+      margin-bottom: 14px;
       color: var(--text-1);
+      letter-spacing: -0.01em;
     }
     .ferry-card .times {
       display: flex; flex-direction: column;
-      gap: 6px;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 13px;
+      gap: 8px;
+      font-family: 'SF Mono', monospace;
+      font-size: 0.9rem;             /* ★ 13 → 16.2px */
     }
-    .ferry-card .times .row { display: flex; justify-content: space-between; }
-    .ferry-card .times .row .t { color: var(--blue-light); font-weight: 700; }
-    .ferry-card .times .row .d { color: var(--text-3); }
+    .ferry-card .times .row {
+      display: flex; justify-content: space-between;
+      align-items: center;
+    }
+    .ferry-card .times .row .t { color: var(--accent); font-weight: 700; }
+    .ferry-card .times .row .d { color: var(--text-3); font-size: 0.82rem; }
     .ferry-card .alert {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid var(--surface-2);
-      font-size: 11px;
-      color: var(--error-red);
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-1);
+      font-size: 0.82rem;
+      color: var(--typhoon);
       font-weight: 700;
+      background: var(--typhoon-bg);
+      margin-left: -22px; margin-right: -22px;
+      padding-left: 22px; padding-right: 22px;
+      padding-bottom: 12px;
     }
     .ferry-card .note {
-      margin-top: 8px;
-      font-size: 11px;
-      color: var(--text-3);
-      line-height: 1.5;
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: var(--text-2);
+      line-height: 1.6;
     }
 
     /* ===== Callout ===== */
     .callout {
-      background: var(--surface-1);
-      border-left: 3px solid var(--blue-hover);
-      border-radius: var(--r-sm);
-      padding: 12px 16px;
-      margin: 8px 0;
-      font-size: 13px;
+      background: var(--accent-light);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--r-md);
+      padding: 16px 20px;
+      margin: 12px 0;
+      font-size: 0.95rem;
       color: var(--text-2);
+      line-height: 1.7;
     }
-    .callout.warn  { border-left-color: var(--red-cta); }
-    .callout.alert { border-left-color: var(--error-red); background: rgba(221,0,0,.08); }
-    .callout.ok    { border-left-color: var(--iriomote); }
+    .callout.warn  { border-left-color: var(--orange); background: var(--orange-light); }
+    .callout.alert { border-left-color: var(--typhoon); background: var(--typhoon-bg); }
+    .callout.ok    { border-left-color: var(--green); background: var(--green-light); }
     .callout b     { color: var(--text-1); }
-    .callout p + p { margin-top: 6px; }
+    .callout p + p { margin-top: 8px; }
 
     /* ===== Two-col ===== */
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 720px) { .grid-2 { grid-template-columns: 1fr; } }
+    .grid-2 {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    }
+    @media (max-width: 760px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .grid-2 h4 {
+      font-size: 1.05rem;            /* ★ 14 → 18.9px */
+      color: var(--typhoon);
+      margin-bottom: 12px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
 
     /* ===== Table ===== */
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
-      background: var(--surface-1);
-      border: 1px solid var(--surface-2);
-      border-radius: var(--r-md);
+      font-size: 0.9rem;             /* ★ 12 → 16.2px */
+      background: var(--pure-white);
+      border: 1px solid var(--border-1);
+      border-radius: var(--r-lg);
       overflow: hidden;
+      box-shadow: var(--shadow-sm);
     }
     th, td {
-      padding: 10px 14px;
+      padding: 14px 18px;
       text-align: left;
-      border-bottom: 1px solid var(--surface-2);
+      border-bottom: 1px solid var(--border-1);
     }
     th {
-      background: var(--canvas);
-      color: var(--blue-light);
+      background: var(--surface-2);
+      color: var(--text-2);
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: .5px;
-      font-size: 11px;
+      letter-spacing: 0.8px;
+      font-size: 0.75rem;
     }
+    tbody tr:hover { background: var(--surface-2); }
     tr:last-child td { border-bottom: 0; }
-    td code { color: var(--blue-light); font-size: 11px; }
+    td code {
+      color: var(--accent);
+      font-size: 0.88em;
+    }
     td b { color: var(--text-1); }
 
     /* ===== Footer ===== */
     .footer {
       text-align: center;
       color: var(--text-3);
-      font-size: 11px;
-      margin-top: 48px;
-      padding-top: 24px;
-      border-top: 1px solid var(--surface-2);
-      line-height: 1.7;
+      font-size: 0.9rem;             /* ★ 14 → 16.2px (從 0.82 調大) */
+      margin-top: 56px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border-1);
+      line-height: 1.85;
     }
-    .footer a { color: var(--blue-light); }
-    .footer a:hover { color: var(--text-1); }
+    .footer a { color: var(--accent); font-weight: 600; }
+    .footer a:hover { color: var(--accent-hover); }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 640px) {
+      .hero { padding: 36px 28px; }
+      .hero h1 { font-size: 2.2rem; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .sec-head h2 { font-size: 1.4rem; }
+      .day-body .slot .time { flex: 0 0 80px; }
+    }
   </style>
 </head>
 <body>
@@ -492,9 +681,9 @@
 <div class="font-adjuster" role="group" aria-label="字級調整">
   <button id="fa-dec" title="字級變小 (Cmd/Ctrl + -)" aria-label="字級變小">A−</button>
   <span class="fa-label">字級</span>
-  <span class="fa-value" id="fa-value">100%</span>
+  <span class="fa-value" id="fa-value">115%</span>
   <button id="fa-inc" title="字級變大 (Cmd/Ctrl + +)" aria-label="字級變大">A+</button>
-  <button id="fa-reset" title="重設 (Cmd/Ctrl + 0)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+  <button id="fa-reset" title="重設 (Cmd/Ctrl + 0)" aria-label="重設字級">⟲</button>
 </div>
 
 <div class="container">
@@ -502,8 +691,8 @@
   <!-- ============================ HERO ============================ -->
   <div class="hero">
     <span class="hero-tag">ITINERARY · 沖繩跳島 7D6N</span>
-    <h1>石垣島 × 西表島 × 竹富島</h1>
-    <p class="sub">兩段住宿：<b style="color:var(--iriomote);">Day 1 西表過夜</b>（民宿なみ荘）+ <b style="color:var(--blue-light);">Day 2–6 石垣住宿</b>（みどり荘）。回程虎航 IT231 7/22 凌晨。颱風巴威（9 號）剛過境，所有船班/巴士動態請於出發前 24 小時複查。</p>
+    <h1><span class="gradient">石垣島</span> × <span class="gradient">西表島</span> × <span class="gradient">竹富島</span></h1>
+    <p class="sub">兩段住宿：<b style="color:var(--iriomote);">Day 1 西表過夜</b>（民宿なみ荘）+ <b style="color:var(--ishigaki);">Day 2–6 石垣住宿</b>（みどり荘）。回程虎航 IT231 7/22 凌晨。颱風巴威（9 號）剛過境，所有船班/巴士動態請於出發前 24 小時複查。</p>
     <div class="hero-pills">
       <span class="pill iriomote">🌳 西表 (1 夜)</span>
       <span class="pill ishigaki">🏝 石垣 (5 夜)</span>
@@ -513,10 +702,10 @@
     </div>
 
     <div class="stats">
-      <div class="stat"><div class="n">6</div><div class="l">DAYS</div></div>
-      <div class="stat"><div class="n">3</div><div class="l">ISLANDS</div></div>
-      <div class="stat"><div class="n">2</div><div class="l">STAYS</div></div>
-      <div class="stat"><div class="n">2</div><div class="l">PEOPLE</div></div>
+      <div class="stat"><div class="n">6</div><div class="l">Days</div></div>
+      <div class="stat"><div class="n">3</div><div class="l">Islands</div></div>
+      <div class="stat"><div class="n">2</div><div class="l">Stays</div></div>
+      <div class="stat"><div class="n">2</div><div class="l">People</div></div>
     </div>
   </div>
 
@@ -536,7 +725,7 @@
     <div class="sec-head">
       <span class="num">§ 01</span>
       <h2>兩段住宿 · 兩個島嶼基地</h2>
-      <span class="tag">STAYS · 1 + 5 NIGHTS</span>
+      <span class="tag">Stays · 1 + 5 nights</span>
     </div>
 
     <div class="stays">
@@ -549,7 +738,7 @@
         </h3>
         <div class="row">
           <div class="k">地址</div>
-          <div class="v">〒907-1434 沖縄県八重山郡竹富町字南風見 201-60<br><span style="font-size:11px;color:var(--text-3);">（西表島東南端 · 縣道 215 白浜南風見線）</span></div>
+          <div class="v">〒907-1434 沖縄県八重山郡竹富町字南風見 201-60<br><span style="font-size:0.82rem;color:var(--text-3);">（西表島東南端 · 縣道 215 白浜南風見線）</span></div>
         </div>
         <div class="row">
           <div class="k">電話</div>
@@ -585,7 +774,7 @@
         </h3>
         <div class="row">
           <div class="k">地址</div>
-          <div class="v">〒907-0004 沖縄県石垣市登野城 628-9<br><span style="font-size:11px;color:var(--text-3);">（石垣市區 · 巴士「登野城」站徒步 5 分）</span></div>
+          <div class="v">〒907-0004 沖縄県石垣市登野城 628-9<br><span style="font-size:0.82rem;color:var(--text-3);">（石垣市區 · 巴士「登野城」站徒步 5 分）</span></div>
         </div>
         <div class="row">
           <div class="k">電話</div>
@@ -627,7 +816,7 @@
     <div class="sec-head">
       <span class="num">§ 02</span>
       <h2>關鍵渡輪時刻表 · 八重観 + 安栄</h2>
-      <span class="tag">FERRY · 40 min / trip</span>
+      <span class="tag">Ferry · 40 min / trip</span>
     </div>
 
     <div class="ferry-grid">
@@ -660,7 +849,7 @@
           <div class="row"><span class="d">配合船班</span><span class="t">高速船到港後出發</span></div>
           <div class="row"><span class="d">車程</span><span class="t">約 40 min</span></div>
         </div>
-        <div class="note" style="color:var(--green-neon);">✅ 免費，無需預約，配合高速船時刻</div>
+        <div class="note" style="color:var(--green);font-weight:700;">✅ 免費，無需預約，配合高速船時刻</div>
         <div class="note">可達南風見（民宿方向）方向需再轉西表島交通巴士。</div>
       </div>
 
@@ -670,14 +859,14 @@
         <div class="times">
           <div class="row"><span class="d">方向</span><span class="t">單線往返</span></div>
           <div class="row"><span class="d">班次</span><span class="t">1 天 4 往返（8 班）</span></div>
-          <div class="row"><span class="d">南風見站</span><span class="t">🟢 存在（中野 ↔ 白浜間）</span></div>
+          <div class="row"><span class="d">南風見站</span><span class="t" style="color:var(--green);">🟢 存在</span></div>
         </div>
         <div class="note">2026/04 改正版（夏季時刻） · <a href="https://iriomote.com/assets/pdf/bus-schedule202604.pdf?v=2">PDF 時刻表</a></div>
         <div class="note" style="color:var(--text-3);">⚠ Vision 對 PDF 解析不穩，<b>建議現場問民宿最近班次</b></div>
       </div>
     </div>
 
-    <div class="callout warn" style="margin-top:16px;">
+    <div class="callout warn" style="margin-top:20px;">
       <b>📌 7/17 從石垣到西表民宿的時間軸（正常情況）：</b>
       <p>08:00 YAIMARU 抵石垣 → 09:00 出境 → 09:30 寄行李（石垣港國際ターミナル locker）→ 11:00 渡輪出發 → 12:00 抵上原港 → 12:30 搭免費巴士往祖納/白浜方向 → 13:30 抵南風見附近 → 民宿報到</p>
     </div>
@@ -688,7 +877,7 @@
     <div class="sec-head">
       <span class="num">§ 03</span>
       <h2>7 日行程逐日明細</h2>
-      <span class="tag">DAY BY DAY · 7/16 → 7/22</span>
+      <span class="tag">Day by Day · 7/16 → 7/22</span>
     </div>
 
     <div class="timeline">
@@ -698,7 +887,7 @@
         <div class="day-head">
           <span class="date">2026 · 07 · 16 (THU)</span>
           <span class="title">台灣出發 · 夜船 YAIMARU</span>
-          <span class="stay ship" style="background:rgba(85,190,255,.15);color:var(--blue-light);border:1px solid var(--blue-light);">夜船</span>
+          <span class="stay ship">夜船</span>
         </div>
         <div class="day-body">
           <div class="slot">
@@ -1034,12 +1223,12 @@
     <div class="sec-head">
       <span class="num">§ 04</span>
       <h2>颱風 / 船班取消 · 應變 SOP</h2>
-      <span class="tag">RISK PLAN</span>
+      <span class="tag">Risk Plan</span>
     </div>
 
     <div class="grid-2">
       <div>
-        <h4 style="font-size:14px;color:var(--error-red);margin-bottom:8px;">📡 出發前必掃的 4 個網址</h4>
+        <h4>📡 出發前必掃的 4 個網址</h4>
         <table>
           <thead><tr><th>來源</th><th>URL</th><th>用途</th></tr></thead>
           <tbody>
@@ -1052,7 +1241,7 @@
       </div>
 
       <div>
-        <h4 style="font-size:14px;color:var(--error-red);margin-bottom:8px;">🚨 6 級應變</h4>
+        <h4>🚨 6 級應變</h4>
         <div class="callout alert">
           <b>Lv 1 · 7/11-7/16 觀察期</b>
           <p>每天 20:00 看八重観官網，確認 7/17 上原航路是否恢復</p>
@@ -1086,7 +1275,7 @@
     <div class="sec-head">
       <span class="num">§ 05</span>
       <h2>出發前必做清單</h2>
-      <span class="tag">TODO · 截止 7/15</span>
+      <span class="tag">Todo · 截止 7/15</span>
     </div>
 
     <table>
@@ -1095,49 +1284,49 @@
       </thead>
       <tbody>
         <tr>
-          <td>7/12</td>
+          <td><code>7/12</code></td>
           <td>確認 YAIMARU 開航時間（23:00 vs 23:30）</td>
           <td>東聯航運</td>
           <td style="color:var(--text-3);">待確認</td>
         </tr>
         <tr>
-          <td>7/13</td>
-          <td>確認みどり篠訂單（房型/取消/早餐）</td>
-          <td>みどり篠</td>
-          <td style="color:var(--red-cta);"><b>❗ 重要</b></td>
+          <td><code>7/13</code></td>
+          <td>確認みどり荘訂單（房型/取消/早餐）</td>
+          <td>みどり荘</td>
+          <td style="color:var(--orange);font-weight:700;">❗ 重要</td>
         </tr>
         <tr>
-          <td>7/14</td>
-          <td>致電民宿なみ篠確認：①接送 ②最近巴士 ③屋況 ④颱風後狀態</td>
-          <td>0980-85-5257</td>
-          <td style="color:var(--red-cta);"><b>❗ 重要</b></td>
+          <td><code>7/14</code></td>
+          <td>致電民宿なみ荘確認：①接送 ②最近巴士 ③屋況 ④颱風後狀態</td>
+          <td><code>0980-85-5257</code></td>
+          <td style="color:var(--orange);font-weight:700;">❗ 重要</td>
         </tr>
         <tr>
-          <td>7/14</td>
+          <td><code>7/14</code></td>
           <td>八重山観光フェリー線上訂 7/17 11:00 船票</td>
           <td>yaeyama.co.jp</td>
           <td style="color:var(--text-3);">待預訂</td>
         </tr>
         <tr>
-          <td>7/14</td>
+          <td><code>7/14</code></td>
           <td>確認 7/18 上原→石垣船班時刻</td>
           <td>八重観</td>
           <td style="color:var(--text-3);">待確認</td>
         </tr>
         <tr>
-          <td>7/15</td>
+          <td><code>7/15</code></td>
           <td>換日幣 ¥25,000（2 人 6 天）</td>
           <td>兆豐/機場</td>
           <td style="color:var(--text-3);">待兌換</td>
         </tr>
         <tr>
-          <td>7/15</td>
+          <td><code>7/15</code></td>
           <td>確認旅遊不便險涵蓋颱風滯留</td>
           <td>保險公司</td>
           <td style="color:var(--text-3);">待確認</td>
         </tr>
         <tr>
-          <td>7/16</td>
+          <td><code>7/16</code></td>
           <td>租車預約（7/20 北部環島用）</td>
           <td>Toyota Rent-a-Car</td>
           <td style="color:var(--text-3);">待預約</td>
@@ -1145,7 +1334,7 @@
       </tbody>
     </table>
 
-    <div class="callout ok" style="margin-top:16px;">
+    <div class="callout ok" style="margin-top:20px;">
       <b>📲 7/14 早上會自動收到提醒（cron job 已設）</b>
       <p>提醒內容包含這份清單 + 民宿電話/LINE + 颱風航路查詢連結</p>
     </div>
@@ -1154,22 +1343,22 @@
   <!-- ============================ FOOTER ============================ -->
   <div class="footer">
     <a href="https://github.com/RinRyanJi/JustKM/tree/main/travel/ishigaki-2026">travel/ishigaki-2026/itinerary.html</a> · JustKM<br>
-    來源：<a href="https://github.com/RinRyanJi/JustKM/tree/main/design-md/library/sanity">design-md/library/sanity/DESIGN.md</a> · 風格抽中 RNG seed=20260711<br>
-    建立於 2026-07-11 · 字級調整器 <code>Cmd/Ctrl + / - / 0</code><br>
-    <span style="color:var(--error-red);">⚠ 7/11 颱風巴威過境，建議出發前再掃市府 news.html</span><br>
+    來源：<a href="https://linear.app">Linear 風格啟發</a> · 字級預設 115% · 上限 300%<br>
+    建立於 2026-07-12 · 字級調整器 <code>Cmd/Ctrl + / - / 0</code>（75%–300%）<br>
+    <span style="color:var(--typhoon);">⚠ 7/11 颱風巴威過境，建議出發前再掃市府 news.html</span><br>
     主源：八重山観光フェリー官網 · 安栄観光官網 · 西表島交通官網
   </div>
 
 </div>
 
 <script>
-  // ============== 字級調整器（與全站同步） ==============
+  // ============== 字級調整器（與全站同步 · 預設 115% · 上限 300%） ==============
   (function() {
     const KEY = 'justkm-font-scale';
-    const STEP = 0.1;
-    const MIN = 0.7;
-    const MAX = 1.6;
-    const DEFAULT = 1.0;
+    const STEP = 0.05;              // ★ 較細的步進 (5%)，方便微調
+    const MIN = 0.75;               // 75%
+    const MAX = 3.0;                // ★ 300% 上限
+    const DEFAULT = 1.15;           // ★ 預設 115% (亮色版預設更大)
     const root = document.documentElement;
     const valEl = document.getElementById('fa-value');
 
@@ -1184,7 +1373,13 @@
     let saved = DEFAULT;
     try {
       const v = localStorage.getItem(KEY);
-      if (v) saved = parseFloat(v) || DEFAULT;
+      // ★ 只有在曾經主動設定過時才採用 saved，否則使用新版預設值
+      if (v !== null && v !== undefined && v !== '') {
+        const parsed = parseFloat(v);
+        if (!isNaN(parsed) && parsed >= MIN && parsed <= MAX) {
+          saved = parsed;
+        }
+      }
     } catch(e) {}
     apply(saved);
 
