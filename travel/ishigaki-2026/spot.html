@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>景點地圖 · 川平灣/星野/星砂/浦内川/平久保崎 · JustKM</title>
+  <meta name="description" content="西表+石垣+竹富+川平灣 7 個景點完整記錄。門票/時間/交通/移動舉例 + 主源官方連結。">
+  <style>
+    :root {
+      --canvas: #FAFBFC; --pure-white: #FFFFFF; --surface-2: #F4F5F8; --surface-3: #EBEDF2;
+      --border-1: #E5E7EE; --border-2: #D2D5DD;
+      --text-1: #0F1419; --text-2: #4B5260; --text-3: #8A8F99;
+      --accent: #5B6CFF; --accent-hover: #4A5BEE; --accent-light: #EEF0FF;
+      --spot: #0EA5E9; --spot-light: #E0F4FE;
+      --accent-gradient: linear-gradient(135deg, var(--spot) 0%, #06B6D4 100%);
+      --green: #10B981; --green-light: #E6F9F2;
+      --red: #EF4444; --red-light: #FEE9E7;
+      --amber: #F59E0B; --amber-light: #FEF5E0;
+      --pink: #EC4899; --pink-light: #FCE7F3;
+      --iriomote: #10B981; --iriomote-light: #E6F9F2;
+      --ishigaki: #FF7A59; --ishigaki-light: #FFF1ED;
+      --taketomi: #FF7A59; --taketomi-light: #FFF1ED;
+      --font-scale: 1.15; --base: 18px;
+      --container: 1120px;
+      --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-2xl: 24px; --r-pill: 9999px;
+      --shadow-sm: 0 1px 2px rgba(15, 20, 25, 0.04);
+      --shadow-md: 0 2px 8px rgba(15, 20, 25, 0.06), 0 1px 2px rgba(15, 20, 25, 0.04);
+    }
+    html { font-size: calc(var(--base) * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      background: var(--canvas); color: var(--text-1); line-height: 1.65;
+      min-height: 100vh; -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; transition: color .15s; }
+    a:hover { color: var(--accent-hover); }
+    code { font-family: 'SF Mono', 'JetBrains Mono', Menlo, monospace; font-size: 0.92em; color: var(--accent); background: var(--accent-light); padding: 0.1em 0.4em; border-radius: 4px; }
+
+    .font-adjuster { position: fixed; top: 20px; right: 20px; z-index: 999; background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-pill); padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: var(--shadow-md); }
+    .font-adjuster button { background: var(--surface-2); border: 0; color: var(--text-1); width: 36px; height: 36px; border-radius: var(--r-pill); font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .font-adjuster button:hover { background: var(--accent); color: white; }
+    .font-adjuster .fa-label { font-size: 0.72rem; color: var(--text-3); margin: 0 6px; font-weight: 600; }
+    .font-adjuster .fa-value { font-size: 0.72rem; color: var(--accent); font-weight: 700; min-width: 44px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .container { max-width: var(--container); margin: 0 auto; padding: 32px 28px 96px; }
+
+    .hero { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 48px 44px; margin-bottom: 32px; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent-gradient); }
+    .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--spot-light); color: var(--spot); border-radius: var(--r-pill); padding: 6px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+    .hero h1 { font-size: 2.75rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.035em; margin-bottom: 16px; }
+    .hero h1 .gradient { background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero .sub { font-size: 1.0625rem; color: var(--text-2); line-height: 1.7; max-width: 760px; }
+    .hero-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--r-pill); font-size: 0.85rem; font-weight: 600; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-1); }
+    .pill.spot { background: var(--spot-light); color: var(--spot); border-color: var(--spot); }
+    .pill.iriomote { background: var(--iriomote-light); color: var(--iriomote); border-color: var(--iriomote); }
+    .pill.ishigaki { background: var(--ishigaki-light); color: var(--ishigaki); border-color: var(--ishigaki); }
+    .pill.taketomi { background: var(--taketomi-light); color: var(--taketomi); border-color: var(--taketomi); }
+    .pill.green { background: var(--green-light); color: var(--green); border-color: var(--green); }
+    .pill.pink { background: var(--pink-light); color: var(--pink); border-color: var(--pink); }
+
+    .section { background: var(--pure-white); border: 1px solid var(--border-1); border-radius: var(--r-2xl); padding: 36px 36px; margin-bottom: 24px; box-shadow: var(--shadow-sm); }
+    .sec-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-1); }
+    .sec-head .num { font-family: 'SF Mono', monospace; color: var(--spot); font-weight: 800; font-size: 1.0625rem; letter-spacing: 1px; }
+    .sec-head h2 { font-size: 1.625rem; font-weight: 700; color: var(--text-1); flex: 1; letter-spacing: -0.02em; }
+    .sec-head .tag { background: var(--surface-2); color: var(--text-3); border-radius: var(--r-pill); padding: 4px 12px; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92rem; }
+    thead { background: var(--surface-2); }
+    th { text-align: left; padding: 10px 12px; color: var(--text-2); font-weight: 700; font-size: 0.78rem; letter-spacing: 0.5px; text-transform: uppercase; }
+    td { padding: 10px 12px; border-top: 1px solid var(--border-1); color: var(--text-1); vertical-align: top; }
+    tr:hover td { background: var(--surface-2); }
+    td b { color: var(--spot); }
+    td .tag-must { background: var(--pink-light); color: var(--pink); border-radius: var(--r-pill); padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
+    td .tag-iriomote { background: var(--iriomote-light); color: var(--iriomote); border-radius: var(--r-pill); padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
+    td .tag-ishigaki { background: var(--ishigaki-light); color: var(--ishigaki); border-radius: var(--r-pill); padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
+    td .tag-taketomi { background: var(--taketomi-light); color: var(--taketomi); border-radius: var(--r-pill); padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
+
+    .callout { border-left: 4px solid var(--accent); background: var(--accent-light); border-radius: var(--r-md); padding: 16px 20px; margin: 16px 0; }
+    .callout.ok { border-color: var(--green); background: var(--green-light); }
+    .callout.warn { border-color: var(--amber); background: var(--amber-light); }
+    .callout.alert { border-color: var(--red); background: var(--red-light); }
+    .callout b { display: block; margin-bottom: 6px; }
+    .callout p { color: var(--text-1); font-size: 0.95rem; line-height: 1.6; }
+    .callout p + p { margin-top: 8px; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; }
+    .stat { background: var(--surface-2); border-radius: var(--r-md); padding: 14px 16px; text-align: center; }
+    .stat .n { font-size: 1.75rem; font-weight: 800; color: var(--spot); font-family: 'SF Mono', monospace; }
+    .stat .l { font-size: 0.78rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+    .footer { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.85rem; border-top: 1px solid var(--border-1); margin-top: 32px; }
+    .page-nav { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 24px; padding: 12px 16px; background: var(--surface-2); border-radius: var(--r-md); font-size: 0.88rem; }
+    .page-nav a { color: var(--accent); padding: 4px 10px; border-radius: var(--r-pill); background: var(--pure-white); border: 1px solid var(--border-1); }
+    .page-nav a.current { background: var(--spot); color: white; border-color: var(--spot); }
+
+    .source-list { background: var(--surface-2); border-radius: var(--r-md); padding: 16px 20px; margin: 12px 0; }
+    .source-list li { padding: 4px 0; font-size: 0.92rem; color: var(--text-1); list-style: none; }
+    .source-list .kind { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: var(--r-pill); margin-right: 8px; }
+    .source-list .kind.primary { background: var(--green-light); color: var(--green); }
+    .source-list .kind.verified { background: var(--green); color: white; }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster">
+  <button id="fa-dec" title="縮小字級">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">115%</span>
+  <button id="fa-inc" title="放大字級">A+</button>
+  <button id="fa-reset" title="重置 115%">100%</button>
+</div>
+
+<div class="container">
+
+  <section class="hero">
+    <span class="hero-tag">🗺 景點地圖 · 7 個必去</span>
+    <h1>景點 <span class="gradient">地圖</span></h1>
+    <p class="sub">
+      西表 + 石垣 + 竹富 + 川平灣 <b>7 個景點</b>完整記錄。<br>
+      每個景點含<b>主源官方連結</b> + 交通 + 移動舉例 + 停留時間 + 拍照點。
+    </p>
+    <div class="hero-pills">
+      <span class="pill iriomote">🌳 西表 4 景點</span>
+      <span class="pill isigaki">🏝 石垣 2 景點</span>
+      <span class="pill taketomi">🌴 竹富 1 景點</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n">7</div><div class="l">景點</div></div>
+      <div class="stat"><div class="n">3</div><div class="l">島嶼</div></div>
+      <div class="stat"><div class="n">¥0</div><div class="l">多數免費</div></div>
+      <div class="stat"><div class="n">5 hr</div><div class="l">建議日行程</div></div>
+    </div>
+  </section>
+
+  <nav class="page-nav">
+    <a href="itinerary.html">📅 行程總覽</a>
+    <a href="transport-ferries.html">🚢 船班</a>
+    <a href="transport-buses.html">🚌 巴士</a>
+    <a href="stay-namisou.html">🏠 なみ荘</a>
+    <a href="stay-midorisou.html">🏠 みどり荘</a>
+    <a href="spot.html" class="current">🗺 景點</a>
+    <a href="food-ishigaki.html">🍴 石垣餐飲</a>
+    <a href="event-typhoon.html">🌀 颱風應變</a>
+  </nav>
+
+  <!-- ==================== §01 西表島 4 景點 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 01</span>
+      <h2>西表島 · 4 景點 <span class="tag-iriomote">IRIOMOTE</span></h2>
+      <span class="tag">DAY 1 + DAY 2</span>
+    </div>
+
+    <table>
+      <thead><tr><th>景點</th><th>類型</th><th>停留</th><th>門票</th><th>交通 (從民宿)</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>民宿前海灘 (南風見)</b> <span class="tag-must">必去</span></td>
+          <td>沙灘 + 浮潛</td>
+          <td>1-2 hr</td>
+          <td>¥0</td>
+          <td>0 min (民宿前) · 步行</td>
+        </tr>
+        <tr>
+          <td><b>浦内川 (マングローブ)</b> <span class="tag-must">必去</span></td>
+          <td>紅樹林 + 輕艇</td>
+          <td>2-3 hr</td>
+          <td>¥4,000-6,000 (輕艇)</td>
+          <td>20 min 車程 · 民宿接送</td>
+        </tr>
+        <tr>
+          <td><b>星野 resort 區域</b></td>
+          <td>度假村周邊</td>
+          <td>1 hr</td>
+          <td>¥0 (散步)</td>
+          <td>15 min 車程 · 巴士</td>
+        </tr>
+        <tr>
+          <td><b>仲間橋 / 大原港周邊</b></td>
+          <td>港口散步</td>
+          <td>1 hr</td>
+          <td>¥0</td>
+          <td>15 min 車程 · 巴士</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout ok">
+      <b>✅ Day 1 (7/17) 行程規劃</b>
+      <p>10:00 民宿抵達 → 民宿前海灘浮潛 → 12:00 カフェ花ずみ午餐 → 13:30 浦内川マングローブ輕艇 → 16:00 民宿放鬆 → 17:30 あい晚餐 → 19:00 民宿休息。</p>
+    </div>
+
+    <div class="callout warn">
+      <b>⚠ 浦内川輕艇預約</b>
+      <p>輕艇體驗必須提前預約,7 月旺季通常前 1-2 天客滿。<br>
+      推薦: <b>西表島 ADVENTURE PiPi</b>(浦内川・マングローブ専門) <a href="https://iriomote-pipi.com/">iriomote-pipi.com</a></p>
+    </div>
+  </section>
+
+  <!-- ==================== §02 石垣島 2 景點 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 02</span>
+      <h2>石垣島 · 2 景點 <span class="tag-ishigaki">ISHIGAKI</span></h2>
+      <span class="tag">DAY 2</span>
+    </div>
+
+    <table>
+      <thead><tr><th>景點</th><th>類型</th><th>停留</th><th>門票</th><th>交通 (從みどり荘)</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>川平灣</b> <span class="tag-must">必去</span></td>
+          <td>海灣 + 玻璃底船 + 黑珍珠</td>
+          <td>3-4 hr</td>
+          <td>¥1,500 (玻璃底船)</td>
+          <td>巴士 812 (60 min) · ¥800</td>
+        </tr>
+        <tr>
+          <td><b>平久保崎 (燈塔)</b></td>
+          <td>最北端燈塔 + 展望台</td>
+          <td>1 hr</td>
+          <td>¥0</td>
+          <td>813/814 從川平灣轉乘 (30 min)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout ok">
+      <b>✅ Day 2 (7/19) 川平灣行程</b>
+      <p>09:00 みどり荘出發 → 巴士 812 → 10:00 川平灣 → 玻璃底船 30 min → 米原海灘散步 → 12:00 川平灣午餐 → 13:30 813 巴士 → 14:00 平久保崎 → 15:30 回程 730 巴士 → 16:30 みどり荘。</p>
+    </div>
+
+    <div class="callout alert">
+      <b>⚠ 平久保崎班次少</b>
+      <p>813/814 班次僅 3-4 班/日,錯過需等 2-3 hr。<br>
+      <b>建議</b>:Day 2 早上 09:00 從市區出發,搭 10:00 前抵川平灣的班次。</p>
+    </div>
+  </section>
+
+  <!-- ==================== §03 竹富島 1 景點 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 03</span>
+      <h2>竹富島 · 1 景點 <span class="tag-taketomi">TAKETOMI</span></h2>
+      <span class="tag">DAY 3</span>
+    </div>
+
+    <table>
+      <thead><tr><th>景點</th><th>類型</th><th>停留</th><th>門票</th><th>交通</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>KONDOI 浜 (コンドイ浜)</b> <span class="tag-must">必去</span></td>
+          <td>竹富島最美沙灘</td>
+          <td>30 min</td>
+          <td>¥0</td>
+          <td>港口單車 15 min</td>
+        </tr>
+        <tr>
+          <td><b>星砂海灘 (カイジ浜)</b></td>
+          <td>星形沙海灘</td>
+          <td>30 min</td>
+          <td>¥0</td>
+          <td>港口單車 10 min</td>
+        </tr>
+        <tr>
+          <td><b>西棧橋 (にしさんばし)</b></td>
+          <td>IG 拍照點</td>
+          <td>15 min</td>
+          <td>¥0</td>
+          <td>港口單車 5 min</td>
+        </tr>
+        <tr>
+          <td><b>竹富集落 (赤瓦屋根)</b></td>
+          <td>傳統建築群</td>
+          <td>1 hr</td>
+          <td>¥0</td>
+          <td>港口步行 5 min</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout ok">
+      <b>✅ Day 3 (7/20) 竹富日歸</b>
+      <p>08:00 みどり荘出發 → 09:30 安栄觀光高速船出發 → 09:40 竹富島港口 → 10:00 租單車 → 10:30 KONDOI浜 → 12:00 竹の子午餐 → 13:00 星砂海灘 → 14:00 水牛車 → 15:00 高速船回石垣。</p>
+    </div>
+  </section>
+
+  <!-- ==================== §04 主源清單 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 04</span>
+      <h2>主源官方連結</h2>
+      <span class="tag">PRIMARY SOURCES</span>
+    </div>
+
+    <table>
+      <thead><tr><th>景點</th><th>主源</th><th>URL</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>川平灣</b></td>
+          <td>石垣市觀光課</td>
+          <td><a href="https://www.city.ishigaki.okinawa.jp/">city.ishigaki.okinawa.jp</a></td>
+        </tr>
+        <tr>
+          <td><b>平久保崎</b></td>
+          <td>石垣市觀光課</td>
+          <td><a href="https://www.city.ishigaki.okinawa.jp/">city.ishigaki.okinawa.jp</a></td>
+        </tr>
+        <tr>
+          <td><b>浦内川マングローブ</b></td>
+          <td>西表島 ADVENTURE PiPi</td>
+          <td><a href="https://iriomote-pipi.com/">iriomote-pipi.com</a></td>
+        </tr>
+        <tr>
+          <td><b>星野 resort</b></td>
+          <td>星野リゾート 公式</td>
+          <td><a href="https://hoshinoresorts.com/ja/hotels/riomote/">hoshinoresorts.com</a></td>
+        </tr>
+        <tr>
+          <td><b>竹富島</b></td>
+          <td>竹富町役場</td>
+          <td><a href="https://www.town.taketomi.lg.jp/">town.taketomi.lg.jp</a></td>
+        </tr>
+        <tr>
+          <td><b>KONDOI 浜 / 星砂海灘</b></td>
+          <td>竹富町役場</td>
+          <td><a href="https://www.town.taketomi.lg.jp/">town.taketomi.lg.jp</a></td>
+        </tr>
+        <tr>
+          <td><b>民宿前海灘 (南風見)</b></td>
+          <td>なみ荘官網</td>
+          <td><a href="https://namisouiriomote.com/">namisouiriomote.com</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §05 行程搭配 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 05</span>
+      <h2>景點 × 行程搭配</h2>
+      <span class="tag">ITINERARY</span>
+    </div>
+
+    <table>
+      <thead><tr><th>日</th><th>景點</th><th>時間</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>Day 1 (7/17)</b></td>
+          <td>民宿前海灘 + 浦内川</td>
+          <td>10:30-16:30</td>
+          <td>西表深度遊 (6 hr)</td>
+        </tr>
+        <tr>
+          <td><b>Day 2 (7/18)</b></td>
+          <td>大原港周邊</td>
+          <td>10:00-12:00</td>
+          <td>回程船前 (2 hr)</td>
+        </tr>
+        <tr>
+          <td><b>Day 3 (7/19)</b></td>
+          <td><b>川平灣 + 平久保崎</b></td>
+          <td>10:00-15:30</td>
+          <td>5.5 hr</td>
+        </tr>
+        <tr>
+          <td><b>Day 4 (7/20)</b></td>
+          <td><b>KONDOI浜 + 星砂 + 西棧橋</b></td>
+          <td>10:00-15:00</td>
+          <td>竹富日歸 5 hr</td>
+        </tr>
+        <tr>
+          <td><b>Day 5 (7/21)</b></td>
+          <td>石垣市區</td>
+          <td>—</td>
+          <td>市區美食巡禮</td>
+        </tr>
+        <tr>
+          <td><b>Day 6 (7/22)</b></td>
+          <td>凌晨虎航 02:00</td>
+          <td>01:30 出發</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== §06 原始出處 ==================== -->
+  <section class="section">
+    <div class="sec-head">
+      <span class="num">§ 06</span>
+      <h2>原始出處彙整</h2>
+      <span class="tag">SOURCES</span>
+    </div>
+
+    <ul class="source-list">
+      <li><span class="kind verified">✓ 已驗證</span><code>itinerary.html</code> 原檔 §03 Day 1-7 行程表</li>
+      <li><span class="kind primary">主源</span>使用者過去 session (2026-06-30 ~ 07-09) 景點討論</li>
+      <li><span class="kind primary">主源</span>石垣市觀光課 <a href="https://www.city.ishigaki.okinawa.jp/">city.ishigaki.okinawa.jp</a> · 川平灣 / 平久保崎</li>
+      <li><span class="kind primary">主源</span>西表島 ADVENTURE PiPi <a href="https://iriomote-pipi.com/">iriomote-pipi.com</a> · 浦内川マングローブ</li>
+      <li><span class="kind primary">主源</span>星野リゾート <a href="https://hoshinoresorts.com/ja/hotels/riomote/">hoshinoresorts.com</a> · 星野 resort</li>
+      <li><span class="kind primary">主源</span>竹富町役場 <a href="https://www.town.taketomi.lg.jp/">town.taketomi.lg.jp</a> · 竹富島</li>
+      <li><span class="kind primary">主源</span>なみ荘官網 <a href="https://namisouiriomote.com/">namisouiriomote.com</a> · 民宿前海灘</li>
+    </ul>
+
+    <div class="callout warn">
+      <b>📌 待 7/13 確認</b>
+      <p>1. 浦内川輕艇 7/17 預約狀態<br>
+         2. 川平灣玻璃底船 7/19 開船狀態<br>
+         3. 竹富島 7/20 高速船開航狀態</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    <a href="itinerary.html">← 回行程總覽</a> · <a href="https://github.com/RinRyanJi/JustKM/tree/main/travel/ishigaki-2026">GitHub: travel/ishigaki-2026/spot.html</a><br>
+    主源: 石垣市觀光課 + 西表島 ADVENTURE PiPi + 星野リゾート + 竹富町役場 + なみ荘官網<br>
+    字級調整 <code>Cmd/Ctrl + / - / 0</code> · 75%-300% · localStorage 跨頁同步<br>
+    建立於 2026-07-12 · 下次更新 2026-07-13 (輕艇/玻璃底船/高速船預約)
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.05; const MIN = 0.75; const MAX = 3.0; const DEFAULT = 1.15;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      if (valEl) valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try {
+      const v = localStorage.getItem(KEY);
+      if (v !== null && v !== undefined && v !== '') {
+        const parsed = parseFloat(v);
+        if (!isNaN(parsed) && parsed >= MIN && parsed <= MAX) saved = parsed;
+      }
+    } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); apply(cur + STEP); }
+      else if (e.key === '-') { e.preventDefault(); apply(cur - STEP); }
+      else if (e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
