@@ -209,6 +209,51 @@
     <p style="margin-top:6px;">Google Maps <b>登入牆</b>會擋住批次爬取。每家店家的精準 <b>評論數 + 最新評論時間</b> 需要你(或我助手分多次)點進 Maps 連結確認。本頁表格提供 <b>店家 + 類別 + Maps 連結</b> 三大主源,<b>不填寫未驗證的數字</b>(避免假資料)。</p>
   </div>
 
+  <div class="callout purple">
+    <strong>🎯 Maps 實測驗證結果(2026-07-13 22:31 · subagent 報告)</strong>
+    <p style="margin-top:6px;">已用 Google Maps 搜尋驗證 5 家。<b>評論總數/最新評論時間</b>被登入牆擋下,<b>無法取得</b>(需登入帳號或付費 API)。但 <b>POI 「永久歇業」標籤 + 評分 + 店名匹配狀況</b> 可作為判斷依據。</p>
+    <table style="margin-top:8px;">
+      <thead><tr><th>店家</th><th>Maps 狀態</th><th>評分</th><th>營業狀態</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="b">世盛一口吃香腸</td>
+          <td class="g">✅ POI 找到</td>
+          <td>3.7</td>
+          <td class="g">🟢 營業中</td>
+          <td>「即將開始營業 11:00」標籤</td>
+        </tr>
+        <tr>
+          <td class="b">陳記泡泡冰創始店</td>
+          <td class="g">✅ POI 找到</td>
+          <td>3.6</td>
+          <td class="g">🟢 營業中</td>
+          <td>廟口第 41 號攤 · 0965-233-203</td>
+        </tr>
+        <tr>
+          <td class="b">紀家滷味</td>
+          <td class="r">❌ Maps 無此店</td>
+          <td>—</td>
+          <td class="o">🟡 待確認</td>
+          <td>相似店家:紀家豬腳原汁專家(3.6★)、曹家滷味(3.0★)、鼎記滷味(4.0★)、明德五香滷味(4.5★)</td>
+        </tr>
+        <tr>
+          <td class="b">三姊妹鼎邊銼</td>
+          <td class="r">❌ Maps 無此店</td>
+          <td>—</td>
+          <td class="r">🔴 已歇業(若指「神秘的鼎邊銼」)</td>
+          <td>替代:吳家鐤邊趖(3.7★,仁三路 27-3 號,營業中)</td>
+        </tr>
+        <tr>
+          <td class="b">基隆廟口 蚵仔煎</td>
+          <td class="y">⚠ 描述非店名</td>
+          <td>2.8-4.3</td>
+          <td class="g">🟢 多家營業中</td>
+          <td>候選:碳燒蚵仔煎(2.8★)、遠東蚵仔煎(4.3★)、鍾ㄚ國(4.3★)、簡家蚵仔煎(3.8★)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
   <nav class="toc">
     <div class="toc-title">📑 目錄</div>
     <div class="toc-grid">
@@ -374,7 +419,7 @@
           <td class="b">⭐ 世盛一口吃香腸</td>
           <td>一口吃香腸、大腸包小腸</td>
           <td><a class="bm" href="https://www.google.com/maps/search/%E4%B8%96%E7%9B%9B%E4%B8%80%E5%8F%A3%E5%90%83%E9%A6%99%E8%85%A6+%E5%9F%BA%E9%9A%86%E5%BB%9F%E5%8F%A3" target="_blank" rel="noopener">🔗 搜「世盛一口吃香腸」</a></td>
-          <td>看評論數 ≥ 500 + 最新 ≤ 1 個月</td>
+          <td><span class="signal strong">✅ Maps 實測確認</span> · 3.7 ★ · 營業中(POI 「即將開始營業 11:00」標籤)</td>
         </tr>
         <tr>
           <td class="b">⭐ 廟口烤魷魚</td>
@@ -419,8 +464,8 @@
         <tr>
           <td class="b">⭐ 紀家滷味</td>
           <td>滷味拼盤(豆干、海帶、米血、雞胗、大腸)</td>
-          <td><a class="bm" href="https://www.google.com/maps/search/%E7%B4%80%E5%AE%B6%E6%BB%AF%E5%91%B3+%E5%9F%BA%E9%9A%86%E5%BB%9F%E5%8F%A3" target="_blank" rel="noopener">🔗 搜「紀家滷味 基隆」</a></td>
-          <td>評論數 ≥ 1000 + 評分 ≥ 4.0</td>
+          <td><a class="bm" href="https://www.google.com/maps/search/%E5%9F%BA%E9%9A%86%E5%BB%9F%E5%8F%A3+%E6%BB%AF%E5%91%B3" target="_blank" rel="noopener">🔗 搜「基隆廟口 滷味」</a></td>
+          <td><span class="signal weak">⚠ Maps 無此店名</span> · 改試「明德五香滷味」(4.5★)或「鼎記滷味」(4.0★)</td>
         </tr>
         <tr>
           <td class="b">天盛滷味</td>
@@ -458,8 +503,8 @@
         <tr>
           <td class="b">⭐ 三姊妹鼎邊銼</td>
           <td>鼎邊銼、魷魚肉羹</td>
-          <td><a class="bm" href="https://www.google.com/maps/search/%E4%B8%89%E5%A7%8A%E5%A6%B9+%E9%BC%8E%E9%82%8A%E9%8D%BC+%E5%9F%BA%E9%9A%86" target="_blank" rel="noopener">🔗 搜「三姊妹鼎邊銼」</a></td>
-          <td class="g">✅ 必吃</td>
+          <td><a class="bm" href="https://www.google.com/maps/search/%E5%90%B3%E5%AE%B6%E9%90%98%E9%82%8A%E8%B6%A4+%E5%9F%BA%E9%9A%86" target="_blank" rel="noopener">🔗 搜「吳家鐤邊趖」</a></td>
+          <td><span class="signal weak">🔴 Maps 無「三姊妹」,若指「神秘的鼎邊銼」已永久歇業</span> · 改去吳家鐤邊趖(3.7★,仁三路 27-3 號,營業中)</td>
           <td class="r">❌ 湯不打包</td>
         </tr>
         <tr>
@@ -516,8 +561,8 @@
         <tr>
           <td class="b">基隆廟口 蚵仔煎</td>
           <td>蚵仔煎 + 蛋</td>
-          <td><a class="bm" href="https://www.google.com/maps/search/%E8%9A%9A%E4%BB%94%E7%85%8E+%E5%9F%BA%E9%9A%86%E5%BB%9F%E5%8F%A3" target="_blank" rel="noopener">🔗 搜「蚵仔煎 基隆廟口」</a></td>
-          <td class="r">❌ 冷掉難吃</td>
+          <td><a class="bm" href="https://www.google.com/maps/search/%E9%81%A0%E6%9D%B1%E8%9A%9A%E4%BB%94%E7%85%8E+%E5%9F%BA%E9%9A%86" target="_blank" rel="noopener">🔗 搜「遠東蚵仔煎」</a></td>
+          <td><span class="signal med">⚠ Maps 沒這店名</span> · 候選:遠東蚵仔煎(4.3★,孝四路 1 號)、鍾ㄚ國(4.3★)、簡家(3.8★)。避免碳燒蚵仔煎(2.8★)</td>
         </tr>
         <tr>
           <td class="b">石(石)天婦羅</td>
@@ -598,7 +643,8 @@
         <tr>
           <td class="b">⭐ 陳記泡泡冰</td>
           <td>花生、芋頭、巧克力</td>
-          <td><a class="bm" href="https://www.google.com/maps/search/%E6%B3%A1%E6%B3%A1%E5%86%B0+%E5%9F%BA%E9%9A%86%E5%BB%9F%E5%8F%A3" target="_blank" rel="noopener">🔗 搜「泡泡冰 基隆廟口」</a></td>
+          <td><a class="bm" href="https://www.google.com/maps/search/%E9%99%B3%E8%A8%98%E6%B3%A1%E6%B3%A1%E5%86%B0+%E5%9F%BA%E9%9A%86%E5%BB%9F%E5%8F%A3" target="_blank" rel="noopener">🔗 搜「陳記泡泡冰 創始店」</a></td>
+          <td><span class="signal strong">✅ Maps 實測確認</span> · 3.6 ★ · 廟口第 41 號攤 · 營業中(POI 「即將開始營業 11:00」) · 0965-233-203</td>
           <td class="o">⚠ 保冷袋 3-4hr</td>
         </tr>
         <tr>
@@ -738,7 +784,7 @@
         </tr>
         <tr>
           <td><span class="badge orange">⚠ 二手</span></td>
-          <td>店家清單(世盛、紀家、三姊妹、陳記等)→ 為 <b>在地人常識 + 公開店家名</b>,部分店家的實際存在性需驗證</td>
+          <td>店家清單(世盛、紀家、三姊妹、陳記、蚵仔煎等)→ 已用 Maps 實測驗證 5 家,2 家 POI 確認營業、2 家店名 Maps 無法匹配(可能是記錯)、1 家候選多家。具體狀態見頁首實測表</td>
         </tr>
         <tr>
           <td><span class="badge red">⚠ 不瞎寫</span></td>
@@ -755,7 +801,7 @@
 
   <div class="footer">
     <p>JustKM · 7/16 廟口夜市口袋書 · Google Maps 驗證版</p>
-    <p style="margin-top:4px;">整理日 2026-07-13 · v2 (從在地人常識升級為 Maps 主源) · 字級調整器在右上角</p>
+    <p style="margin-top:4px;">整理日 2026-07-13 · v3 (5 家已 Maps 實測) · 字級調整器在右上角</p>
     <p style="margin-top:4px;">
       <a href="transport-keelung-0716.html">← 7/16 基隆半日遊主頁</a> ·
       <a href="food-ship-0716.html">船上食物採買最高效率 →</a> ·
