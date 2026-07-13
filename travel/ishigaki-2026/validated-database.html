@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>已驗證旅遊資料庫 · 石垣島／西表島／竹富島 · JustKM</title>
+  <meta name="description" content="以官方來源、驗證狀態與查核日期管理的石垣島、西表島與竹富島旅遊資料庫。">
+  <style>
+    :root{color-scheme:light;--bg:#f5f7fb;--card:#fff;--ink:#172033;--muted:#667085;--line:#dfe4ec;--ok:#087a55;--user:#3657c8;--warn:#a65b00;--skip:#6b7280}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 system-ui,-apple-system,"Noto Sans TC",sans-serif}
+    main{max-width:1080px;margin:auto;padding:40px 20px 80px}h1{font-size:clamp(28px,5vw,48px);line-height:1.12;margin:8px 0 14px}.lede{max-width:780px;color:var(--muted);font-size:17px}
+    .topbar,.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.topbar{justify-content:space-between}.filters{margin:28px 0 18px}button,a.back{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 13px;color:var(--ink);text-decoration:none;cursor:pointer}button.active{background:var(--ink);color:#fff}
+    .notice{background:#fff7e8;border:1px solid #f0ca85;border-radius:14px;padding:14px 16px;margin:20px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 8px 28px #15203a0b}.card h2{font-size:19px;margin:9px 0}.meta{display:flex;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:12px}.pill{border-radius:999px;padding:3px 8px;font-weight:700}.verified_official{background:#e7f7f0;color:var(--ok)}.user_record{background:#edf1ff;color:var(--user)}.needs_confirmation{background:#fff1dd;color:var(--warn)}.volatile_excluded{background:#eef0f3;color:var(--skip)}ul{padding-left:20px}.sources{border-top:1px solid var(--line);padding-top:12px;margin-top:14px}.sources a{display:block;color:#3156b3;margin:4px 0}.empty{color:var(--muted)}code{background:#eef1f5;padding:2px 5px;border-radius:5px}
+  </style>
+</head>
+<body>
+<main>
+  <div class="topbar"><a class="back" href="itinerary.html">← 回行程總覽</a><span id="updated"></span></div>
+  <h1>已驗證旅遊資料庫</h1>
+  <p class="lede">每一筆資料都標示來源、狀態與查核日期。這裡只把能由第一手來源支持的內容標為「官方已驗證」；個人訂位與易變動資料不會偽裝成公開可驗證事實。</p>
+  <div class="notice"><strong>本輪刻意不核對：</strong>航班、船班、巴士時刻、即時運航、天氣，以及餐廳即時營業資訊。這些資料須在實際使用前重新查官方來源。</div>
+  <div class="filters" id="filters"></div>
+  <section class="grid" id="cards"><p class="empty">正在讀取資料……</p></section>
+</main>
+<script>
+const labels={all:'全部',verified_official:'官方已驗證',user_record:'本人／訂單紀錄',needs_confirmation:'待確認',volatile_excluded:'易變動・未核對'};
+let db,active='all';
+function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function draw(){
+  const rows=db.records.filter(r=>active==='all'||r.status===active);
+  document.querySelector('#cards').innerHTML=rows.map(r=>`<article class="card"><div class="meta"><span class="pill ${esc(r.status)}">${esc(labels[r.status])}</span><span>${esc(r.category)}</span><span>查核 ${esc(r.verified_on)}</span></div><h2>${esc(r.title)}</h2><ul>${r.facts.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${r.needs_user_confirmation?`<p><strong>需由本人／業者確認</strong></p><ul>${r.needs_user_confirmation.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}${r.volatile_fields?`<p><strong>易變欄位：</strong>${r.volatile_fields.map(esc).join('、')}</p>`:''}<div class="sources">${(r.sources||[]).map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener">↗ ${esc(s.label)}</a>`).join('')||'<span class="empty">無公開來源（個人資料或本輪排除）</span>'}</div></article>`).join('');
+}
+fetch('validated-data.json').then(r=>{if(!r.ok)throw Error(r.status);return r.json()}).then(data=>{db=data;document.querySelector('#updated').textContent=`資料版 ${data.schema_version} · 更新 ${data.updated_at}`;document.querySelector('#filters').innerHTML=Object.entries(labels).map(([k,v])=>`<button data-status="${k}" class="${k==='all'?'active':''}">${v}</button>`).join('');document.querySelector('#filters').addEventListener('click',e=>{if(!e.target.dataset.status)return;active=e.target.dataset.status;document.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.status===active));draw()});draw()}).catch(()=>{document.querySelector('#cards').innerHTML='<p class="empty">無法載入 validated-data.json。請透過網站伺服器開啟本頁。</p>'});
+</script>
+</body>
+</html>

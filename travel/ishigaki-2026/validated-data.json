@@ -1,0 +1,254 @@
+{
+  "schema_version": "1.0.0",
+  "updated_at": "2026-07-14",
+  "locale": "zh-TW",
+  "scope": {
+    "included": [
+      "核心住宿與景點的名稱、地址、聯絡方式及地理位置",
+      "不含班次的交通規則與駕駛文件",
+      "日本入境基本文件規則",
+      "資料來源與驗證狀態"
+    ],
+    "excluded": [
+      "航班與船班時間",
+      "即時運航狀態與天氣",
+      "餐廳即時營業時間、評分與候位狀況",
+      "未提供原始訂單的個人訂位內容"
+    ]
+  },
+  "status_definitions": {
+    "verified_official": "由政府、營運者或設施官方網站核對",
+    "user_record": "只存在於使用者訂單或本人確認，不能由公開網站證明",
+    "needs_confirmation": "目前沒有足夠的第一手資料，必須向業者或訂單確認",
+    "volatile_excluded": "資料易變動，這一輪刻意不驗證"
+  },
+  "records": [
+    {
+      "id": "entry-japan-taiwan-passport",
+      "category": "entry_requirement",
+      "title": "臺灣護照赴日短期停留",
+      "status": "verified_official",
+      "facts": [
+        "持有載有身分證字號的臺灣護照者適用日本短期停留免簽安排。",
+        "日本外務省公開規則要求有效護照；本次查核沒有找到『入境時須剩餘六個月效期』的日本官方規定。",
+        "實務上仍應確保護照涵蓋完整旅程，並以承運人與入境機關最後判定為準。"
+      ],
+      "sources": [
+        {
+          "label": "日本外務省：免簽短期停留",
+          "url": "https://www.mofa.go.jp/j_info/visit/visa/short/novisa.html"
+        },
+        {
+          "label": "日本外務省：簽證與入境許可",
+          "url": "https://www.mofa.go.jp/j_info/visit/visa/system/index.html"
+        }
+      ],
+      "verified_on": "2026-07-14"
+    },
+    {
+      "id": "driving-taiwan-license-japan",
+      "category": "driving_requirement",
+      "title": "臺灣駕照在日本駕車",
+      "status": "verified_official",
+      "facts": [
+        "臺灣駕照持有人須攜帶有效臺灣駕照正本及合格機構簽發的日文譯本。",
+        "臺灣核發的國際駕照不是此制度所使用的文件。",
+        "駕車時也應攜帶護照，以便確認入境日期。",
+        "可駕車期間原則上自日本入境日起最長一年，仍受駕照本身效期限制。"
+      ],
+      "sources": [
+        {
+          "label": "JAF：持外國駕照在日本駕車",
+          "url": "https://jaf.or.jp/common/visitor-procedures/foreign-nationals-license"
+        }
+      ],
+      "verified_on": "2026-07-14"
+    },
+    {
+      "id": "yaima-line",
+      "category": "intercity_transport",
+      "title": "Yaima Line 基隆—石垣國際渡輪",
+      "status": "verified_official",
+      "facts": [
+        "官方名稱為 Yaima Line，船名為 YAIMAMARU／やいま丸。",
+        "官方網站為 yaimaline.com；舊資料中的 yamamaru.com.tw 不是本次核對到的官方網站。",
+        "航線連接基隆港與石垣港國際碼頭。"
+      ],
+      "volatile_fields": ["班次", "報到時間", "票價", "運航狀態"],
+      "sources": [
+        {
+          "label": "Yaima Line 官方網站",
+          "url": "https://yaimaline.com/zh-hant/"
+        }
+      ],
+      "verified_on": "2026-07-14"
+    },
+    {
+      "id": "ushimaya",
+      "category": "accommodation",
+      "title": "Adventure Hostel う島や",
+      "status": "verified_official",
+      "facts": [
+        "地址：沖繩縣八重山郡竹富町南風見201-146。",
+        "官方說明為大原港步行約一分鐘。",
+        "電話：080-5328-5327；電子郵件：info@ushimaya.com。",
+        "設有雙床房、館內食堂，住宿者可詢問自行車與機車租借優惠。"
+      ],
+      "needs_user_confirmation": ["實際訂房日期", "房型", "成交價", "取消條款", "提早寄放行李"],
+      "sources": [
+        {
+          "label": "う島や官方網站",
+          "url": "https://ushimaya.com/"
+        }
+      ],
+      "verified_on": "2026-07-14"
+    },
+    {
+      "id": "midorisou",
+      "category": "accommodation",
+      "title": "石垣島 Guesthouse みどり荘",
+      "status": "verified_official",
+      "facts": [
+        "官方網站確認設有混合宿舍、女性宿舍及和室。",
+        "官方聯絡電話：0980-87-5194。",
+        "官方明示房價會因季節而異，頁面標價不能視為訂單成交價。"
+      ],
+      "needs_user_confirmation": ["實際訂房日期", "房型", "成交價", "訂單編號", "清晨退房方式"],
+      "sources": [
+        {
+          "label": "みどり荘官方網站",
+          "url": "https://midorisou.amebaownd.com/"
+        },
+        {
+          "label": "みどり荘房型與價格",
+          "url": "https://midorisou.amebaownd.com/pages/9204613/menu"
+        }
+      ],
+      "verified_on": "2026-07-14"
+    },
+    {
+      "id": "iriomote-local-bus",
+      "category": "local_transport",
+      "title": "西表島交通路線巴士",
+      "status": "verified_official",
+      "facts": [
+        "西表島交通營運島內路線巴士。",
+        "官方說明路線巴士自2023年3月起不駛入上原港站內。",
+        "可使用部分信用卡感應支付與 QUICK RIDE 行動票券；島上部分區域沒有行動網路訊號。",
+        "大原與上原均有租車營業所。"
+      ],
+      "volatile_fields": ["班次", "票價", "接駁方式"],
+      "sources": [
+        {
+          "label": "西表島交通官方路線巴士頁",
+          "url": "https://iriomote.com/local-bus/"
+        }
+      ],
+      "verified_on": "2026-07-14"
+    },
+    {
+      "id": "iriomote-taxi-availability",
+      "category": "local_transport",
+      "title": "西表島計程車可用性",
+      "status": "needs_confirmation",
+      "facts": [
+        "由布島官方 FAQ 表示2023年4月後島上計程車幾乎沒有，建議使用路線巴士或租車。",
+        "不應把『完全沒有計程車』寫成永久事實；需要用旅遊日期向業者確認。"
+      ],
+      "sources": [
+        {
+          "label": "由布島官方 FAQ",
+          "url": "https://yubujima.com/contact/"
+        }
+      ],
+      "verified_on": "2026-07-14"
+    },
+    {
+      "id": "yubu-island",
+      "category": "attraction",
+      "title": "由布島亞熱帶植物樂園",
+      "status": "verified_official",
+      "facts": [
+        "由大原港側前往較合理，可搭路線巴士至由布水牛車乘車處。",
+        "水牛車票在西表島側的旅人之站購買。",
+        "由布島與う島や同屬西表島東南側行程群，適合安排在同一天。"
+      ],
+      "volatile_fields": ["營業時間", "水牛車班次", "票價"],
+      "sources": [
+        {
+          "label": "由布島官方網站",
+          "url": "https://yubujima.com/"
+        }
+      ],
+      "verified_on": "2026-07-14"
+    },
+    {
+      "id": "urauchigawa",
+      "category": "attraction",
+      "title": "浦內川叢林遊船",
+      "status": "verified_official",
+      "facts": [
+        "地址在竹富町上原870-3，屬西表島西北側，不在大原港步行範圍。",
+        "官方交通說明以上原港為主要入口；從大原港前往約需一小時的島內接駁。",
+        "不應與抵達大原港後的短下午散步安排視為同一生活圈。"
+      ],
+      "volatile_fields": ["遊船班次", "接駁時刻", "票價", "是否營運"],
+      "sources": [
+        {
+          "label": "浦內川觀光官方遊船頁",
+          "url": "https://urauchigawa.com/cruise/"
+        },
+        {
+          "label": "浦內川觀光官方交通頁",
+          "url": "https://urauchigawa.com/access/"
+        }
+      ],
+      "verified_on": "2026-07-14"
+    },
+    {
+      "id": "kabira-bay",
+      "category": "attraction",
+      "title": "川平灣",
+      "status": "verified_official",
+      "facts": [
+        "位於石垣島西北部，是西表石垣國立公園的重要景點。",
+        "灣內可搭玻璃底船，但價格、班次與停車費屬易變資料，需以業者當日公告為準。"
+      ],
+      "volatile_fields": ["玻璃底船班次", "票價", "停車費", "營業時間"],
+      "sources": [
+        {
+          "label": "八重山物產觀光協會：川平海洋服務",
+          "url": "https://yaeyama.or.jp/%E6%9C%89%E9%99%90%E4%BC%9A%E7%A4%BE-%E5%B7%9D%E5%B9%B3%E3%83%9E%E3%83%AA%E3%83%B3%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/"
+        }
+      ],
+      "verified_on": "2026-07-14"
+    },
+    {
+      "id": "reservation-yaimamaru",
+      "category": "reservation",
+      "title": "YAIMAMARU 個人訂位",
+      "status": "user_record",
+      "facts": ["公開網站無法驗證個人訂位代號、房號、乘客姓名或付款狀態。"],
+      "needs_user_confirmation": ["訂位確認信", "付款證明", "乘客資料", "最新通知"],
+      "verified_on": "2026-07-14"
+    },
+    {
+      "id": "reservation-it737",
+      "category": "reservation",
+      "title": "台灣虎航 IT737 個人訂位",
+      "status": "user_record",
+      "facts": ["公開網站無法驗證個人訂位、座位及行李額度。"],
+      "needs_user_confirmation": ["航空公司訂位確認信", "日期", "乘客姓名", "座位", "託運行李額度"],
+      "verified_on": "2026-07-14"
+    },
+    {
+      "id": "schedules-current-operations",
+      "category": "volatile_data",
+      "title": "航班、船班、巴士與即時運航",
+      "status": "volatile_excluded",
+      "facts": ["依使用者要求，本輪不核對任何時刻表或即時運航狀態。"],
+      "recheck_rule": "只在實際使用前，以官方頁面或訂位通知重新確認。",
+      "verified_on": "2026-07-14"
+    }
+  ]
+}
