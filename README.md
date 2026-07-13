@@ -26,6 +26,7 @@ JustKM/
 | 🧳 石垣跳島 · 行李 | [`travel/ishigaki-2026/index.html`](travel/ishigaki-2026/index.html) | ✅ 已建立 | Binance 風格 · 14 段含 SVG 時間軸 · 2人 6D5N |
 | 🗓️ 石垣跳島 · 行程 | [`travel/ishigaki-2026/itinerary.html`](travel/ishigaki-2026/itinerary.html) | ✅ 重列 | Sanity 風格 · 兩段住宿 + 颱風應變 SOP |
 | 🎨 74 品牌 DESIGN.md | [`design-md/`](design-md/index.html) | ✅ 已建立 | Stripe/Linear/Vercel/Apple/Cursor 等設計 token |
+| 🤖 Pi Agent 最佳實踐 | [`learn/ai-agents/pi-agent-best-practices-2026-06.md`](learn/ai-agents/pi-agent-best-practices-2026-06.md) | 🟡 metadata only | 暮閒 2026-06 影片,無字幕,待 Briefing Doc 補強 |
 
 ---
 
