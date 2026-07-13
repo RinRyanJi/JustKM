@@ -1,0 +1,267 @@
+{
+  "schema_version": "1.0",
+  "verified_at": "2026-07-14",
+  "method": "店家名稱與地址以 Google Maps 地點頁核對；評價主題以 Google Maps 聚合數量、食べログ、Tripadvisor、官方／在地來源交叉整理。正面項目是常見好評主題；負面項目同時包含負評與行前限制，不代表每項都是多數意見。",
+  "restaurants": [
+    {
+      "id": "ushimaya-tei",
+      "name": "う島や亭",
+      "area": "大原／南風見",
+      "type": "住宿附設食堂・居酒屋",
+      "address": "沖縄県八重山郡竹富町南風見201-146",
+      "maps_rating": 4.8,
+      "maps_reviews": 12,
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=%E3%81%86%E5%B3%B6%E3%82%84%E4%BA%AD%20%E8%A5%BF%E8%A1%A8%E5%B3%B6",
+      "official_url": "https://ushimaya.com/facility/",
+      "official_label": "官方設施／食堂頁",
+      "evidence": "有限",
+      "positive": [
+        "大原港步行約 1 分鐘，搭船抵達後容易到達",
+        "官方確認供應早餐與晚餐，住客不必夜間跨島覓食",
+        "料理方向以島食材與家庭式餐點為主",
+        "食堂同時是旅人交流空間，適合獨旅者",
+        "Maps 現有評分偏高，但樣本僅 12 則"
+      ],
+      "negative": [
+        "公開評論樣本少，無法把高分視為穩定趨勢",
+        "屬住宿附設食堂，非一般全天候街邊餐廳",
+        "官方建議事前確認供餐／預約，不宜臨時到訪",
+        "Maps 標示不可外帶、無外送",
+        "菜單與價格可能依住宿方案或當日食材調整"
+      ],
+      "sources": [
+        {"label": "官方設施頁", "url": "https://ushimaya.com/facility/"},
+        {"label": "Google Maps", "url": "https://www.google.com/maps/search/?api=1&query=%E3%81%86%E5%B3%B6%E3%82%84%E4%BA%AD%20%E8%A5%BF%E8%A1%A8%E5%B3%B6"}
+      ]
+    },
+    {
+      "id": "hateruma",
+      "name": "泡波と島の味 はてるま",
+      "area": "大原／南風見",
+      "type": "島料理・預約制晚餐",
+      "address": "沖縄県八重山郡竹富町南風見201-73",
+      "maps_rating": 4.8,
+      "maps_reviews": 41,
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=%E6%B3%A1%E6%B3%A2%E3%81%A8%E5%B3%B6%E3%81%AE%E5%91%B3%20%E3%81%AF%E3%81%A6%E3%82%8B%E3%81%BE%20%E8%A5%BF%E8%A1%A8%E5%B3%B6",
+      "official_url": null,
+      "official_label": "未找到獨立官網",
+      "evidence": "高",
+      "positive": [
+        "以島上採集／捕撈食材組成套餐，地方性強",
+        "多個來源稱讚料理細緻、食材原味與健康感",
+        "逐道說明料理與食材，餐飲體驗完整",
+        "可品嘗稀有泡盛「泡波」",
+        "古民家與手作民具營造在地氛圍"
+      ],
+      "negative": [
+        "基本上只供應套餐，單點選擇有限",
+        "多個來源明確提醒必須預約",
+        "常見預算約 ¥6,000–7,000，屬島上高價位",
+        "採集食材或季節因素可能造成長時間／臨時休業",
+        "Maps 標示無外送且入口無障礙條件有限"
+      ],
+      "sources": [
+        {"label": "Google Maps", "url": "https://www.google.com/maps/search/?api=1&query=%E6%B3%A1%E6%B3%A2%E3%81%A8%E5%B3%B6%E3%81%AE%E5%91%B3%20%E3%81%AF%E3%81%A6%E3%82%8B%E3%81%BE%20%E8%A5%BF%E8%A1%A8%E5%B3%B6"},
+        {"label": "Tripadvisor（26 則）", "url": "https://www.tripadvisor.jp/Restaurant_Review-g424929-d7134342-Reviews-Hateruma-Iriomote_jima_Taketomi_cho_Yaeyama_gun_Okinawa_Prefecture_Kyushu.html"},
+        {"label": "食べログ", "url": "https://tabelog.com/okinawa/A4705/A470502/47009271/"}
+      ]
+    },
+    {
+      "id": "takeout-ai",
+      "name": "南の島のテイクアウト食堂 あい",
+      "area": "大富／南風見仲",
+      "type": "外帶食堂",
+      "address": "沖縄県八重山郡竹富町南風見仲29-52（大富共同売店內）",
+      "maps_rating": 4.6,
+      "maps_reviews": 7,
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=%E5%8D%97%E3%81%AE%E5%B3%B6%E3%81%AE%E3%83%86%E3%82%A4%E3%82%AF%E3%82%A2%E3%82%A6%E3%83%88%E9%A3%9F%E5%A0%82%20%E3%81%82%E3%81%84%20%E8%A5%BF%E8%A1%A8%E5%B3%B6",
+      "official_url": null,
+      "official_label": "未找到獨立官網",
+      "evidence": "有限",
+      "positive": [
+        "在大富共同売店內即可取餐，方便順路採買",
+        "公開介紹反覆提到現烤披薩",
+        "漢堡與便當適合帶去景點或回住宿處",
+        "品項比單純超市熟食多，適合多人分食",
+        "Maps 目前評分偏高，但僅 7 則評論"
+      ],
+      "negative": [
+        "評論樣本只有 7 則，無法可靠歸納 5 種負評",
+        "未找到獨立官網或穩定更新的官方社群",
+        "營業時間與電話在公開資料中不完整",
+        "熱門現做品項可能需要等候或事先詢問",
+        "以外帶為核心，座位與完整內用服務不可期待"
+      ],
+      "sources": [
+        {"label": "Google Maps", "url": "https://www.google.com/maps/search/?api=1&query=%E5%8D%97%E3%81%AE%E5%B3%B6%E3%81%AE%E3%83%86%E3%82%A4%E3%82%AF%E3%82%A2%E3%82%A6%E3%83%88%E9%A3%9F%E5%A0%82%20%E3%81%82%E3%81%84%20%E8%A5%BF%E8%A1%A8%E5%B3%B6"},
+        {"label": "在地介紹：ていさん家", "url": "https://teisan-shima-life.com/takeout-ai/"},
+        {"label": "八重山ブログライターズ", "url": "https://yaeyama.icokinawa.com/2021/09/13/post-8065/"}
+      ]
+    },
+    {
+      "id": "iriomote-no-shonen",
+      "name": "西表の少年",
+      "area": "上原港",
+      "type": "早餐・午餐・咖啡",
+      "address": "沖縄県八重山郡竹富町上原559",
+      "maps_rating": 4.0,
+      "maps_reviews": 221,
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=%E8%A5%BF%E8%A1%A8%E3%81%AE%E5%B0%91%E5%B9%B4",
+      "official_url": null,
+      "official_label": "未找到可確認的獨立官網",
+      "evidence": "高",
+      "positive": [
+        "上原港附近步行可達，無車旅客方便",
+        "早餐、午餐與咖啡時段皆有公開紀錄",
+        "咖啡、黑糖法式吐司與綠咖哩常被提及",
+        "木作與南國庭園氣氛是明顯好評主題",
+        "多則評論稱讚接待親切、願意再訪"
+      ],
+      "negative": [
+        "熱門時段容易排隊或滿座",
+        "較晚到店可能只剩飲品，餐點提早售完",
+        "店面不大，大團體不一定適合",
+        "Maps 標示無外送、入口無障礙條件有限",
+        "舊評論曾提冬季休業；當年日期必須再向店家確認"
+      ],
+      "sources": [
+        {"label": "Google Maps", "url": "https://www.google.com/maps/search/?api=1&query=%E8%A5%BF%E8%A1%A8%E3%81%AE%E5%B0%91%E5%B9%B4"},
+        {"label": "食べログ（103 人）", "url": "https://tabelog.com/okinawa/A4705/A470502/47021255/"},
+        {"label": "Tripadvisor", "url": "https://www.tripadvisor.jp/Restaurant_Review-g424929-d12670457-Reviews-Iriomote_no_Shonen-Iriomote_jima_Taketomi_cho_Yaeyama_gun_Okinawa_Prefecture.html"}
+      ]
+    },
+    {
+      "id": "ichitaka",
+      "name": "一隼（Ichitaka／いちたか）",
+      "area": "上原／住吉",
+      "type": "居酒屋・窯烤披薩・島料理",
+      "address": "沖縄県八重山郡竹富町上原10-720",
+      "maps_rating": 4.4,
+      "maps_reviews": 468,
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=%E4%B8%80%E9%9A%BC%20%E8%A5%BF%E8%A1%A8%E5%B3%B6",
+      "official_url": "https://www.instagram.com/ichitaka_iriomote/",
+      "official_label": "店家 Instagram",
+      "evidence": "高",
+      "positive": [
+        "本格窯烤披薩是跨平台常見好評",
+        "島魚、海葡萄、豬肉等在地食材選擇多",
+        "現榨鳳梨飲品與甜點辨識度高",
+        "評論常提到氣氛熱鬧、員工動作俐落",
+        "部分住宿區可安排接送，飲酒用餐較安心"
+      ],
+      "negative": [
+        "旺季建議預約，臨時到店有客滿風險",
+        "價位與突き出し（前菜／席料）可能高於預期",
+        "有評論反映夏季店內悶熱；屬個別／歷史意見",
+        "曾有座位安排與帳單金額需當場確認的個案",
+        "接送繁忙時曾出現等候過久的負評"
+      ],
+      "sources": [
+        {"label": "店家 Instagram", "url": "https://www.instagram.com/ichitaka_iriomote/"},
+        {"label": "Google Maps", "url": "https://www.google.com/maps/search/?api=1&query=%E4%B8%80%E9%9A%BC%20%E8%A5%BF%E8%A1%A8%E5%B3%B6"},
+        {"label": "Tripadvisor（26 則）", "url": "https://www.tripadvisor.jp/Restaurant_Review-g424929-d17423715-Reviews-Ichitaka-Iriomote_jima_Taketomi_cho_Yaeyama_gun_Okinawa_Prefecture_Kyushu.html"},
+        {"label": "食べログ", "url": "https://tabelog.com/okinawa/A4705/A470502/47024445/"}
+      ]
+    },
+    {
+      "id": "shima-italian-en",
+      "name": "島イタリアン en",
+      "area": "上原／浦內方向",
+      "type": "島食材義大利料理",
+      "address": "沖縄県八重山郡竹富町上原870-192",
+      "maps_rating": 4.4,
+      "maps_reviews": 174,
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=%E5%B3%B6%E3%82%A4%E3%82%BF%E3%83%AA%E3%82%A2%E3%83%B3%20en%20%E8%A5%BF%E8%A1%A8%E5%B3%B6",
+      "official_url": "https://www.instagram.com/shimaitarian.en/",
+      "official_label": "店家 Instagram",
+      "evidence": "高",
+      "positive": [
+        "把野豬、鮮魚、島蔬菜做成完成度高的義大利料理",
+        "義大利麵、前菜、甜點的整體水準常獲好評",
+        "份量偏充足，適合多人分享不同菜色",
+        "用餐空間與島上慢節奏氣氛受到肯定",
+        "葡萄酒與島食材搭配，適合安排正式晚餐"
+      ],
+      "negative": [
+        "熱門且座位有限，多則評論稱預約不易",
+        "店家規則為約一個月前開放預約，需精準卡日期",
+        "通常不提供接送；晚間周邊道路昏暗",
+        "常見消費約 ¥6,000 起，部分評論認為價格／CP 普通",
+        "營業日、兒童接待與入店時間限制須看官方 Instagram 最新公告"
+      ],
+      "sources": [
+        {"label": "店家 Instagram", "url": "https://www.instagram.com/shimaitarian.en/"},
+        {"label": "Google Maps", "url": "https://www.google.com/maps/search/?api=1&query=%E5%B3%B6%E3%82%A4%E3%82%BF%E3%83%AA%E3%82%A2%E3%83%B3%20en%20%E8%A5%BF%E8%A1%A8%E5%B3%B6"},
+        {"label": "食べログ（92 則）", "url": "https://tabelog.com/okinawa/A4705/A470502/47017977/dtlrvwlst/"},
+        {"label": "Tripadvisor（34 則）", "url": "https://www.tripadvisor.jp/Restaurant_Review-g424929-d10448163-Reviews-Shima_Italian_En-Iriomote_jima_Taketomi_cho_Yaeyama_gun_Okinawa_Prefecture_Kyush.html"}
+      ]
+    },
+    {
+      "id": "tohenboku",
+      "name": "唐変木（とうへんぼく）",
+      "area": "上原／星砂海灘方向",
+      "type": "午餐食堂・沖繩料理",
+      "address": "沖縄県八重山郡竹富町上原749",
+      "maps_rating": 4.4,
+      "maps_reviews": 126,
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=%E5%94%90%E5%A4%89%E6%9C%A8%20%E8%A5%BF%E8%A1%A8%E5%B3%B6",
+      "official_url": null,
+      "official_label": "未找到獨立官網；採官方飯店周邊指南交叉確認",
+      "evidence": "高",
+      "positive": [
+        "イカ墨汁／イカ墨そば是最具代表性的招牌",
+        "冬季可遇到西表野豬（カマイ）料理",
+        "沖繩定食、炒物與咖哩選擇具地方感",
+        "綠意、木造與民藝空間的氛圍常獲好評",
+        "多則評論肯定白飯、飲品與手作甜點"
+      ],
+      "negative": [
+        "熱門島食材與ガザミ料理可能售完",
+        "評論對份量評價不一，有人認為不足",
+        "有一則歷史評論反映麩處理偏硬，非近期普遍結論",
+        "入口在小路內，首次到訪可能不易辨認",
+        "午餐型營業且週二、週三常休，不能當晚餐備案"
+      ],
+      "sources": [
+        {"label": "Google Maps", "url": "https://www.google.com/maps/search/?api=1&query=%E5%94%90%E5%A4%89%E6%9C%A8%20%E8%A5%BF%E8%A1%A8%E5%B3%B6"},
+        {"label": "Tripadvisor（72 則）", "url": "https://www.tripadvisor.jp/Restaurant_Review-g424929-d3313624-Reviews-Tohenboku-Iriomote_jima_Taketomi_cho_Yaeyama_gun_Okinawa_Prefecture_Kyushu.html"},
+        {"label": "食べログ（68 人）", "url": "https://tabelog.com/okinawa/A4705/A470502/47001510/"},
+        {"label": "星野西表島飯店官方周邊指南", "url": "https://hoshinoresorts.com/ja/hotels/iriomote/sp/iriomoteeatout_/"}
+      ]
+    },
+    {
+      "id": "kitchen-inaba",
+      "name": "キッチンイナバ（Kitchen Inaba）",
+      "area": "上原／星砂海灘方向",
+      "type": "島料理・洋食・晚餐",
+      "address": "沖縄県八重山郡竹富町上原742-6",
+      "maps_rating": 4.2,
+      "maps_reviews": 465,
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=%E3%82%AD%E3%83%83%E3%83%81%E3%83%B3%20inaba%20%E8%A5%BF%E8%A1%A8%E5%B3%B6",
+      "official_url": "http://kitcheninaba.com/",
+      "official_label": "店家官網（HTTP）",
+      "evidence": "高",
+      "positive": [
+        "ガザミ濃厚義大利麵是跨平台最常見招牌",
+        "野豬、島魚、海蛇等西表食材辨識度高",
+        "料理橫跨島料理與洋食，同行者較容易各取所需",
+        "寬敞座敷、庭園與自然感適合家庭／團體",
+        "不少評論肯定服務、氣氛與適合旅程最後一餐"
+      ],
+      "negative": [
+        "人氣高，晚餐普遍建議預約",
+        "島產食材受供應影響，熱門品項可能售完",
+        "部分評論認為價格稍高",
+        "繁忙時出餐或追加點餐可能較慢",
+        "支付方式在不同來源出現矛盾，刷卡前應直接確認"
+      ],
+      "sources": [
+        {"label": "店家官網", "url": "http://kitcheninaba.com/"},
+        {"label": "Google Maps", "url": "https://www.google.com/maps/search/?api=1&query=%E3%82%AD%E3%83%83%E3%83%81%E3%83%B3%20inaba%20%E8%A5%BF%E8%A1%A8%E5%B3%B6"},
+        {"label": "Tripadvisor（238 則）", "url": "https://www.tripadvisor.jp/Restaurant_Review-g424929-d3835679-Reviews-Kitchen_inaba-Iriomote_jima_Taketomi_cho_Yaeyama_gun_Okinawa_Prefecture_Kyushu.html"},
+        {"label": "食べログ（197 人）", "url": "https://tabelog.com/okinawa/A4705/A470502/47000309/"},
+        {"label": "星野西表島飯店官方周邊指南", "url": "https://hoshinoresorts.com/ja/hotels/iriomote/sp/iriomoteeatout_/"}
+      ]
+    }
+  ]
+}

@@ -63,11 +63,10 @@
           "items": [
             {"name": "大原／南風見：カフェ花ずみ", "status": "candidate", "summary": "住宿步行圈候選；營業時間與晚餐供應必須當日電話確認。", "links": [{"label":"西表餐飲總表","url":"food-iriomote.html"}]},
             {"name": "大原／南風見：食堂 う島や亭", "status": "verified", "summary": "住宿館內用餐選項；餐期、價格及是否需預約以住宿方回覆為準。", "links": [{"label":"住宿與餐食","url":"stay-ushimaya.html"},{"label":"官方","url":"https://ushimaya.com/"}]},
-            {"name": "大原港：泡波と島の味 はてるま", "status": "candidate", "summary": "大原港周邊正餐候選，曾由 Maps POI 找到；最新營業狀態須重查。", "links": [{"label":"完整餐飲資料","url":"food-iriomote.html"},{"label":"Maps","url":"https://www.google.com/maps/search/%E6%B3%A1%E6%B3%A2%E3%81%A8%E5%B3%B6%E3%81%AE%E5%91%B3+%E3%81%AF%E3%81%A6%E3%82%8B%E3%81%BE"}]},
-            {"name": "大原港：Kitchen Matsuyama", "status": "candidate", "summary": "大原港周邊候選；請親查休息日、供餐時段與是否售完。", "links": [{"label":"完整餐飲資料","url":"food-iriomote.html"},{"label":"Maps","url":"https://www.google.com/maps/search/Kitchen+Matsuyama+%E8%A5%BF%E8%A1%A8"}]},
-            {"name": "大原港：南の島のテイクアウト食堂 あい", "status": "candidate", "summary": "外帶候選，適合餐廳關門較早時準備餐食；當日營業須重查。", "links": [{"label":"完整餐飲資料","url":"food-iriomote.html"},{"label":"Maps","url":"https://www.google.com/maps/search/%E5%8D%97%E3%81%AE%E5%B3%B6%E3%81%AE%E3%83%86%E3%82%A4%E3%82%AF%E3%82%A2%E3%82%A6%E3%83%88%E9%A3%9F%E5%A0%82+%E3%81%82%E3%81%84"}]},
+            {"name": "大原／南風見：泡波と島の味 はてるま", "status": "verified", "summary": "地址與 Maps 地點已核對；公開評論多，但屬預約制套餐且營業受食材影響，日程安排時須另查。", "links": [{"label":"完整餐飲資料","url":"food-iriomote.html#ohara"},{"label":"Maps","url":"https://www.google.com/maps/search/?api=1&query=%E6%B3%A1%E6%B3%A2%E3%81%A8%E5%B3%B6%E3%81%AE%E5%91%B3%20%E3%81%AF%E3%81%A6%E3%82%8B%E3%81%BE%20%E8%A5%BF%E8%A1%A8%E5%B3%B6"}]},
+            {"name": "大富：南の島のテイクアウト食堂 あい", "status": "verified", "summary": "Maps 地點已核對，位於大富共同売店內；評論樣本僅 7 則，營業與現做品項須直接確認。", "links": [{"label":"完整餐飲資料","url":"food-iriomote.html#ohara"},{"label":"Maps","url":"https://www.google.com/maps/search/?api=1&query=%E5%8D%97%E3%81%AE%E5%B3%B6%E3%81%AE%E3%83%86%E3%82%A4%E3%82%A2%E3%82%A6%E3%83%88%E9%A3%9F%E5%A0%82%20%E3%81%82%E3%81%84%20%E8%A5%BF%E8%A1%A8%E5%B3%B6"}]},
             {"name": "採買：玉盛スーパー／大富共同売店", "status": "candidate", "summary": "大原與南風見側補充早餐、飲料與日用品的候選。", "links": [{"label":"超市總表","url":"food-iriomote.html"}]},
-            {"name": "上原側餐廳群", "status": "candidate", "summary": "西表の少年、ラフ・ラ・ガーデン、一隼、島イタリアン en、唐変木、キッチン inaba 等；距大原住宿遠，僅適合已有西北行程或車輛時選擇。", "links": [{"label":"完整餐飲資料","url":"food-iriomote.html"}]}
+            {"name": "上原側已查證餐廳群", "status": "verified", "summary": "西表の少年、一隼、島イタリアン en、唐変木、キッチン inaba；地址、Maps 與公開評價已交叉查核。距大原住宿遠，只適合已有西北行程或車輛時選擇。", "links": [{"label":"完整餐飲資料","url":"food-iriomote.html"}]}
           ]
         },
         {
