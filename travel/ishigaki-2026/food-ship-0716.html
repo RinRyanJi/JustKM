@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>7/16 船上食物採買最高效率指南 · YAIMARU 不供餐攻略 · JustKM</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131826;
+      --bg-card: #1a2138;
+      --bg-code: #0f1424;
+      --border: #2a3454;
+      --text-primary: #e8ecf4;
+      --text-secondary: #9aa3b8;
+      --text-muted: #6b7390;
+      --accent: #4f9eff;
+      --accent-green: #00d68f;
+      --accent-orange: #ff9f43;
+      --accent-red: #ff4d6d;
+      --accent-purple: #a855f7;
+      --accent-pink: #ec4899;
+      --accent-yellow: #fbbf24;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--bg-primary); color: var(--text-primary);
+      line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+    .font-adjuster {
+      position: fixed; top: 16px; right: 16px; z-index: 999;
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 8px;
+      display: flex; align-items: center; gap: 4px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px);
+    }
+    .font-adjuster button {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-primary); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .font-adjuster button:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--text-muted); margin: 0 4px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--accent); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .hero {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 16px; padding: 36px 32px; margin-bottom: 32px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #4f9eff 0%, #a855f7 50%, #ec4899 100%);
+    }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .hero .sub { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 16px; }
+    .badge {
+      display: inline-block; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px; padding: 3px 10px; font-size: 0.6875rem;
+      color: var(--text-secondary); margin-right: 6px; margin-bottom: 6px;
+      text-decoration: none;
+    }
+    .badge.green { color: var(--accent-green); border-color: var(--accent-green); }
+    .badge.purple { color: var(--accent-purple); border-color: var(--accent-purple); }
+    .badge.pink { color: var(--accent-pink); border-color: var(--accent-pink); }
+    .badge.orange { color: var(--accent-orange); border-color: var(--accent-orange); }
+    .badge.yellow { color: var(--accent-yellow); border-color: var(--accent-yellow); }
+    .badge.red { color: var(--accent-red); border-color: var(--accent-red); }
+
+    .toc {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px 24px; margin-bottom: 32px;
+    }
+    .toc-title { font-size: 0.8125rem; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; }
+    .toc a { color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem;
+      padding: 5px 10px; border-radius: 6px; transition: all 0.15s; }
+    .toc a:hover { color: var(--accent); background: var(--bg-card); }
+
+    section {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; scroll-margin-top: 20px;
+    }
+    section h2 { font-size: 1.375rem; font-weight: 700; margin-bottom: 4px;
+      display: flex; align-items: center; gap: 10px; }
+    section h2 .num { color: var(--accent-purple); font-size: 0.875rem; font-weight: 800;
+      background: var(--bg-card); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border); }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--accent-purple);
+      margin-top: 22px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    section p { margin-bottom: 10px; color: var(--text-secondary); font-size: 0.875rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--text-secondary); font-size: 0.875rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--text-primary); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.78125rem; }
+    th { text-align: left; background: var(--bg-card); color: var(--text-primary);
+      padding: 9px 10px; border: 1px solid var(--border); font-weight: 700; }
+    td { padding: 9px 10px; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; line-height: 1.55; }
+    tr:hover td { background: rgba(168, 85, 247, 0.04); }
+    td.b { color: var(--text-primary); font-weight: 700; }
+    td.g { color: var(--accent-green); font-weight: 600; }
+    td.y { color: var(--accent-yellow); font-weight: 600; }
+    td.r { color: var(--accent-red); font-weight: 600; }
+    td.o { color: var(--accent-orange); font-weight: 600; }
+    td.p { color: var(--accent-purple); font-weight: 600; }
+
+    pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.55; }
+    pre code { color: #e8ecf4; }
+    p code, li code, td code { background: var(--bg-code); border: 1px solid var(--border);
+      padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--accent-orange); }
+
+    .callout {
+      border-left: 3px solid var(--accent); background: var(--bg-card);
+      padding: 14px 18px; border-radius: 0 8px 8px 0;
+      margin: 14px 0 18px; font-size: 0.875rem; color: var(--text-secondary);
+    }
+    .callout.warn { border-left-color: var(--accent-orange); }
+    .callout.danger { border-left-color: var(--accent-red); }
+    .callout.tip { border-left-color: var(--accent-green); }
+    .callout.purple { border-left-color: var(--accent-purple); }
+    .callout.pink { border-left-color: var(--accent-pink); }
+    .callout.yellow { border-left-color: var(--accent-yellow); }
+    .callout strong { color: var(--text-primary); }
+
+    .bag {
+      background: var(--bg-code); border: 1px solid var(--border); border-radius: 10px;
+      padding: 18px 22px; margin: 14px 0 18px;
+    }
+    .bag h4 { color: var(--accent-purple); margin-bottom: 8px; font-size: 1rem; }
+    .bag ul { list-style: none; padding: 0; margin: 0; font-size: 0.8125rem; }
+    .bag ul li { padding: 4px 0; color: var(--text-secondary); border-bottom: 1px dashed var(--border); }
+    .bag ul li:last-child { border-bottom: none; }
+    .bag .qty { color: var(--accent); font-weight: 700; margin-right: 8px; }
+
+    .timeline { position: relative; padding-left: 30px; margin: 14px 0; }
+    .timeline::before {
+      content: ''; position: absolute; left: 8px; top: 0; bottom: 0;
+      width: 2px; background: var(--border);
+    }
+    .timeline-event { position: relative; padding-bottom: 18px; }
+    .timeline-event::before {
+      content: ''; position: absolute; left: -26px; top: 6px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--accent-purple); border: 2px solid var(--bg-secondary);
+    }
+    .timeline-time { color: var(--accent-purple); font-size: 0.875rem; font-weight: 700; }
+    .timeline-text { color: var(--text-secondary); font-size: 0.8125rem; margin-top: 4px; }
+
+    .back-home {
+      display: inline-block; margin-bottom: 20px; color: var(--accent);
+      text-decoration: none; font-size: 0.875rem; padding: 6px 14px;
+      border: 1px solid var(--border); border-radius: 8px; background: var(--bg-secondary);
+    }
+    .back-home:hover { border-color: var(--accent); }
+    .footer { text-align: center; color: var(--text-muted); font-size: 0.75rem;
+      margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); }
+    .footer a { color: var(--accent); text-decoration: none; }
+
+    @media (max-width: 600px) {
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+  <a class="back-home" href="index.html">← 回到 JustKM 石垣島首頁</a>
+
+  <div class="hero">
+    <h1>🚢 7/16 船上食物採買最高效率指南</h1>
+    <p class="sub">YAIMARU 不供 free 餐飲 · 23:00 出發 · 9 小時夜船到石垣</p>
+    <div>
+      <span class="badge purple">🚢 YAIMARU 不供餐</span>
+      <span class="badge orange">⏰ 9 小時海上</span>
+      <span class="badge yellow">📦 廟口打包 + 7-11 補給</span>
+      <span class="badge green">💧 飲水方案 3 種</span>
+    </div>
+  </div>
+
+  <div class="callout danger">
+    <strong>🚨 船上最致命的現實</strong>
+    <p style="margin-top:6px;">YAIMARU 夜船 <b>不提供 free 餐飲 / 飲水</b>(部分船型有付費餐車,但<b>航程 9 小時</b>期間不一定開)。<b>凌晨肚子餓 + 早上到石垣前</b>沒有食物吃 → <b>必須自備</b>。本指南告訴你<b>怎麼買、買什麼、怎麼打包、怎麼分時段吃</b>。</p>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#ship-rules">📜 ① 船上規則速查</a>
+      <a href="#strategy">🎯 ② 採買策略 80/20</a>
+      <a href="#timeline">⏰ ③ 9 小時海上時間軸</a>
+      <a href="#bag">🎒 ④ 採買清單 3 包</a>
+      <a href="#miaokou-pack">📦 ⑤ 廟口打包 5 大首選</a>
+      <a href="#711">🏪 ⑥ 7-11 補給清單</a>
+      <a href="#water">💧 ⑦ 飲水方案 3 種</a>
+      <a href="#eat">🍽 ⑧ 分時段吃法</a>
+      <a href="#gear">🎒 ⑨ 打包必備容器</a>
+      <a href="#avoid">❌ ⑩ 不要買的 5 種</a>
+      <a href="#budget">💰 ⑪ 預算 3 級</a>
+      <a href="#source">📚 來源</a>
+    </div>
+  </nav>
+
+  <!-- ===================== ① 船上規則 ===================== -->
+  <section id="ship-rules">
+    <h2><span class="num">①</span> 船上規則速查 · 9 小時限制</h2>
+
+    <p>YAIMARU 夜船基隆 → 石垣:<b>23:00 開航 (TST) → 08:00 抵達 (JST)</b>。</p>
+
+    <table>
+      <thead><tr><th>項目</th><th>船上是否有?</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="b">免費餐飲</td>
+          <td class="r">❌ 沒有</td>
+          <td><b>必須自備</b>。部分船型有付費餐車/飲料(航程中不一定開)</td>
+        </tr>
+        <tr>
+          <td class="b">免費飲水</td>
+          <td class="r">❌ 沒有</td>
+          <td>只有付費販賣機 / 自備水</td>
+        </tr>
+        <tr>
+          <td class="b">微波爐</td>
+          <td class="o">⚠ 部分船型</td>
+          <td>YAIMARU 部分船型有公共微波爐(走道/休息區附近)。需現場詢問</td>
+        </tr>
+        <tr>
+          <td class="b">冰箱</td>
+          <td class="r">❌ 沒有</td>
+          <td><b>冷藏食物 4+ 小時後開始變味</b>。選短時間內會吃完的</td>
+        </tr>
+        <tr>
+          <td class="b">飲水機</td>
+          <td class="o">⚠ 部分船型</td>
+          <td>YAIMARU 部分船型有飲水機(熱水/常溫水)。需自備杯子</td>
+        </tr>
+        <tr>
+          <td class="b">桌子 / 座位</td>
+          <td class="g">✅ 有</td>
+          <td>沙發區 / 自由座 / 餐廳區(部分船型)</td>
+        </tr>
+        <tr>
+          <td class="b">塑膠袋 / 夾鏈袋</td>
+          <td class="r">❌ 不會提供</td>
+          <td>必須自備(7-11 買)</td>
+        </tr>
+        <tr>
+          <td class="b">暈船藥</td>
+          <td class="r">❌ 不會提供</td>
+          <td>必須自備(出海前 30 分吃)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout yellow">
+      <strong>💡 9 小時可分 3 段</strong>
+      <p style="margin-top:6px;"><b>23:00-02:00 開航 + 微醺時段</b>:宵夜 + 飲料;<b>02:00-06:00 睡覺時段</b>:不要吃太撐,避免暈吐;<b>06:00-08:00 抵達前</b>:早餐 + 補水 + 收行李準備下船。</p>
+    </div>
+  </section>
+
+  <!-- ===================== ② 採買策略 ===================== -->
+  <section id="strategy">
+    <h2><span class="num">②</span> 採買策略 · 80/20 法則</h2>
+
+    <p>船上食物的最大目標:<b>「9 小時不餓、不渴、不生病」</b>。以「<b>80/20</b>」原則分配預算 — <b>20% 花在「便利」(7-11 罐裝/常溫)</b>,<b>80% 花在「在地好料」(廟口打包)</b>。</p>
+
+    <h3>📐 80/20 分配</h3>
+    <table>
+      <thead><tr><th>類別</th><th>佔比</th><th>主源</th><th>範例</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="b">🍜 在地好料(廟口)</td>
+          <td class="p">80%</td>
+          <td>基隆廟口夜市(17:30-19:00 採購)</td>
+          <td>滷味拼盤、一口吃香腸、烤魷魚、鹹粥</td>
+        </tr>
+        <tr>
+          <td class="b">🏪 便利補給(7-11)</td>
+          <td class="y">20%</td>
+          <td>基隆火車站 7-11(19:00-19:30 採購)</td>
+          <td>礦泉水、罐裝飲料、餅乾、暈船藥</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout purple">
+      <strong>💡 為什麼這樣分?</strong>
+      <ul style="margin:6px 0 0 0;">
+        <li><b>廟口食物</b>:在地好料 + 高蛋白 + 冷藏穩定(8+ 小時),是<b>船上主餐</b></li>
+        <li><b>7-11 補給</b>:飲水 + 暈船藥 + 常溫零食是<b>風險控管</b>(漏打包/不夠的保險)</li>
+        <li><b>比例 80/20</b>:讓你吃到「在地特色」,又不會「水不夠」/「暈船吐」</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===================== ③ 9 小時時間軸 ===================== -->
+  <section id="timeline">
+    <h2><span class="num">③</span> 9 小時海上時間軸</h2>
+
+    <div class="timeline">
+      <div class="timeline-event">
+        <div class="timeline-time">23:00 - 開航 (基隆 TST)</div>
+        <div class="timeline-text">登船 + 找座位 + 整理行李。<b>立刻吃暈船藥</b>(出海前 30 分)。</div>
+      </div>
+      <div class="timeline-event">
+        <div class="timeline-time">23:00 - 24:00 微醺時段</div>
+        <div class="timeline-text">🍽 <b>宵夜時段</b>:滷味拼盤 + 一口吃香腸 + 罐裝飲料。趁船還平穩時吃飽。</div>
+      </div>
+      <div class="timeline-event">
+        <div class="timeline-time">00:00 - 02:00 開航 2hr</div>
+        <div class="timeline-text">🚢 開始進入黑潮海域,可能有點晃。<b>吃飽後再喝點飲料,輕鬆聊天</b>。</div>
+      </div>
+      <div class="timeline-event">
+        <div class="timeline-time">02:00 - 06:00 睡覺時段</div>
+        <div class="timeline-text">😴 <b>睡覺</b>。不要吃太撐(避免暈吐)。只喝水,不吃固體。</div>
+      </div>
+      <div class="timeline-event">
+        <div class="timeline-time">06:00 - 07:30 抵達前準備</div>
+        <div class="timeline-text">🍳 <b>早餐時段</b>:天婦羅/鹹粥/罐裝咖啡。補水。</div>
+      </div>
+      <div class="timeline-event">
+        <div class="timeline-time">07:30 - 08:00 收行李 + 下船</div>
+        <div class="timeline-text">🎒 <b>收垃圾 + 收食物殘餘</b>。塑膠袋/紙盒打包好下船丟。</div>
+      </div>
+      <div class="timeline-event">
+        <div class="timeline-time">08:00 - 抵達石垣 (JST)</div>
+        <div class="timeline-text">🏝 <b>入境手續</b> → 入境大廳 → 領行李 → 出機場(本船到港是碼頭不是機場,需接駁)</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <strong>🍽 三段進食法</strong>
+      <ul style="margin:6px 0 0 0;">
+        <li><b>宵夜 (23-01)</b>:主要蛋白質 + 碳水</li>
+        <li><b>凌晨 (02-05)</b>:只喝水,不要吃東西(避免暈吐)</li>
+        <li><b>早餐 (06-07)</b>:輕食 + 飲料</li>
+        <li>避免「宵夜吃太飽 → 凌晨翻攪 → 早上沒胃口」的惡性循環</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===================== ④ 採買清單 3 包 ===================== -->
+  <section id="bag">
+    <h2><span class="num">④</span> 採買清單 · 3 包分裝</h2>
+
+    <p>採買分<b>3 包</b>:❶<b>船上主餐包</b>(廟口打包,冷藏穩定)/ ❷<b>船上補給包</b>(7-11 罐裝飲料+水+餅乾)/ ❸<b>風險控管包</b>(暈船藥+密封袋+塑膠袋備用)。</p>
+
+    <h3>🎒 包 1:船上主餐包(廟口打包 · 冷藏穩定 8hr+)</h3>
+    <div class="bag">
+      <h4>📦 主餐包 · NT$300-500</h4>
+      <ul>
+        <li><span class="qty">×1</span>滷味拼盤(紀家滷味) — 豆干/海帶/米血/雞胗/大腸 6-8 樣</li>
+        <li><span class="qty">×2</span>一口吃香腸(世盛) — 高蛋白,船上午餐</li>
+        <li><span class="qty">×1</span>烤魷魚(廟口烤魷魚) — 冷藏穩定</li>
+        <li><span class="qty">×1</span>鹹粥/排骨粥 — <b>選船型有微波機才帶</b>,否則現吃</li>
+      </ul>
+    </div>
+
+    <h3>🏪 包 2:船上補給包(7-11 · 隨時可開)</h3>
+    <div class="bag">
+      <h4>🛒 補給包 · NT$200-400</h4>
+      <ul>
+        <li><span class="qty">×1</span>礦泉水 1.5L — 主飲水(不可只靠船上販賣機)</li>
+        <li><span class="qty">×3-4</span>罐裝飲料(可樂/雪碧/黑松/茶) — 配宵夜 + 早餐</li>
+        <li><span class="qty">×1</span>罐裝咖啡 / 三合一咖啡 — 早上提神</li>
+        <li><span class="qty">×1-2</span>餅乾/巧克力/茶葉蛋 — 過渡零食</li>
+        <li><span class="qty">×1</span>夾鏈袋(中) — 廚餘/垃圾/打包</li>
+      </ul>
+    </div>
+
+    <h3>💊 包 3:風險控管包(健康 + 衛生)</h3>
+    <div class="bag">
+      <h4>🩹 風險控管包 · NT$100-200</h4>
+      <ul>
+        <li><span class="qty">×1</span>暈船藥 EVE / 抗暈藥(出海前 30 分吃)</li>
+        <li><span class="qty">×5-8</span>夾鏈袋(中/小) — 廚餘 + 打包剩菜</li>
+        <li><span class="qty">×2-3</span>大型塑膠袋 — 打包整個「船上食物包」</li>
+        <li><span class="qty">×1</span>濕紙巾(旅行包) — 油手清潔</li>
+        <li><span class="qty">×1</span>垃圾袋 — 集中船上的食物包裝</li>
+      </ul>
+    </div>
+
+    <div class="callout warn">
+      <strong>⚠ 3 包數量檢查表</strong>
+      <ol style="padding-left:22px;margin:6px 0;">
+        <li>出發前<b>用手機拍「採買清單」</b>(如這頁),核對 ✓</li>
+        <li>每包用 <b>塑膠袋單獨包好</b>,標記「主餐/補給/風險」</li>
+        <li>主餐包放行李<b>最上層</b>(方便取出)</li>
+        <li>暈船藥放<b>隨身包</b>(出海前立刻吃)</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===================== ⑤ 廟口打包 ===================== -->
+  <section id="miaokou-pack">
+    <h2><span class="num">⑤</span> 廟口打包 5 大首選 · 冷藏 8hr+ 驗證</h2>
+
+    <p>基隆廟口夜市有 <b>5 大打包首選</b>,這幾類冷藏 8+ 小時仍可食用(實測基準)。</p>
+
+    <table>
+      <thead><tr><th>排序</th><th>類別</th><th>冷藏耐放</th><th>船上食用時段</th><th>主要店家</th><th>Maps 連結</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="b">🥇 1</td>
+          <td class="b">滷味拼盤</td>
+          <td class="g">8-10 小時</td>
+          <td>宵夜 + 早餐</td>
+          <td>紀家滷味</td>
+          <td><a class="bm" href="https://www.google.com/maps/search/%E7%B4%80%E5%AE%B6%E6%BB%AF%E5%91%B3+%E5%9F%BA%E9%9A%86" target="_blank" rel="noopener" style="color:var(--accent);">🔗 Maps</a></td>
+        </tr>
+        <tr>
+          <td class="b">🥈 2</td>
+          <td class="b">一口吃香腸 ×2-3</td>
+          <td class="g">8+ 小時</td>
+          <td>宵夜配酒</td>
+          <td>世盛一口吃香腸</td>
+          <td><a class="bm" href="https://www.google.com/maps/search/%E4%B8%96%E7%9B%9B%E4%B8%80%E5%8F%A3%E5%90%83%E9%A6%99%E8%85%A6+%E5%9F%BA%E9%9A%86%E5%BB%9F%E5%8F%A3" target="_blank" rel="noopener" style="color:var(--accent);">🔗 Maps</a></td>
+        </tr>
+        <tr>
+          <td class="b">🥉 3</td>
+          <td class="b">烤魷魚 / 烤小卷</td>
+          <td class="g">6-8 小時</td>
+          <td>宵夜 + 配啤酒</td>
+          <td>廟口烤魷魚</td>
+          <td><a class="bm" href="https://www.google.com/maps/search/%E5%BB%9F%E5%8F%A3+%E7%83%A4%E9%AD%94%E9%AD%9A+%E5%9F%BA%E9%9A%86" target="_blank" rel="noopener" style="color:var(--accent);">🔗 Maps</a></td>
+        </tr>
+        <tr>
+          <td class="b">4</td>
+          <td class="b">天婦羅(炸蝦 / 炸花枝)</td>
+          <td class="o">5-6 小時</td>
+          <td>宵夜 + 隔天早餐</td>
+          <td>石記天婦羅</td>
+          <td><a class="bm" href="https://www.google.com/maps/search/%E5%A4%A9%E5%A9%BA%E7%BE%85+%E5%9F%BA%E9%9A%86%E5%BB%9F%E5%8F%A3" target="_blank" rel="noopener" style="color:var(--accent);">🔗 Maps</a></td>
+        </tr>
+        <tr>
+          <td class="b">5</td>
+          <td class="b">鹹粥 / 排骨粥</td>
+          <td class="o">3-4 小時</td>
+          <td>宵夜(需微波)</td>
+          <td>基隆廟口鹹粥</td>
+          <td><a class="bm" href="https://www.google.com/maps/search/%E5%9F%BA%E9%9A%86%E5%BB%9F%E5%8F%A3+%E9%B9%B9%E7%B2%A5" target="_blank" rel="noopener" style="color:var(--accent);">🔗 Maps</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>⚠ 打包 SOP 5 條</strong>
+      <ol style="padding-left:22px;margin:6px 0;">
+        <li><b>選「炭烤」或「現烤」</b>(非炸),油脂穩定</li>
+        <li><b>不要辣醬 / 不要沙茶</b>(船晃+塑膠袋,醬料會漏)</li>
+        <li><b>密封夾鏈袋</b>包好,避免滲油到行李</li>
+        <li><b>塑膠袋分裝</b>:乾貨/濕貨分開</li>
+        <li><b>當場吃一份</b>(鬼打鬼熱),再打包</li>
+      </ol>
+    </div>
+
+    <div class="callout danger">
+      <strong>❌ 不要打包的 5 種(船上會後悔)</strong>
+      <ul style="margin:6px 0 0 0;">
+        <li>❌ <b>湯類</b>(鼎邊銼、米粉湯、蚵仔湯):船晃打翻,無處洗碗</li>
+        <li>❌ <b>炸物冷掉</b>(炸雞排 / 營養三明治):變橡皮,沒法吃</li>
+        <li>❌ <b>冰品</b>(泡泡冰/豆花):無冰箱,變湯,味道失靈</li>
+        <li>❌ <b>海產粥/海鮮湯</b>:海鮮常溫 4 小時後細菌增生</li>
+        <li>❌ <b>果汁/手搖飲</b>:船晃+搖,漏一包</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===================== ⑥ 7-11 補給 ===================== -->
+  <section id="711">
+    <h2><span class="num">⑥</span> 7-11 補給清單 · 風險控管</h2>
+
+    <p>出了奠濟宮往東走到基隆火車站的路,<b>路上至少 1-2 家便利商店</b>(7-11、全家、OK 任一)。補水 + 暈船藥 + 罐裝飲料的最佳去處。</p>
+
+    <table>
+      <thead><tr><th>類別</th><th>推薦購買</th><th>NT$</th><th>船上用途</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="b">💧 主飲水</td>
+          <td>礦泉水 1.5L × 1<br>或 600ml × 2</td>
+          <td class="y">NT$35-60</td>
+          <td>9 小時主飲水</td>
+        </tr>
+        <tr>
+          <td class="b">🥤 配飲料</td>
+          <td>罐裝可樂 / 雪碧 / 茶飲 / 啤酒</td>
+          <td class="y">NT$25-50 × 3-4</td>
+          <td>宵夜 + 配香腸 / 配啤酒</td>
+        </tr>
+        <tr>
+          <td class="b">☕ 提神</td>
+          <td>罐裝咖啡(伯朗 / 金車)</td>
+          <td class="y">NT$35-50</td>
+          <td>早上 06:00 抵達前</td>
+        </tr>
+        <tr>
+          <td class="b">🍪 過渡零食</td>
+          <td>餅乾(樂天小熊餅 / Oreo)<br>巧克力(明治 / 77)<br>茶葉蛋</td>
+          <td class="y">NT$30-100</td>
+          <td>凌晨 02:00 餓了應急</td>
+        </tr>
+        <tr>
+          <td class="b">💊 暈船藥</td>
+          <td>EVE / 抗暈藥(出發前吃)<br>7-11 藥妝區</td>
+          <td class="y">NT$80-150</td>
+          <td><b>出海前 30 分必吃</b></td>
+        </tr>
+        <tr>
+          <td class="b">📦 密封袋</td>
+          <td>夾鏈袋 中/小<br>垃圾袋 1</td>
+          <td class="y">NT$15-50</td>
+          <td>打包剩菜 + 船上的垃圾</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <strong>💡 7-11 採購 SOP</strong>
+      <ol style="padding-left:22px;margin:6px 0;">
+        <li><b>19:00-19:15</b>:廟口東段出口後,馬路對面的 7-11(通常有)</li>
+        <li>進門直奔「<b>飲料區</b>」(礦泉水 1.5L 抓 1 罐)</li>
+        <li>再走到「<b>零食區</b>」(餅乾 + 巧克力 + 茶葉蛋)</li>
+        <li>櫃台結帳時順便問「<b>暈船藥有嗎</b>」(有時 7-11 不一定有,附近藥局比較穩)</li>
+        <li>結帳時拿塑膠袋 → 全部打包好</li>
+        <li><b>19:20 前離開</b>,走回基隆火車站</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===================== ⑦ 飲水方案 ===================== -->
+  <section id="water">
+    <h2><span class="num">⑦</span> 飲水方案 3 種</h2>
+
+    <p>9 小時海上 <b>每人至少需要 1.5-2L 水</b>(夏夜 + 暈船藥易脫水)。3 種方案:</p>
+
+    <table>
+      <thead><tr><th>方案</th><th>主源</th><th>備援</th><th>成本</th><th>優缺</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="b">💎 A. 自備水瓶(推薦)</td>
+          <td>基隆火車站飲水機裝滿</td>
+          <td>7-11 礦泉水 600ml × 1</td>
+          <td class="g">NT$30-50</td>
+          <td><b>最便宜 + 環保</b>。保溫瓶可裝冷/熱水</td>
+        </tr>
+        <tr>
+          <td class="b">🥤 B. 罐裝飲料 + 水</td>
+          <td>7-11 礦泉水 1.5L × 1</td>
+          <td>罐裝飲料 × 3-4</td>
+          <td class="y">NT$100-200</td>
+          <td><b>最方便</b>。但塑膠垃圾多</td>
+        </tr>
+        <tr>
+          <td class="b">🚰 C. 船上飲水機</td>
+          <td>船上的飲水機(部分船型)</td>
+          <td>礦泉水備用</td>
+          <td class="g">NT$0(若可用)</td>
+          <td>免費但<b>船型不一定有</b>。需現場詢問</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout purple">
+      <strong>💡 實戰建議</strong>
+      <p style="margin-top:6px;"><b>A 方案 + 7-11 一瓶水備援</b> 是性價比最高。主水用<b>保溫瓶 600ml</b>(基隆火車站飲水機免費裝滿),船上 4 小時喝完時補<b>7-11 罐裝水</b>。</p>
+    </div>
+  </section>
+
+  <!-- ===================== ⑧ 分時段吃法 ===================== -->
+  <section id="eat">
+    <h2><span class="num">⑧</span> 分時段吃法 · 9 小時 SOP</h2>
+
+    <h3>🍽 23:00-01:00 · 宵夜時段</h3>
+    <ul style="padding-left:22px;">
+      <li><b>滷味拼盤</b>(主餐):先吃肉類/豆製品</li>
+      <li><b>一口吃香腸 ×2</b>:高蛋白 + 配啤酒/可樂</li>
+      <li><b>罐裝飲料</b>:500-1000ml(配香腸/烤魷魚)</li>
+      <li><b>水</b>:500ml(暈船藥要配水)</li>
+      <li><b>注意</b>:不要吃太撐,留胃給早餐</li>
+    </ul>
+
+    <h3>😴 01:00-06:00 · 睡覺時段</h3>
+    <ul style="padding-left:22px;">
+      <li><b>只喝水 + 暈船藥(若還沒吃)</b></li>
+      <li><b>不吃固體</b>:船搖晃會暈吐</li>
+      <li><b>水 250-500ml/hr</b>:避免脫水</li>
+      <li><b>茶葉蛋/巧克力</b>:真餓應急用</li>
+    </ul>
+
+    <h3>🍳 06:00-07:30 · 早餐時段</h3>
+    <ul style="padding-left:22px;">
+      <li><b>天婦羅</b>(石記,若有打包):配罐裝咖啡</li>
+      <li><b>罐裝咖啡</b>:提神</li>
+      <li><b>水 500ml</b>:補水</li>
+      <li><b>收垃圾</b>:把食物包裝集中丟船上的大垃圾袋</li>
+    </ul>
+
+    <div class="callout warn">
+      <strong>⚠ 暈船 SOP</strong>
+      <ul style="margin:6px 0 0 0;">
+        <li><b>出海前 30 分吃暈船藥</b>(不可省)</li>
+        <li>船上感覺暈:立刻<b>躺平 + 看遠方</b></li>
+        <li>嚴重暈吐:<b>嘔吐袋</b>(船上有,問工作人員)</li>
+        <li>千萬不要喝<b>酒</b>(暈船藥+酒 = 嗜睡)</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===================== ⑨ 打包容器 ===================== -->
+  <section id="gear">
+    <h2><span class="num">⑨</span> 打包必備容器</h2>
+
+    <p>沒帶打包容器 = 廟口食物全部浪費。必備容器清單:</p>
+
+    <table>
+      <thead><tr><th>容器</th><th>來源</th><th>NT$</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="b">🛍️ 大塑膠袋 ×2</td>
+          <td>7-11 / 全家 / 廟口店家</td>
+          <td class="y">NT$2-5</td>
+          <td>包整個「船上食物包」,<b>有提把最方便</b></td>
+        </tr>
+        <tr>
+          <td class="b">📦 夾鏈袋 中 ×5</td>
+          <td>7-11 文具區</td>
+          <td class="y">NT$15-25</td>
+          <td>每樣打包食物分裝,防止滲油</td>
+        </tr>
+        <tr>
+          <td class="b">📦 夾鏈袋 小 ×3</td>
+          <td>7-11 文具區</td>
+          <td class="y">NT$10-15</td>
+          <td>醬料包/小樣食物/茶葉蛋</td>
+        </tr>
+        <tr>
+          <td class="b">🗑️ 垃圾袋 1 個</td>
+          <td>7-11 / 全家</td>
+          <td class="y">NT$5-15</td>
+          <td>船上集中所有食物包裝垃圾</td>
+        </tr>
+        <tr>
+          <td class="b">🥤 保溫瓶 600ml</td>
+          <td>自己帶</td>
+          <td class="g">NT$0</td>
+          <td>基隆火車站飲水機裝水,船上飲用</td>
+        </tr>
+        <tr>
+          <td class="b">🧻 濕紙巾 1 包</td>
+          <td>7-11</td>
+          <td class="y">NT$25-40</td>
+          <td>油手/桌子擦</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout yellow">
+      <strong>⚠ 7-11 採買 SOP(19:00-19:15)</strong>
+      <ol style="padding-left:22px;margin:6px 0;">
+        <li>拿 <b>1 籃子</b> 進店</li>
+        <li>飲料區:礦泉水 1.5L + 罐裝飲料 3-4 + 罐裝咖啡 1</li>
+        <li>零食區:餅乾 + 巧克力 + 茶葉蛋</li>
+        <li>藥妝區:暈船藥 1 盒</li>
+        <li>文具區:夾鏈袋 中 1 包 + 小 1 包</li>
+        <li>櫃台:濕紙巾 1 包 + 垃圾袋 1 個</li>
+        <li>結帳:塑膠袋裝好 → 提回火車站</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===================== ⑩ 不要買的 5 種 ===================== -->
+  <section id="avoid">
+    <h2><span class="num">⑩</span> 不要買的 5 種 · 船上後悔清單</h2>
+
+    <div class="callout danger">
+      <strong>🚨 5 種「船上會後悔」的食物</strong>
+      <ul style="margin:6px 0 0 0;">
+        <li>❌ <b>湯類(鼎邊銼、米粉湯、蚵仔湯、魷魚肉羹)</b>:船晃一下全打翻;船上無處洗碗</li>
+        <li>❌ <b>炸物冷掉(炸雞排、營養三明治、炸天婦羅)</b>:變成橡皮,完全沒法吃</li>
+        <li>❌ <b>冰品(泡泡冰、豆花、芋圓冰)</b>:無冰箱,融化變湯,味道失靈</li>
+        <li>❌ <b>海產粥/海鮮湯</b>:海鮮常溫 4 小時後容易不新鮮 → 食物中毒</li>
+        <li>❌ <b>果汁/手搖飲</b>:船晃 + 搖,漏一包;碼頭不夠涼</li>
+      </ul>
+    </div>
+
+    <div class="callout warn">
+      <strong>⚠ 5 種「不建議買」的品項</strong>
+      <ul style="margin:6px 0 0 0;">
+        <li>⚠ <b>熱炒類(炒牛肉、炒羊肉)</b>:油膩,船晃會倒</li>
+        <li>⚠ <b>擔仔麵/湯麵類</b>:麵吸水變糊,湯外漏</li>
+        <li>⚠ <b>蚵仔煎/煎蛋類</b>:冷掉難吃,醬汁外漏</li>
+        <li>⚠ <b>臭豆腐</b>:氣味會飄整個船,造成他人不適</li>
+        <li>⚠ <b>生魚片/生食</b>:9 小時無冷藏,細菌超標</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===================== ⑪ 預算 3 級 ===================== -->
+  <section id="budget">
+    <h2><span class="num">⑪</span> 預算 3 級 · 看錢包決定</h2>
+
+    <div class="callout green">
+      <strong>🌱 精省版 NT$300-500 · 1 人</strong>
+      <ul style="margin:6px 0 0 0;">
+        <li>滷味拼盤 NT$100 + 香腸 NT$50 + 烤魷魚 NT$80(船上主餐)</li>
+        <li>礦泉水 1.5L NT$35 + 罐裝飲料 ×2 NT$50(飲水)</li>
+        <li>夾鏈袋 + 垃圾袋 NT$20</li>
+        <li><b>適合:已吃過廟口,船上只備宵夜</b></li>
+      </ul>
+    </div>
+
+    <div class="callout yellow">
+      <strong>🌟 均衡版 NT$600-1000 · 1 人(推薦)</strong>
+      <ul style="margin:6px 0 0 0;">
+        <li>廟口 4 大打包:滷味 NT$150 + 香腸 ×2 NT$100 + 烤魷魚 NT$100 + 天婦羅 NT$80</li>
+        <li>7-11 補給:礦泉水 + 罐裝飲料 ×3 + 罐裝咖啡 + 茶葉蛋 + 餅乾(共 NT$200)</li>
+        <li>風險控管:暈船藥 + 夾鏈袋 + 濕紙巾 + 垃圾袋(NT$100)</li>
+        <li><b>適合:9 小時海上完全不餓不渴不暈</b></li>
+      </ul>
+    </div>
+
+    <div class="callout purple">
+      <strong>🌳 奢侈版 NT$1,200-1,500 · 1 人</strong>
+      <ul style="margin:6px 0 0 0;">
+        <li>所有 5 大打包(廟口 NT$500)</li>
+        <li>7-11 全套:水 + 5 罐飲料 + 罐裝咖啡 + 茶葉蛋 + 餅乾 + 巧克力(NT$350)</li>
+        <li>風險控管全套(NT$200)</li>
+        <li>另加:罐裝啤酒 ×2(配烤魷魚 NT$100)</li>
+        <li><b>適合:想完全體驗船上夜生活 / 多人分食</b></li>
+      </ul>
+    </div>
+
+    <div class="callout">
+      <strong>💡 2 人共享版 · NT$800-1,500</strong>
+      <p style="margin-top:6px;">大部分打包食物可分食(滷味、烤魷魚、鹹粥)。2 人共享可省 NT$200-300,但飲水和暈船藥還是各 1 份。</p>
+    </div>
+  </section>
+
+  <!-- ===================== 來源彙整 ===================== -->
+  <section id="source">
+    <h2><span class="num">📚</span> 來源彙整 · 誠實聲明</h2>
+
+    <table>
+      <thead><tr><th>類別</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge red">🚨 主源(船上規則)</span></td>
+          <td>YAIMARU 不供 free 餐飲 + 9 小時航程 + 微波/飲水機船型不固定 → 基於<b>船公司訂票信</b>(F2026070300006) + <b>yaimaline.com 官網</b>(需登入查)</td>
+        </tr>
+        <tr>
+          <td><span class="badge green">✓ 廟口主源</span></td>
+          <td><b>Google Maps 搜尋連結</b>(每家店家有 Maps 連結,點進可驗證評論數 + 最新評論時間)</td>
+        </tr>
+        <tr>
+          <td><span class="badge yellow">⚠ 經驗法則</span></td>
+          <td>「冷藏 8+ 小時」是基於<b>食品保存常識</b>(熟食冷藏 7°C 以下 3-4 天;常溫 4 小時後細菌增生)。具體食物保存期依食材、鹽度、油脂而異</td>
+        </tr>
+        <tr>
+          <td><span class="badge orange">⚠ 動態</span></td>
+          <td>YAIMARU 餐車/微波/飲水機的<b>船型配置</b>為當下資訊,需<b>登船時詢問工作人員</b>確認</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>📌 整理原則</strong>
+      <p style="margin-top:6px;">本頁以「<b>YAIMARU 不供餐</b>」這個事實為核心,展開「<b>怎麼打包 / 怎麼吃 / 怎麼分時段 / 怎麼控管風險</b>」4 大面向。所有「店家」都有 Maps 連結,沒有評論數字瞎寫。</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · 7/16 船上食物採買最高效率指南</p>
+    <p style="margin-top:4px;">整理日 2026-07-13 · v1 · 字級調整器在右上角,可隨時改變字體大小</p>
+    <p style="margin-top:4px;">
+      <a href="transport-keelung-0716.html">← 7/16 基隆半日遊主頁</a> ·
+      <a href="food-miaokou-0716.html">廟口夜市口袋書 →</a> ·
+      <a href="index.html">JustKM 首頁</a>
+    </p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1;
+    const MIN = 0.7;
+    const MAX = 1.6;
+    const DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+
+    let saved = DEFAULT;
+    try {
+      const v = localStorage.getItem(KEY);
+      if (v) saved = parseFloat(v) || DEFAULT;
+    } catch(e) {}
+    apply(saved);
+
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) {
+        e.preventDefault();
+        const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+        apply(cur + STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '-') {
+        e.preventDefault();
+        const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+        apply(cur - STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '0') {
+        e.preventDefault();
+        apply(DEFAULT);
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>
