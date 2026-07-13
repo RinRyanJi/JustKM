@@ -22,7 +22,7 @@
           "intro": "先分清大原港與上原港，再選活動。島上不能依賴臨時叫車。",
           "items": [
             {"name": "石垣港 ↔ 大原港渡輪", "status": "volatile", "summary": "本次住宿所在入口；實際船公司、班次、報到與停航須當日看官方公告。", "links": [{"label":"船班資料","url":"transport-ferries.html"}]},
-            {"name": "石垣港 ↔ 上原港渡輪", "status": "volatile", "summary": "浦內川、星砂海岸與島西北活動較接近此入口；部分天候可能停航。", "links": [{"label":"船班資料","url":"transport-ferries.html"}]},
+            {"name": "石垣港 ↔ 上原港渡輪（非本次抵達線）", "status": "volatile", "summary": "浦內川、星砂海岸與島西北活動較接近此入口；僅作全島資料，不是前往う島や的抵達方案。", "links": [{"label":"上原航路官方","url":"https://www.aneikankou.co.jp/timetable/detail/5"}]},
             {"name": "西表島交通路線巴士", "status": "verified", "summary": "官方確認營運島內路線；上原港站不駛入港內，班次仍須出發前重查。", "links": [{"label":"巴士資料","url":"transport-buses.html"},{"label":"官方","url":"https://iriomote.com/local-bus/"}]},
             {"name": "租車／機車／自行車", "status": "verified", "summary": "大原與上原均有租車業者；臺灣旅客駕車須帶臺灣駕照正本、合格日文譯本及護照。", "links": [{"label":"駕駛規則","url":"validated-database.html"}]},
             {"name": "計程車", "status": "volatile", "summary": "由布島官方表示島上計程車幾乎沒有；不可把叫車當主要方案，須事前向業者確認。", "links": [{"label":"官方 FAQ","url":"https://yubujima.com/contact/"}]}
