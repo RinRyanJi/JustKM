@@ -1,0 +1,190 @@
+{
+  "schema_version": "1.0.0",
+  "updated_at": "2026-07-14",
+  "status_labels": {
+    "verified": "已核對",
+    "candidate": "候選／待深化",
+    "volatile": "出發前重查"
+  },
+  "destinations": {
+    "iriomote": {
+      "name": "西表島",
+      "jp": "西表島・Iriomote",
+      "icon": "🌿",
+      "summary": "本次住宿與第一段島上活動所在地。大原港在東南、上原港與浦內川在西北，不能當成同一個步行生活圈。",
+      "base": "住宿基地：Adventure Hostel う島や（大原港側）",
+      "quick_notes": ["大原港旁住宿", "東西兩側移動距離長", "計程車極少", "船班與巴士時刻未驗"],
+      "sections": [
+        {
+          "id": "transport",
+          "title": "抵達與島內交通",
+          "icon": "⛴️",
+          "intro": "先分清大原港與上原港，再選活動。島上不能依賴臨時叫車。",
+          "items": [
+            {"name": "石垣港 ↔ 大原港渡輪", "status": "volatile", "summary": "本次住宿所在入口；實際船公司、班次、報到與停航須當日看官方公告。", "links": [{"label":"船班資料","url":"transport-ferries.html"}]},
+            {"name": "石垣港 ↔ 上原港渡輪", "status": "volatile", "summary": "浦內川、星砂海岸與島西北活動較接近此入口；部分天候可能停航。", "links": [{"label":"船班資料","url":"transport-ferries.html"}]},
+            {"name": "西表島交通路線巴士", "status": "verified", "summary": "官方確認營運島內路線；上原港站不駛入港內，班次仍須出發前重查。", "links": [{"label":"巴士資料","url":"transport-buses.html"},{"label":"官方","url":"https://iriomote.com/local-bus/"}]},
+            {"name": "租車／機車／自行車", "status": "verified", "summary": "大原與上原均有租車業者；臺灣旅客駕車須帶臺灣駕照正本、合格日文譯本及護照。", "links": [{"label":"駕駛規則","url":"validated-database.html"}]},
+            {"name": "計程車", "status": "volatile", "summary": "由布島官方表示島上計程車幾乎沒有；不可把叫車當主要方案，須事前向業者確認。", "links": [{"label":"官方 FAQ","url":"https://yubujima.com/contact/"}]}
+          ]
+        },
+        {
+          "id": "activities",
+          "title": "可參與活動",
+          "icon": "🚣",
+          "intro": "按所在區域選，不把西北活動硬塞進大原港短下午。",
+          "items": [
+            {"name": "由布島水牛車", "status": "verified", "summary": "東南側代表體驗，搭水牛車渡過淺海前往植物園；評論常肯定景觀、三線與悠閒感。", "links": [{"label":"官方","url":"https://yubujima.com/"},{"label":"口碑","url":"reviews-database.html"},{"label":"Maps","url":"https://www.google.com/maps/search/%E7%94%B1%E5%B8%83%E5%B3%B6+%E6%B0%B4%E7%89%9B%E8%BB%8A+%E8%A5%BF%E8%A1%A8"}]},
+            {"name": "仲間川紅樹林遊覽船", "status": "candidate", "summary": "大原港側活動，可看紅樹林與河川景觀；營運、潮汐與當日行程須向業者確認。", "links": [{"label":"景點總庫","url":"attractions-database-2026.html#iriomote"},{"label":"Maps","url":"https://www.google.com/maps/search/%E4%BB%B2%E9%96%93%E5%B7%9D+%E9%81%8A%E8%A6%A7%E8%88%B9+%E8%A5%BF%E8%A1%A8%E5%B3%B6"}]},
+            {"name": "浦內川叢林遊船", "status": "verified", "summary": "西北側、以上原港為主要入口；船上導覽與亞熱帶河川景觀是核心，但從大原側移動約需一小時。", "links": [{"label":"官方","url":"https://urauchigawa.com/cruise/"},{"label":"口碑","url":"reviews-database.html"},{"label":"Maps","url":"https://www.google.com/maps/search/%E6%B5%A6%E5%86%85%E5%B7%9D+%E8%A5%BF%E8%A1%A8"}]},
+            {"name": "瀑布健行／獨木舟", "status": "candidate", "summary": "ピナイサーラ、マヤグスク、カンビレー等路線難度差異大；須依路線選合格嚮導與裝備。", "links": [{"label":"活動候選","url":"attractions-database-2026.html"}]},
+            {"name": "浮潛與周邊小島", "status": "candidate", "summary": "巴拉斯島、鳩間島等通常需參加海上行程；受風浪與船公司營運影響。", "links": [{"label":"活動候選","url":"attractions-database-2026.html"}]}
+          ]
+        },
+        {
+          "id": "sights",
+          "title": "景點",
+          "icon": "🌳",
+          "intro": "分成大原／東南與上原／西北兩群，避免低估交通時間。",
+          "items": [
+            {"name": "由布島亞熱帶植物樂園", "status": "verified", "summary": "東南側；水牛車抵達後可逛植物園、水牛之家與海邊。", "links": [{"label":"官方","url":"https://yubujima.com/"},{"label":"口碑","url":"reviews-database.html"}]},
+            {"name": "西表野生生物保護中心", "status": "candidate", "summary": "適合了解西表山貓、生態與保育；開館狀態須出發前查官方。", "links": [{"label":"Maps","url":"https://www.google.com/maps/search/%E8%A5%BF%E8%A1%A8%E9%87%8E%E7%94%9F%E7%94%9F%E7%89%A9%E4%BF%9D%E8%AD%B7%E3%82%BB%E3%83%B3%E3%82%BF%E3%83%BC"}]},
+            {"name": "仲間橋／大原港周邊", "status": "candidate", "summary": "抵達後可短時間散步的東南側區域，與住宿同一生活圈。", "links": [{"label":"景點筆記","url":"spot.html"}]},
+            {"name": "南風見海岸", "status": "candidate", "summary": "住宿周邊海岸散步候選；不是有救生員的正式海水浴場，勿自行冒險下水。", "links": [{"label":"景點筆記","url":"spot.html"}]},
+            {"name": "浦內川流域", "status": "verified", "summary": "西北側大型河川與叢林景觀，可搭遊船並銜接步行路線。", "links": [{"label":"官方","url":"https://urauchigawa.com/"}]},
+            {"name": "星砂海岸／上原側海岸", "status": "candidate", "summary": "位於島西北側，與大原港距離遠；海況與安全設施須現場確認。", "links": [{"label":"景點總庫","url":"attractions-database-2026.html"}]}
+          ]
+        },
+        {
+          "id": "food",
+          "title": "餐廳與採買",
+          "icon": "🍱",
+          "intro": "先看區域再看店名。大原住宿當晚優先選步行圈，不為晚餐跨島。",
+          "items": [
+            {"name": "大原／南風見：カフェ花ずみ", "status": "candidate", "summary": "住宿步行圈候選；營業時間與晚餐供應必須當日電話確認。", "links": [{"label":"西表餐飲總表","url":"food-iriomote.html"}]},
+            {"name": "大原／南風見：食堂 う島や亭", "status": "verified", "summary": "住宿館內用餐選項；餐期、價格及是否需預約以住宿方回覆為準。", "links": [{"label":"住宿與餐食","url":"stay-ushimaya.html"},{"label":"官方","url":"https://ushimaya.com/"}]},
+            {"name": "大原港：泡波と島の味 はてるま", "status": "candidate", "summary": "大原港周邊正餐候選，曾由 Maps POI 找到；最新營業狀態須重查。", "links": [{"label":"完整餐飲資料","url":"food-iriomote.html"},{"label":"Maps","url":"https://www.google.com/maps/search/%E6%B3%A1%E6%B3%A2%E3%81%A8%E5%B3%B6%E3%81%AE%E5%91%B3+%E3%81%AF%E3%81%A6%E3%82%8B%E3%81%BE"}]},
+            {"name": "大原港：Kitchen Matsuyama", "status": "candidate", "summary": "大原港周邊候選；請親查休息日、供餐時段與是否售完。", "links": [{"label":"完整餐飲資料","url":"food-iriomote.html"},{"label":"Maps","url":"https://www.google.com/maps/search/Kitchen+Matsuyama+%E8%A5%BF%E8%A1%A8"}]},
+            {"name": "大原港：南の島のテイクアウト食堂 あい", "status": "candidate", "summary": "外帶候選，適合餐廳關門較早時準備餐食；當日營業須重查。", "links": [{"label":"完整餐飲資料","url":"food-iriomote.html"},{"label":"Maps","url":"https://www.google.com/maps/search/%E5%8D%97%E3%81%AE%E5%B3%B6%E3%81%AE%E3%83%86%E3%82%A4%E3%82%AF%E3%82%A2%E3%82%A6%E3%83%88%E9%A3%9F%E5%A0%82+%E3%81%82%E3%81%84"}]},
+            {"name": "採買：玉盛スーパー／大富共同売店", "status": "candidate", "summary": "大原與南風見側補充早餐、飲料與日用品的候選。", "links": [{"label":"超市總表","url":"food-iriomote.html"}]},
+            {"name": "上原側餐廳群", "status": "candidate", "summary": "西表の少年、ラフ・ラ・ガーデン、一隼、島イタリアン en、唐変木、キッチン inaba 等；距大原住宿遠，僅適合已有西北行程或車輛時選擇。", "links": [{"label":"完整餐飲資料","url":"food-iriomote.html"}]}
+          ]
+        },
+        {
+          "id": "stay",
+          "title": "住宿",
+          "icon": "🏠",
+          "intro": "公開資料只能核對設施；入住日期、房型、價格與取消條款必須回原訂單。",
+          "items": [
+            {"name": "Adventure Hostel う島や", "status": "verified", "summary": "大原港步行約 1 分鐘，設雙床房與館內食堂；公開評論樣本少，但服務、位置與性價比訊號偏正面。", "links": [{"label":"住宿完整資料","url":"stay-ushimaya.html"},{"label":"官方","url":"https://ushimaya.com/"},{"label":"口碑","url":"reviews-database.html"},{"label":"Maps","url":"https://maps.app.goo.gl/uiWGKUedmLH6sGHq8"}]}
+          ]
+        },
+        {
+          "id": "cautions",
+          "title": "當地注意事項",
+          "icon": "⚠️",
+          "intro": "西表島最容易出錯的是低估距離、把舊時刻當現況，以及晚上才找餐廳。",
+          "items": [
+            {"name": "交通先按東西兩側分組", "status": "verified", "summary": "大原港到浦內川／上原側並非短程；同一天安排前先確定車輛與返程。", "links": [{"label":"地理驗證","url":"validated-database.html"}]},
+            {"name": "餐飲提早確認", "status": "volatile", "summary": "島上店家少、休息日與售完情況常變；住宿當晚最好提早訂餐或先買備用食物。", "links": [{"label":"餐飲總表","url":"food-iriomote.html"}]},
+            {"name": "天候與停航", "status": "volatile", "summary": "颱風、風浪可能改變上下船港口與活動；出發前看船公司與活動業者公告。", "links": [{"label":"颱風應變","url":"event-typhoon.html"}]}
+          ]
+        }
+      ]
+    },
+    "ishigaki": {
+      "name": "石垣島",
+      "jp": "石垣島・Ishigaki",
+      "icon": "🌊",
+      "summary": "本次主要住宿基地，也是前往竹富島與西表島的交通核心。市區可步行，川平灣與北部景點則須巴士、租車或一日團。",
+      "base": "住宿基地：みどり荘（登野城側）",
+      "quick_notes": ["主要住宿基地", "離島碼頭交通中心", "市區與北部分開規劃", "航班／船班時刻未驗"],
+      "sections": [
+        {"id":"transport","title":"抵達與島內交通","icon":"🚌","intro":"石垣港離島碼頭是跳島核心；島北與川平灣不能只靠市區步行。","items":[
+          {"name":"基隆 → 石垣國際碼頭","status":"volatile","summary":"Yaima Line 國際渡輪；航行、報到、票價與入境流程須以官方通知及個人訂位為準。","links":[{"label":"基隆交通","url":"transport-keelung-0716.html"},{"label":"官方","url":"https://yaimaline.com/zh-hant/"}]},
+          {"name":"石垣港離島碼頭","status":"verified","summary":"前往西表、竹富等島嶼的主要碼頭，也是市區交通與餐飲節點。","links":[{"label":"船班資料","url":"transport-ferries.html"},{"label":"Maps","url":"https://www.google.com/maps/search/%E7%9F%B3%E5%9E%A3%E6%B8%AF%E9%9B%A2%E5%B3%B6%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB"}]},
+          {"name":"市區公車／東運輸巴士","status":"volatile","summary":"可銜接機場、川平與部分景點；路線與時刻須出發前重查。","links":[{"label":"巴士資料","url":"transport-buses.html"}]},
+          {"name":"租車／計程車","status":"candidate","summary":"北部與川平灣多點串聯較實用；自駕文件規則已核對，車況與保險要向業者確認。","links":[{"label":"駕駛規則","url":"validated-database.html"}]},
+          {"name":"石垣機場 → 台北","status":"volatile","summary":"個人航班、座位與行李只能由原始訂位確認；起飛時間本輪未驗。","links":[{"label":"航班資料","url":"transport-flights.html"}]}
+        ]},
+        {"id":"activities","title":"可參與活動","icon":"🤿","intro":"北部自然活動與市區文化體驗分開選，並保留天候替代方案。","items":[
+          {"name":"川平灣玻璃底船","status":"verified","summary":"不下水也能看灣內海中景觀；潮汐與天候會影響觀看品質，班次與票價須重查。","links":[{"label":"口碑","url":"reviews-database.html"},{"label":"Maps","url":"https://www.google.com/maps/search/%E5%B7%9D%E5%B9%B3%E7%81%A3+%E7%9F%B3%E5%9E%A3%E5%B3%B6"}]},
+          {"name":"米原海岸浮潛","status":"candidate","summary":"海況佳時的浮潛候選；離岸流與無人看守風險高，應選有安全管理的業者。","links":[{"label":"景點總庫","url":"attractions-database-2026.html"}]},
+          {"name":"宮良川紅樹林獨木舟／SUP","status":"candidate","summary":"靠近島南側的水上活動候選；依潮汐、天候與業者安全標準決定。","links":[{"label":"景點總庫","url":"attractions-database-2026.html"}]},
+          {"name":"島唄現場演出","status":"candidate","summary":"市區晚間文化體驗；ゆうな、島唄酒場等為候選，需預約並確認演出。","links":[{"label":"石垣餐飲與夜間","url":"food-ishigaki.html"}]},
+          {"name":"石垣 Yaima Village 文化體驗","status":"candidate","summary":"八重山傳統聚落、文化與動物展示候選；營業資訊須看官方。","links":[{"label":"景點總庫","url":"attractions-database-2026.html"}]}
+        ]},
+        {"id":"sights","title":"景點","icon":"🏝️","intro":"依市區、西北、北部與南部排列，選同區景點可減少折返。","items":[
+          {"name":"川平灣／川平公園展望台","status":"verified","summary":"石垣島代表景觀；灣內禁止游泳，評論高度肯定海色與觀景視野。","links":[{"label":"口碑","url":"reviews-database.html"},{"label":"Maps","url":"https://www.google.com/maps/search/%E5%B7%9D%E5%B9%B3%E7%81%A3+%E7%9F%B3%E5%9E%A3%E5%B3%B6"}]},
+          {"name":"底地海灘","status":"candidate","summary":"川平灣周邊海灘候選，可與西北行程同區安排。","links":[{"label":"景點總庫","url":"attractions-database-2026.html"}]},
+          {"name":"玉取崎展望台","status":"candidate","summary":"島東北部展望點，可與平久保崎串聯。","links":[{"label":"Maps","url":"https://www.google.com/maps/search/%E7%8E%89%E5%8F%96%E5%B4%8E%E5%B1%95%E6%9C%9B%E5%8F%B0"}]},
+          {"name":"平久保崎燈塔","status":"candidate","summary":"島最北端代表景觀，從市區移動距離長，適合租車或北部一日線。","links":[{"label":"景點筆記","url":"spot.html"}]},
+          {"name":"御神崎燈塔","status":"candidate","summary":"島西側海岸與夕陽候選，可與川平灣同區規劃。","links":[{"label":"景點總庫","url":"attractions-database-2026.html"}]},
+          {"name":"石垣島鍾乳洞","status":"candidate","summary":"雨天備案與近市區景點，階梯與濕滑狀況需評估。","links":[{"label":"Maps","url":"https://www.google.com/maps/search/%E7%9F%B3%E5%9E%A3%E5%B3%B6+%E9%8D%BE%E4%B9%B3%E6%B4%9E"}]},
+          {"name":"桃林寺／Euglena Mall／公設市場","status":"candidate","summary":"市區步行文化、購物與雨天備案，可從住宿或離島碼頭串聯。","links":[{"label":"景點總庫","url":"attractions-database-2026.html"}]}
+        ]},
+        {"id":"food","title":"餐廳與採買","icon":"🥩","intro":"市區選擇多，但熱門燒肉與島唄店仍應預約；評分與營業時間出發前重查。","items":[
+          {"name":"石垣牛燒肉：焼肉 島／一二三／まるみつ／きたうち牧場","status":"candidate","summary":"四個主要候選；比較位置、預約、預算及單人用餐限制後再選。","links":[{"label":"完整餐飲資料","url":"food-ishigaki.html"},{"label":"Maps 搜尋","url":"https://www.google.com/maps/search/%E7%9F%B3%E5%9E%A3%E7%89%9B+%E7%87%92%E8%82%89+%E7%9F%B3%E5%9E%A3%E5%B8%82"}]},
+          {"name":"八重山麵：岸本食堂／仲間／登野城まるみつ／八島そば","status":"candidate","summary":"四個在地麵候選，須依當日動線與售完時間選擇。","links":[{"label":"完整餐飲資料","url":"food-ishigaki.html"}]},
+          {"name":"邊銀食堂／石垣島辣油","status":"candidate","summary":"店內用餐與辣油購買需分開確認；不同分店狀態不可混用。","links":[{"label":"完整餐飲資料","url":"food-ishigaki.html"}]},
+          {"name":"離島碼頭餐飲","status":"candidate","summary":"お食事処具志堅くわっちぃー、七人本舗、ソムリエ等候選，適合搭船前後。","links":[{"label":"碼頭餐飲","url":"food-ishigaki.html"}]},
+          {"name":"島唄居酒屋","status":"candidate","summary":"島唄ライブ ゆうな、島唄酒場、てぃんさぐぬ花等晚間候選；確認演出與最低消費。","links":[{"label":"完整餐飲資料","url":"food-ishigaki.html"}]},
+          {"name":"機場伴手禮","status":"candidate","summary":"泡盛、黑糖、邊銀辣油、石垣牛加工品等；液體與肉品入境臺灣限制需另查。","links":[{"label":"採買資料","url":"food-ishigaki.html"}]}
+        ]},
+        {"id":"stay","title":"住宿","icon":"🏠","intro":"みどり荘為目前方案；なみ荘僅保留舊資料，不當成已確認訂位。","items":[
+          {"name":"みどり荘 midorisou","status":"verified","summary":"登野城側青年旅館，提供宿舍與和室、共用衛浴；公開評論提到內裝可能較舊。","links":[{"label":"住宿完整資料","url":"stay-midorisou.html"},{"label":"官方","url":"https://midorisou.amebaownd.com/"},{"label":"口碑","url":"reviews-database.html"},{"label":"Maps","url":"https://www.google.com/maps/search/?api=1&query=24.337261,124.169033&query_place_id=ChIJv9ytj6QKYDQR4b852PnmYn0"}]},
+          {"name":"なみ荘（舊候選）","status":"candidate","summary":"只保留歷史方案，不代表目前已訂；避免與西表住宿或みどり荘混淆。","links":[{"label":"封存資料","url":"stay-namisou.html"}]}
+        ]},
+        {"id":"cautions","title":"當地注意事項","icon":"⚠️","intro":"石垣島最容易出錯的是把市區步行範圍延伸到川平與北部，以及未預約熱門餐廳。","items":[
+          {"name":"北部行程需獨立交通方案","status":"verified","summary":"川平灣、御神崎、玉取崎與平久保崎不是市區散步點；先決定租車、巴士或一日團。","links":[{"label":"景點資料","url":"spot.html"}]},
+          {"name":"跳島返程留緩衝","status":"volatile","summary":"離島船受風浪影響，回石垣後不要立即銜接無法更改的重要行程。","links":[{"label":"颱風應變","url":"event-typhoon.html"}]},
+          {"name":"個人訂位回原始確認信","status":"volatile","summary":"住宿、國際船與虎航資料不能靠公開網站證明。","links":[{"label":"驗證資料庫","url":"validated-database.html"}]}
+        ]}
+      ]
+    },
+    "taketomi": {
+      "name": "竹富島",
+      "jp": "竹富島・Taketomi",
+      "icon": "🐃",
+      "summary": "從石垣島出發的日歸小島。主要活動集中在傳統聚落、海灘、自行車與水牛車，餐廳數量有限且可能提早售完。",
+      "base": "日歸基地：石垣島住宿；竹富島不安排本次住宿",
+      "quick_notes": ["石垣島日歸", "自行車最實用", "聚落＋海灘同頁查", "船班與店家營業未驗"],
+      "sections": [
+        {"id":"transport","title":"抵達與島內交通","icon":"🚲","intro":"先確認回石垣的船，再決定自行車、水牛車或巴士。","items":[
+          {"name":"石垣港 ↔ 竹富港高速船","status":"volatile","summary":"日歸主要航線；班次、票價與停航狀態須在出發前看船公司。","links":[{"label":"船班資料","url":"transport-ferries.html"}]},
+          {"name":"租自行車／電動自行車","status":"candidate","summary":"串聯聚落、Kondoi 海灘、星砂海灘與西棧橋最實用；石子路、炎熱與車況須評估。","links":[{"label":"竹富完整資料","url":"food-taketomi.html"},{"label":"Maps","url":"https://www.google.com/maps/search/%E7%AB%B9%E5%AF%8C%E5%B3%B6+%E8%87%AA%E8%BB%A2%E8%BB%8A"}]},
+          {"name":"島內巴士", "status":"volatile", "summary":"不騎車時的替代方案，但班次少；須先確認港口接駁與回程。", "links":[{"label":"竹富交通","url":"food-taketomi.html"}]},
+          {"name":"步行", "status":"candidate", "summary":"港口到聚落可步行，但盛夏曝曬下再走到各海灘負擔較大。", "links":[{"label":"竹富交通","url":"food-taketomi.html"}]}
+        ]},
+        {"id":"activities","title":"可參與活動","icon":"🐃","intro":"水牛車與自行車環島是兩種不同節奏，可依體力與停留時間選。","items":[
+          {"name":"竹富島水牛車聚落導覽","status":"candidate","summary":"在傳統聚落內慢速遊覽，與由布島的渡海水牛車不同；營運與候位須現場確認。","links":[{"label":"活動候選","url":"attractions-database-2026.html"},{"label":"Maps","url":"https://www.google.com/maps/search/%E7%AB%B9%E5%AF%8C%E5%B3%B6+%E6%B0%B4%E7%89%9B%E8%BB%8A"}]},
+          {"name":"自行車環島","status":"candidate","summary":"可串聯聚落、Kondoi、Kaiji 與西棧橋；預留補水、防曬與還車時間。","links":[{"label":"完整資料","url":"food-taketomi.html"}]},
+          {"name":"海灘散步／玩水","status":"candidate","summary":"Kondoi 較適合休憩；Kaiji 以找星砂為主，是否可下水與海況需現場確認。","links":[{"label":"景點筆記","url":"spot.html"}]},
+          {"name":"傳統聚落與藝能文化","status":"candidate","summary":"赤瓦屋、御嶽與可能的藝能活動；尊重居民生活與禁止進入區域。","links":[{"label":"景點總庫","url":"attractions-database-2026.html"}]}
+        ]},
+        {"id":"sights","title":"景點","icon":"🏖️","intro":"主要景點可用自行車排成一圈，但盛夏不宜把停留時間壓太緊。","items":[
+          {"name":"竹富島傳統聚落", "status":"candidate", "summary":"赤瓦屋、白砂道路與石牆，是島上核心文化景觀；聚落同時是居民生活空間。", "links":[{"label":"景點總庫","url":"attractions-database-2026.html"}]},
+          {"name":"Kondoi Beach（コンドイ浜）", "status":"candidate", "summary":"主要海灘休憩點，適合與 Kaiji 海灘串聯。", "links":[{"label":"景點筆記","url":"spot.html"}]},
+          {"name":"Kaiji Beach（カイジ浜／星砂海灘）", "status":"candidate", "summary":"以星砂聞名；星砂不可大量帶走，海況與下水安全須現場判斷。", "links":[{"label":"景點筆記","url":"spot.html"}]},
+          {"name":"西棧橋", "status":"candidate", "summary":"海景與夕陽候選；日歸旅客須注意最後返程船，不能只看日落時間。", "links":[{"label":"景點筆記","url":"spot.html"}]},
+          {"name":"まちなみ館／御嶽", "status":"candidate", "summary":"了解聚落文化與島嶼歷史的補充點；宗教場所需遵守標示。", "links":[{"label":"景點總庫","url":"attractions-database-2026.html"}]}
+        ]},
+        {"id":"food","title":"餐廳與休息","icon":"🍜","intro":"店家集中在聚落且數量有限；不要把舊營業時間當保證，最好準備水與備用點心。","items":[
+          {"name":"そば処 竹の子", "status":"verified", "summary":"代表性八重山麵店，湯頭常獲好評；熱門時段可能排隊，部分評論認為離島價格略高。", "links":[{"label":"口碑","url":"reviews-database.html"},{"label":"完整餐飲資料","url":"food-taketomi.html"},{"label":"Maps","url":"https://www.google.com/maps/search/%E3%81%9D%E3%81%B0%E5%87%A6+%E7%AB%B9%E3%81%AE%E5%AD%90+%E7%AB%B9%E5%AF%8C%E5%B3%B6"}]},
+          {"name":"パーラー ぱいぬ島", "status":"candidate", "summary":"冰品與休息候選；品項、營業日及售完狀況須當日確認。", "links":[{"label":"完整餐飲資料","url":"food-taketomi.html"},{"label":"Maps","url":"https://www.google.com/maps/search/%E3%83%91%E3%83%BC%E3%83%A9%E3%83%BC%E3%81%B1%E3%81%84%E3%81%AC%E5%B3%B6"}]},
+          {"name":"レストラン ゆんた", "status":"candidate", "summary":"聚落內正餐候選，需親查營業狀態與候位。", "links":[{"label":"完整餐飲資料","url":"food-taketomi.html"}]},
+          {"name":"花ごよる", "status":"candidate", "summary":"聚落餐飲候選；本輪尚未完成官網與近期評論交叉查核。", "links":[{"label":"完整餐飲資料","url":"food-taketomi.html"}]},
+          {"name":"おみやげ館 竹富／港口補給", "status":"candidate", "summary":"伴手禮、飲料與短暫休息候選；返船前預留採買時間。", "links":[{"label":"完整餐飲資料","url":"food-taketomi.html"}]}
+        ]},
+        {"id":"stay","title":"住宿","icon":"🏠","intro":"本次規劃為石垣島往返日歸，沒有已確認的竹富島住宿。","items":[
+          {"name":"本次不在竹富島住宿", "status":"verified", "summary":"住宿仍在石垣島みどり荘；任何竹富民宿只列候選，不應混入訂位事實。", "links":[{"label":"石垣住宿","url":"stay-midorisou.html"}]}
+        ]},
+        {"id":"cautions","title":"當地注意事項","icon":"⚠️","intro":"竹富島最容易出錯的是忘記最後返程船、低估曝曬，以及抵達後才發現餐廳休息。","items":[
+          {"name":"先鎖定返程船", "status":"volatile", "summary":"任何海灘、夕陽或晚餐安排都不能犧牲返石垣的交通。", "links":[{"label":"船班資料","url":"transport-ferries.html"}]},
+          {"name":"防曬、補水與石子路", "status":"verified", "summary":"盛夏騎車曝曬強，白砂石子路可能打滑；穿著、飲水與防曬要比市區行程更完整。", "links":[{"label":"打包清單","url":"prep-packing.html"}]},
+          {"name":"尊重聚落與御嶽", "status":"verified", "summary":"不要進入私人住宅、庭院或禁止進入的宗教空間；拍攝人物前先取得同意。", "links":[{"label":"竹富資料","url":"food-taketomi.html"}]}
+        ]}
+      ]
+    }
+  }
+}

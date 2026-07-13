@@ -724,11 +724,17 @@
   <section class="section" style="background:var(--accent-light);border-radius:var(--r-lg);padding:24px 28px;margin-bottom:32px;">
     <div class="sec-head" style="margin-bottom:18px;">
       <span class="num" style="background:var(--accent);color:#fff;">§ 00</span>
-      <h2 style="font-size:1.25rem;">📚 知識庫導覽 · 主題資料庫頁</h2>
+      <h2 style="font-size:1.25rem;">📍 抵達哪個島，就看哪一頁</h2>
       <span class="tag">Knowledge base</span>
     </div>
-    <p style="color:var(--text-2);font-size:0.9375rem;line-height:1.7;margin-bottom:18px;">本行程已拆分成獨立主題資料庫。「已驗證資料庫」是核心事實與來源的基準，「口碑驗證」整理公開評論的正反主題與限制；其餘頁面分別處理交通、住宿、飲食、景點、應變與打包。<b>本頁只做最後的時間軸組裝</b>，需要查細節時回到<a href="index.html">旅遊 KM 入口</a>。</p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
+    <p style="color:var(--text-2);font-size:0.9375rem;line-height:1.7;margin-bottom:18px;">本頁只負責日期與時間軸。到達當地後，直接開該島的完整頁面；活動、景點、餐廳、住宿、交通與注意事項全部集中在島內，不必再跨頁尋找。</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+      <a href="destination.html?place=iriomote" style="background:#fff;border:2px solid var(--iriomote);border-radius:var(--r-md);padding:18px;color:var(--text-1);text-decoration:none;"><b style="color:var(--iriomote);font-size:1.05rem;">🌿 西表島完整頁</b><br><span style="color:var(--text-3);font-size:0.85rem;">交通 · 活動 · 景點 · 餐飲 · 住宿</span></a>
+      <a href="destination.html?place=ishigaki" style="background:#fff;border:2px solid var(--ishigaki);border-radius:var(--r-md);padding:18px;color:var(--text-1);text-decoration:none;"><b style="color:var(--ishigaki);font-size:1.05rem;">🌊 石垣島完整頁</b><br><span style="color:var(--text-3);font-size:0.85rem;">交通 · 活動 · 景點 · 餐飲 · 住宿</span></a>
+      <a href="destination.html?place=taketomi" style="background:#fff;border:2px solid var(--taketomi);border-radius:var(--r-md);padding:18px;color:var(--text-1);text-decoration:none;"><b style="color:var(--taketomi);font-size:1.05rem;">🐃 竹富島完整頁</b><br><span style="color:var(--text-3);font-size:0.85rem;">交通 · 活動 · 景點 · 餐飲 · 注意事項</span></a>
+    </div>
+    <details style="margin-top:16px;"><summary style="cursor:pointer;color:var(--text-3);font-weight:700;">原始主題資料庫（深入查證時才使用）</summary>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:12px;">
       <a href="validated-database.html" style="background:#fff;border:2px solid var(--green);border-radius:var(--r-md);padding:14px 16px;color:var(--text-1);text-decoration:none;transition:all .2s;" onmouseover="this.style.transform='translateY(-2px)';" onmouseout="this.style.transform='none';">
         <b style="color:var(--green);">✅ 已驗證資料庫</b><br><span style="color:var(--text-3);font-size:0.85rem;">來源 · 狀態 · 查核日期</span>
       </a>
@@ -768,7 +774,7 @@
       <a href="prep-packing.html" style="background:#fff;border:1px solid var(--border-1);border-radius:var(--r-md);padding:14px 16px;color:var(--text-1);text-decoration:none;transition:all .2s;" onmouseover="this.style.borderColor='var(--orange)';this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='var(--border-1)';this.style.transform='none';">
         <b style="color:var(--orange);">🎒 行前打包</b><br><span style="color:var(--text-3);font-size:0.85rem;">8 區塊檢查表</span>
       </a>
-    </div>
+    </div></details>
   </section>
 
   <!-- ============================ §1 兩段住宿 ============================ -->

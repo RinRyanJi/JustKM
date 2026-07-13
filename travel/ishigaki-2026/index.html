@@ -1,55 +1,21 @@
 <!doctype html>
 <html lang="zh-Hant-TW">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>八重山旅行知識庫 · 石垣島／西表島／竹富島 · JustKM</title>
-  <meta name="description" content="先按住宿、景點、飲食、交通與安全整理資料，再以官方與公開評論交叉驗證，最後才產出獨立行程。">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>八重山旅行知識庫 · JustKM</title>
+  <meta name="description" content="按旅程抵達地點整理西表島、石垣島與竹富島的活動、景點、餐廳、交通與住宿。">
   <style>
-    :root{--bg:#f3f1ea;--paper:#fff;--ink:#1d2721;--muted:#68726b;--line:#d9ddd7;--green:#176b48;--orange:#b15c28;--blue:#315f9e;--shadow:0 18px 50px #2b3a2d12}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 system-ui,-apple-system,"Noto Sans TC",sans-serif}a{color:inherit}main{max-width:1160px;margin:auto;padding:28px 20px 90px}.top{display:flex;justify-content:space-between;gap:12px;align-items:center}.back,.ghost{display:inline-flex;align-items:center;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 13px;text-decoration:none}.hero{padding:65px 0 38px;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(270px,.75fr);gap:28px;align-items:end}.eyebrow{color:var(--green);font-size:13px;font-weight:900;letter-spacing:.1em}.hero h1{font-size:clamp(38px,7vw,72px);line-height:1.02;margin:9px 0 18px;letter-spacing:-.035em}.lede{max-width:750px;font-size:18px;color:var(--muted)}.principle{background:#19342a;color:#eff9f3;border-radius:22px;padding:22px;box-shadow:var(--shadow)}.principle strong{display:block;font-size:18px;margin-bottom:10px}.principle ol{margin:0;padding-left:20px}.status{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.pill{padding:5px 10px;border-radius:999px;background:#e3eee7;color:var(--green);font-size:12px;font-weight:800}.pill.warn{background:#fff0d3;color:#8d5a00}.section-head{margin:46px 0 17px;display:flex;align-items:end;justify-content:space-between;gap:20px}.section-head h2{font-size:29px;margin:0}.section-head p{color:var(--muted);margin:0;max-width:580px}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:15px}.card{grid-column:span 4;background:var(--paper);border:1px solid var(--line);border-radius:19px;padding:20px;text-decoration:none;box-shadow:var(--shadow);transition:.18s ease}.card:hover{transform:translateY(-3px);border-color:#9eaaa1}.card.wide{grid-column:span 6}.card.final{grid-column:1/-1;background:#17392d;color:#f3fbf6;border-color:#17392d;display:grid;grid-template-columns:1fr auto;align-items:center;gap:20px}.icon{font-size:26px}.card h3{font-size:19px;line-height:1.28;margin:9px 0 7px}.card p{color:var(--muted);margin:0}.card.final p{color:#c9dbd1}.meta{margin-top:15px;color:var(--green);font-size:12px;font-weight:800}.card.final .meta{color:#a9dac1}.arrow{font-size:26px}.notice{border:1px solid #e2c27c;background:#fff7e5;border-radius:17px;padding:17px 19px;margin-top:20px}.archive{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.archive a{color:var(--blue)}footer{margin-top:52px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}@media(max-width:780px){.hero{grid-template-columns:1fr;padding-top:42px}.card,.card.wide{grid-column:1/-1}.card.final{grid-template-columns:1fr auto}.section-head{display:block}.section-head p{margin-top:6px}}
+    :root{--bg:#f3f0e8;--card:#fff;--ink:#1d2822;--muted:#657069;--line:#d9ddd7;--green:#176b48;--shadow:0 18px 48px #26372b12}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 system-ui,-apple-system,"Noto Sans TC",sans-serif}a{color:inherit}main{max-width:1120px;margin:auto;padding:27px 20px 85px}.top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 13px;text-decoration:none}.hero{padding:64px 0 38px}.eyebrow{font-weight:900;letter-spacing:.1em;color:var(--green)}h1{font-size:clamp(40px,8vw,76px);line-height:1.02;letter-spacing:-.04em;margin:8px 0 17px}.lede{font-size:19px;color:var(--muted);max-width:790px}.notice{background:#19372b;color:#edf8f1;border-radius:18px;padding:17px 19px;margin-top:24px}.flow{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-top:31px}.place{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:24px;text-decoration:none;box-shadow:var(--shadow);transition:.18s}.place:hover{transform:translateY(-4px);border-color:#98a69d}.num{font-size:12px;font-weight:900;color:var(--green)}.icon{font-size:35px;margin-top:16px}.place h2{font-size:27px;margin:8px 0}.place p{color:var(--muted);margin:0}.contents{display:flex;gap:6px;flex-wrap:wrap;margin-top:18px}.contents span{background:#edf2ee;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:800}.meta{margin-top:17px;color:var(--green);font-size:12px;font-weight:900}.section{margin-top:47px}.section h2{font-size:28px;margin:0 0 15px}.wide{display:grid;grid-template-columns:1.25fr .75fr;gap:15px}.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:21px}.panel h3{margin:0 0 7px}.panel p{color:var(--muted);margin:0}.links{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.links a{color:#315f9e}.final{background:#19372b;color:#edf8f1}.final p{color:#bed4c7}.final a{display:inline-block;margin-top:14px;font-weight:900}footer{margin-top:50px;border-top:1px solid var(--line);padding-top:18px;color:var(--muted)}@media(max-width:780px){.flow,.wide{grid-template-columns:1fr}.hero{padding-top:44px}}
   </style>
 </head>
 <body><main>
-  <div class="top"><a class="back" href="../../index.html">← JustKM 總入口</a><a class="ghost" href="validated-database.html">資料驗證中心</a></div>
-  <header class="hero">
-    <div><div class="eyebrow">YAEYAMA TRAVEL KNOWLEDGE BASE</div><h1>先整理資料，<br>最後才排行程。</h1><p class="lede">石垣島、西表島、竹富島的主題資料庫。先確認地點真實存在、資料來源與口碑限制，再把能使用的內容交給最後的獨立行程頁。</p><div class="status"><span class="pill">更新 2026-07-14</span><span class="pill">官方來源優先</span><span class="pill warn">時刻表本輪未驗</span></div></div>
-    <aside class="principle"><strong>資料流</strong><ol><li>主題分類與去重</li><li>官網確認存在性</li><li>Maps／討論交叉查核</li><li>標記限制與待確認</li><li>最後才安排每日行程</li></ol></aside>
-  </header>
-
-  <div class="notice"><strong>本輪範圍：</strong>驗證住宿、景點、交通規則與核心餐飲的存在性及公開口碑；航班、船班、巴士時間、即時天氣、營業時間與個人訂位仍屬易變資料，暫不當成已驗證內容。</div>
-
-  <section>
-    <div class="section-head"><h2>01 · 驗證層</h2><p>先看來源與可信度，再讀攻略。官方網站證明存在；評論平台只描述旅客經驗，不能取代官方規則。</p></div>
-    <div class="grid">
-      <a class="card wide" href="validated-database.html"><div class="icon">✓</div><h3>官方事實資料庫</h3><p>入境、駕駛文件、住宿、交通與景點的第一手來源、查核日期、易變欄位及待本人確認事項。</p><div class="meta">唯一事實基準 · validated-data.json</div></a>
-      <a class="card wide" href="reviews-database.html"><div class="icon">◎</div><h3>口碑與真實性驗證</h3><p>官網、Google Maps 入口、Booking／Agoda／Tripadvisor／4travel 等來源的好評、負評與樣本限制。</p><div class="meta">6 個核心地點 · 正反主題分列</div></a>
-    </div>
+  <div class="top"><a class="button" href="../../index.html">← JustKM 總入口</a><a class="button" href="itinerary.html">最終行程 →</a></div>
+  <header class="hero"><div class="eyebrow">TRAVEL BY PLACE, NOT BY FILE</div><h1>今天到哪裡，<br>就看哪一頁。</h1><p class="lede">不再先找「景點頁」「餐廳頁」「交通頁」。改成依旅程地點進入，每個島的活動、景點、餐廳、住宿、交通與注意事項都集中在同一頁。</p><div class="notice"><strong>目前原則：</strong>地點頁是主要入口；原本的主題資料庫保留作深入證據與詳細表格。航班、船班、巴士時間及營業狀態仍於出發前重查。</div></header>
+  <section class="flow">
+    <a class="place" href="destination.html?place=iriomote"><div class="num">STOP 01 · 過夜</div><div class="icon">🌿</div><h2>西表島</h2><p>從大原港住宿出發，先看東南／西北地理，再選水牛車、紅樹林、遊船與餐飲。</p><div class="contents"><span>交通 5</span><span>活動 5</span><span>景點 6</span><span>餐飲 7</span><span>住宿</span><span>提醒</span></div><div class="meta">開啟完整目的地頁 →</div></a>
+    <a class="place" href="destination.html?place=ishigaki"><div class="num">STOP 02 · 主要基地</div><div class="icon">🌊</div><h2>石垣島</h2><p>市區、離島碼頭、川平灣與北部景點一次整理，並集中住宿、餐廳與機場交通。</p><div class="contents"><span>交通 5</span><span>活動 5</span><span>景點 7</span><span>餐飲 6</span><span>住宿</span><span>提醒</span></div><div class="meta">開啟完整目的地頁 →</div></a>
+    <a class="place" href="destination.html?place=taketomi"><div class="num">STOP 03 · 日歸</div><div class="icon">🐃</div><h2>竹富島</h2><p>從港口到聚落、海灘、自行車、水牛車與午餐，返程船之前需要的資料放在一起。</p><div class="contents"><span>交通 4</span><span>活動 4</span><span>景點 5</span><span>餐飲 5</span><span>日歸</span><span>提醒</span></div><div class="meta">開啟完整目的地頁 →</div></a>
   </section>
-
-  <section>
-    <div class="section-head"><h2>02 · 主題資料庫</h2><p>每個集合只處理一種問題；需要時再回到驗證中心核對來源。</p></div>
-    <div class="grid">
-      <a class="card" href="attractions-database-2026.html"><div class="icon">🏝️</div><h3>景點總資料庫</h3><p>石垣、西表、竹富景點候選與 Maps 搜尋入口。</p><div class="meta">候選庫 · 評論需看驗證頁</div></a>
-      <a class="card" href="spot.html"><div class="icon">📍</div><h3>核心景點筆記</h3><p>川平灣、由布島、浦內川等重點地理與體驗資料。</p><div class="meta">景點</div></a>
-      <a class="card" href="travel-guide.html"><div class="icon">🧳</div><h3>舊版綜合攻略</h3><p>保留原本跳島攻略內容，作為待拆分與回溯資料，不再擔任入口。</p><div class="meta">歷史資料 · 非唯一基準</div></a>
-      <a class="card" href="stay-ushimaya.html"><div class="icon">🏠</div><h3>住宿 · う島や</h3><p>西表島大原港側住宿資料；公開評價樣本仍偏少。</p><div class="meta">官方存在 · 評論有限</div></a>
-      <a class="card" href="stay-midorisou.html"><div class="icon">🛏️</div><h3>住宿 · みどり荘</h3><p>石垣島住宿資料、房型與需回訂單確認的欄位。</p><div class="meta">官方存在 · 評論有限</div></a>
-      <a class="card" href="stay-namisou.html"><div class="icon">🗄️</div><h3>住宿 · なみ荘</h3><p>舊方案保留頁，不視為目前已確認住宿。</p><div class="meta">封存候選</div></a>
-      <a class="card" href="food-ishigaki.html"><div class="icon">🥩</div><h3>飲食 · 石垣島</h3><p>市區、石垣牛與八重山麵候選店家。</p><div class="meta">營業狀態待出發前確認</div></a>
-      <a class="card" href="food-iriomote.html"><div class="icon">🍱</div><h3>飲食 · 西表島</h3><p>大原港與住宿周邊餐飲候選，避免跨島誤判距離。</p><div class="meta">營業狀態待出發前確認</div></a>
-      <a class="card" href="food-taketomi.html"><div class="icon">🍜</div><h3>飲食 · 竹富島</h3><p>竹の子等核心午餐候選與島上移動關係。</p><div class="meta">竹の子已做口碑交叉查核</div></a>
-      <a class="card" href="transport-flights.html"><div class="icon">✈️</div><h3>交通 · 航班</h3><p>航班與機場資料集合；個人訂位須回原始確認信。</p><div class="meta">時刻本輪未驗</div></a>
-      <a class="card" href="transport-ferries.html"><div class="icon">⛴️</div><h3>交通 · 離島船班</h3><p>船公司、航線與港口集合，不把舊時刻當現況。</p><div class="meta">時刻本輪未驗</div></a>
-      <a class="card" href="transport-buses.html"><div class="icon">🚌</div><h3>交通 · 島內巴士</h3><p>西表島路線、支付與上下車限制。</p><div class="meta">規則已核對 · 時刻未驗</div></a>
-      <a class="card" href="prep-packing.html"><div class="icon">🎒</div><h3>行前 · 打包清單</h3><p>證件、防曬、防蚊、防水、藥品與設備。</p><div class="meta">行前準備</div></a>
-      <a class="card" href="event-typhoon.html"><div class="icon">🌀</div><h3>安全 · 颱風應變</h3><p>運休、住宿與替代方案的處理框架。</p><div class="meta">即時資訊須重查</div></a>
-    </div>
-    <div class="archive">基隆前置資料：<a href="transport-keelung-0716.html">港口交通</a><a href="food-miaokou-0716.html">廟口餐飲</a><a href="food-ship-0716.html">登船前飲食</a></div>
-  </section>
-
-  <section>
-    <div class="section-head"><h2>03 · 最終行程</h2><p>這一頁放最後：只有完成資料核對後，才把地點、住宿與交通依日期組合。</p></div>
-    <div class="grid"><a class="card final" href="itinerary.html"><div><div class="icon">🗓️</div><h3>開啟獨立旅遊行程頁</h3><p>目前仍含待重排內容；航班、船班與巴士時刻尚未進行本輪驗證，使用前必須回官方來源重查。</p><div class="meta">獨立頁 · itinerary.html</div></div><span class="arrow">→</span></a></div>
-  </section>
-  <footer>JustKM / travel / ishigaki-2026 · 分類與驗證優先，行程最後組裝。</footer>
+  <section class="section"><h2>資料與最後行程</h2><div class="wide"><div class="panel"><h3>查證與原始詳細資料</h3><p>需要追來源、看完整餐廳候選或確認正負評論時才進入這一層。</p><div class="links"><a href="validated-database.html">官方事實</a><a href="reviews-database.html">口碑驗證</a><a href="attractions-database-2026.html">景點候選總庫</a><a href="travel-guide.html">舊版綜合攻略</a></div></div><div class="panel final"><h3>最終獨立行程</h3><p>目的地資料確認後，才組合日期與時間；目前時刻尚未完成本輪驗證。</p><a href="itinerary.html">開啟行程頁 →</a></div></div></section>
+  <footer>JustKM / 八重山旅行 KM · 目的地優先，分類留在島內。</footer>
 </main></body></html>
