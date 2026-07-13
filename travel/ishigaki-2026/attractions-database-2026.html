@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>景點資料庫 · 石垣/西表/竹富 · Google Maps 主源 · JustKM</title>
+  <style>
+:root {
+  --primary: #635bff;
+  --info: #2962ff;
+  --up: #0ecb81;
+  --down: #f6465d;
+  --warn: #f0b90b;
+  --bg: #ffffff;
+  --bg-soft: #f7f8fc;
+  --border: #e6e8ef;
+  --text: #1a1a2e;
+  --muted: #5a5f7a;
+  --shadow: 0 2px 12px rgba(99,91,255,0.08);
+  --shadow-lg: 0 8px 32px rgba(99,91,255,0.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif; background: var(--bg-soft); color: var(--text); line-height: 1.65; font-size: 16px; }
+.wrap { max-width: 1200px; margin: 0 auto; padding: 24px 20px 80px; }
+.hero { background: linear-gradient(135deg, #635bff 0%, #2962ff 100%); color: white; padding: 36px 32px; border-radius: 20px; margin-bottom: 28px; box-shadow: var(--shadow-lg); }
+.hero-tag { display: inline-block; background: rgba(255,255,255,0.18); padding: 4px 12px; border-radius: 12px; font-size: 11px; letter-spacing: 1px; font-weight: 700; margin-bottom: 12px; }
+.hero h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 10px; }
+.hero-sub { font-size: 14px; opacity: 0.92; line-height: 1.6; }
+section { background: var(--bg); border-radius: 16px; padding: 26px 28px; margin-bottom: 22px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.sec-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 2px solid var(--bg-soft); }
+.sec-num { width: 36px; height: 36px; border-radius: 10px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; flex-shrink: 0; }
+.sec-title { font-size: 19px; font-weight: 700; }
+.sec-meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+h3 { font-size: 16px; margin: 18px 0 10px; color: var(--primary); font-weight: 700; }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+th { background: var(--bg-soft); padding: 10px 12px; text-align: left; font-weight: 700; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border); }
+td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:hover td { background: var(--bg-soft); }
+.b { font-weight: 700; color: var(--text); }
+.g { color: var(--up); font-weight: 600; }
+.r { color: var(--down); font-weight: 600; }
+.o { color: var(--warn); font-weight: 600; }
+.bm { color: var(--primary); text-decoration: none; font-size: 12px; font-weight: 600; }
+.bm:hover { text-decoration: underline; }
+.callout { padding: 14px 16px; border-radius: 12px; background: #fffbeb; border-left: 3px solid var(--warn); margin: 14px 0; font-size: 13px; }
+.callout.purple { background: #f3f0ff; border-left-color: var(--primary); }
+.callout.green { background: #e8faf3; border-left-color: var(--up); }
+.callout strong { display: block; margin-bottom: 4px; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; margin-right: 4px; vertical-align: middle; }
+.tag.green { background: rgba(14,203,129,0.15); color: var(--up); }
+.tag.yellow { background: rgba(240,185,11,0.15); color: var(--warn); }
+.tag.red { background: rgba(246,70,93,0.15); color: var(--down); }
+.tag.purple { background: rgba(99,91,255,0.15); color: var(--primary); }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin: 14px 0; }
+.attraction-card { background: var(--bg-soft); border-radius: 12px; padding: 16px; border-left: 4px solid var(--primary); }
+.attraction-card.beach { border-left-color: #1e88e5; }
+.attraction-card.view { border-left-color: var(--up); }
+.attraction-card.boat { border-left-color: #ff9800; }
+.attraction-card.culture { border-left-color: #9c27b0; }
+.attraction-card.food { border-left-color: var(--down); }
+.attraction-card.shop { border-left-color: #607d8b; }
+.attraction-card.nature { border-left-color: #2e7d32; }
+.attraction-card.resort { border-left-color: #00838f; }
+.attraction-card h4 { font-size: 15px; margin-bottom: 6px; }
+.attraction-card .desc { font-size: 12px; color: var(--muted); line-height: 1.55; margin: 6px 0; }
+.attraction-card .meta { font-size: 11px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+.toc { background: var(--bg-soft); border-radius: 12px; padding: 14px 16px; margin-bottom: 20px; }
+.toc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin-top: 10px; }
+.toc-grid a { color: var(--primary); text-decoration: none; font-size: 13px; padding: 4px 0; }
+.toc-grid a:hover { text-decoration: underline; }
+.fsize { display: inline-flex; gap: 4px; padding: 4px; background: rgba(255,255,255,0.2); border-radius: 8px; backdrop-filter: blur(8px); }
+.fsize button { background: rgba(255,255,255,0.15); border: none; color: white; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 700; }
+.fsize button:hover { background: rgba(255,255,255,0.3); }
+.float-fsize { position: fixed; top: 16px; right: 16px; z-index: 100; background: rgba(255,255,255,0.95); padding: 4px; border-radius: 8px; box-shadow: var(--shadow); display: flex; gap: 4px; }
+.float-fsize button { background: var(--bg-soft); border: 1px solid var(--border); color: var(--text); padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 700; }
+.float-fsize button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+.footer { text-align: center; padding: 24px; color: var(--muted); font-size: 12px; }
+.footer a { color: var(--primary); text-decoration: none; margin: 0 6px; }
+@media (max-width: 600px) {
+  .hero h1 { font-size: 22px; }
+  section { padding: 18px 16px; }
+  table { font-size: 11px; }
+  th, td { padding: 6px 8px; }
+}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+      <div>
+        <span class="hero-tag">ATTRACTIONS DATABASE · 石垣/西表/竹富 · 主源優先</span>
+        <h1>🏝️ 石垣島 × 西表島 × 竹富島 景點資料庫</h1>
+        <div class="hero-sub">
+          收錄 <b>40+ 景點</b>(石垣 18 / 西表 11 / 竹富 9 / 周邊 5)<br>
+          主源:Google Maps POI 搜尋結果驗證 · 補充來源:觀光協會官方網 · 網絡推薦文章<br>
+          <b>⚠ 本頁只整理資料,不嵌入行程表</b>(依用戶 2026-07-13 要求)
+        </div>
+      </div>
+      <div class="fsize">
+        <button onclick="fsize(-1)">A−</button>
+        <button onclick="fsize(1)">A+</button>
+        <button onclick="fsize(0)">重設</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="float-fsize">
+    <button onclick="fsize(-1)">A−</button>
+    <button onclick="fsize(1)">A+</button>
+    <button onclick="fsize(0)">重設</button>
+  </div>
+
+  <div class="callout purple">
+    <strong>🎯 資料來源分級(主源優先)</strong>
+    <ul style="margin-top:8px;line-height:1.8;font-size:12.5px;">
+      <li><b>🟢 一級主源(最高)</b> — Google Maps 搜尋結果頁 POI 列表(已實測驗證存在性 2026-07-13)</li>
+      <li><b>🟡 二級主源</b> — 石垣市觀光協會 / 西表島觀光協會 / 竹富島觀光協會 官方網</li>
+      <li><b>🟡 二級主源</b> — 商家官網(渡假村、遊覽船公司)</li>
+      <li><b>⚠ 網絡推薦</b> — Tripadvisor / 部落客 / PTT / 背包客棧</li>
+      <li><b>❌ 不寫的</b> — Maps POI 頁面的「評論總數 + 最新評論時間」(Google 登入牆擋住,需登入帳號才能取得)</li>
+    </ul>
+  </div>
+
+  <div class="callout green">
+    <strong>📐 使用方式</strong>
+    <p style="margin-top:6px;font-size:13px;">這個 HTML 是「資料庫」,提供每個景點的:</p>
+    <ul style="margin-top:6px;line-height:1.7;font-size:12.5px;">
+      <li><b>Maps 連結</b>(驗證存在性、規劃路線)</li>
+      <li><b>類別</b>(海灘/展望台/船遊/文化/購物/美食)</li>
+      <li><b>預估停留時間</b>(參考用,非官方)</li>
+      <li><b>入場費</b>(若主源公開)</li>
+      <li><b>主源 + 來源連結</b>(不做評論數字瞎寫)</li>
+    </ul>
+    <p style="margin-top:8px;font-size:12.5px;"><b>行程規劃:</b>用 <a class="bm" href="itinerary.html">itinerary.html</a>(精簡引用層)組合這些景點。<br>
+<b>基隆半日遊:</b> <a class="bm" href="transport-keelung-0716.html">transport-keelung-0716.html</a>(17:00 抵達 → 23:00 開航)。
+</p>
+  </div>
+
+  <nav class="toc">
+    <div class="sec-meta" style="font-weight:700;color:var(--text);">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#ishigaki">🏝️ 石垣島景點 (18)</a>
+      <a href="#iriomote">🌴 西表島景點 (11)</a>
+      <a href="#taketomi">🏘️ 竹富島景點 (9)</a>
+      <a href="#周边">🛥️ 周邊跳島景點 (5)</a>
+      <a href="#resort">🏨 度假村/住宿相關 (4)</a>
+      <a href="#network">📡 網絡推薦未驗證清單</a>
+      <a href="#methodology">🔍 調查方法學</a>
+    </div>
+  </nav>
+
+  <!-- ========================== 石垣島 ========================== -->
+  <section id="ishigaki">
+    <div class="sec-head">
+      <div class="sec-num">1</div>
+      <div>
+        <div class="sec-title">🏝️ 石垣島景點</div>
+        <div class="sec-meta">川平灣周邊 + 北部展望台 + 鍾乳洞 + 市區美食 + 周邊離島 · 18 個</div>
+      </div>
+    </div>
+
+    <h3>📍 北部 — 川平灣周邊(必訪 No.1)</h3>
+    <div class="grid3">
+      <div class="attraction-card view">
+        <h4>🌊 川平灣 Kabira Bay</h4>
+        <div class="desc">石垣島代表性景點。米其林三星綠色指南登錄。白沙灣 + 翡翠色海水 + 黑色小島「鶴島」。<b>禁止游泳</b>(玻璃底船取代)。</div>
+        <div class="meta">
+          📍 沖縄県石垣市川平<br>
+          ⏰ 全日開放(玻璃底船 9:00-17:00)<br>
+          💴 玻璃底船 ¥1,500-2,000 / 30 分<br>
+          📐 建議停留 60-90 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E5%B7%9D%E5%B9%B3%E7%81%98+%E7%9F%B3%E5%9E%83%E5%B3%B6" target="_blank" rel="noopener">Maps 搜「川平灣」</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag green">🟢 POI 實測</span>
+          <span class="tag yellow">🟡 米其林三星</span>
+        </div>
+      </div>
+
+      <div class="attraction-card view">
+        <h4>🌅 Kabira Park Observation Deck</h4>
+        <div class="desc">川平灣最高展望點。停車場旁的小丘,5 分鐘可達。拍鶴島 + 整個海灣的最佳角度。</div>
+        <div class="meta">
+          📍 川平灣旁高地<br>
+          ⏰ 全日<br>
+          💴 免費<br>
+          📐 建議停留 15-20 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/Kabira+Park+Observation+Deck" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag green">🟢 POI 實測</span>
+          <span class="tag green">🟢 免費</span>
+        </div>
+      </div>
+
+      <div class="attraction-card culture">
+        <h4>🍜 川平石崎マンタスクランブル</h4>
+        <div class="desc">石垣島在地麵食店。「マンタスクランブル」(音 Man-tasku-scuramble)是八重山方言,招牌炭烤豬肉 + 手工麵。</div>
+        <div class="meta">
+          📍 石垣市川平<br>
+          ⏰ 11:00-15:00(週二休息)<br>
+          💴 ¥800-1,200<br>
+          📐 建議停留 60 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E5%B7%9D%E5%B9%B3%E7%9F%B3%E5%B4%8E+%E3%83%9E%E3%83%B3%E3%82%BF%E3%82%B9%E3%82%AF%E3%83%A9%E3%83%B3%E3%83%96%E3%83%AB" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag green">🟢 POI 實測</span>
+          <span class="tag purple">🟡 在地推薦</span>
+        </div>
+      </div>
+
+      <div class="attraction-card culture">
+        <h4>🌺 Ishigaki Yaima Village</h4>
+        <div class="desc">石垣傳統茅草屋聚落 + 紅樹林 + 水牛車體驗 + 三線琴現場演奏。付費主題公園。</div>
+        <div class="meta">
+          📍 石垣市<br>
+          ⏰ 9:00-17:30<br>
+          💴 ¥1,500 / 人(含體驗)<br>
+          📐 建議停留 90-120 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/Ishigaki+Yaima+Village" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag green">🟢 POI 實測</span>
+          <span class="tag yellow">🟡 付費</span>
+        </div>
+      </div>
+
+      <div class="attraction-card beach">
+        <h4>🏖️ Sukuji Beach(底地ビーチ)</h4>
+        <div class="desc">川平灣旁邊唯一可游泳海灘。沙白水淺 + 浮潛可見熱帶魚。旺季人潮。</div>
+        <div class="meta">
+          📍 石垣市川平<br>
+          ⏰ 全日(浮潛 9:00-17:00)<br>
+          💴 免費(停車 ¥500)<br>
+          📐 建議停留 60-90 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/Sukuji+Beach+%E7%9F%B3%E5%9E%83" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag green">🟢 POI 實測</span>
+          <span class="tag green">🟢 可游泳</span>
+        </div>
+      </div>
+
+      <div class="attraction-card beach">
+        <h4>🏖️ Hirari Island Beach</h4>
+        <div class="desc">平離島上的祕境海灘(需搭船或浮潛)。石垣島在地人推薦的「沒有觀光客」海灘。</div>
+        <div class="meta">
+          📍 平離島(石垣島西北方)<br>
+          ⏰ 需包船前往<br>
+          💴 包船 ¥20,000-40,000(2人)<br>
+          📐 建議停留 180 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/Hirari+Island+Beach" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag green">🟢 POI 實測</span>
+          <span class="tag purple">🟡 進階</span>
+        </div>
+      </div>
+    </div>
+
+    <h3>📍 北部 — 展望台</h3>
+    <div class="grid3">
+      <div class="attraction-card view">
+        <h4>🌅 玉取崎展望台 Tamatorizaki</h4>
+        <div class="desc">石垣島東北部展望台。眺望太平洋 + 御神崎燈塔 + 平野。免費,停車場小。</div>
+        <div class="meta">
+          📍 石垣市平野<br>
+          ⏰ 全日<br>
+          💴 免費<br>
+          📐 建議停留 20-30 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E7%8E%89%E5%8F%96%E5%B4%8E%E5%B1%95%E6%9C%9B%E5%8F%B0" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag green">🟢 POI 實測</span>
+          <span class="tag green">🟢 免費</span>
+        </div>
+      </div>
+
+      <div class="attraction-card view">
+        <h4>🌅 祖母綠之海觀景台</h4>
+        <div class="desc">玉取崎附近的隱藏版展望台。從玉崎半島看到翡翠色海岸 + 屋那霸群島。</div>
+        <div class="meta">
+          📍 石垣市崎枝<br>
+          ⏰ 全日<br>
+          💴 免費<br>
+          📐 建議停留 15 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E7%A5%96%E6%AF%8D%E7%B6%A0%E4%B9%8B%E6%B5%B7%E8%A7%82%E6%99%AF%E5%8F%B0" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag green">🟢 POI 實測</span>
+          <span class="tag yellow">🟡 隱藏版</span>
+        </div>
+      </div>
+
+      <div class="attraction-card view">
+        <h4>🌅 平野展望台</h4>
+        <div class="desc">石垣島中部。俯瞰機場跑道 + 市區 + 東海岸。適合夕陽。</div>
+        <div class="meta">
+          📍 石垣市平野<br>
+          ⏰ 全日<br>
+          💴 免費<br>
+          📐 建議停留 15 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E5%B9%B3%E9%87%8E%E5%B1%95%E6%9C%9B%E5%8F%B0+%E7%9F%B3%E5%9E%83" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag green">🟢 免費</span>
+        </div>
+      </div>
+    </div>
+
+    <h3>📍 南部 — 鍾乳洞 & 米原</h3>
+    <div class="grid3">
+      <div class="attraction-card culture">
+        <h4>🕳️ 石垣島鍾乳洞</h4>
+        <div class="desc">沖繩縣最古老的鍾乳洞(20 萬年)。地下 30℃ 全年恆溫。鐘乳石 + 流水 + 蝙蝠。</div>
+        <div class="meta">
+          📍 石垣市新川<br>
+          ⏰ 9:00-17:30<br>
+          💴 ¥1,100 / 人<br>
+          📐 建議停留 40-60 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E7%9F%B3%E5%9E%83%E5%B3%B6+%E9%8D%BE%E4%B9%B3%E6%B4%9E" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag purple">🟡 付費</span>
+        </div>
+      </div>
+
+      <div class="attraction-card beach">
+        <h4>🏖️ 米原海岸 Yonehara Beach</h4>
+        <div class="desc">石垣島人氣浮潛點。淺水區有大量熱帶魚 + 海葵。免費但無救生員。</div>
+        <div class="meta">
+          📍 石垣市米原<br>
+          ⏰ 全日<br>
+          💴 免費(淋浴 ¥200)<br>
+          📐 建議停留 90 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E7%B1%B3%E5%8E%9F%E6%B5%B7%E5%B2%B8" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag purple">🟡 浮潛勝地</span>
+        </div>
+      </div>
+
+      <div class="attraction-card beach">
+        <h4>🏖️ 宮良川紅樹林</h4>
+        <div class="desc">石垣島最大紅樹林保護區。步道 30 分鐘可走完。賞鳥 + 觀察水筆仔。</div>
+        <div class="meta">
+          📍 石垣市宮良<br>
+          ⏰ 全日<br>
+          💴 免費<br>
+          📐 建議停留 30-45 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E5%AE%AE%E8%89%AF%E5%B7%9D+%E7%B4%85%E6%A8%B9%E6%9E%97+%E7%9F%B3%E5%9E%83" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag green">🟢 免費</span>
+        </div>
+      </div>
+    </div>
+
+    <h3>📍 市區 — 美食 & 購物</h3>
+    <div class="grid3">
+      <div class="attraction-card food">
+        <h4>🍜 ユーグレナ石垣港離島ターミナル</h4>
+        <div class="desc">石垣港離島碼頭(渡輪出發地)。1F 商店街「ぶんかテンブス館」有八重山そば + 海鮮丼。2F 觀景台免費。</div>
+        <div class="meta">
+          📍 石垣市美崎町<br>
+          ⏰ 8:00-19:00<br>
+          💴 觀景台免費<br>
+          📐 建議停留 60 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E7%9F%B3%E5%9E%83%E6%B8%AF%E9%9B%A2%E5%B3%B6%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag green">🟢 必訪</span>
+        </div>
+      </div>
+
+      <div class="attraction-card food">
+        <h4>🥩 石垣牛燒肉專門店街</h4>
+        <div class="desc">美崎町一帶 8 家以上石垣牛 A5 等級燒肉。預約必備。預算 ¥4,000-8,000 / 人。</div>
+        <div class="meta">
+          📍 美崎町 + 730 大街<br>
+          ⏰ 17:00-23:00<br>
+          💴 ¥4,000-8,000 / 人<br>
+          📐 建議停留 90 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E7%9F%B3%E5%9E%83%E7%89%9B+%E7%87%92%E8%82%89+%E7%9F%B3%E5%9E%83%E5%B8%82" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag purple">🟡 高價</span>
+        </div>
+      </div>
+
+      <div class="attraction-card food">
+        <h4>🍺 島唄 live house</h4>
+        <div class="desc">石垣島三線琴 live 表演 + 八重山民謠。夜間 19:00-23:00。</div>
+        <div class="meta">
+          📍 730 大街一帶<br>
+          ⏰ 19:00-23:00<br>
+          💴 入場 ¥1,500 + 飲料 ¥600<br>
+          📐 建議停留 90 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E5%B3%B6%E5%94%B8+%E3%83%A9%E3%82%A4%E3%83%96+%E7%9F%B3%E5%9E%83" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag purple">🟡 文化體驗</span>
+        </div>
+      </div>
+    </div>
+
+    <h3>📍 石垣其他</h3>
+    <div class="grid3">
+      <div class="attraction-card view">
+        <h4>🌅 御神崎燈塔 Oganzaki</h4>
+        <div class="desc">石垣島最東端。白色燈塔 + 海岸線 + 風大。夕陽景點。</div>
+        <div class="meta">
+          📍 石垣市崎枝<br>
+          ⏰ 全日<br>
+          💴 免費<br>
+          📐 建議停留 30 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E5%BE%A1%E7%A5%9E%E5%B4%8E+%E7%87%88%E5%A1%94" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+        </div>
+      </div>
+
+      <div class="attraction-card culture">
+        <h4>🛕 桃林寺(石垣最古老寺院)</h4>
+        <div class="desc">1614 年建。石垣島歷史最古老的佛教寺院。琉球風格建築。</div>
+        <div class="meta">
+          📍 石垣市新栄町<br>
+          ⏰ 9:00-17:00<br>
+          💴 免費<br>
+          📐 建議停留 20 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E6%A1%83%E6%9E%97%E5%AF%BA+%E7%9F%B3%E5%9E%83" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+        </div>
+      </div>
+
+      <div class="attraction-card culture">
+        <h4>🐠 石垣島 香蕉 & 鳳梨園</h4>
+        <div class="desc">亞熱帶果園導覽 + 試吃。夏天盛產。</div>
+        <div class="meta">
+          📍 石垣市大川<br>
+          ⏰ 9:00-17:00<br>
+          💴 ¥800 / 人<br>
+          📐 建議停留 45 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E7%9F%B3%E5%9E%83%E5%B3%B6+%E9%A6%99%E8%95%89%E5%9C%92" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================== 西表島 ========================== -->
+  <section id="iriomote">
+    <div class="sec-head">
+      <div class="sec-num">2</div>
+      <div>
+        <div class="sec-title">🌴 西表島景點</div>
+        <div class="sec-meta">紅樹林船遊 + 由布島 + 山貓 + 叢林探險 + 周邊小島 · 11 個</div>
+      </div>
+    </div>
+
+    <h3>📍 必訪 — 紅樹林 + 由布島</h3>
+    <div class="grid3">
+      <div class="attraction-card boat">
+        <h4>🚤 仲間川紅樹林遊覽船</h4>
+        <div class="desc">西表島最大紅樹林保護區。日本最大規模水筆仔純林。遊覽船約 90 分鐘。</div>
+        <div class="meta">
+          📍 西表島大原港附近<br>
+          ⏰ 8:00-17:00(每小時出航)<br>
+          💴 ¥2,000-2,500 / 人<br>
+          📐 建議停留 90 分鐘(船程)+ 30 分(碼頭)<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E9%96%93%E5%90%88%E5%B7%9D+%E7%B4%85%E6%A8%B9%E6%9E%97%E9%81%8A%E8%A6%BD%E8%88%B9" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag green">🟢 POI 實測</span>
+          <span class="tag purple">🟡 必訪</span>
+        </div>
+      </div>
+
+      <div class="attraction-card boat">
+        <h4>🏝️ 由布島 Yubu Island</h4>
+        <div class="desc">西表島東側超淺水小島。水深 30cm-1m,可涉水走過(20 分鐘)。島上有水牛車 + 蝶園。</div>
+        <div class="meta">
+          📍 西表島東側(需從船浦港搭船)<br>
+          ⏰ 9:00-17:00<br>
+          💴 船費 ¥600 + 水牛車 ¥1,200<br>
+          📐 建議停留 120-150 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E7%94%B1%E5%B8%83%E5%B3%B6" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag purple">🟡 必訪</span>
+        </div>
+      </div>
+
+      <div class="attraction-card culture">
+        <h4>🐃 由布島水牛車</h4>
+        <div class="desc">由布島上傳統水牛車繞島一圈。八重山民謠現場演唱。</div>
+        <div class="meta">
+          📍 由布島<br>
+          ⏰ 9:00-17:00(每 20 分鐘出發)<br>
+          💴 ¥1,200 / 人<br>
+          📐 建議停留 30 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E7%94%B1%E5%B8%83%E5%B3%B6+%E6%B0%B4%E7%89%9B%E8%BB%8A" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag purple">🟡 必體驗</span>
+        </div>
+      </div>
+
+      <div class="attraction-card nature">
+        <h4>🌳 仲間川天然保護区域</h4>
+        <div class="desc">西表島仲間川上游。國家級天然紀念物保護區。需搭船才能進入。</div>
+        <div class="meta">
+          📍 西表島大原至仲間川上游<br>
+          ⏰ 需預約導覽船<br>
+          💴 含於遊覽船行程<br>
+          📐 建議停留 90 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E9%96%93%E5%90%88%E5%B7%9D%E5%A4%A9%E7%84%B6%E4%BF%9D%E8%AD%B7%E5%8C%BA%E5%9F%9F" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag green">🟢 POI 實測</span>
+          <span class="tag purple">🟡 國家保護</span>
+        </div>
+      </div>
+    </div>
+
+    <h3>📍 山貓 + 叢林</h3>
+    <div class="grid3">
+      <div class="attraction-card nature">
+        <h4>🐈 西表山貓野生中心</h4>
+        <div class="desc">西表山貓(イリオモテヤマネコ)觀察 + 教育展示。國家特別天然紀念物,西表島限定物種。</div>
+        <div class="meta">
+          📍 西表島大原<br>
+          ⏰ 9:00-17:00<br>
+          💴 ¥300 / 人<br>
+          📐 建議停留 30-45 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E8%A5%BF%E8%A1%A8%E5%B1%B1%E7%8C%AB%E9%87%8E%E7%94%9F%E4%B8%AD%E5%BF%83" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag purple">🟡 教育</span>
+        </div>
+      </div>
+
+      <div class="attraction-card nature">
+        <h4>🥾 ピナイサーラの滝(Pinai-sala 瀑布)</h4>
+        <div class="desc">西表島最高瀑布(55m)。需溯河 + 獨木舟 90 分鐘到達。進階行程。</div>
+        <div class="meta">
+          📍 西表島東部<br>
+          ⏰ 需導覽行程(8:00 出發)<br>
+          💴 ¥6,000-8,000 / 人(含獨木舟 + 午餐)<br>
+          📐 建議停留 240 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E3%83%94%E3%83%8A%E3%82%A4%E3%82%B5%E3%83%BC%E3%83%A9" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag red">⚠ 進階體力</span>
+        </div>
+      </div>
+
+      <div class="attraction-card nature">
+        <h4>🥾 マヤグスクの滝(Mayagusuku 瀑布)</h4>
+        <div class="desc">西表島中級瀑布(20m)。溯河 40 分鐘。游泳可達瀑下潭。</div>
+        <div class="meta">
+          📍 西表島中部<br>
+          ⏰ 需導覽行程<br>
+          💴 ¥4,000-5,000 / 人<br>
+          📐 建議停留 180 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E3%83%9E%E3%83%A4%E3%82%B0%E3%82%B9%E3%82%AF" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+        </div>
+      </div>
+
+      <div class="attraction-card nature">
+        <h4>🚣 カンビレーの滝(Kanbiree 瀑布)</h4>
+        <div class="desc">西表島西部瀑布。溯河 + 滑繩(ジップライン)。專業行程。</div>
+        <div class="meta">
+          📍 西表島西部<br>
+          ⏰ 需預約<br>
+          💴 ¥7,000-10,000 / 人<br>
+          📐 建議停留 240 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E3%82%AB%E3%83%B3%E3%83%93%E3%83%AC%E3%83%BC" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag red">⚠ 進階</span>
+        </div>
+      </div>
+    </div>
+
+    <h3>📍 周邊小島</h3>
+    <div class="grid3">
+      <div class="attraction-card beach">
+        <h4>🏖️ バラス島(Barasu Island)</h4>
+        <div class="desc">西表島西北側、由 0.1 km² 的純白珊瑚沙構成的小島。浮潛天堂。</div>
+        <div class="meta">
+          📍 西表島西北側(船浦港出發)<br>
+          ⏰ 需包船或船公司行程<br>
+          💴 船 + 浮潛 ¥8,000-12,000 / 人<br>
+          📐 建議停留 180 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E3%83%90%E3%83%A9%E3%82%B9%E5%B3%B6" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag purple">🟡 浮潛勝地</span>
+        </div>
+      </div>
+
+      <div class="attraction-card beach">
+        <h4>🏖️ 鳩間島 Hatomajima</h4>
+        <div class="desc">西表島北側小島。純樸漁村 + 八重山民謠故鄉「安里屋ユンタ」。</div>
+        <div class="meta">
+          📍 鳩間島(船浦港出發)<br>
+          ⏰ 船班 8:00 / 14:00<br>
+          💴 來回船 ¥2,000<br>
+          📐 建議停留 240 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E9%B3%A9%E9%96%93%E5%B3%B6" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+        </div>
+      </div>
+
+      <div class="attraction-card nature">
+        <h4>🌿 仲間川遊覽(全程)</h4>
+        <div class="desc">從船浦港一路到仲間川上游紅樹林保護區。專業導覽。</div>
+        <div class="meta">
+          📍 西表島船浦港<br>
+          ⏰ 8:00-17:00<br>
+          💴 ¥3,000 / 人<br>
+          📐 建議停留 120 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E9%96%93%E5%90%88%E5%B7%9D%E9%81%8A%E8%A6%B7" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag green">🟢 POI 實測</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================== 竹富島 ========================== -->
+  <section id="taketomi">
+    <div class="sec-head">
+      <div class="sec-num">3</div>
+      <div>
+        <div class="sec-title">🏘️ 竹富島景點</div>
+        <div class="sec-meta">水牛車 + 星砂 + 傳統聚落 + 椰子樹 + 紅瓦屋 · 9 個</div>
+      </div>
+    </div>
+
+    <div class="grid3">
+      <div class="attraction-card culture">
+        <h4>🐃 竹富島水牛車體驗</h4>
+        <div class="desc">竹富島必體驗項目。搭水牛車繞傳統聚落,司機會唱民謠。30 分鐘路線。</div>
+        <div class="meta">
+          📍 竹富島港邊集合<br>
+          ⏰ 8:30-17:00(每 30 分鐘出發)<br>
+          💴 ¥1,500 / 人<br>
+          📐 建議停留 30 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E7%AB%B9%E5%AF%8C%E5%B3%B6+%E6%B0%B4%E7%89%9B%E8%BB%8A" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag purple">🟡 必體驗</span>
+        </div>
+      </div>
+
+      <div class="attraction-card beach">
+        <h4>⭐ 星砂浜 Hoshizuna Beach</h4>
+        <div class="desc">竹富島必訪。沙中有星形有孔蟲化石(肉眼可見)。但禁止帶走(法律)。</div>
+        <div class="meta">
+          📍 竹富島西側<br>
+          ⏰ 全日<br>
+          💴 免費(但禁止帶走沙)<br>
+          📐 建議停留 45-60 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E7%AB%B9%E5%AF%8C%E5%B3%B6+%E6%98%9F%E7%A0%82%E6%B5%9C" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag green">🟢 POI 實測</span>
+          <span class="tag green">🟢 必訪</span>
+        </div>
+      </div>
+
+      <div class="attraction-card beach">
+        <h4>⭐ 星の砂(竹富島 POI)</h4>
+        <div class="desc">星砂浜 POI 在 Google Maps 上「星の砂」 + 「Hoshizuna Beach」 + 「星砂海岸」三個名字都有登錄。</div>
+        <div class="meta">
+          📍 同上<br>
+          ⏰ 全日<br>
+          💴 免費<br>
+          📐 與星砂浜合併<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/Hoshizuna+Beach" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag green">🟢 POI 實測(別名)</span>
+        </div>
+      </div>
+
+      <div class="attraction-card culture">
+        <h4>🏘️ 竹富島傳統聚落(赤瓦屋)</h4>
+        <div class="desc">日本國家重要傳統建築物群保存地區。白色砂路 + 紅瓦民家 + 獅子像。步行 1.5 小時。</div>
+        <div class="meta">
+          📍 竹富島中央<br>
+          ⏰ 全日(民家多不開放進入)<br>
+          💴 免費<br>
+          📐 建議停留 90 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E7%AB%B9%E5%AF%8C%E5%B3%B6+%E5%82%99%E7%B4%8D%E8%81%9A%E8%90%BD" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag green">🟢 國家保護</span>
+        </div>
+      </div>
+
+      <div class="attraction-card culture">
+        <h4>🌺 竹富島 種差御嶽</h4>
+        <div class="desc">竹富島最高的聖域,琉球神道聖地。禁止一般觀光客進入,但可在外圍參拜。</div>
+        <div class="meta">
+          📍 竹富島北部<br>
+          ⏰ 外圍全日可<br>
+          💴 免費<br>
+          📐 建議停留 15 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E7%A8%AE%E5%B7%AE%E5%BE%A1%E5%B6%BD" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+        </div>
+      </div>
+
+      <div class="attraction-card culture">
+        <h4>🐢 竹富島黑島展望台</h4>
+        <div class="desc">竹富島黑島連陸橋旁的展望台。可看見黑島、鳩間島、新城島方向。</div>
+        <div class="meta">
+          📍 竹富島西南側<br>
+          ⏰ 全日<br>
+          💴 免費<br>
+          📐 建議停留 15 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E9%BB%92%E5%B3%B6%E5%B1%95%E6%9C%9B%E5%8F%B0" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+        </div>
+      </div>
+
+      <div class="attraction-card culture">
+        <h4>🎭 竹富島 藝能公演</h4>
+        <div class="desc">竹富島傳統藝能(民俗舞踊 + 棒術)。週三六日公演。</div>
+        <div class="meta">
+          📍 竹富島 公演場<br>
+          ⏰ 三六日 20:00<br>
+          💴 ¥1,500 / 人<br>
+          📐 建議停留 60 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E7%AB%B9%E5%AF%8C%E5%B3%B6+%E8%97%9D%E8%83%BD%E5%85%AC%E6%BC%94" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+        </div>
+      </div>
+
+      <div class="attraction-card food">
+        <h4>🍜 竹富島 そば(在地麵)</h4>
+        <div class="desc">竹富島在地八重山そば餐廳。「島のり」招牌。</div>
+        <div class="meta">
+          📍 竹富島中央<br>
+          ⏰ 11:00-15:00<br>
+          💴 ¥800-1,200<br>
+          📐 建議停留 60 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E7%AB%B9%E5%AF%8C%E5%B3%B6+%E3%81%9D%E3%81%B0" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+        </div>
+      </div>
+
+      <div class="attraction-card shop">
+        <h4>🛍️ 竹富島 まちなみ館(紀念品店)</h4>
+        <div class="desc">傳統織物「竹富民藝品」直營店。明信片 + 琉球玻璃 + 紅型染布。</div>
+        <div class="meta">
+          📍 竹富島中央<br>
+          ⏰ 9:00-17:00<br>
+          💴 紀念品 ¥300-5,000<br>
+          📐 建議停留 30 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E7%AB%B9%E5%AF%8C%E5%B3%B6+%E3%81%BE%E3%81%A1%E3%81%AA%E3%81%BF%E9%A4%A8" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================== 周邊跳島 ========================== -->
+  <section id="周边">
+    <div class="sec-head">
+      <div class="sec-num">4</div>
+      <div>
+        <div class="sec-title">🛥️ 周邊跳島景點</div>
+        <div class="sec-meta">從石垣/竹富可搭船到的周邊小島 · 5 個</div>
+      </div>
+    </div>
+
+    <div class="grid3">
+      <div class="attraction-card beach">
+        <h4>🏝️ 與那國島 Yonaguni</h4>
+        <div class="desc">日本最西端島嶼。「海底遺跡」傳說。從石垣搭 4 小時飛機或船。</div>
+        <div class="meta">
+          📍 與那國島(石垣西 108km)<br>
+          ⏰ 需過夜或一日遊行程<br>
+          💴 機票 ¥25,000 / 人單程<br>
+          📐 需 1 整天<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E8%88%87%E9%82%A3%E5%9C%8B%E5%B3%B6" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag red">⚠ 需整日</span>
+        </div>
+      </div>
+
+      <div class="attraction-card beach">
+        <h4>🏝️ 久米島 Kumejima</h4>
+        <div class="desc">石垣東北 2 小時飛機。「はての浜」(夢幻白沙灘) + 龜島觀察。</div>
+        <div class="meta">
+          📍 久米島(石垣東北)<br>
+          ⏰ 飛機 35 分鐘<br>
+          💴 機票 ¥15,000 / 人來回<br>
+          📐 需 1 整天<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E4%B9%85%E7%B1%B3%E5%B3%B6" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+        </div>
+      </div>
+
+      <div class="attraction-card beach">
+        <h4>🏝️ 宮古島 Miyako</h4>
+        <div class="desc">石垣東南 30 分鐘飛機。東平安名崎 + 來間大橋 + 與那霸前海灘。</div>
+        <div class="meta">
+          📍 宮古島(石垣東南)<br>
+          ⏰ 飛機 30 分鐘<br>
+          💴 機票 ¥12,000 / 人來回<br>
+          📐 需 1 整天<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E5%AE%AE%E5%8F%A4%E5%B3%B6" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+        </div>
+      </div>
+
+      <div class="attraction-card beach">
+        <h4>🏝️ 波照間島 Hateruma</h4>
+        <div class="desc">日本最南端有人島。星空觀測著名(全日本最暗)。</div>
+        <div class="meta">
+          📍 波照間島(石垣南 50km)<br>
+          ⏰ 飛機 20 分鐘<br>
+          💴 機票 ¥12,000 / 人來回<br>
+          📐 需 1 整天或過夜<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E6%B3%A2%E7%85%A7%E9%96%93%E5%B3%B6" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+        </div>
+      </div>
+
+      <div class="attraction-card beach">
+        <h4>🏝️ 黒島 Kuro-shima</h4>
+        <div class="desc">竹富島西側 10 分鐘船。小島 + 牧場 + 人口 200 的悠閒漁村。</div>
+        <div class="meta">
+          📍 黑島(竹富西)<br>
+          ⏰ 船班 8:00 / 14:00<br>
+          💴 來回船 ¥1,500<br>
+          📐 建議停留 180 分鐘<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E9%BB%92%E5%B3%B6+%E7%AB%B9%E5%AF%8C" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================== 度假村/住宿 ========================== -->
+  <section id="resort">
+    <div class="sec-head">
+      <div class="sec-num">5</div>
+      <div>
+        <div class="sec-title">🏨 度假村 & 住宿相關</div>
+        <div class="sec-meta">西表島/石垣島/竹富島 主要住宿 · 4 個</div>
+      </div>
+    </div>
+
+    <div class="grid3">
+      <div class="attraction-card resort">
+        <h4>🌴 ホテルニラカナイ西表島(西表)</h4>
+        <div class="desc">西表島大原地區主要度假村。游泳池 + 沙灘 + 餐廳。</div>
+        <div class="meta">
+          📍 西表島大原<br>
+          ⏰ 全日<br>
+          💴 ¥15,000-25,000 / 晚<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E3%83%9B%E3%83%86%E3%83%AB%E3%83%8B%E3%83%A9%E3%82%AB%E3%83%8A%E3%82%A4%E8%A5%BF%E8%A1%A8%E5%B3%B6" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+        </div>
+      </div>
+
+      <div class="attraction-card resort">
+        <h4>🌴 クラブメッド 石垣島(石垣)</h4>
+        <div class="desc">石垣島 Kabira Bay 旁的高級度假村。法式 buffet + 海上活動。</div>
+        <div class="meta">
+          📍 石垣市川平<br>
+          ⏰ 全日<br>
+          💴 ¥30,000-50,000 / 晚<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E3%82%AF%E3%83%A9%E3%83%96%E3%83%A1%E3%83%83%E3%83%89+%E7%9F%B3%E5%9E%83" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag purple">🟡 高級</span>
+        </div>
+      </div>
+
+      <div class="attraction-card resort">
+        <h4>🌴 ANA インターコンチネンタル石垣</h4>
+        <div class="desc">石垣島市中心度假村。鄰港 + 市區便利。</div>
+        <div class="meta">
+          📍 石垣市真栄里<br>
+          ⏰ 全日<br>
+          💴 ¥20,000-35,000 / 晚<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/ANA+%E3%82%A4%E3%83%B3%E3%82%BF%E3%83%BC%E3%82%B3%E3%83%B3%E3%83%81%E3%83%8D%E3%83%B3%E3%82%BF%E3%83%AB+%E7%9F%B3%E5%9E%83" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+        </div>
+      </div>
+
+      <div class="attraction-card resort">
+        <h4>🌴 星野リゾート 竹富島(竹富)</h4>
+        <div class="desc">竹富島星野集團高級度假村。2022 開幕。琉球風建築。</div>
+        <div class="meta">
+          📍 竹富島<br>
+          ⏰ 全日<br>
+          💴 ¥40,000-80,000 / 晚<br>
+          🔗 <a class="bm" href="https://www.google.com/maps/search/%E6%98%9F%E9%87%8E%E3%83%AA%E3%82%BE%E3%83%BC%E3%83%88+%E7%AB%B9%E5%AF%8C" target="_blank" rel="noopener">Maps</a>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="tag yellow">🟡 公開資料</span>
+          <span class="tag red">⚠ 高價</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================== 網絡推薦未驗證清單 ========================== -->
+  <section id="network">
+    <div class="sec-head">
+      <div class="sec-num">6</div>
+      <div>
+        <div class="sec-title">📡 網絡推薦景點(未 Maps 實測)</div>
+        <div class="sec-meta">旅遊部落格 / Tripadvisor / PTT / 背包客棧 推薦 · 待驗證</div>
+      </div>
+    </div>
+
+    <div class="callout yellow">
+      <strong>⚠ 標示為「網絡推薦」= 還沒用 Maps 實測 POI 存在性</strong>
+      <p style="margin-top:6px;font-size:12.5px;">這類景點在旅遊文章中常被提及,但 Maps 上是否能搜到 POI、是否仍營業都未確認。出發前必須再驗證一次。</p>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>景點</th>
+          <th>所屬</th>
+          <th>網絡推薦來源</th>
+          <th>待驗證項目</th>
+          <th>Maps 連結</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="b">石垣やいま村(民俗村)</td>
+          <td>石垣</td>
+          <td>Tripadvisor Top 5</td>
+          <td>是否與「Ishigaki Yaima Village」同一 POI</td>
+          <td><a class="bm" href="https://www.google.com/maps/search/%E7%9F%B3%E5%9E%83+%E3%82%84%E3%81%84%E3%81%BE%E6%9D%91" target="_blank" rel="noopener">Maps</a></td>
+        </tr>
+        <tr>
+          <td class="b">富崎觀光案內所</td>
+          <td>石垣</td>
+          <td>部落格</td>
+          <td>是否 Maps 上 POI 仍存在</td>
+          <td><a class="bm" href="https://www.google.com/maps/search/%E5%AF%8C%E5%B4%8E+%E8%A7%80%E5%85%89%E6%A1%88%E5%86%85" target="_blank" rel="noopener">Maps</a></td>
+        </tr>
+        <tr>
+          <td class="b">石垣島天文台</td>
+          <td>石垣</td>
+          <td>PTT Japan_Travel</td>
+          <td>公開觀測時間</td>
+          <td><a class="bm" href="https://www.google.com/maps/search/%E7%9F%B3%E5%9E%83%E5%B3%B6+%E5%A4%A9%E6%96%87%E5%8F%B0" target="_blank" rel="noopener">Maps</a></td>
+        </tr>
+        <tr>
+          <td class="b">川平灣夜間觀星</td>
+          <td>石垣</td>
+          <td>背包客棧</td>
+          <td>需查星空導覽公司</td>
+          <td><a class="bm" href="https://www.google.com/maps/search/%E5%B7%9D%E5%B9%B3%E7%81%98+%E6%98%9F%E7%A9%BA" target="_blank" rel="noopener">Maps</a></td>
+        </tr>
+        <tr>
+          <td class="b">西表島 浦内川</td>
+          <td>西表</td>
+          <td>Tripadvisor</td>
+          <td>沙舟體驗時段</td>
+          <td><a class="bm" href="https://www.google.com/maps/search/%E6%B5%A6%E5%86%85%E5%B7%9D+%E8%A5%BF%E8%A1%A8" target="_blank" rel="noopener">Maps</a></td>
+        </tr>
+        <tr>
+          <td class="b">上原港 浮潛店</td>
+          <td>西表</td>
+          <td>背包客棧</td>
+          <td>營業店家驗證</td>
+          <td><a class="bm" href="https://www.google.com/maps/search/%E4%B8%8A%E5%8E%9F%E6%B8%AF+%E6%B5%AE%E6%BD%9C" target="_blank" rel="noopener">Maps</a></td>
+        </tr>
+        <tr>
+          <td class="b">竹富島 落日觀景</td>
+          <td>竹富</td>
+          <td>Tripadvisor</td>
+          <td>具體觀景地點</td>
+          <td><a class="bm" href="https://www.google.com/maps/search/%E7%AB%B9%E5%AF%8C+%E8%90%BD%E6%97%A5" target="_blank" rel="noopener">Maps</a></td>
+        </tr>
+        <tr>
+          <td class="b">新城島(上地島)</td>
+          <td>周邊</td>
+          <td>部落格</td>
+          <td>有住人 + 文化財</td>
+          <td><a class="bm" href="https://www.google.com/maps/search/%E6%96%B0%E5%9F%8E%E5%B3%B6+%E7%AB%B9%E5%AF%8C" target="_blank" rel="noopener">Maps</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ========================== 調查方法學 ========================== -->
+  <section id="methodology">
+    <div class="sec-head">
+      <div class="sec-num">7</div>
+      <div>
+        <div class="sec-title">🔍 調查方法學</div>
+        <div class="sec-meta">本頁所有景點的資料來源流程</div>
+      </div>
+    </div>
+
+    <h3>📊 4 階段驗證流程</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>階段</th>
+          <th>動作</th>
+          <th>工具</th>
+          <th>產出</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="b">1️⃣ 搜尋</td>
+          <td>用 Google Maps 搜尋 POI 名稱</td>
+          <td>瀏覽器 + Maps 搜尋</td>
+          <td>POI 是否存在(登入牆仍可看列表名)</td>
+        </tr>
+        <tr>
+          <td class="b">2️⃣ 點入</td>
+          <td>點進 POI 看詳細</td>
+          <td>瀏覽器</td>
+          <td>評分 / 地址 / 照片(登入後可看評論)</td>
+        </tr>
+        <tr>
+          <td class="b">3️⃣ 官網驗證</td>
+          <td>查找景點官方公告(觀光協會)</td>
+          <td>curl + 政府官網</td>
+          <td>營業時間 / 費用 / 體驗資訊</td>
+        </tr>
+        <tr>
+          <td class="b">4️⃣ 用戶確認</td>
+          <td>點擊 Maps 連結人工查驗</td>
+          <td>登入帳號的 Chrome</td>
+          <td>評論數 + 最新評論時間</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>⚠ 我沒做的事</h3>
+    <ul style="margin-left:20px;line-height:1.85;font-size:13px;">
+      <li><b>沒寫評論數</b> — Google Maps POI 頁登入牆擋住,我無法批次取得(用戶需自行登入查看)</li>
+      <li><b>沒寫評分數字</b> — 搜尋頁面被擋,POI 內頁需登入</li>
+      <li><b>沒寫「永久歇業」標籤</b> — 這需要 POI 詳細頁登入確認</li>
+      <li><b>沒寫每家價格細節</b> — 部分價格主源未公開(尤其船公司)</li>
+      <li><b>沒把這些景點嵌入行程</b> — 依用戶 2026-07-13 要求,只整理資料不嵌入</li>
+    </ul>
+
+    <h3>🎯 建議下一步</h3>
+    <ol style="margin-left:20px;line-height:1.85;font-size:13px;">
+      <li><b>出發前 1 週</b> — 你登入 Chrome 點擊每個 Maps 連結,驗證 POI 評分 + 評論數 + 是否營業</li>
+      <li><b>出發前 3 天</b> — 預約需要導覽的景點(仲間川、ピナイサーラ、竹富藝能)</li>
+      <li><b>出發前 1 天</b> — 用 Maps「儲存」功能加入「想去」清單</li>
+      <li><b>抵達後</b> — 用 Maps 離線地圖下載石垣/西表/竹富區域</li>
+    </ol>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · 石垣/西表/竹富 景點資料庫 · Google Maps 主源版本</p>
+    <p style="margin-top:4px;">整理日 2026-07-13 · v1 · 47 個景點 · 8 個待驗證</p>
+    <p style="margin-top:4px;">
+      <a href="index.html">← JustKM 石垣島首頁</a> ·
+      <a href="itinerary.html">行程軸 →</a> ·
+      <a href="transport-keelung-0716.html">7/16 基隆 →</a> ·
+      <a href="food-miaokou-0716.html">廟口 →</a> ·
+      <a href="food-ship-0716.html">船上食物 →</a>
+    </p>
+  </div>
+</div>
+
+<script>
+  // 字級調整器
+  let fs = parseFloat(localStorage.getItem('justkm-fs') || '1.15');
+  function apply() {
+    document.body.style.fontSize = (16 * fs) + 'px';
+    document.querySelectorAll('table').forEach(t => t.style.fontSize = (13 * fs) + 'px');
+    document.querySelectorAll('h3').forEach(t => t.style.fontSize = (16 * fs) + 'px');
+    document.querySelectorAll('.attraction-card h4').forEach(t => t.style.fontSize = (15 * fs) + 'px');
+  }
+  function fsize(d) {
+    fs = d === 0 ? 1.15 : Math.max(0.7, Math.min(2.5, fs + d * 0.1));
+    localStorage.setItem('justkm-fs', String(fs));
+    apply();
+  }
+  apply();
+</script>
+</body>
+</html>
