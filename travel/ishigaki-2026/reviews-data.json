@@ -1,0 +1,131 @@
+{
+  "schema_version": "1.0.0",
+  "updated_at": "2026-07-14",
+  "locale": "zh-TW",
+  "method": {
+    "existence": "以官方網站或營運者頁面確認名稱、地點與服務存在；Google Maps 僅作地點搜尋入口。",
+    "reviews": "以 Booking、Agoda、Tripadvisor、4travel、Yahoo! Map 等公開頁面交叉整理重複主題。",
+    "google_maps": "本次 Google Maps 動態頁未能正常載入；直接星等、評論數與最新評論日期一律標為待人工覆核。",
+    "ratings": "不同平台量尺、排序與樣本不可直接互相比較；小樣本只作線索。"
+  },
+  "status_definitions": {
+    "cross_checked": "官方存在性與至少一個公開評論來源均已核對",
+    "limited_sample": "有公開評論，但樣本少或只找到單一平台",
+    "maps_pending": "已提供 Google Maps 搜尋入口，但未直接讀取 Maps 評論"
+  },
+  "records": [
+    {
+      "id": "ushimaya",
+      "category": "住宿",
+      "title": "Adventure Hostel う島や",
+      "location": "西表島・大原港側",
+      "status": "limited_sample",
+      "existence": "官方網站確認地址、電話、房型與大原港步行約 1 分鐘。",
+      "positive_themes": ["服務與接待常獲肯定", "大原港旁的位置便利", "性價比評價高"],
+      "negative_or_caution": ["公開評論樣本很小", "Agoda 各分項中清潔度相對其他項目較低，不能據此推定普遍問題", "實際房況與取消條款須回訂單確認"],
+      "signals": ["Agoda：9.0/10，10 則已驗證住客評論", "Booking：9.4/10，5 則評論"],
+      "maps_status": "maps_pending",
+      "maps_url": "https://maps.app.goo.gl/uiWGKUedmLH6sGHq8",
+      "sources": [
+        {"type": "official", "label": "う島や官方網站", "url": "https://ushimaya.com/"},
+        {"type": "review", "label": "Agoda 公開住宿與評論頁", "url": "https://www.agoda.com/adventure-hostel/hotel/kanchi-jp.html"},
+        {"type": "review", "label": "Booking.com 公開住宿頁", "url": "https://www.booking.com/hotel/jp/adventure-hostel-udao-ya.ja.html"}
+      ],
+      "checked_on": "2026-07-14"
+    },
+    {
+      "id": "midorisou",
+      "category": "住宿",
+      "title": "みどり荘 midorisou",
+      "location": "石垣島・登野城側",
+      "status": "limited_sample",
+      "existence": "官方網站確認房型與聯絡方式；Booking 與 Agoda 均有同名住宿頁。",
+      "positive_themes": ["市區與八重山博物館步行可達", "有共用休息空間與 Wi‑Fi", "適合接受青年旅館形式的旅客"],
+      "negative_or_caution": ["共用衛浴，不是一般獨立衛浴飯店", "公開評論提到內裝可能讓習慣新式飯店者覺得較舊", "本輪未取得可可靠比較的評論總數與分項分數"],
+      "signals": ["Booking 與 Agoda 均有公開頁，但本輪不抄無法穩定核對的動態評分"],
+      "maps_status": "maps_pending",
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=24.337261,124.169033&query_place_id=ChIJv9ytj6QKYDQR4b852PnmYn0",
+      "sources": [
+        {"type": "official", "label": "みどり荘官方網站", "url": "https://midorisou.amebaownd.com/"},
+        {"type": "review", "label": "Booking.com 公開住宿頁", "url": "https://www.booking.com/hotel/jp/matsukaze-the-guest-house-ishigaki.ja.html"},
+        {"type": "review", "label": "Agoda 公開住宿與評論頁", "url": "https://www.agoda.com/ja-jp/matsukaze-the-guest-house-ishigaki/hotel/ishigaki-jp.html"}
+      ],
+      "checked_on": "2026-07-14"
+    },
+    {
+      "id": "kabira-bay",
+      "category": "景點",
+      "title": "川平灣",
+      "location": "石垣島西北部",
+      "status": "cross_checked",
+      "existence": "八重山觀光協會與玻璃底船營運者資料可確認景點與體驗存在。",
+      "positive_themes": ["海色與觀景台景觀反覆獲得高度肯定", "玻璃底船讓不下水者也能看海中景觀", "適合作為石垣島代表性景點"],
+      "negative_or_caution": ["灣內禁止游泳與潛水", "潮汐、天候會影響水色與玻璃底船觀看品質", "部分評論提到垃圾或環境維護疑慮"],
+      "signals": ["Tripadvisor：約 4.4/5、3,000+ 則", "第三方 Wanderlog 彙整顯示 Google 約 4.5/5、4,000+ 則；非直接 Maps 查核"],
+      "maps_status": "maps_pending",
+      "maps_url": "https://www.google.com/maps/search/%E5%B7%9D%E5%B9%B3%E7%81%98+%E7%9F%B3%E5%9E%83%E5%B3%B6",
+      "sources": [
+        {"type": "official", "label": "八重山物產觀光協會", "url": "https://yaeyama.or.jp/%E6%9C%89%E9%99%90%E4%BC%9A%E7%A4%BE-%E5%B7%9D%E5%B9%B3%E3%83%9E%E3%83%AA%E3%83%B3%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/"},
+        {"type": "review", "label": "Tripadvisor 川平灣評論", "url": "https://cn.tripadvisor.com/Attraction_Review-g298223-d1308235-Reviews-Kabira_Bay-Ishigaki_Okinawa_Prefecture.html"},
+        {"type": "aggregator", "label": "Wanderlog 評分彙整", "url": "https://wanderlog.com/ja/place/details/31969/%E5%B7%9D%E5%B9%B3%E6%B9%BE"}
+      ],
+      "checked_on": "2026-07-14"
+    },
+    {
+      "id": "yubu-island",
+      "category": "景點",
+      "title": "由布島水牛車與植物園",
+      "location": "西表島東南側",
+      "status": "cross_checked",
+      "existence": "由布島官方網站確認水牛車、植物園、購票與交通方式。",
+      "positive_themes": ["水牛車渡海是獨特且節奏悠閒的體驗", "車夫導覽與三線演唱常獲好評", "植物園與水牛個體介紹適合慢慢逛"],
+      "negative_or_caution": ["紀念照價格被部分旅客認為偏高", "速度與體驗會受水牛個性、天候及潮汐影響", "炎熱或風冷時舒適度差異大"],
+      "signals": ["Tripadvisor：4.3/5，178 則評論"],
+      "maps_status": "maps_pending",
+      "maps_url": "https://www.google.com/maps/search/%E7%94%B1%E5%B8%83%E5%B3%B6+%E6%B0%B4%E7%89%9B%E8%BB%8A+%E8%A5%BF%E8%A1%A8",
+      "sources": [
+        {"type": "official", "label": "由布島官方網站", "url": "https://yubujima.com/"},
+        {"type": "review", "label": "Tripadvisor 由布島水牛車評論", "url": "https://www.tripadvisor.jp/Attraction_Review-g1132552-d10495214-Reviews-Yubujima_Suigyusha-Yubu_jima_Taketomi_cho_Yaeyama_gun_Okinawa_Prefecture_Kyushu.html"},
+        {"type": "discussion", "label": "4travel 由布島水牛車遊記與評論", "url": "https://4travel.jp/dm_shisetsu/11959577"}
+      ],
+      "checked_on": "2026-07-14"
+    },
+    {
+      "id": "urauchigawa",
+      "category": "景點",
+      "title": "浦內川叢林遊船",
+      "location": "西表島西北側・上原港生活圈",
+      "status": "limited_sample",
+      "existence": "營運者官方網站確認遊船、地址與上原港側交通。",
+      "positive_themes": ["河川與亞熱帶景觀具特色", "船上導覽常被視為體驗的一部分", "可作為健行前段的低體力選項"],
+      "negative_or_caution": ["找到的 4travel 討論多偏舊，不能代表近期品質", "從大原港側移動距離長，不適合塞入短下午", "本輪沒有足夠近期負評樣本可整理成重複主題"],
+      "signals": ["4travel 浦內川頁約有 70 則評論，但可見案例多為舊文"],
+      "maps_status": "maps_pending",
+      "maps_url": "https://www.google.com/maps/search/%E6%B5%A6%E5%86%85%E5%B7%9D+%E8%A5%BF%E8%A1%A8",
+      "sources": [
+        {"type": "official", "label": "浦內川觀光官方網站", "url": "https://urauchigawa.com/cruise/"},
+        {"type": "discussion", "label": "4travel 浦內川評論案例", "url": "https://4travel.jp/dm_shisetsu_tips/12774524"}
+      ],
+      "checked_on": "2026-07-14"
+    },
+    {
+      "id": "takenoko",
+      "category": "飲食",
+      "title": "そば処 竹の子",
+      "location": "竹富島聚落・竹富101-1",
+      "status": "cross_checked",
+      "existence": "竹富町觀光資料與多個餐飲平台均可確認店名與地址。",
+      "positive_themes": ["八重山麵湯頭清爽、出汁味受到反覆肯定", "軟骨肉與炊飯常被搭配推薦", "竹富島代表性午餐選項"],
+      "negative_or_caution": ["熱門時段常需排隊", "部分評論認為離島價格略高", "營業日與售完狀況必須當日確認"],
+      "signals": ["Tripadvisor：262 則評論，頁面列為竹富島餐廳第 1 名；排名會變動"],
+      "maps_status": "maps_pending",
+      "maps_url": "https://www.google.com/maps/search/%E3%81%9D%E3%81%B0%E5%87%A6+%E7%AB%B9%E3%81%AE%E5%AD%90+%E7%AB%B9%E5%AF%8C%E5%B3%B6",
+      "sources": [
+        {"type": "official", "label": "竹富町島嶼觀光指南", "url": "https://painusima.com/wp-content/themes/taketomi_wp_v1/file/painusima_pamphlet_jp_B5_202407.pdf"},
+        {"type": "review", "label": "Tripadvisor 竹の子評論", "url": "https://www.tripadvisor.jp/Restaurant_Review-g424930-d4096751-Reviews-Sobatei_Takenoko-Taketomi_jima_Taketomi_cho_Yaeyama_gun_Okinawa_Prefecture_Kyushu.html"},
+        {"type": "review", "label": "Yahoo! Map 評論彙整", "url": "https://map.yahoo.co.jp/v2/place/EbvMLmh9d2A/review?m_from=ppg"}
+      ],
+      "checked_on": "2026-07-14"
+    }
+  ]
+}

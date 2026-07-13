@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>口碑與真實性驗證 · 八重山旅行 KM · JustKM</title>
+  <meta name="description" content="交叉核對官方網站、Google Maps 搜尋入口、訂房平台與旅遊討論的住宿、景點與餐飲口碑資料庫。">
+  <style>
+    :root{--bg:#f5f3ee;--card:#fff;--ink:#202722;--muted:#687169;--line:#dcded8;--green:#176b48;--amber:#97630b;--blue:#315c9b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 system-ui,-apple-system,"Noto Sans TC",sans-serif}main{max-width:1120px;margin:auto;padding:36px 20px 80px}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}a{color:var(--blue)}a.back,.filters button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:8px 13px;text-decoration:none}.eyebrow{color:var(--green);font-weight:800;letter-spacing:.08em;margin-top:36px}h1{font-size:clamp(30px,6vw,54px);line-height:1.08;margin:6px 0 12px}.lede{max-width:800px;color:var(--muted);font-size:17px}.notice{margin:22px 0;padding:15px 17px;background:#fff8e8;border:1px solid #e8c879;border-radius:14px}.filters{display:flex;gap:9px;flex-wrap:wrap;margin:24px 0}.filters button{cursor:pointer}.filters button.active{background:var(--ink);color:#fff}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 12px 32px #2331270d}.meta,.signals{display:flex;gap:7px;flex-wrap:wrap;color:var(--muted);font-size:12px}.pill{padding:3px 8px;border-radius:999px;background:#eef1ed;font-weight:700}.cross_checked{background:#e5f4ea;color:var(--green)}.limited_sample{background:#fff1d6;color:var(--amber)}h2{font-size:21px;line-height:1.3;margin:10px 0 2px}h3{font-size:14px;margin:15px 0 4px}.place{color:var(--muted);margin:0 0 10px}ul{margin:5px 0;padding-left:20px}.source{border-top:1px solid var(--line);margin-top:15px;padding-top:12px}.source a{display:block;margin:4px 0}.maps{display:inline-block;margin-top:9px;font-weight:800}.empty{color:var(--muted)}
+  </style>
+</head>
+<body><main>
+  <div class="top"><a class="back" href="index.html">← 回旅遊 KM</a><span id="updated"></span></div>
+  <div class="eyebrow">EVIDENCE BEFORE ITINERARY</div>
+  <h1>口碑與真實性驗證</h1>
+  <p class="lede">官網用來證明「這個地方與服務存在」，討論平台用來找重複出現的體驗主題；兩者不混為一談。評分不是結論，負評也必須看樣本、年份與是否反覆出現。</p>
+  <div class="notice"><strong>Google Maps 限制：</strong>本輪 Maps 動態頁沒有正常載入，所以本頁只提供搜尋／地點連結。若評分來自第三方彙整，會明確註明；直接星等、評論數、最新評論與永久停業標記，出發前需親自開啟 Maps 覆核。</div>
+  <div class="filters" id="filters"></div>
+  <section class="grid" id="cards"><p class="empty">正在讀取資料……</p></section>
+</main>
+<script>
+const statusLabels={cross_checked:'已交叉核對',limited_sample:'樣本有限'};let db,active='全部';const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function draw(){const rows=db.records.filter(r=>active==='全部'||r.category===active);document.querySelector('#cards').innerHTML=rows.map(r=>`<article class="card"><div class="meta"><span class="pill ${esc(r.status)}">${esc(statusLabels[r.status])}</span><span class="pill">${esc(r.category)}</span><span>查核 ${esc(r.checked_on)}</span></div><h2>${esc(r.title)}</h2><p class="place">${esc(r.location)} · ${esc(r.existence)}</p><h3>常見好評主題</h3><ul>${r.positive_themes.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><h3>負評／限制</h3><ul>${r.negative_or_caution.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><h3>平台訊號</h3><ul>${r.signals.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><a class="maps" href="${esc(r.maps_url)}" target="_blank" rel="noopener">📍 親自開 Google Maps 覆核</a><div class="source">${r.sources.map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener">↗ ${esc(s.label)} <small>(${esc(s.type)})</small></a>`).join('')}</div></article>`).join('')}
+fetch('reviews-data.json').then(r=>{if(!r.ok)throw Error(r.status);return r.json()}).then(data=>{db=data;document.querySelector('#updated').textContent=`資料版 ${data.schema_version} · ${data.updated_at}`;const cats=['全部',...new Set(data.records.map(r=>r.category))];document.querySelector('#filters').innerHTML=cats.map(x=>`<button data-category="${esc(x)}" class="${x==='全部'?'active':''}">${esc(x)}</button>`).join('');document.querySelector('#filters').addEventListener('click',e=>{if(!e.target.dataset.category)return;active=e.target.dataset.category;document.querySelectorAll('#filters button').forEach(b=>b.classList.toggle('active',b.dataset.category===active));draw()});draw()}).catch(()=>document.querySelector('#cards').innerHTML='<p class="empty">無法載入 reviews-data.json，請透過網站伺服器開啟本頁。</p>');
+</script></body></html>
