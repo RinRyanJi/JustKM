@@ -1348,65 +1348,94 @@ tr:hover td { background: var(--bg-soft); }
       - 三家 <b>看魚/海龜機率</b> 與 <b>業者態度</b> 等主觀評論 — <b>皆無 URL 來源</b>,需親查 Maps POI 评论
     </div>
 
-    <h4 style="font-size:14px;margin:18px 0 6px;color:var(--accent);">case 3 · 仲間川紅樹林遊覽船 — 正負面 5+5 + 業者差異</h4>
-    <p style="font-size:12px;color:var(--text-3);margin:0 0 6px;">📍 Maps: <a class="bm" href="https://www.google.com/maps/search/%E9%96%94%E5%90%88%E5%B7%9D+%E8%A5%BF%E8%A1%A8" target="_blank" rel="noopener">Maps 搜「仲間川 西表」</a> · 西表島最大紅樹林保護區 · 玻璃船遊覽約 50-90 分</p>
+    <h4 style="font-size:14px;margin:18px 0 6px;color:var(--accent);">case 3 · 仲間川紅樹林遊覽船 — Playwright 驗證版(2026-07-13)</h4>
+    <p style="font-size:12px;color:var(--text-3);margin:0 0 6px;">📍 Maps: <a class="bm" href="https://www.google.com/maps/search/%E9%96%94%E5%90%88%E5%B7%9D+%E8%A5%BF%E8%A1%A8" target="_blank" rel="noopener">Maps 搜「仲間川 西表」</a> · 西表島東南部 · 全長約 17.5 km · 流域面積日本第一紅樹林</p>
 
-    <p style="font-size:12.5px;margin:6px 0 8px;color:var(--text-2);"><b>🛥️ 主要業者(Gemini 列)</b></p>
-    <table style="margin-bottom:12px;">
-      <thead>
-        <tr><th style="width:30%;">業者</th><th style="width:30%;">規模/據點</th><th style="width:20%;">票價</th><th style="width:20%;">特色</th></tr>
-      </thead>
+    <p style="font-size:12.5px;margin:8px 0 6px;color:var(--text-2);"><b>📋 基本硬資料(Playwright 全部已驗證 🟢)</b></p>
+    <table style="margin-bottom:14px;">
+      <thead><tr><th style="width:22%;">項目</th><th>內容</th><th style="width:18%;">來源(已驗)</th></tr></thead>
       <tbody style="font-size:12px;">
         <tr>
-          <td class="b">① 西表島交通</td>
-          <td>規模最大、購票處 = 大原港旁 <b>Shop Jugon 土產店</b></td>
-          <td>兩家相同(未列價)</td>
-          <td>較受歡迎、每日班次多</td>
+          <td class="b">位置 / 全長</td>
+          <td>沖繩縣八重山郡竹富町西表島東南部;<b>全長約 17.5 km</b></td>
+          <td><a class="bm" href="https://tsplus.asahi.co.jp/spot/t4371" target="_blank" rel="noopener">旅サラダ 🟢</a></td>
+        </tr>
+        <tr>
+          <td class="b">入場費</td>
+          <td>無單獨景觀入場費,僅收各船公司乘船費</td>
+          <td><a class="bm" href="https://tsplus.asahi.co.jp/spot/t4371" target="_blank" rel="noopener">旅サラダ 🟢</a></td>
+        </tr>
+        <tr>
+          <td class="b">出發港</td>
+          <td><b>大原港(又稱仲間港)</b>船舶碼頭;購票處位於大原港旁 <b>ショップじゅごん</b> 土產店</td>
+          <td><a class="bm" href="https://yaeyama.tourbooking-japan.com/A/ja-JP/product-detail/1478" target="_blank" rel="noopener">tourbooking 🟢</a></td>
+        </tr>
+        <tr>
+          <td class="b">標準航程</td>
+          <td><b>50-60 分鐘</b>(標準紅樹林路線)</td>
+          <td><a class="bm" href="https://iriomote.com/cruise/" target="_blank" rel="noopener">西表島交通官方 🟢</a></td>
+        </tr>
+        <tr>
+          <td class="b">潮汐影響</td>
+          <td>船隻運航受當日<b>潮位(滿潮 / 干潮)</b>直接影響,出發時刻因此變動</td>
+          <td><a class="bm" href="https://www.jalan.net/kankou/spt_47381ee4610069151/" target="_blank" rel="noopener">じゃらん 🟢</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="font-size:12.5px;margin:8px 0 6px;color:var(--text-2);"><b>📋 兩家主要業者比對(已驗證 🟢)</b></p>
+    <table style="margin-bottom:14px;">
+      <thead><tr><th style="width:16%;">業者</th><th style="width:18%;">船型</th><th style="width:15%;">票價</th><th style="width:18%;">時刻 / 預約</th><th style="width:20%;">設施 / 限制</th><th style="width:13%;">來源</th></tr></thead>
+      <tbody style="font-size:11.5px;">
+        <tr>
+          <td class="b">① 西表島交通<br><span style="color:var(--text-3);font-weight:400;">有限会社</span></td>
+          <td>擁有「<b>すおう</b>」等遊覽船</td>
+          <td><b>大人 ¥3,000 / 小孩 ¥1,500</b></td>
+          <td>官方網站線上預約 / 旅行社預定;<b>時刻不固定</b>(由 tourbooking 預訂頁看實況)</td>
+          <td>受當日潮位調整出航</td>
+          <td><a class="bm" href="https://iriomote.com/cruise/" target="_blank" rel="noopener">公式 🟢</a><br><a class="bm" href="https://www.rail-miler.site/entry/2025/05/03/081209" target="_blank" rel="noopener">rail-miler 🟢</a></td>
         </tr>
         <tr>
           <td class="b">② マリンレジャー金盛<br><span style="color:var(--text-3);font-weight:400;">Marine Leisure Kanamori</span></td>
-          <td>次要規模,登船碼頭位置與時刻不同</td>
-          <td>與西表島交通相同</td>
-          <td>替代選擇、需現場看時刻表</td>
+          <td>擁有「<b>かもめ</b>」等節能改良船(72 / 70 / 61 人座)</td>
+          <td><b>1H 遊覽船 大人 ¥3,000 / 小孩 ¥1,500</b></td>
+          <td>無固定時刻表,需事前洽詢;<b>TEL: 0980-85-5378</b></td>
+          <td>店內備有<b>更衣室 / 溫水淋浴 / 投幣式洗衣機</b></td>
+          <td><a class="bm" href="http://yaenavi.com/shop/446.html" target="_blank" rel="noopener">やえやまなび 🟢</a><br><a class="bm" href="https://www.rail-miler.site/entry/2025/05/03/081209" target="_blank" rel="noopener">rail-miler 🟢</a></td>
         </tr>
       </tbody>
     </table>
 
-    <table style="margin-bottom:10px;">
-      <thead><tr><th style="width:50%;">⭐ 好評(Gemini 列)</th><th style="width:50%;">⚠ 壞評(Gemini 列)</th></tr></thead>
-      <tbody>
-        <tr>
-          <td style="font-size:12px;line-height:1.7;">
-            • 船長兼導遊講解<b>在地且趣味十足</b>,亞熱帶植物 + 西表歷史<br>
-            • <b>日本最大規模紅樹林原生林</b>,可看見巨型「先島蘇芳木 / 銀葉樹」<br>
-            • <b>免步行、頂篷防曬避雨</b>,老少咸宜、長輩嬰幼兒適合<br>
-            • <b>生態豐富</b>:特定河段 / 干潮時能看到招潮蟹、大蜆、珍稀鳥類<br>
-            • 散客現場購票彈性,不必死綁事前預約
-          </td>
-          <td style="font-size:12px;line-height:1.7;">
-            • ❌ <b>極受潮汐與天候限制</b>,低潮 / 大雨 / 強風 → 航行區受限,甚至無預警減班或停航<br>
-            • ❌ <b>船上無廁所</b>(航程 50-90 分),登船前要在港口先上完<br>
-            • ❌ <b>導覽全程日文</b>,不懂日語的國際客會錯過精采故事<br>
-            • ⚠ <b>右側座位視野 + 拍照較左側好</b>(船型方向)<br>
-            • ⚠ 與大型旅行團撞期 → 船艙吵雜壓迫
-          </td>
-        </tr>
+    <p style="font-size:12.5px;margin:8px 0 6px;color:var(--text-2);"><b>📋 5 個具體事實(已驗證 🟢)</b></p>
+    <table style="margin-bottom:14px;">
+      <thead><tr><th style="width:30%;">事實</th><th>內容</th><th style="width:18%;">來源</th></tr></thead>
+      <tbody style="font-size:12px;">
+        <tr><td class="b">天然紀念物</td><td>仲間川流域屬於<b>國家天然紀念物</b>保護區</td><td><a class="bm" href="https://tsplus.asahi.co.jp/spot/t4371" target="_blank" rel="noopener">旅サラダ 🟢</a></td></tr>
+        <tr><td class="b">木道損壞中止</td><td>「<b>サキシマスオウノキ路線</b>(80-90 分)」原含先島蘇芳木群落觀賞,因<b>木道破損安全確認中</b>,目前<b>催行中止</b>(暫停運航)</td><td><a class="bm" href="https://iriomote.com/cruise/" target="_blank" rel="noopener">公式 🟢</a></td></tr>
+        <tr><td class="b">無年齡身高限制</td><td>活動不設年齡或身高門檻,<b>3 歲以下幼童亦可登船</b>;船上無須行走</td><td><a class="bm" href="https://www.motti-iriomotejima.com/2016/05/12/%E8%A5%BF%E8%A1%A8%E5%B3%B6%E8%A6%B3%E5%85%89-%E8%A7%A3%E5%89%96-%E4%BB%B2%E9%96%93%E5%B7%9D%E3%83%9E%E3%83%B3%E3%82%B0%E3%83%AD%E3%83%BC%E3%83%96%E3%82%AF%E3%83%AB%E3%83%BC%E3%82%BA%E3%81%AE%E5%85%A8%E3%81%A6/" target="_blank" rel="noopener">motti 🟢</a></td></tr>
+        <tr><td class="b">環保船體規範</td><td>兩家業者的船隻依當地協定,規格限制:<b>全長 12 m 以內 / 寬度 3.5 m 以內 / 引擎最大 270 馬力</b></td><td><a class="bm" href="https://iriomote.com/assets/pdf/agreement.pdf" target="_blank" rel="noopener">協定 PDF 🟡</a></td></tr>
+        <tr><td class="b">金盛店鋪設施</td><td>金盛店面內備有<b>更衣室 / 溫水淋浴間 / 投幣式洗衣機</b></td><td><a class="bm" href="http://yaenavi.com/shop/446.html" target="_blank" rel="noopener">やえやまなび 🟢</a></td></tr>
       </tbody>
     </table>
 
-    <div class="callout" style="margin:0 0 10px;padding:10px 14px;font-size:12px;">
-      <b>📋 行程對應背景資料(中性,不下結論)</b><br>
-      - 紅樹林遊覽船 <b>大原港 / 白浜港</b> 出發,航程 50-90 分鐘(潮汐影響範圍)<br>
-      - 颱風 <b>9 號巴威 7/14 後</b>路徑 → 西表海況 / 潮位異常可能持續數天<br>
-      - 7 月當地均溫 28-33°C,船艙有頂篷但無空調<br>
-      - 業者「西表島交通」「金盛」票價 Gemini 列為「相同」但未列金額 → Maps 商家頁或 Shop Jugon 現場詢價補<br>
-      - <b>可信度標記</b>:航程時間 / 大原港地點 = 多源一致;「西表島交通最受歡迎」= Gemini 訓練印象,待 Maps POI 评论排序驗
-    </div>
+    <p style="font-size:12.5px;margin:8px 0 6px;color:var(--text-2);"><b>⚠ 5 個潛在風險(已驗證 🟢)</b></p>
+    <table style="margin-bottom:14px;">
+      <thead><tr><th style="width:30%;">風險</th><th>內容</th><th style="width:18%;">來源</th></tr></thead>
+      <tbody style="font-size:12px;">
+        <tr><td class="b">因潮汐停開</td><td>天候不佳或潮位過低 / 過高時,有<b>催行中止</b>(當日取消)風險</td><td><a class="bm" href="https://aneikankou.co.jp/tour/detail/19" target="_blank" rel="noopener">安栄観光 🟢</a></td></tr>
+        <tr><td class="b">自由席無指定</td><td>船內為<b>自由席</b>,若與大型離島轉運船(如 Super Dream 號)銜接時,未先上洗手間 / 動作慢則選不到偏好座位</td><td><a class="bm" href="https://www.rail-miler.site/entry/2025/05/03/081209" target="_blank" rel="noopener">rail-miler 🟢</a></td></tr>
+        <tr><td class="b">低潮座礁</td><td>航道內含岩石與淺灘,<b>低潮位時行船有座礁風險</b>,極度依賴船長操船技術避開標誌桿</td><td><a class="bm" href="https://www.rail-miler.site/entry/2025/05/03/081209" target="_blank" rel="noopener">rail-miler 🟢</a></td></tr>
+        <tr><td class="b">登離岸跌落</td><td>乘船碼頭與船隻間存在高低落差或空隙,登船與離岸時若未依序上下,有<b>踩空 / 跌落岸壁間隙</b>危險</td><td><a class="bm" href="https://iriomote.com/assets/pdf/agreement.pdf" target="_blank" rel="noopener">協定 PDF 🟡</a></td></tr>
+        <tr><td class="b">污染禁止</td><td>當地生態保全協定,<b>嚴禁在河川或海洋等自然水域中洗滌餐具器皿</b></td><td><a class="bm" href="https://iriomote.com/assets/pdf/agreement.pdf" target="_blank" rel="noopener">協定 PDF 🟡</a></td></tr>
+      </tbody>
+    </table>
+
     <div class="callout down" style="margin:0 0 18px;padding:10px 14px;font-size:12px;">
-      <b>🔒 來源限制(Gemini 已知樣貌 ≠ 即時資料)</b><br>
-      - 兩家業者票價「相同」但 Gemini 未列具體金額 — 待 Maps 商家電話或 Shop Jugon 現場詢價<br>
-      - 7/17 颱風過後是否正常 — 看當天 <a class="bm" href="https://iriomote.com/local-bus/" target="_blank" rel="noopener">西表島交通</a> + <a class="bm" href="https://www.yaeyama.co.jp/operation.html#status" target="_blank" rel="noopener">八重山觀光船運航狀況</a><br>
-      - 「該不該去」之判斷不在此頁下結論 — 你的體力/小孩年齡/颱風當天狀況都會改變,個人決策
+      <b>🔒 5+5 評論 + Gemini 印象(Gemini 印象 · 無 URL · 需親查)</b><br>
+      - 上一版收錄的「<b>船長導覽在地 / 日本最大紅樹林 / 免步行老少咸宜 / 生態豐富 / 現場購票彈性</b>」 + 「<b>潮汐限制 / 無廁所 / 日文導覽 / 右側座位視野好 / 大團客吵雜</b>」 — <b>這 10 條皆無具體來源 URL</b>,屬 Gemini 訓練印象,雖屬「公開社群常見主題」但<b>未經驗證</b><br>
+      - 若要正式收錄需親登 <a class="bm" href="https://www.google.com/maps/search/%E9%96%94%E5%90%88%E5%B7%9D+%E8%A5%BF%E8%A1%A8" target="_blank" rel="noopener">Maps POI 评论</a> 取至少 5 則最新評論摘要後才能寫入主表<br>
+      - 在此之前的過渡期,本表只放 Playwright 已驗證的硬資料 + 風險事實<br>
+      - <b>另外</b>:HIS 觀光頁 (https://www.his-j.com/kokunai/dst/okinawa/islands/iriomote/) 連不到 (403),需親自到他站確認
     </div>
 
     <h4 style="font-size:14px;margin:18px 0 6px;color:var(--accent);">case 4 · 由布島水牛車 Yubu Island Water Buffalo Cart — 正負面 5+5</h4>
@@ -1483,7 +1512,7 @@ tr:hover td { background: var(--bg-soft); }
 
   <div class="footer">
     <p>JustKM · 石垣/西表/竹富 景點資料庫 · Google Maps 主源版本</p>
-    <p style="margin-top:4px;">整理日 2026-07-13 · v7 · 47 個景點 · 8 個待驗證 · §8 評論雙面分析 + Gemini 即時實查 · case 1/2 已過 Playwright</p>
+    <p style="margin-top:4px;">整理日 2026-07-13 · v8 · 47 個景點 · 8 個待驗證 · §8 評論雙面分析 + Gemini 即時實查 · case 1/2/3 已過 Playwright</p>
     <p style="margin-top:4px;">
       <a href="index.html">← JustKM 石垣島首頁</a> ·
       <a href="itinerary.html">行程軸 →</a> ·
