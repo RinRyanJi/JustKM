@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>7/16 基隆半日 · 置物 + 廟口 + 船上吃食準備 · JustKM</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131826;
+      --bg-card: #1a2138;
+      --bg-code: #0f1424;
+      --border: #2a3454;
+      --text-primary: #e8ecf4;
+      --text-secondary: #9aa3b8;
+      --text-muted: #6b7390;
+      --accent: #4f9eff;
+      --accent-green: #00d68f;
+      --accent-orange: #ff9f43;
+      --accent-red: #ff4d6d;
+      --accent-purple: #a855f7;
+      --accent-pink: #ec4899;
+      --accent-yellow: #fbbf24;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--bg-primary); color: var(--text-primary);
+      line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+
+    .font-adjuster {
+      position: fixed; top: 16px; right: 16px; z-index: 999;
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 8px;
+      display: flex; align-items: center; gap: 4px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px);
+    }
+    .font-adjuster button {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-primary); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .font-adjuster button:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--text-muted); margin: 0 4px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--accent); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .hero {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 16px; padding: 36px 32px; margin-bottom: 32px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #4f9eff 0%, #00d68f 33%, #fbbf24 66%, #ff9f43 100%);
+    }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .hero .sub { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 16px; }
+    .badge {
+      display: inline-block; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px; padding: 3px 10px; font-size: 0.6875rem;
+      color: var(--text-secondary); margin-right: 6px; margin-bottom: 6px;
+    }
+    .badge.blue { color: var(--accent); border-color: var(--accent); }
+    .badge.green { color: var(--accent-green); border-color: var(--accent-green); }
+    .badge.purple { color: var(--accent-purple); border-color: var(--accent-purple); }
+    .badge.pink { color: var(--accent-pink); border-color: var(--accent-pink); }
+    .badge.orange { color: var(--accent-orange); border-color: var(--accent-orange); }
+    .badge.yellow { color: var(--accent-yellow); border-color: var(--accent-yellow); }
+
+    .toc {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px 24px; margin-bottom: 32px;
+    }
+    .toc-title { font-size: 0.8125rem; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; }
+    .toc a { color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem;
+      padding: 5px 10px; border-radius: 6px; transition: all 0.15s; }
+    .toc a:hover { color: var(--accent); background: var(--bg-card); }
+
+    section {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; scroll-margin-top: 20px;
+    }
+    section h2 { font-size: 1.375rem; font-weight: 700; margin-bottom: 4px;
+      display: flex; align-items: center; gap: 10px; }
+    section h2 .num { color: var(--accent); font-size: 0.875rem; font-weight: 800;
+      background: var(--bg-card); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border); }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--accent);
+      margin-top: 22px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    section p { margin-bottom: 10px; color: var(--text-secondary); font-size: 0.875rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--text-secondary); font-size: 0.875rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--text-primary); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.8125rem; }
+    th { text-align: left; background: var(--bg-card); color: var(--text-primary);
+      padding: 10px 12px; border: 1px solid var(--border); font-weight: 700; }
+    td { padding: 10px 12px; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+    tr:hover td { background: rgba(79, 158, 255, 0.04); }
+
+    pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.55; }
+    pre code { color: #e8ecf4; }
+    p code, li code, td code { background: var(--bg-code); border: 1px solid var(--border);
+      padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--accent-orange); }
+
+    .callout {
+      border-left: 3px solid var(--accent); background: var(--bg-card);
+      padding: 14px 18px; border-radius: 0 8px 8px 0;
+      margin: 14px 0 18px; font-size: 0.875rem; color: var(--text-secondary);
+    }
+    .callout.warn { border-left-color: var(--accent-orange); }
+    .callout.danger { border-left-color: var(--accent-red); }
+    .callout.tip { border-left-color: var(--accent-green); }
+    .callout.purple { border-left-color: var(--accent-purple); }
+    .callout.pink { border-left-color: var(--accent-pink); }
+    .callout.yellow { border-left-color: var(--accent-yellow); }
+    .callout strong { color: var(--text-primary); }
+
+    /* 時間軸 */
+    .timeline { background: var(--bg-code); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px 22px; margin: 14px 0 18px;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.8125rem; }
+    .timeline .row { display: grid; grid-template-columns: 90px 1fr; gap: 12px;
+      padding: 6px 0; border-bottom: 1px solid var(--border); }
+    .timeline .row:last-child { border-bottom: none; }
+    .timeline .row .when { color: var(--accent); font-weight: 700; }
+    .timeline .row .act { color: var(--text-secondary); }
+    .timeline .row .act b { color: var(--text-primary); }
+    .timeline .row.warn .when { color: var(--accent-orange); }
+    .timeline .row.warn .act b { color: var(--accent-orange); }
+
+    /* 兩欄 grid */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0 18px; }
+    .two-col .col { background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px; font-size: 0.8125rem; }
+    .two-col .col h4 { color: var(--accent); font-size: 0.9375rem;
+      margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+
+    .back-home {
+      display: inline-block; margin-bottom: 20px; color: var(--accent);
+      text-decoration: none; font-size: 0.875rem; padding: 6px 14px;
+      border: 1px solid var(--border); border-radius: 8px; background: var(--bg-secondary);
+    }
+    .back-home:hover { border-color: var(--accent); }
+    .footer { text-align: center; color: var(--text-muted); font-size: 0.75rem;
+      margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); }
+    .footer a { color: var(--accent); text-decoration: none; }
+
+    @media (max-width: 600px) {
+      .two-col { grid-template-columns: 1fr; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+  <a class="back-home" href="index.html">← 回到 JustKM 石垣島首頁</a>
+
+  <div class="hero">
+    <h1>🧳 7/16 基隆半日 · 置物 + 廟口 + 船上吃食準備</h1>
+    <p class="sub">Day 0 · 17:00 抵基隆火車站 → 21:30 東岸旅運中心 Check-in 截止</p>
+    <div>
+      <span class="badge blue">📍 基隆火車站</span>
+      <span class="badge green">🗄️ 收多易快存櫃</span>
+      <span class="badge pink">🍜 廟口夜市</span>
+      <span class="badge orange">🍱 船上吃食準備</span>
+      <span class="badge yellow">🚢 23:00 開航</span>
+    </div>
+  </div>
+
+  <div class="callout yellow">
+    <strong>⏰ 你有 3 小時的緩衝時間可以做 3 件事</strong>
+    <p style="margin-top:6px;">基隆火車站抵達 <b>17:00</b>(下午 5 點)→ 東岸旅運中心 Check-in 必須在 <b>21:30 前完成</b>(櫃檯才開 20:00,開船 23:00)。中間有 ~3 小時空檔,可寄行李 + 廟口吃透 + 採買船上食物。</p>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#timeline">⓰ 一頁時間軸</a>
+      <a href="#storage">🗄️ ① 置物櫃選擇</a>
+      <a href="#night-mkt">🍜 ② 廟口夜市攻略</a>
+      <a href="#food-buy">🍱 ③ 船上吃食準備清單</a>
+      <a href="#drink">💧 ④ 飲水方案</a>
+      <a href="#route">🗺️ ⑤ 動線地圖</a>
+      <a href="#checkin">✅ ⑥ 21:30 Check-in SOP</a>
+      <a href="#money">💰 預算速估</a>
+      <a href="#source">📚 來源彙整</a>
+    </div>
+  </nav>
+
+  <!-- ===================== ⓰ 一頁時間軸 ===================== -->
+  <section id="timeline">
+    <h2><span class="num">⓰</span> 一頁時間軸</h2>
+    <p>從抵達到上船的完整時間預排,預留 30-60 分鐘彈性:</p>
+    <div class="timeline">
+      <div class="row">
+        <span class="when">17:00</span>
+        <span class="act"><b>基隆火車站抵達</b>(看你從哪搭車過來)→ 先去 <b>寄行李</b>(基隆南站櫃或北站櫃)</span>
+      </div>
+      <div class="row">
+        <span class="when">17:25</span>
+        <span class="act">輕裝出火車站 → 走海洋廣場、看基隆港夕陽(無料 · 拍船)</span>
+      </div>
+      <div class="row">
+        <span class="when">18:00</span>
+        <span class="act">走到 <b>廟口夜市</b>(15 分鐘內) → <b>吃晚餐 + 採買船上食物</b></span>
+      </div>
+      <div class="row">
+        <span class="when">19:30–20:00</span>
+        <span class="act">回基隆火車站取行李 → <b>走 8 分鐘到東岸旅運中心</b>(也可以提早回)</span>
+      </div>
+      <div class="row">
+        <span class="when warn">20:00</span>
+        <span class="act"><b>東岸旅運中心 Check-in 開始</b>(櫃檯 20:00 開 / <b>21:30 截止</b>)</span>
+      </div>
+      <div class="row">
+        <span class="when warn">20:30–21:00</span>
+        <span class="act"><b>建議抵達時間</b>(給自己 30 分鐘櫃檯排隊時間,旺季會排)</span>
+      </div>
+      <div class="row">
+        <span class="when warn">23:00</span>
+        <span class="act"><b>YAIMARU 開航</b>(船公司寫 23:00,請以船公司當週公告為準)</span>
+      </div>
+    </div>
+    <div class="callout warn">
+      <strong>⚠ 重要提醒</strong>
+      <ul style="margin:6px 0 0 0;">
+        <li>Check-in <b>21:30 截止</b>(不是 22:00)。若 21:30 後才到,櫃檯會關,等同放棄。</li>
+        <li>船上 <b>不提供免費飲水 / 餐食</b>(YAIMARU 是客艙船非郵輪)。</li>
+        <li>7/16 是周四不是連假,但暑假旺季 → <b>Check-in 排隊 30-60 分鐘都可能</b>。</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===================== ① 置物櫃 ===================== -->
+  <section id="storage">
+    <h2><span class="num">①</span> 置物櫃選擇 · 2 個站櫃都可用</h2>
+    <p><b>收多易</b>(storeasy)在基隆火車站內有<b>兩個站內櫃</b>,都在月台上/出站口附近,免走出來。</p>
+
+    <table>
+      <thead><tr><th>站櫃</th><th>位置</th><th>適合場景</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>基隆<b style="color:var(--accent-green);">北站</b>櫃 ⭐</b></td>
+          <td>基隆火車站內<br>(靠近港西二登船區)</td>
+          <td>搭 <b>台馬輪 / 麗星郵輪</b>(探索星號 / 領航星號)</td>
+          <td>步行即可抵達港西碼頭。官網寫「搭船旅客最便利的行李寄放選擇」。</td>
+        </tr>
+        <tr>
+          <td><b>基隆<b style="color:var(--accent-green);">南站</b>櫃 ⭐</b></td>
+          <td>基隆火車站內<br>(靠近市區出口)</td>
+          <td><b>7/16 推薦</b> — 廟口夜市、海洋廣場、文化中心</td>
+          <td>「漫步廟口夜市、海洋廣場、或文化中心,都輕鬆寄存」。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="two-col">
+      <div class="col">
+        <h4>📞 聯絡與營運</h4>
+        <ul style="list-style:none;padding:0;">
+          <li>👤 客服:<b>0800-458-075</b></li>
+          <li>📧 Email:<code>service@storeasy.com.tw</code></li>
+          <li>🏢 總部:台北市大安區信義路三段 153 號 7 樓</li>
+          <li>🌐 網站:<a href="https://www.storeasy.com.tw/" style="color:var(--accent);">storeasy.com.tw</a></li>
+          <li>📱 App 預約:<b>收多易 App</b>(支援 iOS / Android)</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4>💳 操作與付款</h4>
+        <ul style="list-style:none;padding:0;">
+          <li>✅ App 自助操作:<b>即租即用,免排隊</b></li>
+          <li>✅ 多元支付(信用卡 / LINE Pay / 街口)</li>
+          <li>✅ 全台 60 家據點,業界唯一全面保險</li>
+          <li>⏰ 短暫寄物為主(小時計費),常見方案含日租</li>
+          <li>🔐 智能電子倉,自助密碼取件</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <strong>💡 7/16 建議流程</strong>
+      <p>17:00 抵達火車站 → 出站前用手機 <b>下載「收多易 App」</b>(現場裝也很快) → 選 <b>基隆南站櫃</b>(你走的動線靠市區出口)→ 用信用卡完成預約 → 至櫃位完成寄物。整個流程 <b>5-10 分鐘</b>。</p>
+      <p style="margin-top:6px;">⚠ 注意:網頁未公開具體價格;<b>實際費率</b>請看 App 內顯示。本處整理價格需以官方 App 為準。</p>
+    </div>
+
+    <div class="callout warn">
+      <strong>⚠ 替代方案</strong>
+      <p>若收多易 App 滿了或無法操作:<b>基隆火車站附近還有旅遊服務中心櫃台</b>(港邊),可現場問;<b>7-11 便利商店</b>(部分門市有置物櫃,離火車站走路 5-10 分)。</p>
+    </div>
+  </section>
+
+  <!-- ===================== ② 廟口夜市攻略 ===================== -->
+  <section id="night-mkt">
+    <h2><span class="num">②</span> 廟口夜市攻略</h2>
+    <p>基隆廟口夜市是全台最知名夜市之一,<b>離基隆火車站走路 5-8 分鐘</b>。但<b>傍晚就到</b>的好處:<b>不用排隊</b>(夜市 19:00 後大爆滿)。</p>
+
+    <h3>📍 經典 8-12 攤 · 越夜越多人</h3>
+    <table>
+      <thead><tr><th>攤位</th><th>主推</th><th>排隊長度<br>(17-19 點)</th><th>船上打包</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>三明治 (明明) 豆干包</b></td>
+          <td>大腸包小腸、烤肉串</td>
+          <td>🟢 0</td>
+          <td>❌ 現吃</td>
+        </tr>
+        <tr>
+          <td><b>天婦羅 (石)</b></td>
+          <td>炸天婦羅</td>
+          <td>🟢 0</td>
+          <td>⚠ 冷掉仍可吃</td>
+        </tr>
+        <tr>
+          <td><b>營養三明治</b></td>
+          <td>三明治炸物</td>
+          <td>🟡 中</td>
+          <td>❌ 冷掉不酥</td>
+        </tr>
+        <tr>
+          <td><b>一口吃香腸</b></td>
+          <td>迷你香腸</td>
+          <td>🟢 0</td>
+          <td>✅ <b>船上冷食首選</b></td>
+        </tr>
+        <tr>
+          <td><b>米粉湯 / 鹹粥</b></td>
+          <td>湯類主食</td>
+          <td>🟡 中</td>
+          <td>❌ 湯不打包</td>
+        </tr>
+        <tr>
+          <td><b>鼎邊銼</b></td>
+          <td>湯類主食</td>
+          <td>🟡 中</td>
+          <td>❌ 湯不打包</td>
+        </tr>
+        <tr>
+          <td><b>炭烤三明治</b></td>
+          <td>炭烤厚片</td>
+          <td>🟢 0</td>
+          <td>⚠ OK</td>
+        </tr>
+        <tr>
+          <td><b>泡泡冰 (陳)</b></td>
+          <td>古早味冰品</td>
+          <td>🟡 中</td>
+          <td>✅ <b>可裝保冷袋</b></td>
+        </tr>
+        <tr>
+          <td><b>甜湯 / 豆花</b></td>
+          <td>飯後甜點</td>
+          <td>🟢 0</td>
+          <td>⚠ 帶保冷袋可撐 3-4 小時</td>
+        </tr>
+        <tr>
+          <td><b>排骨飯 / 雞排</b></td>
+          <td>份量主食</td>
+          <td>🟢 0</td>
+          <td>❌ 現場吃為主</td>
+        </tr>
+        <tr>
+          <td><b>烤魷魚 / 烤玉米</b></td>
+          <td>海鮮炭烤</td>
+          <td>🟡 中</td>
+          <td>✅ <b>船上冷食推薦</b></td>
+        </tr>
+        <tr>
+          <td><b>滷味 / 黑白切</b></td>
+          <td>滷味拼盤</td>
+          <td>🟢 0</td>
+          <td>✅ <b>船上當宵夜首選</b></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <strong>🎯 17:00 抵達 → 20:00 離開 · 推薦順序</strong>
+      <ol style="padding-left:22px;margin:6px 0;">
+        <li><b>17:30 入口先吃現做</b>(排骨飯 / 鹹粥 / 鼎邊銼)— 先填飽,3 家輪流吃</li>
+        <li><b>18:30 主打包外帶</b>(一口吃香腸 ×2-3 份、烤魷魚、滷味拼盤)— 用塑膠袋裝好</li>
+        <li><b>19:00 補飲品 + 甜點</b>(3-4 罐裝飲料 + 1-2 杯泡泡冰 保冷袋裝)</li>
+        <li><b>19:30 收工</b>— 回火車站取行李(走路 5 分)</li>
+      </ol>
+    </div>
+
+    <div class="callout warn">
+      <strong>⚠ 7/16 是周四,不是旺季最高峰</strong>
+      <p>廟口夜市<b>幾乎每天都開</b>(部分店家週三公休但大多開)。7/16 (四) 學生放假但仍在上班日 → 預期 <b>17-19 點人少,20 點後才開始排隊</b>。趕在 19:30 收工最完美。</p>
+    </div>
+  </section>
+
+  <!-- ===================== ③ 船上吃食準備 ===================== -->
+  <section id="food-buy">
+    <h2><span class="num">③</span> 船上吃食準備清單</h2>
+    <p>YAIMARU 是<b>客艙船</b>(非郵輪),<b>不提供免費餐飲 / 飲水</b>。<b>23:00 出發 → 隔天 08:00 JST 到</b>,中間 ~9 小時。</p>
+
+    <h3>🍱 必帶 8 大類 · 用塑膠袋分類打包</h3>
+    <table>
+      <thead><tr><th>類別</th><th>具體</th><th>份量 / 來源</th><th>船上吃法</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>① 主食</b></td>
+          <td>鹹粥 / 三明治 / 飯糰</td>
+          <td>2-3 份(基隆廟口買)<br>或便利商店飯糰 / 御飯糰</td>
+          <td>當宵夜(23:30)· 隔天早餐(06:00 JST)</td>
+        </tr>
+        <tr>
+          <td><b>② 蛋白質</b></td>
+          <td>滷味拼盤 / 一口吃香腸<br>/ 茶葉蛋 / 肉乾</td>
+          <td>廟口打包<br>或超商買蛋 + 肉乾</td>
+          <td>當宵夜 · 配飯糰 · <b>推薦:茶葉蛋最耐久</b></td>
+        </tr>
+        <tr>
+          <td><b>③ 點心</b></td>
+          <td>餅乾 · 小包零食 · 巧克力</td>
+          <td>超商 / 7-11 一站搞定</td>
+          <td>過夜 · 提神 · <b>推薦:巧克力防暈船</b></td>
+        </tr>
+        <tr>
+          <td><b>④ 水果</b></td>
+          <td>蘋果 / 香蕉 / 小番茄</td>
+          <td>廟口旁水果攤<br>或超商</td>
+          <td>過夜 · 補維他命</td>
+        </tr>
+        <tr>
+          <td><b>⑤ 甜點</b></td>
+          <td>豆花 / 泡泡冰 / 布丁</td>
+          <td>廟口 / 超商布丁</td>
+          <td>宵夜 · 冷食推薦</td>
+        </tr>
+        <tr>
+          <td><b>⑥ 罐裝飲料</b></td>
+          <td>茶 / 運動飲料 / 啤酒<br>罐裝 <b>3-4 罐</b></td>
+          <td>超商(廟口旁有 7-11 / 全家)</td>
+          <td>船上唯一冷飲<br>也可買船上賣的(貴 2-3 倍)</td>
+        </tr>
+        <tr>
+          <td><b>⑦ 醫藥保健</b></td>
+          <td><b>暈船藥</b>(提前 30 分鐘吃)<br>口含薑片 / 喉糖</td>
+          <td>超商有 EVE、薑糖</td>
+          <td>23:00 前先吃暈船藥<br>(搖晃程度中等)</td>
+        </tr>
+        <tr>
+          <td><b>⑧ 突發用</b></td>
+          <td>杯麵 / 湯包 / 蘇打餅<br>(預備)</td>
+          <td>超商備用</td>
+          <td>若船公司餐車沒開或你不想動時用</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>⚠ 船上特別注意</strong>
+      <ul style="margin:6px 0 0 0;">
+        <li><b>船上無冰箱</b>:海風 + 冷藏箱不夠冷 → 僅冷食 <b>4 小時內</b> 吃完,生食/乳製品不打包</li>
+        <li><b>船上會晃</b>:碗裝食物容易打翻 → 預先分裝到塑膠袋、保鮮盒</li>
+        <li><b>船上有人會吐</b>:暈船味超強 → 自備<b>密封塑膠袋 5-8 個</b>當嘔吐袋(含垃圾分類)</li>
+        <li><b>船上無熱水</b>:想喝熱湯 → 帶杯麵,但船上無熱水壺可沖 → 帶保溫瓶裝熱開水先</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===================== ④ 飲水方案 ===================== -->
+  <section id="drink">
+    <h2><span class="num">④</span> 飲水方案 · 無 free 飲水</h2>
+    <p>YAIMARU <b>不提供免費飲水</b>(部分船型有付費茶水機 ~¥100/杯)。最實惠方案:</p>
+
+    <table>
+      <thead><tr><th>方案</th><th>做法</th><th>成本</th><th>推薦度</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>🥇 <b>自帶保溫瓶 + 茶水間裝</b></td>
+          <td>基隆火車站超商 / 廟口旁補水站裝滿<br>帶 600-1000ml 不鏽鋼保溫瓶</td>
+          <td>¥0</td>
+          <td>⭐⭐⭐⭐⭐</td>
+        </tr>
+        <tr>
+          <td>🥈 <b>超商大瓶水 / 6 罐裝飲料</b></td>
+          <td>7-11 / 全家買 1.5L 礦泉水 或 6 入飲料</td>
+          <td>¥30-80</td>
+          <td>⭐⭐⭐⭐</td>
+        </tr>
+        <tr>
+          <td>🥉 <b>船上付費茶水</b></td>
+          <td>部分船有茶水機 (¥100/杯左右)</td>
+          <td>¥100 × 2 杯</td>
+          <td>⭐⭐</td>
+        </tr>
+        <tr>
+          <td>❌ <b>靠船上餐車飲料</b></td>
+          <td>罐裝可樂 ~¥250 / 啤酒 ~¥350 (漲 3 倍)</td>
+          <td>貴 3 倍</td>
+          <td>備用 · 不推薦主力</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <strong>💡 出發前 30 分鐘裝水 SOP</strong>
+      <p>基隆火車站 B1 / 月台都有飲水機(免費)。<b>17:00 寄完行李就先去裝滿</b>,隔天早上還有冷 / 熱水可喝。保溫瓶帶 1 個就夠。</p>
+    </div>
+  </section>
+
+  <!-- ===================== ⑤ 動線地圖 ===================== -->
+  <section id="route">
+    <h2><span class="num">⑤</span> 動線地圖 · 3 點步行</h2>
+    <p>全程<b>走路</b>不需計程車,基隆市區很小:</p>
+    <div class="svg-wrap"></div>
+    <pre style="background:var(--bg-code);padding:16px;border-radius:8px;border:1px solid var(--border);font-size:0.75rem;">
+📍 動線地圖(從基隆火車站出發)
+
+17:00  基隆火車站(月台層)
+         │ 出站往左邊出口(仁愛區)
+         │ 旁邊就是收多易快存櫃
+         ↓ 寄行李 5 分鐘
+17:25   火車站出口 → 海洋廣場
+         │ 直走 200m,看基隆港夕陽
+         │ 走到東岸旅運中心先認識路
+         ↓ 慢慢走 5 分鐘
+17:40   海洋廣場
+         │ 看郵輪/貨櫃船,免費,2-3 個拍照點
+         ↓ 走到基隆廟口 10-15 分鐘
+18:00   基隆廟口夜市(仁愛區奠濟宮)
+         │ 大概逛 90 分鐘
+         ↓ 走回火車站 5-8 分鐘
+19:30   回基隆火車站取行李
+         ↓ 走到東岸旅運中心 8 分鐘
+20:00   東岸旅運中心 Check-in
+         │ (或更早到都行,等 21:30 截止)
+         ↓
+23:00   YAIMARU 開航 → 石垣
+    </pre>
+
+    <div class="two-col">
+      <div class="col">
+        <h4>📍 基隆火車站</h4>
+        <p style="color:var(--text-secondary);font-size:0.78rem;margin-bottom:4px;">地址:基隆市仁愛區港西街 5 號</p>
+        <p style="color:var(--text-secondary);font-size:0.78rem;">出口:左邊(南出口)→ 廟口 / 海洋廣場方向</p>
+      </div>
+      <div class="col">
+        <h4>🚢 東岸旅運中心</h4>
+        <p style="color:var(--text-secondary);font-size:0.78rem;margin-bottom:4px;">地址:基隆市中正區中正路 1 號 1F</p>
+        <p style="color:var(--text-secondary);font-size:0.78rem;">從火車站出來右轉走中正路,8 分鐘到</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== ⑥ Check-in SOP ===================== -->
+  <section id="checkin">
+    <h2><span class="num">⑥</span> 21:30 Check-in SOP · 必帶 4 件</h2>
+    <p>YAIMARU Check-in <b>20:00 開 / 21:30 截止</b>,忘帶一件可能當場被擋:</p>
+
+    <table>
+      <thead><tr><th>#</th><th>必帶</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>①</td>
+          <td><b>護照</b></td>
+          <td>入境日本用 (離開日本前有效,需 6 個月以上效期)</td>
+        </tr>
+        <tr>
+          <td>②</td>
+          <td><b>台灣身分證</b></td>
+          <td>雙重證件核對</td>
+        </tr>
+        <tr>
+          <td>③</td>
+          <td><b>訂位代號 <code>F2026070300006</code></b></td>
+          <td>YAIMARU 訂船確認信件 / 列印或手機截圖皆可</td>
+        </tr>
+        <tr>
+          <td>④</td>
+          <td><b>20 吋登船箱 + 隨身行李</td>
+          <td>Check-in 時船公司會 <b>收行李</b>,統一送上船,下船在石垣港領<br>(跟飛機託運一樣概念)</td>
+        </tr>
+        <tr>
+          <td>⑤</td>
+          <td><b>手機充電線</b></td>
+          <td>船上插座少,先充滿電 <b>85%+ 出門</b></td>
+        </tr>
+        <tr>
+          <td>⑥</td>
+          <td><b>暈船藥</b>(事前 30 分吃)</td>
+          <td>基隆超商可買(EVE 等)</td>
+        </tr>
+        <tr>
+          <td>⑦</td>
+          <td><b>保溫瓶水</b></td>
+          <td>Check-in 過了再去茶水間裝滿</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>⚠ 提前 30 分鐘到的理由</strong>
+      <p>7/16 是暑假旺季,<b>Check-in 排隊 30-60 分鐘正常</b>。建議 <b>20:30-21:00 抵達</b>,21:30 前一定完成所有 Check-in 程序(含行李託運、證件查驗、入境表填寫)。</p>
+    </div>
+  </section>
+
+  <!-- ===================== 預算速估 ===================== -->
+  <section id="money">
+    <h2><span class="num">💰</span> 預算速估</h2>
+    <table>
+      <thead><tr><th>項目</th><th>預估</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr><td>🗄️ 置物櫃</td><td><b>¥60-150</b></td><td>收多易快存櫃 / 短時計費</td></tr>
+        <tr><td>🍜 廟口晚餐</td><td><b>¥300-500</b></td><td>2-3 家輪吃,鎖小型攤</td></tr>
+        <tr><td>🍱 船上食物打包</td><td><b>¥300-600</b></td><td>滷味 + 香腸 + 飯糰 + 飲料 + 點心</td></tr>
+        <tr><td>💧 水 / 飲料 6 罐</td><td><b>¥100-200</b></td><td>1.5L 礦泉水 + 罐裝飲料</td></tr>
+        <tr><td>🛟 暈船藥 + 薑糖</td><td><b>¥100-200</b></td><td>EVE + 薑糖 (超商)</td></tr>
+        <tr><td>🚃 計程車備用</td><td><b>¥0</b></td><td>預備金 - 你應該用不上</td></tr>
+        <tr style="border-top:2px solid var(--accent);"><td><b>預估總計</b></td><td colspan="2" style="color:var(--accent);"><b>¥860-1,650 (約 NT$900-1,700)</b></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ===================== 來源彙整 ===================== -->
+  <section id="source">
+    <h2><span class="num">📚</span> 來源彙整</h2>
+    <table>
+      <thead><tr><th>來源類別</th><th>詳細</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge green">✓ 主源</span></td><td>收多易官網 <a href="https://www.storeasy.com.tw/product-tag/基隆火車站置物櫃" style="color:var(--accent);">storeasy.com.tw 基隆火車站置物櫃 tag</a> · 2025-02-17 北站櫃公告 + 2024-11-13 南站櫃公告</td></tr>
+        <tr><td><span class="badge green">✓ 主源</span></td><td>收多易 App 自助預約 + 0800-458-075 (客服) + service@storeasy.com.tw</td></tr>
+        <tr><td><span class="badge green">✓ 主源</span></td><td>YAIMARU 訂船確認信(代號 <code>F2026070300006</code>) · Check-in 規定 20:00-21:30</td></tr>
+        <tr><td><span class="badge orange">⚠ 二次驗證</span></td><td>基隆廟口夜市店家 → 公開資料(基隆市府觀光網站可查)</td></tr>
+        <tr><td><span class="badge orange">⚠ 限 UI 推導</span></td><td>收多易具體短時費率(網站未公開)→ 請以 App 內顯示為準,本頁不假裝數字</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>📌 整理原則聲明</strong>
+      <p>本頁價格除<b>廟口夜市餐點</b>與<b>船上必帶清單</b>外,其餘收多易具體費率請查官方 App 為準。若與船公司 / 收多易 / 廟口夜市公告不同 → 以<b>實際抵達現場資訊</b>為準。</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · 7/16 基隆半日遊 · 置物 + 廟口 + 船上吃食準備</p>
+    <p style="margin-top:4px;">整理日 2026-07-13 · 字級調整器在右上角,可隨時改變字體大小</p>
+    <p style="margin-top:4px;">
+      <a href="index.html">← 回到 JustKM 石垣島首頁</a> ·
+      <a href="itinerary.html">主行程</a> ·
+      <a href="prep-packing.html">攜帶物檢查</a>
+    </p>
+  </div>
+
+</div>
+
+<script>
+  // 字級調整器 (與 JustKM 其他頁面同步)
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1;
+    const MIN = 0.7;
+    const MAX = 1.6;
+    const DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+
+    let saved = DEFAULT;
+    try {
+      const v = localStorage.getItem(KEY);
+      if (v) saved = parseFloat(v) || DEFAULT;
+    } catch(e) {}
+    apply(saved);
+
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) {
+        e.preventDefault();
+        const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+        apply(cur + STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '-') {
+        e.preventDefault();
+        const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+        apply(cur - STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '0') {
+        e.preventDefault();
+        apply(DEFAULT);
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>
