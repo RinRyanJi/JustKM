@@ -45,6 +45,7 @@ tr:hover td { background: var(--bg-soft); }
 .callout { padding: 14px 16px; border-radius: 12px; background: #fffbeb; border-left: 3px solid var(--warn); margin: 14px 0; font-size: 13px; }
 .callout.purple { background: #f3f0ff; border-left-color: var(--primary); }
 .callout.green { background: #e8faf3; border-left-color: var(--up); }
+.callout.down { background: #fef2f2; border-left-color: var(--down); }
 .callout strong { display: block; margin-bottom: 4px; }
 .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; margin-right: 4px; vertical-align: middle; }
 .tag.green { background: rgba(14,203,129,0.15); color: var(--up); }
@@ -147,6 +148,7 @@ tr:hover td { background: var(--bg-soft); }
       <a href="#resort">🏨 度假村/住宿相關 (4)</a>
       <a href="#network">📡 網絡推薦未驗證清單</a>
       <a href="#methodology">🔍 調查方法學</a>
+      <a href="#review-analysis">⚖ 評論雙面分析</a>
     </div>
   </nav>
 
@@ -1117,9 +1119,120 @@ tr:hover td { background: var(--bg-soft); }
     </ol>
   </section>
 
+  <!-- ========================== §8 評論雙面分析 ========================== -->
+  <section id="review-analysis">
+    <div class="sec-head">
+      <div class="sec-num" style="background:var(--down);color:#fff;">⚖</div>
+      <div>
+        <div class="sec-title">⚖ 評論雙面分析 · 好評與壞評都要查</div>
+        <div class="sec-meta">2026-07-13 用戶新原則:查評論不只看「為什麼推薦」,更要查「為什麼後悔」</div>
+      </div>
+    </div>
+
+    <div class="callout down" style="margin:14px 0;padding:12px 16px;font-size:12.5px;border-left-color:var(--down);">
+      <b>🎯 為什麼要查壞評?</b><br>
+      - 好評只告訴你「這裡好棒」,但你已經被推薦去看 → 確認偏誤<br>
+      - 壞評告訴你「這裡踩了什麼雷」→ 提前避雷(團客多到爆 / 颱風後珊瑚死亡 / 交通不便 / 業者不老實)<br>
+      - 旅遊書 + Tripadvisor 的評論分布嚴重偏正向(誰寫負評要花更多力氣)<br>
+      - <b>不查壞評 = 帶著「別人的蜜糖是你的地雷」的風險出門</b>
+    </div>
+
+    <h3>📊 重點景點 · 評論雙面分析(典型主題)</h3>
+    <p style="font-size:12px;color:var(--muted);margin-top:4px;">⚠ 來源說明:以下評論主題整理自公開旅遊社群的<b>典型意見</b>(非實際單則評論摘錄),用於「避雷預警」,<b>非實證統計</b>。實際評論數 / 最新評論時間仍需登入 Maps 驗證。</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:18%;">景點</th>
+          <th style="width:38%;">⭐ 常見好評主題</th>
+          <th style="width:38%;">⚠ 常見壞評主題(避雷重點)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="b">川平灣</td>
+          <td>透明海水顏色分層、米其林三星、玻璃船看黑珍珠養殖、不下水也美</td>
+          <td>❌ <b>不能下水游泳</b>(保護海域)<br>❌ 玻璃船 <b>颱風後海況差會停駛</b><br>❌ 上午逆光,下午順光拍照較好<br>❌ 團客多,停車場易滿</td>
+        </tr>
+        <tr>
+          <td class="b">玉取崎展望台</td>
+          <td>360° 視野看整個石垣東北部、免費、人少</td>
+          <td>❌ <b>風超大</b>(展望台無遮蔽),帽子會飛<br>❌ 沒廁所 / 沒商店<br>❌ 蚊蟲多(尤其黃昏)</td>
+        </tr>
+        <tr>
+          <td class="b">石垣島鍾乳洞</td>
+          <td>30 萬年形成、洞內涼、夏季躲太陽</td>
+          <td>❌ <b>爬階梯多(體力差者不宜)</b><br>❌ 出口禮品店推銷<br>❌ 旺季人潮排隊</td>
+        </tr>
+        <tr>
+          <td class="b">米原海岸</td>
+          <td>野生海龜出沒率高、免費、沙灘乾淨</td>
+          <td>❌ <b>潮汐時間不對就看不到海龜</b><br>❌ 沒有救生員<br>❌ 7 月颱風季海流變化大</td>
+        </tr>
+        <tr>
+          <td class="b">仲間川紅樹林遊覽船</td>
+          <td>導覽生態豐富、可看到水筆仔、輕鬆</td>
+          <td>❌ <b>船程顛簸(易暈)</b><br>❌ 旺季船班擠,需預約<br>❌ <b>水位低/退潮時行程縮短</b></td>
+        </tr>
+        <tr>
+          <td class="b">由布島水牛車</td>
+          <td>悠閒渡輪 + 水牛車、徐徐海風、適合長輩小孩</td>
+          <td>❌ <b>夏季中午牛車太熱</b>(建議早上)<br>❌ 水牛車單程約 20 分鐘,小孩可能無聊<br>❌ <b>業者強制購物風險</b>(水牛車上會推銷)</td>
+        </tr>
+        <tr>
+          <td class="b">竹富島</td>
+          <td>傳統琉球聚落、紅瓦屋、星砂、沙地水牛車</td>
+          <td>❌ <b>租腳踏車品質差</b>(石子路顛簸)<br>❌ <b>7 月午後雷陣雨機率高</b><br>❌ 餐廳選擇少且貴<br>❌ 星砂海岸:<b>不要撿走星砂(保育)</b></td>
+        </tr>
+        <tr>
+          <td class="b">西表叢林</td>
+          <td>原始林、神秘、自駕或導覽團</td>
+          <td>❌ <b>需導覽+租車</b>(公共交通極少)<br>❌ 毒蛇 / 蚊蟲 / 山豬<br>❌ 雨天泥濘危險<br>❌ <b>颱風後道路坍方風險</b></td>
+        </tr>
+        <tr>
+          <td class="b">石垣島 Yaima Village(民俗園)</td>
+          <td>紅型染布、琉服體驗、三線琴、水牛</td>
+          <td>❌ <b>門票偏貴</b>(¥1,500+)<br>❌ 偏觀光化,深度玩家覺得人工<br>❌ 套裝行程含午餐品質不一</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>🔍 怎麼查壞評?(實戰 SOP)</h3>
+    <ol style="margin-left:20px;line-height:1.85;font-size:13px;">
+      <li><b>Maps 排序:</b> 進入 POI 詳細頁 → 點「評論」tab → 排序改「最低評分優先」 → 從 1★ 看起</li>
+      <li><b>Tripadvisor:</b> 搜「景點名 + negative review」或篩選 1-2 顆星</li>
+      <li><b>中文社群:</b> PTT <code>Japan_Travel</code> / <code>TaichungBun</code> / <code>Kaohsiung</code> / Dcard 旅遊板搜「石垣島 雷」/「西表島 後悔」</li>
+      <li><b>關鍵字搜:</b> 「景點名 + 後悔 / 不推 / 雷 / 不值得 / 失望 / 危險」</li>
+      <li><b>看評論時間:</b> 1-2 年前的評論 vs 最新評論 → 業者態度、衛生、價格是否變差</li>
+      <li><b>中文以外:</b> 看日文評論(沖繩旅客常給更尖銳的批評)→ 用 Maps 切換語言</li>
+    </ol>
+
+    <div class="callout" style="margin:14px 0;padding:12px 16px;font-size:12px;">
+      <b>📌 我的限制(誠實)</b><br>
+      - 本頁面 §8 的「常見壞評主題」是<b>公開社群常見意見</b>的整理,而非實抓 Maps 評論數據<br>
+      - 真實評論數 / 最新評論時間仍需你登入 Chrome 親自查<br>
+      - 若某景點我無法列出常見壞評主題,代表我<b>資訊不足</b>,不是「沒有壞評」<br>
+      - 想確認:查 Maps 評論區的「最低評分」5 則 + 最新 3 則,就能抓到 80% 的雷點
+    </div>
+
+    <h3>📋 待你驗證的評論</h3>
+    <table>
+      <thead>
+        <tr><th>景點</th><th>Maps 連結</th><th>重點查核</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>川平灣</td><td><a class="bm" href="https://www.google.com/maps/search/%E5%B7%9D%E5%B9%B3%E7%81%98+%E7%9F%B3%E5%9E%83%E5%B3%B6" target="_blank" rel="noopener">Maps 搜</a></td><td>玻璃船停駛公告 + 颱風後評論</td></tr>
+        <tr><td>由布島水牛車</td><td><a class="bm" href="https://www.google.com/maps/search/%E7%94%B1%E5%B8%83%E5%B3%B6+%E6%B0%B4%E7%89%9B%E8%BB%8A+%E8%A5%BF%E8%A1%A8" target="_blank" rel="noopener">Maps 搜</a></td><td>業者購物推銷 + 牛隻狀況</td></tr>
+        <tr><td>竹富島租腳踏車</td><td><a class="bm" href="https://www.google.com/maps/search/%E7%AB%B9%E5%AF%8C%E5%B3%B6+%E8%84%9A%E8%B8%8F%E8%BB%8A" target="_blank" rel="noopener">Maps 搜</a></td><td>車況 + 兒童座椅 + 石子路危險</td></tr>
+        <tr><td>仲間川紅樹林</td><td><a class="bm" href="https://www.google.com/maps/search/%E9%96%93%E5%90%88%E5%B7%9D+%E8%A5%BF%E8%A1%A8" target="_blank" rel="noopener">Maps 搜</a></td><td>暈船程度 + 預約狀況 + 雨季行程變動</td></tr>
+        <tr><td>石垣鍾乳洞</td><td><a class="bm" href="https://www.google.com/maps/search/%E7%9F%B3%E5%9E%83%E5%B3%B6+%E9%8D%BE%E4%B9%B3%E6%B4%9E" target="_blank" rel="noopener">Maps 搜</a></td><td>階梯數 + 長者適不適合 + 票價</td></tr>
+      </tbody>
+    </table>
+  </section>
+
   <div class="footer">
     <p>JustKM · 石垣/西表/竹富 景點資料庫 · Google Maps 主源版本</p>
-    <p style="margin-top:4px;">整理日 2026-07-13 · v1 · 47 個景點 · 8 個待驗證</p>
+    <p style="margin-top:4px;">整理日 2026-07-13 · v2 · 47 個景點 · 8 個待驗證 · §8 評論雙面分析</p>
     <p style="margin-top:4px;">
       <a href="index.html">← JustKM 石垣島首頁</a> ·
       <a href="itinerary.html">行程軸 →</a> ·
