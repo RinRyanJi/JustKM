@@ -219,6 +219,90 @@
     </div>
   </section>
 
+  <!-- ==================== §01A 大原港周邊餐飲 · 7/13 Playwright 驗證版 ==================== -->
+  <section class="section" id="ohara">
+    <div class="sec-head">
+      <span class="num">§ 01A</span>
+      <h2>大原港周邊餐飲 · 7/13 Playwright 驗證版</h2>
+      <span class="tag">7/13 VERIFIED</span>
+    </div>
+
+    <div class="callout">
+      <b>📍 為什麼要新加這章?</b>
+      <p>使用者 2026-07-13 提問「從石垣港 → 大原港的船到港後,有餐廳或飲食販賣嗎?」,助手跑 Playwright 抓 Maps POI + 地址 + 營業時間,只把「Maps 真實存在 + 地址位於 Haemi 201-XX(大原港步行 5 分內)」的 3 家收進來,排除 Maps 自動「附近」糾正的假資料(如 Ichitaka 實在上原)。</p>
+    </div>
+
+    <h3 style="font-size:1.0625rem;margin:24px 0 8px;">🟢 已驗證 3 家 · 大原港區域(7/13 Maps POI 抓取)</h3>
+    <table>
+      <thead><tr><th>店名 · 評分</th><th>類型</th><th>地址</th><th>Maps · 距離</th><th>Maps 抓取資料 / 7/13 快照</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>泡波と島の味 はてるま</b> ⭐ 4.8</td>
+          <td>餐廳 / 居酒屋</td>
+          <td>Haemi 201-73</td>
+          <td><a href="https://www.google.com/maps/search/%E6%B3%A1%E6%B3%A2%E3%81%A8%E5%B3%B6%E3%81%AE%E5%91%B3+%E3%81%AF%E3%81%A6%E3%82%8B%E3%81%BE" target="_blank">Maps</a> · ~280 m</td>
+          <td>7/13 Maps 顯示「週二 19:00 開始 · 打烊 23:00」· Tel +81 980-85-5623 · autoreserve 預約 · Plus Code 7VCJ+Q8 · <b>Maps:不提供無障礙入口</b></td>
+        </tr>
+        <tr>
+          <td><b>Kitchen Matsuyama</b> ⭐ 4.2<br>(キッチンまつやま)</td>
+          <td>餐廳</td>
+          <td>Haemi 201-140</td>
+          <td><a href="https://www.google.com/maps/search/Kitchen+Matsuyama+%E8%A5%BF%E8%A1%A8" target="_blank">Maps</a> · ~150 m</td>
+          <td>7/13 Maps 顯示「週三 10:30 開始」· Tel +81 90-6858-4491 · Plus Code 7VCJ+C9 · <b>Maps:不提供無障礙入口</b></td>
+        </tr>
+        <tr>
+          <td><b>南の島のテイクアウト食堂 あい</b> ⭐ 4.6</td>
+          <td>外帶食堂<br>(大富共同売店內)</td>
+          <td>Haemi 29-52<br>(大富共同賣店內)</td>
+          <td><a href="https://www.google.com/maps/search/%E5%8D%97%E3%81%AE%E5%B3%B6%E3%81%AE%E3%83%86%E3%82%A4%E3%82%AF%E3%82%A2%E3%82%A6%E3%83%88%E9%A3%9F%E5%A1%BE+%E3%81%82%E3%81%84" target="_blank">Maps</a> · ~600 m</td>
+          <td>7/13 Maps「新增地點的電話號碼 / 新增營業時間」=<b>無電話 / 無營業登記</b> · Plus Code 7VMJ+5F · 餐廳型 = 焼き立てピザ / ハンバーガー弁当 / みや豚しょうが焼き弁当</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <b>⚠ 沒有電子 menu(已驗證)</b>
+      <p>三家 Maps 都顯示「新增網站 / 新增相片」按鈕 = <b>商家完全沒上傳線上資料</b>。已試 Tabulog / Hot Pepper / ぐるなび / Instagram,結論:<b>沒有公開電子 menu</b>。建議 7/17 到港直接進店看板,或前一晚打電話(+81 980-82-5279[離島ターミナル店]之類)。</p>
+    </div>
+
+    <h3 style="font-size:1.0625rem;margin:24px 0 8px;">📡 Maps 即時狀況(7/13 日 14:00 Playwright 抓取)</h3>
+    <table>
+      <thead><tr><th>店名</th><th>營業(7/13 抓的「下週」開始)</th><th>評分 / 評論數</th><th>Maps 標籤</th></tr></thead>
+      <tbody>
+        <tr><td>泡波と島の味 はてるま</td><td>週二 19:00 開始 · 打烊 23:00</td><td>⭐ 4.8</td><td>不提供無障礙入口</td></tr>
+        <tr><td>Kitchen Matsuyama</td><td>週三 10:30 開始</td><td>⭐ 4.2</td><td>不提供無障礙入口</td></tr>
+        <tr><td>南の島のテイクアウト食堂 あい</td><td>未登記</td><td>⭐ 4.6</td><td>位於大富共同売店內</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:1.0625rem;margin:24px 0 8px;">🔴 Maps 自動糾正 / 不存在的(已被排除)</h3>
+    <table>
+      <thead><tr><th>原本 Maps 給的店名</th><th>驗證結果</th></tr></thead>
+      <tbody>
+        <tr><td><b>Ichitaka(一隼)</b></td><td>Maps 自動糾正後,實位於 Uehara 上原 10-720,非大原港。<b>7/17 別去吃 — 那是上原的店</b>。</td></tr>
+        <tr><td><b>Azahaemi</b></td><td><span class="tag-r">不存在</span>。Maps「找不到」</td></tr>
+        <tr><td><b>Hanba</b></td><td><span class="tag-r">不存在</span>。Maps「找不到」</td></tr>
+        <tr><td><b>居酒屋 猪狩家(かまいとぅやー)</b></td><td><span class="tag-r">不存在</span>。Maps「找不到」(八重山方言寫法不在 Maps POI)</td></tr>
+        <tr><td><b>HANG</b></td><td><span class="tag-r">未驗</span>。Maps 抓首頁時評分 5.0,但未進入店家頁面驗證,需親查。</td></tr>
+        <tr><td><b>西表の少年 / Laugh La Garden / う島や亭</b></td><td><span class="tag-r">未驗</span>。Maps 搜尋結果中曾出現,但本次 7/13 未獨立驗證;う島や亭 在 §01 已收。</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout ok">
+      <b>📍 大原港 → う島や(Adventure Hostel) = 4 分鐘步行 · 300 公尺</b>
+      <p>Maps dir 路線已驗證。同一條 Haemi 201-XX 街(201-73 泡波 → 201-140 Kitchen → 201-146 う島や)。</p>
+      <p style="margin-top:8px;"><a href="https://www.google.com/maps/dir/?api=1&origin=%E5%85%AB%E9%87%8D%E5%B1%B1%E8%A6%B3%E5%85%89%E6%B8%A1%E8%BD%AE+%E8%A5%BF%E8%A1%A8%E5%B3%B6&destination=Adventure+Hostel+%E3%81%86%E5%B3%B6%E3%82%84" target="_blank">📐 Maps 路線:八重山觀光渡輪 → Adventure Hostel う島や</a></p>
+    </div>
+
+    <div class="callout">
+      <b>🔒 來源限制(個人決策不在此頁)</b>
+      <p>資料可信度:<b>高</b>(Maps POI 地址 + 評分 + 部分營業時間都是 Maps 公開資料)<br>
+      缺口:沒抓評論原文(需登入 + 內容受限)、沒抓 menu(店家未上傳)。<br>
+      若行程用 → 「Maps 上認定為公開資料」視為高,可下決定。<br>
+      「評論原文」「實際餐點好不好吃」視為<b>需親查</b>。</p>
+    </div>
+  </section>
+
   <!-- ==================== §02 上原港 ==================== -->
   <section class="section">
     <div class="sec-head">
