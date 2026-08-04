@@ -9,7 +9,7 @@ JustKM/
 ├── README.md             ← 你在這裡
 ├── index.html            ← 入口（74 個設計模板 + 主題卡）
 ├── invest/               ← 美股交易教學（AutoInvest）
-├── learn/                ← （未來）AI / ML 學習
+├── learn/                ← AI / ML 學習（SLM 訓練、網路基礎、Agent）
 ├── raw/                  ← 原始資料
 ├── design-md/            ← 74 個品牌 DESIGN.md
 └── travel/               ← 旅遊行程
@@ -27,6 +27,7 @@ JustKM/
 | 🗓️ 石垣跳島 · 行程 | [`travel/ishigaki-2026/itinerary.html`](travel/ishigaki-2026/itinerary.html) | ✅ 重列 | Sanity 風格 · 兩段住宿 + 颱風應變 SOP |
 | 🎨 74 品牌 DESIGN.md | [`design-md/`](design-md/index.html) | ✅ 已建立 | Stripe/Linear/Vercel/Apple/Cursor 等設計 token |
 | 🤖 Pi Agent 最佳實踐 | [`learn/ai-agents/pi-agent-best-practices-2026-06.md`](learn/ai-agents/pi-agent-best-practices-2026-06.md) | 🟡 metadata only | 暮閒 2026-06 影片,無字幕,待 Briefing Doc 補強 |
+| 🧠 訓練小模型做單一任務 | [`learn/train-slm-single-task.html`](learn/train-slm-single-task.html) | ✅ 已建立 | SLM 專用化實戰 · 13 節 · LoRA/QLoRA + 蒸餾 + NVIDIA 六步 · 含決策樹與程式範例 |
 
 ---
 
@@ -45,4 +46,4 @@ JustKM/
 
 ---
 
-最後更新：2026-07-11（新增 itinerary.html）
+最後更新：2026-08-04（新增 learn/train-slm-single-task.html — SLM 專用化實戰單元）

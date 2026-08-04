@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>訓練小模型做單一任務：SLM 專用化實戰 · JustKM</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131826;
+      --bg-card: #1a2138;
+      --bg-code: #0f1424;
+      --border: #2a3454;
+      --text-primary: #e8ecf4;
+      --text-secondary: #9aa3b8;
+      --text-muted: #6b7390;
+      --accent: #4f9eff;
+      --accent-green: #00d68f;
+      --accent-orange: #ff9f43;
+      --accent-red: #ff4d6d;
+      --accent-purple: #a855f7;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.75;
+      min-height: 100vh;
+      padding: 40px 20px 80px;
+    }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    /* ===== 字級調整器 UI ===== */
+    .font-adjuster {
+      position: fixed; top: 16px; right: 16px; z-index: 999;
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 8px;
+      display: flex; align-items: center; gap: 4px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px);
+    }
+    .font-adjuster button {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-primary); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: all 0.15s; display: flex; align-items: center; justify-content: center;
+    }
+    .font-adjuster button:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--text-muted); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value {
+      font-size: 0.6875rem; color: var(--accent); font-weight: 700;
+      min-width: 36px; text-align: center; font-family: 'SF Mono', monospace;
+    }
+
+    .hero {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 16px; padding: 36px 32px; margin-bottom: 32px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #4f9eff 0%, #00d68f 50%, #a855f7 100%);
+    }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .hero .sub { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 16px; }
+    .badge {
+      display: inline-block; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px; padding: 3px 10px; font-size: 0.6875rem;
+      color: var(--text-secondary); margin-right: 6px; margin-bottom: 6px;
+    }
+    .badge.blue { color: var(--accent); border-color: var(--accent); }
+    .badge.green { color: var(--accent-green); border-color: var(--accent-green); }
+    .badge.purple { color: var(--accent-purple); border-color: var(--accent-purple); }
+    .badge.orange { color: var(--accent-orange); border-color: var(--accent-orange); }
+
+    .toc {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px 24px; margin-bottom: 32px;
+    }
+    .toc-title {
+      font-size: 0.8125rem; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+    }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; }
+    .toc a {
+      color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem;
+      padding: 5px 10px; border-radius: 6px; transition: all 0.15s;
+    }
+    .toc a:hover { color: var(--accent); background: var(--bg-card); }
+
+    section {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; scroll-margin-top: 20px;
+    }
+    section h2 { font-size: 1.375rem; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+    section h2 .num {
+      color: var(--accent); font-size: 0.875rem; font-weight: 800;
+      background: var(--bg-card); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border);
+    }
+    section h3 {
+      font-size: 1.0625rem; font-weight: 700; color: var(--accent);
+      margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
+    }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--text-secondary); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--text-secondary); font-size: 0.875rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--text-secondary); font-size: 0.875rem; }
+    section li { margin-bottom: 4px; }
+    section strong { color: var(--text-primary); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.8125rem; }
+    th { text-align: left; background: var(--bg-card); color: var(--text-primary); padding: 9px 12px; border: 1px solid var(--border); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+    tr:hover td { background: rgba(79, 158, 255, 0.04); }
+
+    pre {
+      background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.55;
+    }
+    pre code { color: #e8ecf4; }
+    .lang-tag {
+      display: inline-block; font-size: 0.625rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; font-weight: 700;
+    }
+    p code, li code, td code {
+      background: var(--bg-code); border: 1px solid var(--border); padding: 1px 6px;
+      border-radius: 4px; font-size: 0.78125rem; color: var(--accent-orange);
+    }
+
+    .callout {
+      border-left: 3px solid var(--accent); background: var(--bg-card);
+      padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0 16px;
+      font-size: 0.84375rem; color: var(--text-secondary);
+    }
+    .callout.warn { border-left-color: var(--accent-orange); }
+    .callout.danger { border-left-color: var(--accent-red); }
+    .callout.tip { border-left-color: var(--accent-green); }
+    .callout.info { border-left-color: var(--accent-purple); }
+    .callout strong { color: var(--text-primary); }
+
+    .back-home {
+      display: inline-block; margin-bottom: 20px; color: var(--accent); text-decoration: none;
+      font-size: 0.875rem; padding: 6px 14px; border: 1px solid var(--border);
+      border-radius: 8px; background: var(--bg-secondary);
+    }
+    .back-home:hover { border-color: var(--accent); }
+    .footer {
+      text-align: center; color: var(--text-muted); font-size: 0.75rem;
+      margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border);
+    }
+
+    .diagram {
+      background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px;
+      padding: 16px 18px; font-family: 'SF Mono', Menlo, monospace; font-size: 0.78125rem;
+      color: var(--text-secondary); white-space: pre; overflow-x: auto; line-height: 1.5;
+    }
+    .diagram .arrow { color: var(--accent); }
+    .diagram .label { color: var(--accent-green); }
+    .diagram .warn { color: var(--accent-orange); }
+
+    /* 步驟卡 */
+    .steps { counter-reset: step; margin: 12px 0 18px; }
+    .step {
+      position: relative; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 18px 14px 56px; margin-bottom: 10px;
+    }
+    .step::before {
+      counter-increment: step; content: counter(step);
+      position: absolute; left: 14px; top: 14px;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--accent); color: #fff; font-weight: 800; font-size: 0.8125rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step h4 { margin-top: 0; color: var(--text-primary); font-size: 0.9375rem; }
+    .step p { margin-bottom: 0; }
+
+    .related {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 16px 20px; margin: 16px 0; display: grid;
+      grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .related a {
+      color: var(--accent); text-decoration: none; font-size: 0.875rem; padding: 10px 14px;
+      border-radius: 8px; border: 1px solid var(--border); background: var(--bg-secondary);
+      transition: all 0.15s; display: block;
+    }
+    .related a:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .related .rel-title { color: var(--text-primary); font-weight: 700; }
+    .related .rel-sub { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
+
+    .pill {
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      font-size: 0.6875rem; font-family: monospace; font-weight: 700;
+    }
+    .pill-yes { background: rgba(0, 214, 143, 0.15); color: var(--accent-green); }
+    .pill-no  { background: rgba(255, 77, 109, 0.15); color: var(--accent-red); }
+    .pill-mid { background: rgba(255, 159, 67, 0.15); color: var(--accent-orange); }
+
+    @media (max-width: 600px) {
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../index.html">← 回到 JustKM 首頁</a>
+
+  <div class="hero">
+    <h1>🧠 訓練小模型做單一任務：SLM 專用化實戰</h1>
+    <p class="sub">如何把一顆 1–8B 的小語言模型，訓練成「只把一件小事做到最好」的專才 · 蒐集自 YouTube 與網路教學的整理單元</p>
+    <div>
+      <span class="badge blue">SLM 專用化</span>
+      <span class="badge green">LoRA / QLoRA</span>
+      <span class="badge purple">知識蒸餾</span>
+      <span class="badge orange">含決策樹 + 程式範例</span>
+      <span class="badge">2026 版</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#what">① 什麼是 SLM</a>
+      <a href="#why">② 為什麼專攻單一任務</a>
+      <a href="#fit">③ 適合 / 不適合的任務</a>
+      <a href="#routes">④ 三條路線 + 決策樹</a>
+      <a href="#pipeline">⑤ 微調六步流程</a>
+      <a href="#data">⑥ 資料集怎麼準備</a>
+      <a href="#lora">⑦ LoRA / QLoRA 白話</a>
+      <a href="#distill">⑧ 知識蒸餾（師生法）</a>
+      <a href="#nvidia">⑨ NVIDIA 的 LLM→SLM 六步</a>
+      <a href="#eval">⑩ 評估與驗證</a>
+      <a href="#hands">⑪ 動手最小範例</a>
+      <a href="#pitfalls">⑫ 常見坑 + 檢查清單</a>
+      <a href="#resources">⑬ 延伸資源（影片/文章）</a>
+    </div>
+  </nav>
+
+  <!-- ============================ ⓪ ============================ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>不是把模型做大，而是把「任務做小」。</strong>挑一顆現成的小模型（1–8B），用幾百到幾千筆「輸入 → 你要的輸出」範例，透過 <strong>LoRA / QLoRA</strong> 微調，就能讓它在<strong>單一任務</strong>（分類、抽取、格式轉換、工具呼叫…）上追平、甚至超越大模型 —— 而且<strong>便宜 10–30 倍、跑得更快、還能自己部署</strong>。</p>
+
+    <div class="callout tip">
+      <strong>💡 核心心法：</strong>大模型是「通才」，小模型是「專才」。當你只需要一件事被穩定、便宜、快速地重複做好時，訓練一個專才幾乎永遠是更划算的選擇。NVIDIA 2026 的研究甚至主張：<strong>小模型才是 Agent 系統的未來</strong>。
+    </div>
+
+    <table>
+      <thead><tr><th>你想做的事</th><th>建議做法</th><th>本單元章節</th></tr></thead>
+      <tbody>
+        <tr><td>只是想試效果、量少、不想訓練</td><td>先用 Prompt / RAG（免訓練）</td><td>④ 決策樹</td></tr>
+        <tr><td>固定任務、要穩定 + 省成本</td><td>LoRA / QLoRA 微調</td><td>⑤⑥⑦</td></tr>
+        <tr><td>沒有標註資料，只有一個大模型</td><td>知識蒸餾（大模型造資料）</td><td>⑧</td></tr>
+        <tr><td>把 Agent 裡重複的呼叫換成小模型</td><td>NVIDIA 六步轉換法</td><td>⑨</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============================ ① ============================ -->
+  <section id="what">
+    <h2><span class="num">①</span> 什麼是 SLM（Small Language Model）</h2>
+    <p>SLM 指參數量相對「小」的語言模型。業界常用的分界是 <strong>10B 參數以下</strong>，實務上做單一任務最常用的是 <strong>1B–8B</strong> 這個甜蜜區間。</p>
+
+    <table>
+      <thead><tr><th>類別</th><th>參數量</th><th>代表模型（示意）</th><th>能跑在哪</th></tr></thead>
+      <tbody>
+        <tr><td>超小 / 邊緣</td><td>0.5B – 1.5B</td><td>Qwen 0.5B/1.5B、Gemma 2B、SmolLM</td><td>手機 / 樹莓派 / CPU</td></tr>
+        <tr><td>小（主力甜蜜區）</td><td>3B – 8B</td><td>Llama 3 8B、Mistral 7B、Phi、Gemma 7B</td><td>單張消費級 GPU</td></tr>
+        <tr><td>中</td><td>~13B</td><td>Llama 13B 類</td><td>單張較大 GPU</td></tr>
+        <tr><td>大（通才 LLM）</td><td>70B+ / 數百 B</td><td>GPT / Claude / Llama 70B 等</td><td>雲端多卡 / API</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <strong>📌 觀念釐清：</strong>「訓練小模型」在 99% 的情況下<strong>不是</strong>從零開始（那要海量資料 + 巨額算力）。而是<strong>拿一顆已經預訓練好的開源小模型，做「微調（fine-tuning）」</strong>——只教它你的那一件事。這才是個人 / 小團隊能負擔的路。
+    </div>
+  </section>
+
+  <!-- ============================ ② ============================ -->
+  <section id="why">
+    <h2><span class="num">②</span> 為什麼要「專攻單一任務」的小模型</h2>
+    <p>2026 年 NVIDIA Research 一篇論文《Small Language Models are the Future of Agentic AI》把這件事講得很直白：Agent 系統大多數的呼叫，其實只是<strong>反覆做少數幾個很窄的任務</strong>——解析一個指令、選一個工具、把結果整理成固定的 JSON。這種工作，用大模型是「殺雞用牛刀」。</p>
+
+    <h3>專才小模型的四大好處</h3>
+    <table>
+      <thead><tr><th>面向</th><th>大模型（通才）</th><th>專才 SLM</th></tr></thead>
+      <tbody>
+        <tr><td>成本</td><td>API 按 token 計費，長期昂貴</td><td>推論成本常<strong>低 10–30 倍</strong>；一次微調很便宜</td></tr>
+        <tr><td>速度</td><td>大、慢、常要排隊</td><td>參數少 → 反應快，適合即時 / 高頻</td></tr>
+        <tr><td>穩定性</td><td>通才、輸出容易發散</td><td>只學一件事 → 格式穩定、更可預測</td></tr>
+        <tr><td>掌控權</td><td>資料要送到雲端</td><td>可<strong>自己部署</strong>、資料不出門、可離線</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>實例（NVIDIA）：</strong>把 Llama 3 8B Instruct 微調來做「程式碼審查的嚴重度評分」這一個窄任務，嚴重度預測準確率<strong>提升約 18%</strong>——用的是一顆 8B 小模型，不是幾百 B 的巨獸。
+    </div>
+
+    <div class="callout tip">
+      <strong>💡 一句話：</strong>當任務「窄且重複」時，一顆便宜的專才，往往打敗一顆昂貴的通才。這就是為什麼「小模型 + 單一任務」是 CP 值最高的組合。
+    </div>
+  </section>
+
+  <!-- ============================ ③ ============================ -->
+  <section id="fit">
+    <h2><span class="num">③</span> 哪些任務適合 / 不適合小模型</h2>
+    <p>選對任務，成功一半。小模型最擅長<strong>「輸入 → 固定形式輸出」</strong>的窄任務。</p>
+
+    <table>
+      <thead><tr><th>任務類型</th><th>例子</th><th>適合度</th></tr></thead>
+      <tbody>
+        <tr><td>分類 / 標籤</td><td>情緒分析、意圖分類、垃圾訊息判定、緊急度分級</td><td><span class="pill pill-yes">非常適合</span></td></tr>
+        <tr><td>資訊抽取</td><td>從文件抓出金額、日期、人名、把病歷轉結構化欄位</td><td><span class="pill pill-yes">非常適合</span></td></tr>
+        <tr><td>格式轉換</td><td>自然語言 → 固定 JSON / SQL / 指令</td><td><span class="pill pill-yes">非常適合</span></td></tr>
+        <tr><td>工具呼叫 / 路由</td><td>Agent 裡選對工具、填對參數</td><td><span class="pill pill-yes">非常適合</span></td></tr>
+        <tr><td>固定風格改寫 / 摘要</td><td>把客服對話濃縮成三行重點、統一語氣</td><td><span class="pill pill-mid">適合</span></td></tr>
+        <tr><td>單一領域問答</td><td>只回答某產品 / 某法規的問題（常配 RAG）</td><td><span class="pill pill-mid">適合</span></td></tr>
+        <tr><td>開放式長篇推理</td><td>寫小說、跨領域自由對話、複雜多步規劃</td><td><span class="pill pill-no">留給大模型</span></td></tr>
+        <tr><td>需要廣博世界知識</td><td>百科式通才問答</td><td><span class="pill pill-no">留給大模型</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <strong>💡 判斷準則：</strong>如果你能用「一句話 + 幾個範例」把任務規則講清楚、而且輸出<strong>有固定形狀</strong>，那它幾乎一定適合小模型。反之，越開放、越需要世界知識，越該交給大模型。
+    </div>
+  </section>
+
+  <!-- ============================ ④ ============================ -->
+  <section id="routes">
+    <h2><span class="num">④</span> 三條路線 + 決策樹（先別急著訓練！）</h2>
+    <p>讓小模型「會做一件事」有三條路，成本由低到高。<strong>永遠從最便宜的開始試</strong>，不夠好再往下走。</p>
+
+    <table>
+      <thead><tr><th>路線</th><th>做法</th><th>成本</th><th>什麼時候用</th></tr></thead>
+      <tbody>
+        <tr><td>A · 提示工程 / RAG</td><td>不改模型，靠 Prompt + 範例，或外掛知識庫</td><td><span class="pill pill-yes">最低</span></td><td>先驗證可行性、資料會變動、量少</td></tr>
+        <tr><td>B · 微調（LoRA/QLoRA）</td><td>用你的資料調整模型權重（的一小部分）</td><td><span class="pill pill-mid">中</span></td><td>任務固定、要穩定 + 省成本 + 可部署</td></tr>
+        <tr><td>C · 知識蒸餾</td><td>用大模型當老師，造資料再教小模型</td><td><span class="pill pill-mid">中</span></td><td>沒有現成標註資料時（常與 B 併用）</td></tr>
+      </tbody>
+    </table>
+
+    <h3>🌳 決策樹</h3>
+    <div class="diagram">你要小模型做一個單一任務
+        │
+        ▼
+  <span class="label">Q1：先用 Prompt + 幾個範例，效果夠好嗎？</span>
+        │
+   ┌────┴─────┐
+  夠好         不夠好
+   │            │
+   ▼            ▼
+<span class="arrow">收工！用路線 A</span>   <span class="label">Q2：你手上有「輸入→正確輸出」的標註資料嗎？</span>
+（最省）           │
+              ┌───┴────┐
+             有         沒有
+              │          │
+              ▼          ▼
+       <span class="arrow">路線 B</span>       <span class="label">Q3：有一顆好用的大模型可當老師嗎？</span>
+      LoRA/QLoRA 微調       │
+                      ┌────┴────┐
+                     有          沒有
+                      │           │
+                      ▼           ▼
+                <span class="arrow">路線 C→B</span>    <span class="warn">先回去補資料</span>
+              蒸餾造資料再微調   （人工標一批種子）</div>
+
+    <div class="callout warn">
+      <strong>⚠️ 新手最常見錯誤：</strong>一上來就想微調。其實很多任務光靠「把 Prompt 寫好 + 給 3~5 個範例」就解決了。<strong>微調是最後手段，不是第一步。</strong>
+    </div>
+  </section>
+
+  <!-- ============================ ⑤ ============================ -->
+  <section id="pipeline">
+    <h2><span class="num">⑤</span> 微調六步流程（路線 B 全貌）</h2>
+    <p>幾乎所有 SLM 單一任務微調，都是這六步。先看全景，再看細節。</p>
+
+    <div class="diagram"><span class="label">① 定義任務</span> ─► <span class="label">② 準備資料</span> ─► <span class="label">③ 選底模</span> ─► <span class="label">④ 設定 LoRA</span> ─► <span class="label">⑤ 訓練</span> ─► <span class="label">⑥ 評估 & 部署</span>
+   (規則+格式)     (輸入→輸出)     (1–8B)      (r/alpha/lr)   (跑幾輪)      (達標→上線)
+                                                              │
+                                                       <span class="warn">沒達標 ↺ 回②補資料 / 調參數</span></div>
+
+    <div class="steps">
+      <div class="step">
+        <h4>定義任務與「成功長什麼樣」</h4>
+        <p>寫下：輸入是什麼、輸出的<strong>固定格式</strong>是什麼、怎樣算對。這一步決定了資料格式和評估指標。含糊的任務 = 訓不出好模型。</p>
+      </div>
+      <div class="step">
+        <h4>準備資料集（見 ⑥）</h4>
+        <p>整理成「輸入 → 期望輸出」的成對範例。品質 &gt; 數量。切成 train / validation 兩份。</p>
+      </div>
+      <div class="step">
+        <h4>選一顆底模（base model）</h4>
+        <p>依任務難度與部署硬體挑 1B–8B 的開源 Instruct 模型。任務越窄、硬體越小 → 選越小的。先小後大，不夠再換大。</p>
+      </div>
+      <div class="step">
+        <h4>設定 LoRA / QLoRA 參數（見 ⑦）</h4>
+        <p>設定 rank（r）、alpha、target modules、learning rate、epochs。用 QLoRA 可讓 7B 塞進單張 ~16GB GPU。</p>
+      </div>
+      <div class="step">
+        <h4>訓練</h4>
+        <p>跑 1–3 個 epoch，盯著 validation loss。Loss 不再降、或開始上升 → 該停了（過擬合）。</p>
+      </div>
+      <div class="step">
+        <h4>評估 → 部署（見 ⑩）</h4>
+        <p>用「模型沒看過」的測試集算準確率 / F1 等指標，和微調前、和大模型比。達標就合併權重、量化、部署（Ollama / vLLM 等）。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ ⑥ ============================ -->
+  <section id="data">
+    <h2><span class="num">⑥</span> 資料集怎麼準備（成敗關鍵）</h2>
+    <p>微調界有句老話：<strong>「Garbage in, garbage out.」</strong>模型好壞，八成看資料。單一任務的好處是：資料需求量遠比你想像的少。</p>
+
+    <h3>要準備多少筆？</h3>
+    <table>
+      <thead><tr><th>任務難度</th><th>大致筆數（起步）</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr><td>簡單分類 / 固定格式抽取</td><td>數百 ~ 1,000</td><td>任務越窄需求越少</td></tr>
+        <tr><td>中等（風格改寫、結構化）</td><td>1,000 ~ 5,000</td><td>多樣性比數量更重要</td></tr>
+        <tr><td>較複雜（多步、含推理）</td><td>5,000 ~ 數萬</td><td>常搭配蒸餾造資料</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip">
+      <strong>💡 研究發現：</strong>資料少的時候，蒸餾（用大模型造資料）幫助最大；而<strong>只挑「最難的那些題目」來訓練，往往比塞一堆簡單題更有效</strong>。品質、難度、多樣性，都比純數量重要。
+    </div>
+
+    <h3>資料長什麼樣（常見格式）</h3>
+    <p>最通用的是 <strong>instruction / chat</strong> 格式的 JSONL，一行一筆：</p>
+    <span class="lang-tag">jsonl · 意圖分類範例</span>
+    <pre><code>{"messages": [
+  {"role": "system", "content": "你是意圖分類器，只輸出以下其中一個標籤：查訂單 / 退款 / 投訴 / 其他"},
+  {"role": "user", "content": "我上週買的東西到現在還沒到，到底在哪？"},
+  {"role": "assistant", "content": "查訂單"}
+]}
+{"messages": [
+  {"role": "system", "content": "你是意圖分類器，只輸出以下其中一個標籤：查訂單 / 退款 / 投訴 / 其他"},
+  {"role": "user", "content": "這產品根本是壞的，我要退錢！"},
+  {"role": "assistant", "content": "退款"}
+]}</code></pre>
+
+    <h3>品質檢查清單</h3>
+    <ul>
+      <li><strong>輸出格式 100% 一致</strong> —— 標籤大小寫、JSON 欄位、標點都要統一，模型會照抄你的不一致。</li>
+      <li><strong>涵蓋邊界案例</strong> —— 模糊的、罕見的、容易搞錯的例子要放進去（這些最有教學價值）。</li>
+      <li><strong>類別平衡</strong> —— 別讓某一類佔九成，否則模型會「無腦猜多數類」。</li>
+      <li><strong>切出乾淨的驗證/測試集</strong> —— 且<strong>絕不能</strong>和訓練集重疊，否則你會被虛高的分數騙。</li>
+      <li><strong>去除敏感資訊</strong> —— 尤其資料來自真實日誌時。</li>
+    </ul>
+  </section>
+
+  <!-- ============================ ⑦ ============================ -->
+  <section id="lora">
+    <h2><span class="num">⑦</span> LoRA / QLoRA 白話解說 + 建議參數</h2>
+
+    <h3>為什麼不「整個模型重訓」？</h3>
+    <p>一顆 7B 模型有 70 億個參數，全部重訓要巨量顯存與時間。<strong>LoRA（Low-Rank Adaptation）</strong>的聰明之處：<strong>凍結原本的權重不動，只在旁邊掛上一小組「可訓練的補丁」</strong>，訓練時只更新這些補丁。</p>
+    <ul>
+      <li><strong>省顯存最多 ~90%</strong>、訓練快 2–3 倍。</li>
+      <li>產物只是一個幾 MB ~ 幾十 MB 的小檔（adapter），可以隨插隨用、一個底模掛多個任務。</li>
+      <li><strong>QLoRA</strong> = 先把底模<strong>量化成 4-bit</strong>（更省顯存）再套 LoRA。代價是極小的品質損失，換來「7B 塞進單張 ~16GB 消費級 GPU」。</li>
+    </ul>
+
+    <div class="diagram">           原始權重 W（凍結，不動）
+              │
+   輸入 ─────►│─────────────────► 輸出
+              │                ▲
+              └──► <span class="label">A × B（LoRA 補丁，只訓這個）</span>┘
+                   小、可訓練、幾十 MB
+     <span class="arrow">QLoRA：把上面的 W 先壓成 4-bit，再掛 A×B</span></div>
+
+    <h3>建議起手參數（單一任務通用）</h3>
+    <table>
+      <thead><tr><th>參數</th><th>建議值</th><th>白話說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>r</code>（rank）</td><td>8–16（難任務可 32–64）</td><td>補丁的「容量」。越大越能學複雜關係，但也更易過擬合、更吃資源</td></tr>
+        <tr><td><code>lora_alpha</code></td><td>常設為 r 的 1–2 倍（如 r=16→alpha=16 或 32）</td><td>補丁的「影響力縮放」</td></tr>
+        <tr><td><code>target_modules</code></td><td>所有線性層（q/k/v/o + gate/up/down proj）</td><td>掛越多層通常效果越好；只掛注意力層更省</td></tr>
+        <tr><td><code>lora_dropout</code></td><td>0.05</td><td>輕微防過擬合</td></tr>
+        <tr><td><code>learning_rate</code></td><td>1e-4 ~ 2e-4</td><td>比全量微調可以大一點</td></tr>
+        <tr><td><code>epochs</code></td><td>1–3</td><td>單一任務通常 1–3 輪就夠，過多會過擬合</td></tr>
+        <tr><td><code>batch</code> + 梯度累積</td><td>小 batch + 累積到等效 16–32</td><td>顯存不夠就靠梯度累積湊大 batch</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>⚠️ 調參心法：</strong>先用上面這組「保守起手值」跑一次拿到基線，<strong>一次只改一個參數</strong>再比較。别一次改五個，否則你不知道是誰讓結果變好或變壞。
+    </div>
+  </section>
+
+  <!-- ============================ ⑧ ============================ -->
+  <section id="distill">
+    <h2><span class="num">⑧</span> 知識蒸餾：用大模型「教」小模型（沒資料時的救星）</h2>
+    <p>最常見的卡關是：<strong>「我知道要微調，可是我沒有標註好的資料。」</strong>知識蒸餾（Knowledge Distillation）正是解法——讓一顆強大的<strong>大模型當老師</strong>，幫你<strong>生成訓練資料</strong>，再拿去教小模型（學生）。</p>
+
+    <h3>師生流程（兩步）</h3>
+    <div class="diagram"><span class="label">Step 1 · 老師造資料</span>
+  你 ─(給一批輸入 + 清楚指令)─► <span class="arrow">大模型（老師）</span> ─► 高品質「輸出」/ 含推理過程
+                                                        │
+                                                        ▼
+                                              一份合成訓練集（輸入→輸出）
+<span class="label">Step 2 · 學生學習</span>
+  合成訓練集 ─► <span class="arrow">LoRA 微調小模型（學生）</span> ─► 學會用老師的方式做這件事</div>
+
+    <ul>
+      <li><strong>老師的輸出比人工標註更「營養」</strong>：人工可能只寫「緊急」，老師卻能示範<strong>判斷理由、格式、信心程度</strong>，讓學生一起學起來。</li>
+      <li><strong>蒸餾最適合定義清楚的窄任務</strong>：分類、資訊抽取、問答、工具呼叫——正好就是小模型的主場。</li>
+      <li><strong>造越多、越多樣的資料，蒸餾效果越好</strong>；但在資料本來就多時，蒸餾的邊際好處會遞減。</li>
+      <li>老師不必是最頂級的巨獸——<strong>師生差距別太大</strong>，學生反而更容易學得像。</li>
+    </ul>
+
+    <div class="callout tip">
+      <strong>💡 實務組合技：</strong>「蒸餾 → 微調」是黃金搭配。先用大模型/API 造 1–2 千筆漂亮資料，人工快速抽查修正，再用 LoRA 微調小模型。之後線上跑的就是<strong>便宜的小模型</strong>，大模型只在「造資料」階段出場一次。
+    </div>
+  </section>
+
+  <!-- ============================ ⑨ ============================ -->
+  <section id="nvidia">
+    <h2><span class="num">⑨</span> NVIDIA 的「LLM → SLM」六步轉換法（Agent 場景）</h2>
+    <p>如果你已經有一個用大模型驅動的 Agent，NVIDIA 論文給了一套<strong>把昂貴的大模型呼叫，逐步替換成便宜專才小模型</strong>的標準流程。核心精神：<strong>大模型只留給「決策 / 規劃」的關鍵時刻，其餘重複雜活全交給小模型。</strong></p>
+
+    <div class="steps">
+      <div class="step">
+        <h4>資料收集（Data Collection）</h4>
+        <p>把現有 Agent 對大模型的每一次呼叫（輸入 + 輸出）安全地記錄下來，累積真實使用資料。</p>
+      </div>
+      <div class="step">
+        <h4>資料清理（Curation）</h4>
+        <p>去除個資與敏感內容，清洗成可用的訓練素材。</p>
+      </div>
+      <div class="step">
+        <h4>任務分群（Task Clustering）</h4>
+        <p>把這些呼叫依「在做什麼」分群，找出<strong>反覆出現的少數幾種窄任務</strong>（例如：意圖解析、工具選擇、JSON 格式化）。</p>
+      </div>
+      <div class="step">
+        <h4>挑選小模型（SLM Selection）</h4>
+        <p>依每一群任務的難度與需求，各挑一顆合適的小模型。</p>
+      </div>
+      <div class="step">
+        <h4>微調（Fine-Tuning · PEFT）</h4>
+        <p>用該群的資料，以 LoRA/QLoRA 等 PEFT 方法，把小模型練成那一群任務的專才。</p>
+      </div>
+      <div class="step">
+        <h4>持續迭代（Iteration）</h4>
+        <p>上線後持續收集新資料、監控表現，週期性地重新微調，讓小模型越用越準。</p>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <strong>📌 落地策略：</strong>先用大模型把整個任務跑通、畫出地圖 → 找出「熱點」（被呼叫最多、最重複的節點）→ 一個一個換成專才小模型 → 迭代微調 + 監控。這樣既保留大模型的彈性，又吃到小模型的成本與速度紅利。
+    </div>
+  </section>
+
+  <!-- ============================ ⑩ ============================ -->
+  <section id="eval">
+    <h2><span class="num">⑩</span> 評估與驗證：怎麼知道「訓練成功了」</h2>
+    <p>沒有評估的微調 = 盲飛。你至少要能回答：<strong>它比微調前好嗎？比大模型省又不差嗎？</strong></p>
+
+    <h3>選對指標（看任務類型）</h3>
+    <table>
+      <thead><tr><th>任務</th><th>主要指標</th></tr></thead>
+      <tbody>
+        <tr><td>分類 / 標籤</td><td>Accuracy、F1（類別不平衡時看 F1）、混淆矩陣</td></tr>
+        <tr><td>資訊抽取</td><td>欄位級 Precision / Recall / F1</td></tr>
+        <tr><td>格式轉換（JSON/SQL）</td><td><strong>格式合法率</strong>（能不能被解析）+ 內容正確率</td></tr>
+        <tr><td>工具呼叫</td><td>選對工具率 + 參數填對率</td></tr>
+        <tr><td>摘要 / 改寫</td><td>ROUGE 等自動分數，再加人工抽查 / 用大模型當裁判</td></tr>
+      </tbody>
+    </table>
+
+    <h3>三個一定要做的比較</h3>
+    <ol>
+      <li><strong>微調前 vs 微調後</strong>（同一顆小模型）—— 證明微調真的有效。</li>
+      <li><strong>小模型 vs 大模型 / API</strong> —— 證明你「省了成本卻沒掉太多品質」。</li>
+      <li><strong>看 loss 曲線</strong> —— 訓練 loss 一直降但驗證 loss 開始升 = <strong>過擬合</strong>，該減少 epoch 或 rank。</li>
+    </ol>
+
+    <div class="callout danger">
+      <strong>🚫 頭號陷阱：資料洩漏（data leakage）。</strong>如果測試題目（或幾乎一樣的題目）出現在訓練集裡，分數會虛高得離譜，上線後現形。<strong>務必確保測試集是模型完全沒看過的。</strong>
+    </div>
+  </section>
+
+  <!-- ============================ ⑪ ============================ -->
+  <section id="hands">
+    <h2><span class="num">⑪</span> 動手：最小可跑的微調範例</h2>
+    <p>下面用 Hugging Face 生態（<code>peft</code> + <code>trl</code>）示意一段 QLoRA 微調骨架。重點是<strong>看懂每一段在做什麼</strong>，實際跑請在有 GPU 的環境（如 Google Colab 免費 T4 就能跑小模型）。</p>
+
+    <h3>常見工具鏈</h3>
+    <table>
+      <thead><tr><th>工具</th><th>做什麼</th></tr></thead>
+      <tbody>
+        <tr><td><code>transformers</code> / <code>peft</code> / <code>trl</code></td><td>Hugging Face 官方微調三件套（最通用）</td></tr>
+        <tr><td><strong>Unsloth</strong></td><td>把 LoRA/QLoRA 微調再加速、更省顯存，新手友善</td></tr>
+        <tr><td><strong>Axolotl</strong></td><td>用一份 YAML 設定檔就能跑，適合流程化</td></tr>
+        <tr><td><strong>Ollama</strong> / <strong>vLLM</strong></td><td>訓練完，本機 / 伺服器部署與推論</td></tr>
+      </tbody>
+    </table>
+
+    <h3>QLoRA 微調骨架（示意）</h3>
+    <span class="lang-tag">python · 概念示意，非逐行可執行</span>
+    <pre><code>from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from peft import LoraConfig
+from trl import SFTTrainer, SFTConfig
+from datasets import load_dataset
+import torch
+
+BASE = "meta-llama/Meta-Llama-3-8B-Instruct"   # 換成你要的小模型
+
+# 1) 4-bit 量化載入底模（QLoRA 的 Q）
+bnb = BitsAndBytesConfig(
+    load_in_4bit=True, bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.bfloat16,
+)
+model = AutoModelForCausalLM.from_pretrained(BASE, quantization_config=bnb, device_map="auto")
+tok = AutoTokenizer.from_pretrained(BASE)
+
+# 2) 你的資料集（⑥ 準備的 JSONL：欄位 messages）
+data = load_dataset("json", data_files="my_task.jsonl", split="train")
+
+# 3) LoRA 設定（⑦ 的建議起手值）
+lora = LoraConfig(
+    r=16, lora_alpha=32, lora_dropout=0.05, bias="none", task_type="CAUSAL_LM",
+    target_modules=["q_proj","k_proj","v_proj","o_proj","gate_proj","up_proj","down_proj"],
+)
+
+# 4) 訓練設定
+cfg = SFTConfig(
+    output_dir="out", num_train_epochs=2,
+    per_device_train_batch_size=2, gradient_accumulation_steps=8,  # 等效 batch=16
+    learning_rate=2e-4, logging_steps=10, save_strategy="epoch",
+)
+
+# 5) 開訓！只更新 LoRA 補丁
+trainer = SFTTrainer(model=model, train_dataset=data, peft_config=lora, args=cfg)
+trainer.train()
+trainer.save_model("out/adapter")   # 產物是幾十 MB 的小 adapter
+</code></pre>
+
+    <div class="callout tip">
+      <strong>💡 完全新手建議：</strong>與其自己搭環境，不如先跟著一支 YouTube 教學、用 <strong>Unsloth 的免費 Colab 筆記本</strong>，把「載入模型 → 換成自己的資料 → 按執行」跑一次。跑通一次，整條流程就懂了（見 ⑬ 資源）。
+    </div>
+  </section>
+
+  <!-- ============================ ⑫ ============================ -->
+  <section id="pitfalls">
+    <h2><span class="num">⑫</span> 常見坑 + 出發前檢查清單</h2>
+
+    <h3>五個新手最常踩的坑</h3>
+    <table>
+      <thead><tr><th>坑</th><th>症狀</th><th>解法</th></tr></thead>
+      <tbody>
+        <tr><td>該用 Prompt 卻硬要微調</td><td>花大力氣，效果跟寫好 Prompt 差不多</td><td>先試路線 A，不夠再微調</td></tr>
+        <tr><td>資料格式不一致</td><td>模型輸出忽大忽小寫、JSON 時好時壞</td><td>把輸出格式標準化到 100% 一致</td></tr>
+        <tr><td>過擬合</td><td>訓練分數超高，一上真實資料就崩</td><td>減 epoch / 減 rank、增資料多樣性</td></tr>
+        <tr><td>資料洩漏</td><td>測試分數美到不真實</td><td>確保測試集完全獨立、沒重疊</td></tr>
+        <tr><td>一次改太多參數</td><td>不知道到底哪個改動有效</td><td>一次只改一個，對照基線</td></tr>
+      </tbody>
+    </table>
+
+    <h3>✅ 出發前檢查清單</h3>
+    <ul>
+      <li>☐ 任務夠<strong>窄</strong>、輸出<strong>有固定形狀</strong>了嗎？（③）</li>
+      <li>☐ 先用 Prompt / RAG 試過了嗎？真的需要微調嗎？（④）</li>
+      <li>☐ 有一份格式一致、含邊界案例、乾淨切分的資料集嗎？（⑥）</li>
+      <li>☐ 選了合適的小底模，並用 QLoRA 起手參數了嗎？（⑦）</li>
+      <li>☐ 有獨立的測試集 + 選好指標，能和「微調前 / 大模型」比較嗎？（⑩）</li>
+      <li>☐ 上線後有持續收資料、週期性再訓練的計畫嗎？（⑨）</li>
+    </ul>
+
+    <div class="callout info">
+      <strong>📌 學完本單元，你應該能回答：</strong>
+      <ol style="margin-top:6px;">
+        <li>什麼樣的任務該用小模型、什麼該留給大模型？</li>
+        <li>LoRA 和 QLoRA 差在哪？rank 該設多少？</li>
+        <li>沒有標註資料時，怎麼用蒸餾生出訓練集？</li>
+        <li>怎麼證明「我的小模型真的成功了」而不是自我感覺良好？</li>
+      </ol>
+      四題都能答 → 你已經有能力開一個 SLM 專用化的小專案了 🎉
+    </div>
+  </section>
+
+  <!-- ============================ ⑬ ============================ -->
+  <section id="resources">
+    <h2><span class="num">⑬</span> 延伸資源（YouTube 影片 + 網路文章）</h2>
+    <p>以下為整理本單元時參考的公開資源，想動手或深入時可依此展開。</p>
+
+    <h3>🎬 YouTube 動手教學</h3>
+    <div class="related">
+      <a href="https://www.youtube.com/watch?v=jrf5vyOEMr8" target="_blank" rel="noopener">
+        <div class="rel-title">The Complete Guide to End-to-End LLM Fine-Tuning</div>
+        <div class="rel-sub">LoRA / QLoRA / Full 全流程完整走一遍</div>
+      </a>
+      <a href="https://www.youtube.com/watch?v=D3pXSkGceY0" target="_blank" rel="noopener">
+        <div class="rel-title">How to Fine Tune your own LLM using LoRA</div>
+        <div class="rel-sub">用「自訂資料集」實作 LoRA 微調</div>
+      </a>
+      <a href="https://www.youtube.com/watch?v=6FYFRhYvlA8" target="_blank" rel="noopener">
+        <div class="rel-title">LLM fine-tuning with LoRA &amp; QLoRA</div>
+        <div class="rel-sub">附 GitHub 程式碼的實作教學</div>
+      </a>
+      <a href="https://github.com/unslothai/unsloth" target="_blank" rel="noopener">
+        <div class="rel-title">Unsloth（GitHub，含免費 Colab）</div>
+        <div class="rel-sub">新手最推：更快更省的微調工具 + 現成筆記本</div>
+      </a>
+    </div>
+
+    <h3>📄 關鍵文章 / 論文</h3>
+    <ul>
+      <li><a href="https://arxiv.org/abs/2506.02153" target="_blank" rel="noopener" style="color:var(--accent);">Small Language Models are the Future of Agentic AI（NVIDIA, arXiv 2506.02153）</a> —— 為什麼專才小模型是 Agent 的未來 + 六步轉換法（②⑨）。</li>
+      <li><a href="https://developer.nvidia.com/blog/fine-tuning-small-language-models-to-optimize-code-review-accuracy/" target="_blank" rel="noopener" style="color:var(--accent);">Fine-Tuning Small Language Models to Optimize Code Review Accuracy（NVIDIA Blog）</a> —— 8B 模型 + 蒸餾造資料，準確率 +18% 的實例。</li>
+      <li><a href="https://magazine.sebastianraschka.com/p/practical-tips-for-finetuning-llms" target="_blank" rel="noopener" style="color:var(--accent);">Practical Tips for Finetuning LLMs Using LoRA（Sebastian Raschka）</a> —— LoRA 調參實戰經驗（⑦）。</li>
+      <li><a href="https://www.omdena.com/blog/fine-tuning-small-language-models" target="_blank" rel="noopener" style="color:var(--accent);">A Practical Guide to Fine-Tuning Small Language Models（Omdena）</a> —— SLM 微調完整流程。</li>
+      <li><a href="https://snorkel.ai/blog/llm-distillation-demystified-a-complete-guide/" target="_blank" rel="noopener" style="color:var(--accent);">LLM Distillation Demystified（Snorkel AI）</a> —— 知識蒸餾完整指南（⑧）。</li>
+      <li><a href="https://huggingface.co/docs/peft" target="_blank" rel="noopener" style="color:var(--accent);">Hugging Face PEFT 官方文件</a> —— LoRA/QLoRA 的權威 API 參考（⑪）。</li>
+    </ul>
+
+    <h3>🔗 站內延伸</h3>
+    <div class="related">
+      <a href="./ai-agents/pi-agent-best-practices-2026-06.md">
+        <div class="rel-title">🤖 Pi Agent 最佳實踐</div>
+        <div class="rel-sub">Agent 設計筆記（可與小模型專用化搭配思考）</div>
+      </a>
+      <a href="./network-basics.html">
+        <div class="rel-title">🌐 網路小白入門：REST 與 WebSocket</div>
+        <div class="rel-sub">串接模型 API / 部署推論前的基礎</div>
+      </a>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · 訓練小模型做單一任務：SLM 專用化實戰</p>
+    <p style="margin-top:4px;">整理自 YouTube 與網路公開教學 · 建立於 2026-08-04 · 字級調整器在右上角，可隨時改變字體大小</p>
+    <p style="margin-top:4px;"><a href="../index.html" style="color:var(--accent);text-decoration:none;">← 回到 JustKM 首頁</a></p>
+  </div>
+
+</div>
+
+<script>
+  // ========== 字級調整器 ==========
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1;
+    const MIN = 0.7;
+    const MAX = 1.6;
+    const DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+
+    let saved = DEFAULT;
+    try {
+      const v = localStorage.getItem(KEY);
+      if (v) saved = parseFloat(v) || DEFAULT;
+    } catch(e) {}
+    apply(saved);
+
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+      apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) {
+        e.preventDefault();
+        const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+        apply(cur + STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '-') {
+        e.preventDefault();
+        const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT;
+        apply(cur - STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '0') {
+        e.preventDefault();
+        apply(DEFAULT);
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>
