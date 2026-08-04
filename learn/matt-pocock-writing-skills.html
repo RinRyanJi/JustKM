@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>拆解 Matt Pocock 的 AI 寫作系統：fragments · shape · beats · JustKM</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131826;
+      --bg-card: #1a2138;
+      --bg-code: #0f1424;
+      --border: #2a3454;
+      --text-primary: #e8ecf4;
+      --text-secondary: #9aa3b8;
+      --text-muted: #6b7390;
+      --accent: #4f9eff;
+      --accent-green: #00d68f;
+      --accent-orange: #ff9f43;
+      --accent-red: #ff4d6d;
+      --accent-purple: #a855f7;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--bg-primary); color: var(--text-primary);
+      line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px;
+    }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster {
+      position: fixed; top: 16px; right: 16px; z-index: 999;
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 8px;
+      display: flex; align-items: center; gap: 4px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px);
+    }
+    .font-adjuster button {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-primary); width: 32px; height: 32px; border-radius: 6px;
+      font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .font-adjuster button:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--text-muted); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value {
+      font-size: 0.6875rem; color: var(--accent); font-weight: 700;
+      min-width: 36px; text-align: center; font-family: 'SF Mono', monospace;
+    }
+
+    .hero {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 16px; padding: 36px 32px; margin-bottom: 32px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #a855f7 0%, #4f9eff 50%, #00d68f 100%);
+    }
+    .hero h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .hero .sub { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 16px; }
+    .badge {
+      display: inline-block; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px; padding: 3px 10px; font-size: 0.6875rem;
+      color: var(--text-secondary); margin-right: 6px; margin-bottom: 6px;
+    }
+    .badge.blue { color: var(--accent); border-color: var(--accent); }
+    .badge.green { color: var(--accent-green); border-color: var(--accent-green); }
+    .badge.purple { color: var(--accent-purple); border-color: var(--accent-purple); }
+    .badge.orange { color: var(--accent-orange); border-color: var(--accent-orange); }
+
+    .toc {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px 24px; margin-bottom: 32px;
+    }
+    .toc-title {
+      font-size: 0.8125rem; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+    }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; }
+    .toc a {
+      color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem;
+      padding: 5px 10px; border-radius: 6px; transition: all 0.15s;
+    }
+    .toc a:hover { color: var(--accent); background: var(--bg-card); }
+
+    section {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; scroll-margin-top: 20px;
+    }
+    section h2 { font-size: 1.375rem; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+    section h2 .num {
+      color: var(--accent); font-size: 0.875rem; font-weight: 800;
+      background: var(--bg-card); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border);
+    }
+    section h3 {
+      font-size: 1.0625rem; font-weight: 700; color: var(--accent);
+      margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
+    }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--text-secondary); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--text-secondary); font-size: 0.875rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--text-secondary); font-size: 0.875rem; }
+    section li { margin-bottom: 4px; }
+    section strong { color: var(--text-primary); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.8125rem; }
+    th { text-align: left; background: var(--bg-card); color: var(--text-primary); padding: 9px 12px; border: 1px solid var(--border); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+    tr:hover td { background: rgba(79, 158, 255, 0.04); }
+
+    pre {
+      background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.55;
+    }
+    pre code { color: #e8ecf4; }
+    .lang-tag {
+      display: inline-block; font-size: 0.625rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; font-weight: 700;
+    }
+    p code, li code, td code {
+      background: var(--bg-code); border: 1px solid var(--border); padding: 1px 6px;
+      border-radius: 4px; font-size: 0.78125rem; color: var(--accent-orange);
+    }
+
+    .callout {
+      border-left: 3px solid var(--accent); background: var(--bg-card);
+      padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0 16px;
+      font-size: 0.84375rem; color: var(--text-secondary);
+    }
+    .callout.warn { border-left-color: var(--accent-orange); }
+    .callout.danger { border-left-color: var(--accent-red); }
+    .callout.tip { border-left-color: var(--accent-green); }
+    .callout.info { border-left-color: var(--accent-purple); }
+    .callout strong { color: var(--text-primary); }
+
+    .back-home {
+      display: inline-block; margin-bottom: 20px; color: var(--accent); text-decoration: none;
+      font-size: 0.875rem; padding: 6px 14px; border: 1px solid var(--border);
+      border-radius: 8px; background: var(--bg-secondary);
+    }
+    .back-home:hover { border-color: var(--accent); }
+    .footer {
+      text-align: center; color: var(--text-muted); font-size: 0.75rem;
+      margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border);
+    }
+
+    .diagram {
+      background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px;
+      padding: 16px 18px; font-family: 'SF Mono', Menlo, monospace; font-size: 0.78125rem;
+      color: var(--text-secondary); white-space: pre; overflow-x: auto; line-height: 1.5;
+    }
+    .diagram .arrow { color: var(--accent); }
+    .diagram .label { color: var(--accent-green); }
+    .diagram .warn { color: var(--accent-orange); }
+    .diagram .purple { color: var(--accent-purple); }
+
+    .steps { counter-reset: step; margin: 12px 0 18px; }
+    .step {
+      position: relative; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 18px 14px 56px; margin-bottom: 10px;
+    }
+    .step::before {
+      counter-increment: step; content: counter(step);
+      position: absolute; left: 14px; top: 14px; width: 28px; height: 28px; border-radius: 50%;
+      background: var(--accent); color: #fff; font-weight: 800; font-size: 0.8125rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step h4 { margin-top: 0; color: var(--text-primary); font-size: 0.9375rem; }
+    .step p { margin-bottom: 0; }
+
+    .skillcard {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 20px; margin: 14px 0;
+    }
+    .skillcard .st { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+    .skillcard .st code { font-size: 0.9375rem; color: var(--accent-purple); font-weight: 700; background: none; border: none; padding: 0; }
+    .skillcard .st .mode {
+      font-size: 0.625rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 4px;
+    }
+    .mode.explore { background: rgba(0,214,143,0.15); color: var(--accent-green); }
+    .mode.exploit { background: rgba(168,85,247,0.15); color: var(--accent-purple); }
+    .mode.edit { background: rgba(255,159,67,0.15); color: var(--accent-orange); }
+
+    .related {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 16px 20px; margin: 16px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .related a {
+      color: var(--accent); text-decoration: none; font-size: 0.875rem; padding: 10px 14px;
+      border-radius: 8px; border: 1px solid var(--border); background: var(--bg-secondary);
+      transition: all 0.15s; display: block;
+    }
+    .related a:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .related .rel-title { color: var(--text-primary); font-weight: 700; }
+    .related .rel-sub { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 600px) {
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../index.html">← 回到 JustKM 首頁</a>
+
+  <div class="hero">
+    <h1>✍️ 拆解 Matt Pocock 的 AI 寫作系統</h1>
+    <p class="sub">從不說「幫我寫一篇文章」——藏在 <code>mattpocock/skills</code> 角落的寫作三劍客：<strong>fragments · shape · beats</strong>（外加 edit-article）</p>
+    <div>
+      <span class="badge purple">AI 協同寫作</span>
+      <span class="badge green">探索 vs 開採</span>
+      <span class="badge blue">Skill 深入拆解</span>
+      <span class="badge orange">含流程圖 + 可手動照做</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#repo">① 這個 repo 是什麼</a>
+      <a href="#core">② 反直覺核心：不說「幫我寫」</a>
+      <a href="#pipeline">③ 寫作生產線總覽</a>
+      <a href="#fragments">④ writing-fragments（探索）</a>
+      <a href="#shape">⑤ writing-shape（開採成文）</a>
+      <a href="#beats">⑥ writing-beats（開採成節拍）</a>
+      <a href="#edit">⑦ edit-article（改稿）</a>
+      <a href="#principles">⑧ 貫穿全系統的 5 條心法</a>
+      <a href="#howto">⑨ 怎麼實際套用</a>
+      <a href="#resources">⑩ 資源與連結</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p>多數人用 AI 寫作，是丟一句<strong>「幫我寫一篇關於 X 的文章」</strong>然後拿到一坨四平八穩的 AI 味廢文。Matt Pocock 的做法<strong>完全相反</strong>：他把寫作拆成<strong>「探索（explore）」與「開採（exploit）」兩個階段</strong>，讓 AI 先<strong>反覆逼問你、把你腦中的碎片榨出來</strong>（fragments），再<strong>逐段/逐拍地把這堆原料塑形成文章</strong>（shape / beats）。AI 從頭到尾<strong>不替你「代筆」</strong>——它只負責提問、結構化、增量草擬，方向盤永遠在你手上。</p>
+
+    <div class="callout tip">
+      <strong>💡 為什麼值得學：</strong>這套思路把「AI 寫作」從「按一個鈕產生內容」變成「一條可控的生產線」。產出的不是 AI 的想法，而是<strong>你的想法，被 AI 幫你挖得更深、排得更清楚</strong>。分享這套 repo 的文章甚至說：這三個寫作 Skill 的價值，不亞於它廣受歡迎的程式開發 Skill。
+    </div>
+  </section>
+
+  <!-- ① -->
+  <section id="repo">
+    <h2><span class="num">①</span> 這個 repo 是什麼</h2>
+    <p><strong>Matt Pocock</strong> 是 TypeScript 社群知名的教育者（Total TypeScript 作者）。他把過去一年幾乎全程依賴 AI 開發所摸索出的<strong>系統化工作流</strong>，打包成一套開源的 <strong>Agent Skills</strong>（給 Claude Code 等 AI 工具用的技能包），放在 <code>github.com/mattpocock/skills</code>。</p>
+
+    <p>這套 repo 的核心目標只有一個：<strong>把充滿隨機性的 AI 黑盒子，馴服成精準、可靠、可控的生產力工具</strong>。它針對 AI 常見的四種失敗模式對症下藥：</p>
+    <ul>
+      <li><strong>誤解意圖</strong>（做出你沒要的東西）</li>
+      <li><strong>話太多 / 過度冗長</strong></li>
+      <li><strong>程式跑不動</strong></li>
+      <li><strong>架構逐漸腐爛</strong></li>
+    </ul>
+    <p>它的名言是：<em>「Always take small, deliberate steps. The rate of feedback is your speed limit.（永遠踏出小而審慎的一步，回饋的速度就是你的速度上限。）」</em></p>
+
+    <h3>整條「程式生產線」長怎樣（脈絡）</h3>
+    <div class="diagram"><span class="label">grill-with-docs</span> ─► <span class="label">to-spec / to-tickets</span> ─► <span class="label">implement (TDD)</span> ─► <span class="label">code-review</span> ─► commit
+   釐清需求            寫規格 / 拆票             照規格開發            雙軸審查
+  （AI 反問你）      （建立共識文件）          （小步 + 測試）      （標準 + 規格）</div>
+    <p>大爆紅的 <code>grill-me</code>（讓 AI 反問你、逼你講清需求）只是這條生產線的<strong>入口</strong>。而本文要挖的，是這條線<strong>之外</strong>、藏在角落、卻同樣精彩的<strong>寫作子系統</strong>。</p>
+
+    <div class="callout info">
+      <strong>📌 名詞：Skill（技能包）是什麼？</strong>一個 Skill 就是一份寫給 AI 看的 <code>SKILL.md</code>——用結構化的自然語言，把「某件事的正確做法與紀律」教給 AI。它分兩種：<strong>使用者呼叫</strong>（你打 <code>/grill-me</code> 才啟動，負責流程編排）與<strong>模型呼叫</strong>（AI 判斷時機自動援引，裝著可複用的紀律）。下面的寫作 Skill 屬於使用者主動啟動的類型。
+    </div>
+  </section>
+
+  <!-- ② -->
+  <section id="core">
+    <h2><span class="num">②</span> 反直覺核心：從不說「幫我寫」</h2>
+    <p>整套寫作系統建立在一個借自演算法的比喻上——<strong>探索與開採（explore vs exploit）</strong>：</p>
+
+    <table>
+      <thead><tr><th></th><th>🟢 探索 Explore</th><th>🟣 開採 Exploit</th></tr></thead>
+      <tbody>
+        <tr><td>在做什麼</td><td>把「能寫的東西」的空間<strong>撐到最大</strong></td><td>從一堆固定原料裡<strong>挑選、排列成文章</strong></td></tr>
+        <tr><td>心態</td><td>要廣、要雜、不求連貫</td><td>要準、要順、講究結構</td></tr>
+        <tr><td>對應 Skill</td><td><code>writing-fragments</code></td><td><code>writing-shape</code> / <code>writing-beats</code></td></tr>
+        <tr><td>比喻</td><td>小說家的<strong>日記本</strong>（多年零散的觀察）</td><td>把日記本<strong>當礦場開採</strong></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>⚠️ 關鍵洞察：</strong>大部分人的失敗，在於把「探索」和「開採」<strong>混在同一句 prompt 裡</strong>——「幫我寫一篇文章」等於同時要 AI 生想法（探索）又要它排結構（開採），結果兩件都做不好。Matt 的系統<strong>硬把兩者拆開</strong>：先窮盡探索、把原料堆滿，<strong>再</strong>進入開採、一段一段蓋房子。
+    </div>
+  </section>
+
+  <!-- ③ -->
+  <section id="pipeline">
+    <h2><span class="num">③</span> 寫作生產線總覽</h2>
+    <p>三個 Skill 不是三選一，而是<strong>一條流水線的不同工站</strong>：</p>
+
+    <div class="diagram">        <span class="label">① 探索</span>                          <span class="purple">② 開採（二選一）</span>
+                                              ┌─► <span class="purple">writing-shape</span>  ─► 逐段散文成品
+ 你腦中的想法 ─► <span class="arrow">writing-fragments</span> ─► 一堆碎片 ─┤
+                （AI 逼問你、榨碎片）   （pile）   └─► <span class="purple">writing-beats</span>  ─► 一連串「節拍之旅」
+
+                                              <span class="warn">③ 既有草稿要重修 ─► edit-article</span></div>
+
+    <table>
+      <thead><tr><th>Skill</th><th>階段</th><th>輸入 → 輸出</th><th>一句話</th></tr></thead>
+      <tbody>
+        <tr><td><code>writing-fragments</code></td><td>🟢 探索</td><td>你的腦袋 → 碎片堆</td><td>逼問你，把零散靈感全挖出來</td></tr>
+        <tr><td><code>writing-shape</code></td><td>🟣 開採</td><td>碎片堆 → 完整文章</td><td>逐段塑形，一段一段長出文章</td></tr>
+        <tr><td><code>writing-beats</code></td><td>🟣 開採</td><td>碎片堆 → 節拍序列</td><td>把文章排成一段段的「敘事之旅」</td></tr>
+        <tr><td><code>edit-article</code></td><td>🟠 改稿</td><td>既有草稿 → 更好的草稿</td><td>把段落當相依圖重排、逐節重寫</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ④ -->
+  <section id="fragments">
+    <h2><span class="num">④</span> writing-fragments — 探索：把你榨成碎片</h2>
+    <div class="skillcard">
+      <div class="st"><code>writing-fragments</code><span class="mode explore">Explore 探索</span></div>
+      <p style="margin:0;">“Mines you for fragments — heterogeneous nuggets of writing.” 一個<strong>訪談型</strong>工具：靠不停提問，把「你可能寫得出來的東西」的空間撐到最大，隨手把冒出來的碎片<strong>默默存檔</strong>。</p>
+    </div>
+
+    <h3>什麼時候用</h3>
+    <p>當你<strong>還沒想清楚要寫什麼</strong>、只有一團模糊念頭時。這是在你承諾任何大綱或結構<strong>之前</strong>的階段。</p>
+
+    <h3>運作方式</h3>
+    <div class="steps">
+      <div class="step"><h4>開一個檔</h4><p>問你要存哪，建一個只有 H1 工作標題的 markdown 檔——<strong>沒有</strong>目錄、日期、metadata。連你最初那句話也算第一個碎片存進去。</p></div>
+      <div class="step"><h4>開始「炙烤」你</h4><p>像 <code>grill-me</code> 一樣<strong>不留情地連環追問</strong>，把你腦中的東西一點點逼出來。</p></div>
+      <div class="step"><h4>默默追加碎片</h4><p>冒出來的每個碎片<strong>直接 append</strong>，不會每一條都停下來問你「要不要加」，只在對話中順帶提一句。碎片之間用水平線 <code>---</code> 隔開，<strong>不加任何小標、標籤或排序</strong>。</p></div>
+      <div class="step"><h4>寫入前先重讀</h4><p>每次要寫檔前，先把檔案讀一遍，<strong>保住你手動改過的內容</strong>。你可以隨時要它剪掉、改寫、合併某些碎片。</p></div>
+    </div>
+
+    <h3>什麼算「碎片」？（刻意異質）</h3>
+    <p>碎片只要<strong>「作者自己看得懂」</strong>就好，不必是完整論證。合格的碎片包括：</p>
+    <ul>
+      <li>一句你想放進去某處的<strong>金句</strong></li>
+      <li>一個主張 + 一句簡短理由</li>
+      <li>小故事、場景、類比</li>
+      <li>半成形的念頭、觀察</li>
+      <li>引言、對白、偷聽來的一句話</li>
+      <li>抱怨、告白、牢騷</li>
+      <li>⭐ <strong>Leading words（點題字）</strong>——用一個精煉的比喻/自創詞，替整個模式命名。<strong>這是價值最高的碎片</strong>：當某個想法反覆出現，就逼自己<strong>「為它造一個詞」</strong>。</li>
+    </ul>
+
+    <div class="callout tip">
+      <strong>💡 心法：</strong>這一步<strong>只管廣、不管連貫</strong>。模型是小說家的日記本——多年零散的「隨手記」，日後才被拿去當原料開採。這階段最忌諱的就是急著整理。
+    </div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="shape">
+    <h2><span class="num">⑤</span> writing-shape — 開採：逐段把原料塑形成文章</h2>
+    <div class="skillcard">
+      <div class="st"><code>writing-shape</code><span class="mode exploit">Exploit 開採</span></div>
+      <p style="margin:0;">“Take a markdown file of raw material and shape it into an article paragraph by paragraph.” 把碎片堆當成<strong>礦場</strong>來開採，用<strong>一致的一種嗓音</strong>，一段一段蓋出成品文章。</p>
+    </div>
+
+    <h3>運作方式（三階段）</h3>
+    <div class="steps">
+      <div class="step"><h4>先把整堆讀完 + 講定前提</h4><p>動工前完整讀過整堆原料。和你<strong>約定讀者進來時已經懂什麼</strong>（前提）、以及文章<strong>必須負責交代什麼</strong>。維護一張「已交代概念」清單，避免讀者撞到沒鋪陳過的名詞。</p></div>
+      <div class="step"><h4>先寫 2–3 個不同的開頭</h4><p>每個開頭都暗示<strong>不同的主旨走向</strong>。由你挑一個、或混搭。<strong>開頭一旦定了，後面全部照它走。</strong></p></div>
+      <div class="step"><h4>逐段迭代（核心循環）</h4><p>不斷重複下面這個小循環，直到文章完成。</p></div>
+    </div>
+
+    <div class="diagram"><span class="label">逐段循環：</span>
+  1. 問：「照這個開頭，讀者接下來<strong>必須聽到什麼？</strong>」
+  2. 去碎片堆裡<span class="arrow">開採</span>相關原料
+  3. <span class="purple">辯論這一塊的格式</span>（散文？清單？表格？callout？引言？程式碼？）
+  4. <span class="arrow">立刻寫進文章檔</span>（絕不預先批次寫好一大段）
+  5. 下次動筆前<span class="arrow">從硬碟重讀</span>，接住你剛剛的修改
+  ↺ 回到 1</div>
+
+    <div class="callout">
+      <strong>它會怎麼「頂」你：</strong>對薄弱的段落銜接<strong>主動反駁</strong>，常用兩句話逼問——「<em>這段比上一段多完成了什麼？</em>」「<em>如果把它砍了，會壞掉什麼？</em>」。缺料時它會直說：「<em>這裡少一個例子——你給一個，不然這節就砍。</em>」（gap naming）
+    </div>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="beats">
+    <h2><span class="num">⑥</span> writing-beats — 開採：把文章排成「節拍之旅」</h2>
+    <div class="skillcard">
+      <div class="st"><code>writing-beats</code><span class="mode exploit">Exploit 開採</span></div>
+      <p style="margin:0;">“Shape an article as a journey of beats, choose-your-own-adventure style.” 和 shape 同屬開採，但它把文章想成<strong>一連串「節拍（beat）」</strong>，像「選擇你自己的冒險」一樣，一拍一拍鋪出讀者的旅程。</p>
+    </div>
+
+    <h3>核心觀念：Grounding（鋪陳／落地）</h3>
+    <p>這是整個 beats（也是 shape）最重要的一條規矩：<strong>任何概念，在被後面的節拍用到之前，一定要先被「鋪陳」過。</strong>鋪陳有兩種來源——要嘛是讀者本來就懂的<strong>前提</strong>，要嘛是某個節拍<strong>負責把它introduce進來</strong>。單位是<strong>「想法本身」</strong>，不是它的名詞。這樣讀者永遠不會撞到一個「浮空、沒著落」的概念。</p>
+
+    <h3>運作方式</h3>
+    <div class="steps">
+      <div class="step"><h4>盤點前提</h4><p>動筆前先確立<strong>讀者已經懂什麼</strong>。這些是地基；其餘一切都得在後面某一拍被交代。</p></div>
+      <div class="step"><h4>給 2–3 個起手拍</h4><p>從原料裡生出幾個可能的開場節拍，每個都只依賴前提、並清楚標明它會<strong>introduce哪些新概念</strong>。你來挑。</p></div>
+      <div class="step"><h4>一拍一拍往下接</h4><p>只把你選的那一拍寫進檔 → 重讀 → 再給你 2–3 個候選的「下一拍」，each 都標明它會鋪陳什麼 → 循環到自然收尾。</p></div>
+    </div>
+
+    <div class="callout info">
+      <strong>一個 beat（節拍）是什麼？</strong>它執行<strong>一個</strong>敘事動作：設定一個場景、立一個論點、拋一個問題、或轉一個視角。長度可以是一句、也可以是好幾段——<strong>由必要性決定，不由慣例決定</strong>。原料是採石場：可改寫、拆解、重組、引用；成品<strong>不必用光</strong>所有碎片，剩料很正常。
+    </div>
+
+    <h3>shape 與 beats 差在哪？</h3>
+    <table>
+      <thead><tr><th></th><th>writing-shape</th><th>writing-beats</th></tr></thead>
+      <tbody>
+        <tr><td>思考單位</td><td>段落（paragraph）</td><td>節拍（beat，敘事動作）</td></tr>
+        <tr><td>比喻</td><td>一段段砌牆蓋房</td><td>一拍拍走的旅程 / 選擇你的冒險</td></tr>
+        <tr><td>適合</td><td>論述型、要一致嗓音的散文</td><td>有「帶著讀者走」感的敘事、教學</td></tr>
+        <tr><td>共同</td><td colspan="2">都靠 grounding、都把碎片當礦、都增量寫入 + 每次先重讀</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="edit">
+    <h2><span class="num">⑦</span> edit-article — 改稿：把既有草稿當相依圖重排</h2>
+    <div class="skillcard">
+      <div class="st"><code>edit-article</code><span class="mode edit">Edit 改稿</span></div>
+      <p style="margin:0;">前三個是「從零長出文章」；這一個是<strong>當你已經有一份草稿</strong>、想把它改好時用。透過重排章節、增進清晰度、精煉文字來提升。</p>
+    </div>
+    <h3>運作方式</h3>
+    <div class="steps">
+      <div class="step"><h4>結構分析 + 規劃</h4><p>依現有標題切段 → 找出每段的主要論點 → 把資訊相依關係畫成<strong>有向無環圖（DAG）</strong> → 確保順序遵守相依（前提在前、依賴在後）→ 讓你確認新結構。</p></div>
+      <div class="step"><h4>逐節精修</h4><p>一節一節處理，「重寫以提升清晰、連貫、流暢」。並守一條硬約束：<strong>每段最多 240 字元</strong>。</p></div>
+    </div>
+    <div class="callout tip">
+      <strong>💡 這一招的通用價值：</strong>「把文章的邏輯相依畫成 DAG、確保前提永遠排在依賴之前」——這其實就是 grounding 的另一種說法。就算你完全不碰 AI，這也是<strong>檢查任何文章結構</strong>的好方法。
+    </div>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="principles">
+    <h2><span class="num">⑧</span> 貫穿全系統的 5 條設計心法</h2>
+    <p>把四個 Skill 疊在一起看，會浮現同一組反覆出現的原則——<strong>這才是真正可以偷走、套用到你自己流程的東西</strong>：</p>
+
+    <div class="steps">
+      <div class="step"><h4>先探索、再開採，兩者絕不混用</h4><p>「生想法」和「排結構」是兩種腦、兩個 Skill。永遠先把原料堆滿，再進入蓋房子模式。這是整套系統的地基。</p></div>
+      <div class="step"><h4>Grounding：沒鋪陳過的概念，不准出現</h4><p>維護一張「已交代概念」清單。任何名詞/想法在被用到前，必須先當前提、或先被某段introduce。讀者永遠不撞空。</p></div>
+      <div class="step"><h4>把原料當礦場，不當劇本（Mining, not scripting）</h4><p>碎片堆是<strong>採石場</strong>：可改寫、拆分、合併、引用。是原料服務文章的嗓音，不是文章遷就原料。剩料很正常。</p></div>
+      <div class="step"><h4>增量寫入 + 每次先重讀</h4><p>絕不一次批次生一大段。<strong>寫一塊、存一塊</strong>，下次動筆前先從硬碟重讀，<strong>接住人類剛剛的修改</strong>。人類的編輯永遠優先。</p></div>
+      <div class="step"><h4>格式要能被辯護（Format defensibility）</h4><p>散文用於論述、清單用於並列項、表格用於重複出現 3+ 的結構、callout 用於真正的旁白、引言用於「字句本身重要」、程式碼區塊用於多行範例。<strong>每個格式選擇都要說得出理由。</strong></p></div>
+    </div>
+
+    <div class="callout danger">
+      <strong>🚫 這套系統刻意「不做」的事：</strong>不憑空生出原料裡沒有的碎片（缺料就明講、要你補）、不去改你的原始素材檔、不加你沒要求的平台格式或 frontmatter。<strong>AI 是助產士，不是代孕。</strong>
+    </div>
+  </section>
+
+  <!-- ⑨ -->
+  <section id="howto">
+    <h2><span class="num">⑨</span> 怎麼實際套用（含「手動版」）</h2>
+
+    <h3>A · 如果你用 Claude Code</h3>
+    <p>直接安裝 Matt 的 skills plugin（見 ⑩ repo），就能用 <code>/writing-fragments</code> 等指令啟動。或把對應的 <code>SKILL.md</code> 複製進你的專案自行客製。</p>
+
+    <h3>B · 手動版：任何聊天型 AI 都能照做</h3>
+    <p>不裝任何東西，只要在對話裡<strong>複刻這套流程的「精神」</strong>就有八成威力：</p>
+    <ol>
+      <li><strong>探索</strong>：叫 AI「<em>不要幫我寫，只要不停問我問題，把我對這主題的所有想法、金句、故事、抱怨都逼出來，逐條記成用 <code>---</code> 隔開的碎片，先不要整理</em>」。撐到你榨乾為止。</li>
+      <li><strong>命名</strong>：當某個點子反覆出現，逼自己（或叫 AI 幫你）<strong>造一個詞</strong>來概括它——這是最值錢的碎片。</li>
+      <li><strong>講前提</strong>：進入開採前，先跟 AI 說「<em>讀者進來時已經懂 A、B；C、D、E 要在文中負責交代</em>」。</li>
+      <li><strong>挑開頭</strong>：叫 AI 給你 <strong>3 個走向不同的開頭</strong>，你選一個。</li>
+      <li><strong>逐段長</strong>：一段一段來，每段先問「<em>讀者接下來必須聽到什麼？這段比上一段多完成了什麼？</em>」，寫完一段再繼續，<strong>你隨時手改</strong>。</li>
+      <li><strong>把關格式</strong>：每次要用清單/表格前，先問「<em>這裡真的比散文好嗎？為什麼？</em>」</li>
+    </ol>
+
+    <div class="callout tip">
+      <strong>💡 一個小練習：</strong>下次寫東西，強迫自己<strong>禁用「幫我寫一篇…」這句話</strong>，改成「<strong>先只問我問題</strong>」。光是這一個切換，就能立刻感受到差別——產出的會是你自己的想法，只是被挖得更深、排得更清楚。
+    </div>
+  </section>
+
+  <!-- ⑩ -->
+  <section id="resources">
+    <h2><span class="num">⑩</span> 資源與連結</h2>
+
+    <h3>🔗 原始 Skill（GitHub）</h3>
+    <div class="related">
+      <a href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">
+        <div class="rel-title">mattpocock/skills（主 repo）</div>
+        <div class="rel-sub">Matt Pocock 的完整 AI 工作流 Skill 集</div>
+      </a>
+      <a href="https://github.com/mattpocock/skills/tree/main/skills/in-progress/writing-fragments" target="_blank" rel="noopener">
+        <div class="rel-title">writing-fragments/SKILL.md</div>
+        <div class="rel-sub">探索：把你榨成碎片</div>
+      </a>
+      <a href="https://github.com/mattpocock/skills/tree/main/skills/in-progress/writing-shape" target="_blank" rel="noopener">
+        <div class="rel-title">writing-shape/SKILL.md</div>
+        <div class="rel-sub">開採：逐段塑形成文章</div>
+      </a>
+      <a href="https://github.com/mattpocock/skills/tree/main/skills/in-progress/writing-beats" target="_blank" rel="noopener">
+        <div class="rel-title">writing-beats/SKILL.md</div>
+        <div class="rel-sub">開採：排成節拍之旅</div>
+      </a>
+    </div>
+    <p style="margin-top:6px;">補充：三個寫作 Skill 目前收在 repo 的 <code>skills/in-progress/</code>（作者標示為仍在打磨中）；<code>edit-article</code> 收在 <code>skills/personal/</code>。內容可能隨作者更新而變動，以 repo 最新版為準。</p>
+
+    <h3>🔗 站內延伸</h3>
+    <div class="related">
+      <a href="./train-slm-single-task.html">
+        <div class="rel-title">🧠 訓練小模型做單一任務</div>
+        <div class="rel-sub">同樣是「把 AI 馴服成專才」的思路</div>
+      </a>
+      <a href="./ai-agents/pi-agent-best-practices-2026-06.md">
+        <div class="rel-title">🤖 Pi Agent 最佳實踐</div>
+        <div class="rel-sub">Agent 設計筆記</div>
+      </a>
+    </div>
+
+    <div class="callout info">
+      <strong>📌 一句話帶走：</strong>Matt 不靠「模型升級」，只靠<strong>「環境」與「溝通」</strong>兩門功夫，就把高度隨機的 AI 調成穩定輸出。寫作系統正是「溝通」的極致示範——<strong>先把人榨乾，再一磚一瓦蓋房子，AI 全程不代筆</strong>。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · 拆解 Matt Pocock 的 AI 寫作系統</p>
+    <p style="margin-top:4px;">整理自 github.com/mattpocock/skills 之 SKILL.md 內容 · 建立於 2026-08-04 · 字級調整器在右上角</p>
+    <p style="margin-top:4px;"><a href="../index.html" style="color:var(--accent);text-decoration:none;">← 回到 JustKM 首頁</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) {
+        e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '-') {
+        e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '0') {
+        e.preventDefault(); apply(DEFAULT);
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>

@@ -7,7 +7,8 @@
 > 全站以 **GitHub Pages** 部署，來源分支 `main`。以下連結需該內容已合併進 `main` 後才會生效。
 
 - 🏠 **網站首頁**：<https://rinryanji.github.io/JustKM/>
-- 🧠 **NEW · 訓練小模型做單一任務（SLM 專用化）**：<https://rinryanji.github.io/JustKM/learn/train-slm-single-task.html>
+- 🧠 **訓練小模型做單一任務（SLM 專用化）**：<https://rinryanji.github.io/JustKM/learn/train-slm-single-task.html>
+- ✍️ **NEW · 拆解 Matt Pocock 的 AI 寫作系統**：<https://rinryanji.github.io/JustKM/learn/matt-pocock-writing-skills.html>
 - 🌐 網路小白入門（REST / WebSocket）：<https://rinryanji.github.io/JustKM/learn/network-basics.html>
 - 🎨 74 品牌設計系統圖鑑：<https://rinryanji.github.io/JustKM/design-md/>
 - 📈 美股交易教學：<https://rinryanji.github.io/JustKM/invest/course.html>
@@ -38,6 +39,7 @@ JustKM/
 | 🎨 74 品牌 DESIGN.md | [`design-md/`](design-md/index.html) | ✅ 已建立 | Stripe/Linear/Vercel/Apple/Cursor 等設計 token |
 | 🤖 Pi Agent 最佳實踐 | [`learn/ai-agents/pi-agent-best-practices-2026-06.md`](learn/ai-agents/pi-agent-best-practices-2026-06.md) | 🟡 metadata only | 暮閒 2026-06 影片,無字幕,待 Briefing Doc 補強 |
 | 🧠 訓練小模型做單一任務 | [`learn/train-slm-single-task.html`](learn/train-slm-single-task.html) | ✅ 已建立 | SLM 專用化實戰 · 13 節 · LoRA/QLoRA + 蒸餾 + NVIDIA 六步 · 含決策樹與程式範例 |
+| ✍️ Matt Pocock AI 寫作系統 | [`learn/matt-pocock-writing-skills.html`](learn/matt-pocock-writing-skills.html) | ✅ 已建立 | 拆解 mattpocock/skills 的 fragments/shape/beats · 探索 vs 開採 · 含手動版流程 |
 
 ---
 
@@ -59,4 +61,4 @@ JustKM/
 
 ---
 
-最後更新：2026-08-04（新增 learn/train-slm-single-task.html — SLM 專用化實戰單元）
+最後更新：2026-08-04（新增 learn/matt-pocock-writing-skills.html — AI 寫作系統拆解）
