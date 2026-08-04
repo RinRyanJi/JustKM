@@ -2,6 +2,16 @@
 
 > 一個統一的收納入口。未來各主題放子資料夾，互不干擾。
 
+## 🔗 快速連結（線上瀏覽）
+
+> 全站以 **GitHub Pages** 部署，來源分支 `main`。以下連結需該內容已合併進 `main` 後才會生效。
+
+- 🏠 **網站首頁**：<https://rinryanji.github.io/JustKM/>
+- 🧠 **NEW · 訓練小模型做單一任務（SLM 專用化）**：<https://rinryanji.github.io/JustKM/learn/train-slm-single-task.html>
+- 🌐 網路小白入門（REST / WebSocket）：<https://rinryanji.github.io/JustKM/learn/network-basics.html>
+- 🎨 74 品牌設計系統圖鑑：<https://rinryanji.github.io/JustKM/design-md/>
+- 📈 美股交易教學：<https://rinryanji.github.io/JustKM/invest/course.html>
+
 ## 結構
 
 ```
@@ -43,6 +53,9 @@ JustKM/
 本站用 **GitHub Pages** 部署：
 - 來源：`main` branch
 - 路徑：根目錄 → https://rinryanji.github.io/JustKM/
+
+> ⚠️ **注意**：Pages 只服務 `main` 分支的內容。若在其他分支（如 `claude/*`）新增頁面，
+> 線上網址會顯示 404，**必須先把分支合併進 `main`**，Pages 才會自動重建並生效（約 1 分鐘）。
 
 ---
 
