@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 學習總目錄 · JustKM</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131826;
+      --bg-card: #1a2138;
+      --bg-code: #0f1424;
+      --border: #2a3454;
+      --text-primary: #e8ecf4;
+      --text-secondary: #9aa3b8;
+      --text-muted: #6b7390;
+      --accent: #4f9eff;
+      --accent-green: #00d68f;
+      --accent-orange: #ff9f43;
+      --accent-red: #ff4d6d;
+      --accent-purple: #a855f7;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--bg-primary); color: var(--text-primary);
+      line-height: 1.7; min-height: 100vh; padding: 40px 20px 80px;
+    }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster {
+      position: fixed; top: 16px; right: 16px; z-index: 999;
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 8px;
+      display: flex; align-items: center; gap: 4px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px);
+    }
+    .font-adjuster button {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-primary); width: 32px; height: 32px; border-radius: 6px;
+      font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .font-adjuster button:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--text-muted); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value {
+      font-size: 0.6875rem; color: var(--accent); font-weight: 700;
+      min-width: 36px; text-align: center; font-family: 'SF Mono', monospace;
+    }
+
+    .hero {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 16px; padding: 36px 32px; margin-bottom: 28px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #00d68f 0%, #4f9eff 40%, #a855f7 75%, #ff9f43 100%);
+    }
+    .hero h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .hero .sub { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 16px; }
+    .badge {
+      display: inline-block; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px; padding: 3px 10px; font-size: 0.6875rem;
+      color: var(--text-secondary); margin-right: 6px; margin-bottom: 6px;
+    }
+    .badge.green { color: var(--accent-green); border-color: var(--accent-green); }
+    .badge.blue { color: var(--accent); border-color: var(--accent); }
+    .badge.purple { color: var(--accent-purple); border-color: var(--accent-purple); }
+
+    .group-title {
+      font-size: 0.9375rem; font-weight: 800; color: var(--text-primary);
+      margin: 26px 0 4px; display: flex; align-items: center; gap: 8px;
+    }
+    .group-sub { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 14px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-bottom: 8px; }
+    .card {
+      display: block; text-decoration: none; color: inherit;
+      background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px;
+      padding: 20px; transition: all 0.18s ease; position: relative; overflow: hidden;
+    }
+    .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .card .ic { font-size: 28px; margin-bottom: 8px; }
+    .card .nm { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+    .card .mt { font-size: 0.6875rem; color: var(--text-muted); margin-bottom: 8px; }
+    .card .ds { font-size: 0.8125rem; color: var(--text-secondary); }
+    .card .status {
+      display: inline-block; font-size: 0.625rem; font-weight: 700; border-radius: 4px;
+      padding: 1px 7px; margin-left: 6px; vertical-align: middle;
+    }
+    .status.ok { background: rgba(0,214,143,0.15); color: var(--accent-green); }
+    .status.wip { background: rgba(255,159,67,0.15); color: var(--accent-orange); }
+
+    /* 主打大卡（Matt Pocock 系列） */
+    .feature {
+      display: block; text-decoration: none; color: inherit;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 22px 24px; transition: all 0.18s ease; position: relative; overflow: hidden; margin-bottom: 12px;
+    }
+    .feature::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg,#4f9eff,#a855f7); }
+    .feature:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .feature .nm { font-size: 1.0625rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; }
+    .feature .ds { font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 10px; }
+    .subcards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .subcard {
+      display: block; text-decoration: none; color: inherit;
+      background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 9px; padding: 12px 14px;
+      transition: all 0.15s;
+    }
+    .subcard:hover { border-color: var(--accent); }
+    .subcard .snm { font-size: 0.875rem; font-weight: 700; color: var(--text-primary); }
+    .subcard .sds { font-size: 0.6875rem; color: var(--text-muted); margin-top: 2px; }
+
+    .callout {
+      border-left: 3px solid var(--accent-green); background: var(--bg-card);
+      padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 18px 0 8px;
+      font-size: 0.84375rem; color: var(--text-secondary);
+    }
+    .callout strong { color: var(--text-primary); }
+    p code { background: var(--bg-code); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--accent-orange); font-family: 'SF Mono', monospace; }
+
+    .back-home {
+      display: inline-block; margin-bottom: 20px; color: var(--accent); text-decoration: none;
+      font-size: 0.875rem; padding: 6px 14px; border: 1px solid var(--border);
+      border-radius: 8px; background: var(--bg-secondary);
+    }
+    .back-home:hover { border-color: var(--accent); }
+    .footer {
+      text-align: center; color: var(--text-muted); font-size: 0.75rem;
+      margin-top: 44px; padding-top: 24px; border-top: 1px solid var(--border);
+    }
+    @media (max-width: 600px) {
+      .subcards { grid-template-columns: 1fr; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../index.html">← 回到 JustKM 首頁</a>
+
+  <div class="hero">
+    <h1>🎓 AI 學習總目錄</h1>
+    <p class="sub">JustKM 的 AI / ML 學習區 —— 把 AI 馴服成可靠工具的方法，都收在這裡</p>
+    <div>
+      <span class="badge green">SLM 訓練</span>
+      <span class="badge blue">AI 工作流</span>
+      <span class="badge purple">寫作系統</span>
+      <span class="badge">網路基礎</span>
+    </div>
+  </div>
+
+  <!-- 群組 1：AI 工作流 / Skills -->
+  <div class="group-title">🧰 AI 工作流 &amp; Skills</div>
+  <div class="group-sub">把隨機的 AI 調教成穩定輸出的生產力 —— 拆解自 Matt Pocock 的開源 skills</div>
+
+  <div class="feature">
+    <a href="./matt-pocock-skills.html" style="text-decoration:none;color:inherit;display:block;">
+      <div class="nm">🧰 Matt Pocock AI Skills 總覽目錄 <span style="font-size:0.75rem;color:var(--accent);font-weight:700;">（系列入口）→</span></div>
+      <div class="ds">一站看懂 <code>mattpocock/skills</code>：核心哲學、全景圖、整個 repo 的 Skill 速查地圖，以及下列兩篇深入拆解的入口。</div>
+    </a>
+    <div class="subcards">
+      <a class="subcard" href="./matt-pocock-dev-workflow.html">
+        <div class="snm">🏭 AI 程式開發流程</div>
+        <div class="sds">grill→spec→tickets→implement(TDD)→review</div>
+      </a>
+      <a class="subcard" href="./matt-pocock-writing-skills.html">
+        <div class="snm">✍️ AI 寫作系統</div>
+        <div class="sds">fragments · shape · beats（探索 vs 開採）</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- 群組 2：模型訓練 / Agent -->
+  <div class="group-title">🧠 模型訓練 &amp; Agent</div>
+  <div class="group-sub">讓小模型/Agent 專注把單一任務做到最好</div>
+  <div class="grid">
+    <a class="card" href="./train-slm-single-task.html">
+      <div class="ic">🧠</div>
+      <div class="nm">訓練小模型做單一任務<span class="status ok">已建立</span></div>
+      <div class="mt">13 節 · LoRA/QLoRA + 蒸餾 + NVIDIA 六步</div>
+      <div class="ds">把 1–8B 小模型練成只做好一件事的專才：決策樹、資料集準備、調參起手值、評估陷阱與檢查清單。</div>
+    </a>
+    <a class="card" href="./ai-agents/pi-agent-best-practices-2026-06.md">
+      <div class="ic">🤖</div>
+      <div class="nm">Pi Agent 最佳實踐<span class="status wip">metadata</span></div>
+      <div class="mt">Harness Agent 客製化 · 2026-06 影片</div>
+      <div class="ds">Agent 客製化全流程筆記。目前僅整理自影片 metadata + NotebookLM 摘要，待字幕/Briefing Doc 補強。</div>
+    </a>
+  </div>
+
+  <!-- 群組 3：基礎 -->
+  <div class="group-title">🌐 開發基礎</div>
+  <div class="group-sub">串接 API / 部署推論前的必備知識</div>
+  <div class="grid">
+    <a class="card" href="./network-basics.html">
+      <div class="ic">🌐</div>
+      <div class="nm">網路小白入門：REST 與 WebSocket<span class="status ok">已建立</span></div>
+      <div class="mt">9 節 · 含可跑範例 + ASCII 流程圖</div>
+      <div class="ds">5 分鐘搞懂兩種網路通訊模式：打電話叫外送（REST）vs LINE 群組（WebSocket）。學任何 API 前的基礎。</div>
+    </a>
+  </div>
+
+  <div class="callout">
+    <strong>💡 這一區的共同主題：</strong>無論是訓練小模型、設計 AI 工作流、還是與 AI 協同寫作，核心都是同一句話——<strong>不靠「更強的模型」，而靠「更好的環境與溝通」</strong>，把高度隨機的 AI 調教成穩定、可控、專注的工具。
+  </div>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄</p>
+    <p style="margin-top:4px;">建立於 2026-08-04 · 字級調整器在右上角，可隨時改變字體大小</p>
+    <p style="margin-top:4px;"><a href="../index.html" style="color:var(--accent);text-decoration:none;">← 回到 JustKM 首頁</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) {
+        e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '-') {
+        e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '0') {
+        e.preventDefault(); apply(DEFAULT);
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>
