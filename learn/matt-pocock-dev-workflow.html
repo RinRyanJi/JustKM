@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>拆解 Matt Pocock 的 AI 程式開發流程：從需求到 Code Review · JustKM</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131826;
+      --bg-card: #1a2138;
+      --bg-code: #0f1424;
+      --border: #2a3454;
+      --text-primary: #e8ecf4;
+      --text-secondary: #9aa3b8;
+      --text-muted: #6b7390;
+      --accent: #4f9eff;
+      --accent-green: #00d68f;
+      --accent-orange: #ff9f43;
+      --accent-red: #ff4d6d;
+      --accent-purple: #a855f7;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--bg-primary); color: var(--text-primary);
+      line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px;
+    }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster {
+      position: fixed; top: 16px; right: 16px; z-index: 999;
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 8px;
+      display: flex; align-items: center; gap: 4px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px);
+    }
+    .font-adjuster button {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-primary); width: 32px; height: 32px; border-radius: 6px;
+      font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .font-adjuster button:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--text-muted); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value {
+      font-size: 0.6875rem; color: var(--accent); font-weight: 700;
+      min-width: 36px; text-align: center; font-family: 'SF Mono', monospace;
+    }
+
+    .hero {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 16px; padding: 36px 32px; margin-bottom: 32px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #4f9eff 0%, #00d68f 50%, #ff9f43 100%);
+    }
+    .hero h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .hero .sub { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 16px; }
+    .badge {
+      display: inline-block; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px; padding: 3px 10px; font-size: 0.6875rem;
+      color: var(--text-secondary); margin-right: 6px; margin-bottom: 6px;
+    }
+    .badge.blue { color: var(--accent); border-color: var(--accent); }
+    .badge.green { color: var(--accent-green); border-color: var(--accent-green); }
+    .badge.purple { color: var(--accent-purple); border-color: var(--accent-purple); }
+    .badge.orange { color: var(--accent-orange); border-color: var(--accent-orange); }
+
+    .toc {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px 24px; margin-bottom: 32px;
+    }
+    .toc-title {
+      font-size: 0.8125rem; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+    }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px; }
+    .toc a {
+      color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem;
+      padding: 5px 10px; border-radius: 6px; transition: all 0.15s;
+    }
+    .toc a:hover { color: var(--accent); background: var(--bg-card); }
+
+    section {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; scroll-margin-top: 20px;
+    }
+    section h2 { font-size: 1.375rem; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+    section h2 .num {
+      color: var(--accent); font-size: 0.875rem; font-weight: 800;
+      background: var(--bg-card); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border);
+    }
+    section h3 {
+      font-size: 1.0625rem; font-weight: 700; color: var(--accent);
+      margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
+    }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--text-secondary); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--text-secondary); font-size: 0.875rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--text-secondary); font-size: 0.875rem; }
+    section li { margin-bottom: 4px; }
+    section strong { color: var(--text-primary); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.8125rem; }
+    th { text-align: left; background: var(--bg-card); color: var(--text-primary); padding: 9px 12px; border: 1px solid var(--border); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+    tr:hover td { background: rgba(79, 158, 255, 0.04); }
+
+    pre {
+      background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.55;
+    }
+    pre code { color: #e8ecf4; }
+    p code, li code, td code {
+      background: var(--bg-code); border: 1px solid var(--border); padding: 1px 6px;
+      border-radius: 4px; font-size: 0.78125rem; color: var(--accent-orange);
+    }
+
+    .callout {
+      border-left: 3px solid var(--accent); background: var(--bg-card);
+      padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0 16px;
+      font-size: 0.84375rem; color: var(--text-secondary);
+    }
+    .callout.warn { border-left-color: var(--accent-orange); }
+    .callout.danger { border-left-color: var(--accent-red); }
+    .callout.tip { border-left-color: var(--accent-green); }
+    .callout.info { border-left-color: var(--accent-purple); }
+    .callout strong { color: var(--text-primary); }
+
+    .back-home {
+      display: inline-block; margin-bottom: 20px; color: var(--accent); text-decoration: none;
+      font-size: 0.875rem; padding: 6px 14px; border: 1px solid var(--border);
+      border-radius: 8px; background: var(--bg-secondary);
+    }
+    .back-home:hover { border-color: var(--accent); }
+    .footer {
+      text-align: center; color: var(--text-muted); font-size: 0.75rem;
+      margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border);
+    }
+
+    .diagram {
+      background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px;
+      padding: 16px 18px; font-family: 'SF Mono', Menlo, monospace; font-size: 0.78125rem;
+      color: var(--text-secondary); white-space: pre; overflow-x: auto; line-height: 1.5;
+    }
+    .diagram .arrow { color: var(--accent); }
+    .diagram .label { color: var(--accent-green); }
+    .diagram .warn { color: var(--accent-orange); }
+    .diagram .purple { color: var(--accent-purple); }
+
+    .steps { counter-reset: step; margin: 12px 0 18px; }
+    .step {
+      position: relative; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 18px 14px 56px; margin-bottom: 10px;
+    }
+    .step::before {
+      counter-increment: step; content: counter(step);
+      position: absolute; left: 14px; top: 14px; width: 28px; height: 28px; border-radius: 50%;
+      background: var(--accent); color: #fff; font-weight: 800; font-size: 0.8125rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step h4 { margin-top: 0; color: var(--text-primary); font-size: 0.9375rem; }
+    .step p { margin-bottom: 0; }
+
+    .skillcard {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 20px; margin: 14px 0;
+    }
+    .skillcard .st { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+    .skillcard .st code { font-size: 0.9375rem; color: var(--accent); font-weight: 700; background: none; border: none; padding: 0; }
+    .skillcard .st .mode {
+      font-size: 0.625rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 4px;
+    }
+    .mode.user { background: rgba(79,158,255,0.15); color: var(--accent); }
+    .mode.model { background: rgba(168,85,247,0.15); color: var(--accent-purple); }
+
+    .related {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 16px 20px; margin: 16px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .related a {
+      color: var(--accent); text-decoration: none; font-size: 0.875rem; padding: 10px 14px;
+      border-radius: 8px; border: 1px solid var(--border); background: var(--bg-secondary);
+      transition: all 0.15s; display: block;
+    }
+    .related a:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .related .rel-title { color: var(--text-primary); font-weight: 700; }
+    .related .rel-sub { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 600px) {
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../index.html">← 回到 JustKM 首頁</a>
+
+  <div class="hero">
+    <h1>🏭 拆解 Matt Pocock 的 AI 程式開發流程</h1>
+    <p class="sub">從需求到 Code Review 的一條生產線：<strong>grill → spec → tickets → implement(TDD) → review</strong>，把隨機的 AI 馴服成可控的工程師</p>
+    <div>
+      <span class="badge blue">AI 輔助開發</span>
+      <span class="badge green">TDD · 垂直切片</span>
+      <span class="badge purple">雙軸 Code Review</span>
+      <span class="badge orange">含流程圖 + 手動版</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#philosophy">① 核心哲學：小步 + 回饋</a>
+      <a href="#invoke">② 兩種 Skill 怎麼組合</a>
+      <a href="#pipeline">③ 生產線總覽</a>
+      <a href="#grill">④ grill-with-docs（釐清需求）</a>
+      <a href="#spec">⑤ to-spec / to-tickets（規格化）</a>
+      <a href="#implement">⑥ implement + tdd（開發）</a>
+      <a href="#review">⑦ code-review（雙軸審查）</a>
+      <a href="#disciplines">⑧ 支撐紀律（除錯/架構…）</a>
+      <a href="#principles">⑨ 可偷走的 8 條心法</a>
+      <a href="#howto">⑩ 怎麼實際套用（手動版）</a>
+      <a href="#resources">⑪ 資源與連結</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p>Matt Pocock 把「用 AI 寫程式」從<strong>一次性的許願</strong>（「幫我做一個登入功能」）改造成<strong>一條有紀律的生產線</strong>：先讓 AI <strong>反問你</strong>把需求釘死並建立共享語言(grill)，寫成<strong>規格</strong>(spec)、拆成一張張<strong>能獨立驗證的垂直切票</strong>(tickets)，再在<strong>約定好的測試接縫上做 TDD</strong>(implement)，最後用<strong>「標準 × 規格」雙軸</strong>審查(code-review)才提交。每一站都有專屬 Skill 把關。</p>
+
+    <div class="callout tip">
+      <strong>💡 為什麼值得學：</strong>核心不是「更聰明的模型」，而是<strong>「更好的環境與溝通」</strong>。這套流程對治 AI 的四大病：誤解意圖、話太多、程式跑不動、架構腐爛。即使你不用 Claude Code，把這套「小步 + 先釐清 + 先測試 + 雙軸審查」的節奏搬進任何 AI 對話，產出品質就會立刻不同。
+    </div>
+  </section>
+
+  <!-- ① -->
+  <section id="philosophy">
+    <h2><span class="num">①</span> 核心哲學：小步，而回饋速度就是你的速度上限</h2>
+    <p>整套系統只有一句總綱：</p>
+    <div class="callout">
+      <strong>“Always take small, deliberate steps. The rate of feedback is your speed limit.”</strong><br>
+      永遠踏出小而審慎的一步——你能拿到回饋的速度，就是你能前進的速度上限。
+    </div>
+    <p>它為 AI 開發的四種典型崩壞，各安排了對應的關卡：</p>
+    <table>
+      <thead><tr><th>AI 的病</th><th>症狀</th><th>這條生產線怎麼治</th></tr></thead>
+      <tbody>
+        <tr><td>誤解意圖</td><td>做出你根本沒要的東西</td><td>grill 反問到共識、spec 白紙黑字</td></tr>
+        <tr><td>話太多 / 冗長</td><td>回一堆廢話、改一堆無關的</td><td>共享語言(CONTEXT.md)、垂直薄切片</td></tr>
+        <tr><td>程式跑不動</td><td>看起來對、跑起來錯</td><td>TDD 紅綠循環、頻繁 typecheck</td></tr>
+        <tr><td>架構腐爛</td><td>越改越亂、技術債滾雪球</td><td>深模組設計、雙軸 code-review</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ② -->
+  <section id="invoke">
+    <h2><span class="num">②</span> 兩種 Skill 怎麼組合</h2>
+    <p>所有 Skill 沿一條軸線分成兩類，理解這點才看得懂整套怎麼運作：</p>
+    <table>
+      <thead><tr><th>類型</th><th>誰來啟動</th><th>裝著什麼</th><th>例子</th></tr></thead>
+      <tbody>
+        <tr><td>🔵 使用者呼叫<br>(user-invoked)</td><td>你打 <code>/指令</code> 才啟動</td><td><strong>流程編排</strong>（把一件事從頭帶到尾）</td><td>grill-with-docs、to-spec、implement</td></tr>
+        <tr><td>🟣 模型呼叫<br>(model-invoked)</td><td>AI 判斷時機<strong>自動援引</strong>（你也能手動叫）</td><td><strong>可複用的紀律</strong>（某件事的正確做法）</td><td>tdd、code-review、diagnosing-bugs</td></tr>
+      </tbody>
+    </table>
+    <div class="callout info">
+      <strong>📌 組合規則：</strong>使用者呼叫的 Skill <strong>可以</strong>援引模型呼叫的 Skill（例如 <code>implement</code> 內部叫 <code>tdd</code> 和 <code>code-review</code>），但<strong>不會</strong>一個使用者指令再去串另一個使用者指令。這讓「大流程」與「小紀律」清楚分層、可自由拼裝。
+    </div>
+  </section>
+
+  <!-- ③ -->
+  <section id="pipeline">
+    <h2><span class="num">③</span> 生產線總覽</h2>
+    <div class="diagram"><span class="label">主線（Happy Path）</span>
+
+ 需求模糊 ─► <span class="arrow">grill-with-docs</span> ─► <span class="arrow">to-spec / to-tickets</span> ─► <span class="arrow">implement</span> ─► <span class="arrow">code-review</span> ─► commit
+            釐清 + 建共識文件      寫規格 / 拆垂直切票      在 seam 上 TDD      標準 × 規格雙軸
+           (grilling+domain-modeling) (tracer bullets)     (tdd)             (平行子代理)
+
+ <span class="purple">支線（隨時援引的紀律）</span>
+   • 卡在 bug ─► diagnosing-bugs   • 設計拿不定 ─► prototype
+   • 想改架構 ─► codebase-design / improve-codebase-architecture
+   • 超大型工程 ─► wayfinder（跨多 session 的作戰地圖）
+   • 名詞混亂 ─► domain-modeling   • 合併衝突 ─► resolving-merge-conflicts</div>
+    <p>下面逐站拆解。每張卡片標明它是<strong>🔵 使用者呼叫</strong>還是<strong>🟣 模型呼叫</strong>。</p>
+  </section>
+
+  <!-- ④ -->
+  <section id="grill">
+    <h2><span class="num">④</span> grill-with-docs — 釐清需求，同時長出共識文件</h2>
+    <div class="skillcard">
+      <div class="st"><code>grill-with-docs</code><span class="mode user">User 使用者呼叫</span></div>
+      <p style="margin:0;">“A relentless interview to sharpen a plan or design, which also creates docs (ADRs and glossary) as we go.” 一邊<strong>不留情地追問</strong>把設計磨利，一邊<strong>即時產出文件</strong>（架構決策紀錄 ADR + 詞彙表）。</p>
+    </div>
+
+    <h3>底層引擎：grilling（一次只問一題）</h3>
+    <p>它背後是可複用的 <code>grilling</code> 訪談迴路，紀律很鮮明：</p>
+    <ul>
+      <li><strong>一次只問一個問題</strong>，問完等你回答再往下——避免認知過載。</li>
+      <li>沿著<strong>決策樹</strong>一根一根分支走，逐一解開決策之間的相依。</li>
+      <li><strong>事實類自己查</strong>（翻檔案、用工具），<strong>決策類一定交給你拍板</strong>，而且會附上「建議答案」引導你思考。</li>
+      <li><strong>達成共識前絕不動手。</strong></li>
+    </ul>
+
+    <h3>產物：CONTEXT.md（純詞彙表）+ ADR</h3>
+    <p><code>grill-with-docs</code> 把 grilling 和 <code>domain-modeling</code> 疊在一起，邊問邊把共識<strong>寫成實體文件</strong>：</p>
+    <ul>
+      <li><strong>CONTEXT.md</strong>：一份<strong>純詞彙表</strong>，「完全不含實作細節」。它不是規格、也不是草稿本，只定義專案的<strong>共享語言</strong>。</li>
+      <li><strong>ADR（架構決策紀錄）</strong>：只在「難以反轉、對未來讀者意外、且牽涉真實取捨」時才提議建立。</li>
+    </ul>
+
+    <div class="callout tip">
+      <strong>💡 為什麼共享語言這麼關鍵：</strong>一份好的 CONTEXT.md 能<strong>降低冗長、統一命名、幫助導覽、還省 token</strong>。當人與 AI 對同一個詞的理解一致，往後每一次溝通都更短、更準。這是整套系統「省話」的祕密武器。
+    </div>
+
+    <h4>domain-modeling 磨詞彙的四招</h4>
+    <ol>
+      <li><strong>詞彙稽核</strong>：你用了和 CONTEXT.md 衝突的詞，當場標記澄清。</li>
+      <li><strong>精準化提議</strong>：把模糊詞換成正典詞——例如把「帳號」拆成 <em>Customer</em> 與 <em>User</em>。</li>
+      <li><strong>情境壓力測試</strong>：捏造具體邊界案例，逼你講清概念之間怎麼關聯。</li>
+      <li><strong>對照程式碼</strong>：找出「你嘴上說的」和「程式實際做的」之間的矛盾。</li>
+    </ol>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="spec">
+    <h2><span class="num">⑤</span> to-spec / to-tickets — 把共識規格化、切成可執行的票</h2>
+
+    <div class="skillcard">
+      <div class="st"><code>to-spec</code><span class="mode user">User 使用者呼叫</span></div>
+      <p style="margin:0;">把「已經討論過」的內容<strong>直接綜合成一份規格</strong>並發到 issue tracker——<strong>不需要再訪談一次</strong>。</p>
+    </div>
+    <h4>它的步驟</h4>
+    <ol>
+      <li><strong>探勘程式碼</strong>：了解現況，套用專案詞彙、尊重相關區域的 ADR。</li>
+      <li><strong>定義測試接縫(seam)</strong>：優先用<strong>既有</strong>接縫、選<strong>最高層級</strong>；非必要不新增。理想是<strong>整份規格只落在一個接縫上</strong>。</li>
+      <li><strong>寫規格並發布</strong>，貼上 <code>ready-for-agent</code> 標籤。</li>
+    </ol>
+    <h4>規格包含</h4>
+    <p>問題陳述、解法、<strong>詳盡的編號 User Stories</strong>、實作決策（模組/介面/schema 變更）、測試決策、<strong>Out of Scope</strong>、補充註記。</p>
+    <div class="callout warn">
+      <strong>⚠️ 刻意避開的陷阱：</strong>規格裡<strong>少寫會過期的實作細節</strong>（例如寫死的檔案路徑）——用詞彙與決策描述，而非易腐的細節。若有 prototype 能比文字更好地表達決策，就用 prototype。
+    </div>
+
+    <div class="skillcard">
+      <div class="st"><code>to-tickets</code><span class="mode user">User 使用者呼叫</span></div>
+      <p style="margin:0;">把計畫/規格拆成一張張<strong>會宣告自己相依關係</strong>的工作票。</p>
+    </div>
+    <h4>兩個核心觀念</h4>
+    <ul>
+      <li><strong>Tracer-bullet 票 = 垂直切片，不是水平分層。</strong>每張票<strong>穿透 schema → API → UI → 測試</strong>，自己就能 demo；大小能塞進一個 context window。<span style="color:var(--accent-red)">✗ 不要</span>「只做 UI」或「只做資料庫」這種水平票。</li>
+      <li><strong>Blocking edges（阻擋邊）</strong>：宣告哪張票要先完成，形成相依圖。你永遠在<strong>「前緣」</strong>（相依已解、可立即動工的票）上工作，還能平行推進。</li>
+    </ul>
+    <div class="callout">
+      <strong>大型重構的手法：expand–contract（擴張—收縮）</strong>——先加上新形態、分批把呼叫端遷移過去、最後刪掉舊形態。批次大小要顧及「爆炸半徑」，<strong>全程保持 CI 綠燈</strong>。
+    </div>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="implement">
+    <h2><span class="num">⑥</span> implement + tdd — 在接縫上做測試驅動開發</h2>
+    <div class="skillcard">
+      <div class="st"><code>implement</code><span class="mode user">User 使用者呼叫</span></div>
+      <p style="margin:0;">把規格/票變成能動的程式，全程<strong>用 TDD 驅動、頻繁驗證、以 code-review 收尾</strong>。</p>
+    </div>
+    <h4>它的流程</h4>
+    <div class="diagram">解析需求 ─► 在<span class="arrow">預先約定的接縫(seam)</span>上寫測試(先紅) ─► 寫最少的碼讓它綠
+   │
+   ├─ 頻繁 <span class="arrow">typecheck</span>、常跑<span class="arrow">單一測試檔</span>及早抓錯
+   │
+   └─► 全部完成後跑<span class="arrow">整套測試</span> ─► <span class="arrow">/code-review</span> ─► commit</div>
+
+    <div class="skillcard">
+      <div class="st"><code>tdd</code><span class="mode model">Model 模型呼叫</span></div>
+      <p style="margin:0;">紅 → 綠迴圈，產出<strong>「值得留下的測試」</strong>。</p>
+    </div>
+    <h4>TDD 的鐵律</h4>
+    <ul>
+      <li><strong>先寫測試再寫實作</strong>；不加投機性的多餘功能。</li>
+      <li><strong>垂直切片</strong>：一次一個測試、一個實作，別把所有測試先寫完（水平切片）。</li>
+      <li><strong>只在公開接縫(public seam)上測</strong>，絕不測內部細節、不 mock 內部。</li>
+      <li><strong>重構屬於 code-review，不屬於 implement 迴圈。</strong></li>
+      <li>每個測試是「曳光彈」——回應前一輪揭露的東西。</li>
+    </ul>
+    <div class="callout danger">
+      <strong>🚫 好測試 vs 壞測試：</strong>好的測試「<strong>讀起來像規格</strong>」且「<strong>撐得過重構</strong>」，因為它驗的是使用者可見的<strong>行為</strong>、透過公開邊界，而非實作。要避開三種爛味道：<strong>同義反覆斷言</strong>（期望值照抄程式邏輯）、<strong>實作耦合</strong>（mock 內部）、<strong>水平切片</strong>。期望值必須來自<strong>獨立的真相來源</strong>——已知正確的字面值、手算範例、或規格本身。
+    </div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="review">
+    <h2><span class="num">⑦</span> code-review — 標準 × 規格的雙軸審查</h2>
+    <div class="skillcard">
+      <div class="st"><code>code-review</code><span class="mode model">Model 模型呼叫</span></div>
+      <p style="margin:0;">審查 HEAD 與某個固定基準點之間的差異，<strong>沿兩條互相獨立的軸</strong>檢查。</p>
+    </div>
+    <h3>兩條軸（刻意分開）</h3>
+    <table>
+      <thead><tr><th>軸</th><th>在問什麼</th><th>依據</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Standards 標準</strong></td><td>寫得好不好？</td><td>專案文件化的規範 + 一組程式碼壞味道基準（Fowler《重構》第 3 章：神祕命名、重複、依戀情結、資料泥團、基本型別偏執、發散式變化、霰彈式修改…）。<strong>專案自有規範優先於基準。</strong></td></tr>
+        <tr><td><strong>Spec 規格</strong></td><td>有沒有忠實實現需求？</td><td>原始 issue / PRD / 規格。檢查<strong>缺漏或半成品功能、範圍蔓延(scope creep)、實作錯誤</strong>。</td></tr>
+      </tbody>
+    </table>
+    <h4>審查流程</h4>
+    <ol>
+      <li><strong>釘住基準點</strong>：確認 user 指定的 SHA/branch/tag 可解析，<code>git diff &lt;基準&gt;...HEAD</code> 非空。</li>
+      <li><strong>找出規格</strong>：先翻 commit 訊息找 issue 參照，再看 user 給的路徑、<code>docs/</code>、<code>specs/</code>、<code>.scratch/</code>；找不到就問。</li>
+      <li><strong>蒐集標準來源</strong>：<code>CODING_STANDARDS.md</code>、<code>CONTRIBUTING.md</code> 等 + 壞味道基準。</li>
+      <li><strong>平行子代理</strong>：Standards 與 Spec 兩份審查<strong>同時</strong>各派一個子代理，各自 &lt;400 字，區分「違規」與「判斷題」。</li>
+      <li><strong>分開彙整</strong>：兩份報告各自呈現、不混排，各給摘要與最嚴重問題。</li>
+    </ol>
+    <div class="callout info">
+      <strong>📌 為什麼兩軸要分開：</strong>一份改動<strong>可能一軸過、一軸不過</strong>。分開才不會讓「程式寫得漂亮」掩蓋「根本沒做到規格要的事」，反之亦然。
+    </div>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="disciplines">
+    <h2><span class="num">⑧</span> 支撐紀律（隨時援引的模型呼叫 Skill）</h2>
+
+    <h3>🐛 diagnosing-bugs — 一條反直覺的除錯鐵律</h3>
+    <div class="callout danger">
+      <strong>鐵律：不准先猜。</strong>在建立起「能穩定重現 bug 的緊迫回饋迴路」之前，禁止讀程式碼去建立理論——「直接跳到假設，正是這個 Skill 要防的失敗」。<strong>沒有可重現的指令，就不准進入下一階段。</strong>
+    </div>
+    <p>六階段迴圈：</p>
+    <ol>
+      <li><strong>建回饋迴路</strong>（最關鍵）：做一個能穩定變紅的訊號來重現 bug——失敗測試、curl 腳本、最小 harness、bisect…要<strong>確定性、快、可無人值守</strong>。</li>
+      <li><strong>重現 + 最小化</strong>：確認和使用者描述相符，再把非必要元素一一拿掉，直到每一塊都是關鍵。</li>
+      <li><strong>提假設</strong>：給 3–5 個排序過、可證偽的預測，<strong>先給使用者看</strong>（他常一眼就幫你重排）。</li>
+      <li><strong>下探針</strong>：一次只改一個變數，<strong>優先用除錯器而非 log</strong>，所有除錯輸出打標籤好清理。</li>
+      <li><strong>修 + 測</strong>：在<strong>正確的接縫</strong>寫回歸測試，驗證測試與原情境都過。</li>
+      <li><strong>清理 + 事後檢討</strong>：移除探針，記錄「什麼架構改動能根絕此類 bug」。</li>
+    </ol>
+
+    <h3>🧱 codebase-design — 深模組、小介面</h3>
+    <p>設計<strong>深模組</strong>：把大量行為藏在<strong>極小的介面</strong>後。呼叫者用最少的學習成本換到最多的能力。反例是「大介面藏不了多少邏輯」的淺模組——只會製造維護負擔。</p>
+    <ul>
+      <li><strong>依賴注入</strong>（接收依賴而非自己建，方便測試替換）、<strong>純函式優先</strong>（回傳結果而非改狀態）、<strong>介面表面積最小化</strong>。</li>
+      <li><strong>「一個 adapter 是假設，兩個才是真實」</strong>——真的有多種實作時才引入變化點，別為想像中的彈性過度設計。</li>
+      <li><strong>刪除測試</strong>：想像把這個模組刪掉。若複雜度隨之消失 → 它只是穿堂（不及格）；若複雜度散落到眾多呼叫端 → 它掙到了存在的價值。</li>
+    </ul>
+
+    <h3>🔬 prototype — 用拋棄式原型回答設計問題</h3>
+    <p>當「這個狀態機行得通嗎？」→ 做一個互動式終端小程式測邊界；「這該長怎樣？」→ 生多個可用 URL 參數切換的 UI 版本。<strong>刻意拋棄式</strong>：命名標明是 prototype、不寫測試不加抽象、一鍵可跑、完整顯示狀態變化；驗證後提交到拋棄式分支並<strong>記下結論</strong>，只把驗證過的邏輯併回主線。</p>
+
+    <h3>🗺️ wayfinder — 超大型工程的跨 session 作戰地圖</h3>
+    <p>面對「大到裝不下一個 session」的工程，它<strong>只產出決策、不產出交付物</strong>：在 issue tracker 上建一張 <code>wayfinder:map</code> 索引，把大問題拆成一張張<strong>調查/決策票</strong>（類型：research / prototype / grilling / task）。地圖<strong>刻意留白</strong>——還太模糊、不足以開票的部分放在「尚未指定(fog of war)」區，隨前緣推進再逐步具體化。<strong>一個 session 只解一張票</strong>（research 除外）。</p>
+
+    <h3>其餘（README 列出，同屬工具箱）</h3>
+    <ul>
+      <li><code>triage</code>：把四面八方的許願強制排成狀態機流水線，還能教 AI 幫你擋掉不合理需求。</li>
+      <li><code>resolving-merge-conflicts</code>：逐 hunk、依「意圖」解合併衝突。</li>
+      <li><code>improve-codebase-architecture</code>：掃描「可加深」的機會，產出視覺化 HTML 報告。</li>
+      <li><code>research</code>：對照第一手來源調查問題，產出有引用的 Markdown。</li>
+      <li><code>handoff</code>：把過長對話壓縮成交接文件，讓新視窗/子代理無縫接手（對治「長對話降智」）。</li>
+    </ul>
+  </section>
+
+  <!-- ⑨ -->
+  <section id="principles">
+    <h2><span class="num">⑨</span> 可偷走的 8 條心法</h2>
+    <p>把所有 Skill 疊起來看，會浮現同一組原則——<strong>就算不用這套工具，也值得搬進你自己的流程</strong>：</p>
+    <div class="steps">
+      <div class="step"><h4>小步，回饋速度是速度上限</h4><p>每一步都小到能快速驗證。拿不到回饋的地方，就是你該慢下來的地方。</p></div>
+      <div class="step"><h4>先建共享語言，再談功能</h4><p>用一份純詞彙表(CONTEXT.md)把名詞釘死。命名一致 → 溝通更短、更準、更省 token。</p></div>
+      <div class="step"><h4>決策屬於人類</h4><p>AI 一次問一題、附建議答案、事實自己查，但<strong>拍板權在你</strong>，達成共識前不動手。</p></div>
+      <div class="step"><h4>垂直切片，不做水平分層</h4><p>每個工作單位都要能自己 demo（穿透 schema→UI→測試），並保持 CI 綠燈。</p></div>
+      <div class="step"><h4>測試綁行為、不綁實作</h4><p>只在公開接縫上測，期望值來自獨立真相來源，讓測試「讀起來像規格、撐得過重構」。</p></div>
+      <div class="step"><h4>審查分兩軸：標準 × 規格</h4><p>「寫得好」與「做對事」是兩回事，分開評，別讓一軸掩蓋另一軸。</p></div>
+      <div class="step"><h4>除錯先重現，別急著猜</h4><p>沒有穩定可重現的回饋迴路之前，不准提假設。緊迫的迴路是除錯的超能力。</p></div>
+      <div class="step"><h4>設計深模組，每天投資系統</h4><p>大能力藏在小介面後；「一個 adapter 是假設，兩個才是真實」。對抗架構熵是每日功課。</p></div>
+    </div>
+  </section>
+
+  <!-- ⑩ -->
+  <section id="howto">
+    <h2><span class="num">⑩</span> 怎麼實際套用（含「手動版」）</h2>
+    <h3>A · 如果你用 Claude Code</h3>
+    <p>安裝 Matt 的 skills plugin（見 ⑪），或把對應 <code>SKILL.md</code> 複製進專案客製。典型一次功能開發：<code>/grill-with-docs</code> → <code>/to-spec</code> 或 <code>/to-tickets</code> → <code>/implement</code> →（內部自動 <code>/code-review</code>）→ commit。</p>
+
+    <h3>B · 手動版：任何聊天型 AI 都能照做</h3>
+    <ol>
+      <li><strong>釐清</strong>：「<em>先別寫任何程式。一次問我一個問題，把這個功能的需求、邊界、名詞定義釘清楚，並幫我維護一份詞彙表。達成共識前不要動工。</em>」</li>
+      <li><strong>規格</strong>：叫它把共識整理成規格——問題、解法、編號 user stories、<strong>Out of Scope</strong>、測試要測哪裡。</li>
+      <li><strong>切票</strong>：「<em>拆成幾張垂直切片，每張都要能自己 demo、標明誰擋著誰，先做沒有相依的。</em>」</li>
+      <li><strong>TDD 開發</strong>：一張票一次。「<em>先寫一個會失敗的測試（測行為、不測內部），再寫最少的碼讓它過，然後才繼續下一個。</em>」頻繁 typecheck / 跑測試。</li>
+      <li><strong>雙軸審查</strong>：「<em>分兩份審這段 diff：一份只看程式碼標準與壞味道，另一份只看有沒有做到規格（缺漏/範圍蔓延/實作錯）。兩份分開給。</em>」</li>
+      <li><strong>卡關時</strong>：Bug → 先要它做出可重現的最小案例再談原因；長對話變笨 → 要它產出一份交接文件，開新視窗貼上去續作。</li>
+    </ol>
+    <div class="callout tip">
+      <strong>💡 一個立刻能用的切換：</strong>下次要 AI 做功能，先禁用「幫我做 X」，改成「<strong>先別動手，問我問題直到你完全懂</strong>」+「<strong>先寫測試</strong>」。光這兩招，就能砍掉大半「做出你沒要的東西」與「看似對其實錯」。
+    </div>
+  </section>
+
+  <!-- ⑪ -->
+  <section id="resources">
+    <h2><span class="num">⑪</span> 資源與連結</h2>
+    <h3>🔗 原始 Skill（GitHub）</h3>
+    <div class="related">
+      <a href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">
+        <div class="rel-title">mattpocock/skills（主 repo）</div>
+        <div class="rel-sub">完整 AI 開發工作流 Skill 集</div>
+      </a>
+      <a href="https://github.com/mattpocock/skills/tree/main/skills/engineering" target="_blank" rel="noopener">
+        <div class="rel-title">skills/engineering/</div>
+        <div class="rel-sub">本文拆解的 17 個工程 Skill 都在這</div>
+      </a>
+      <a href="https://github.com/mattpocock/skills/tree/main/skills/engineering/diagnosing-bugs" target="_blank" rel="noopener">
+        <div class="rel-title">diagnosing-bugs/SKILL.md</div>
+        <div class="rel-sub">「不准先猜」的除錯鐵律</div>
+      </a>
+      <a href="https://github.com/mattpocock/skills/tree/main/skills/engineering/code-review" target="_blank" rel="noopener">
+        <div class="rel-title">code-review/SKILL.md</div>
+        <div class="rel-sub">標準 × 規格雙軸審查</div>
+      </a>
+    </div>
+    <p style="margin-top:6px;">內容整理自各 <code>SKILL.md</code>，可能隨作者更新而變動，以 repo 最新版為準。</p>
+
+    <h3>🔗 站內延伸</h3>
+    <div class="related">
+      <a href="./matt-pocock-writing-skills.html">
+        <div class="rel-title">✍️ 拆解 Matt Pocock 的 AI 寫作系統</div>
+        <div class="rel-sub">同一套 repo 的寫作三劍客：fragments/shape/beats</div>
+      </a>
+      <a href="./train-slm-single-task.html">
+        <div class="rel-title">🧠 訓練小模型做單一任務</div>
+        <div class="rel-sub">同樣是「把 AI 馴服成專才」的思路</div>
+      </a>
+    </div>
+
+    <div class="callout info">
+      <strong>📌 一句話帶走：</strong>把 AI 當成一位有潛力但需要好流程的工程師——<strong>先問清楚、寫下共識、小步用測試驅動、雙軸把關</strong>。你給它的「環境與溝通」有多好，它的輸出就有多可靠。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · 拆解 Matt Pocock 的 AI 程式開發流程</p>
+    <p style="margin-top:4px;">整理自 github.com/mattpocock/skills 之 SKILL.md 內容 · 建立於 2026-08-04 · 字級調整器在右上角</p>
+    <p style="margin-top:4px;"><a href="../index.html" style="color:var(--accent);text-decoration:none;">← 回到 JustKM 首頁</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) {
+        e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '-') {
+        e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '0') {
+        e.preventDefault(); apply(DEFAULT);
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>
