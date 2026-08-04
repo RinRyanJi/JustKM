@@ -8,8 +8,9 @@
 
 - 🏠 **網站首頁**：<https://rinryanji.github.io/JustKM/>
 - 🧠 **訓練小模型做單一任務（SLM 專用化）**：<https://rinryanji.github.io/JustKM/learn/train-slm-single-task.html>
-- ✍️ **拆解 Matt Pocock 的 AI 寫作系統**：<https://rinryanji.github.io/JustKM/learn/matt-pocock-writing-skills.html>
-- 🏭 **NEW · 拆解 Matt Pocock 的 AI 程式開發流程**：<https://rinryanji.github.io/JustKM/learn/matt-pocock-dev-workflow.html>
+- 🧰 **NEW · Matt Pocock AI Skills 總覽目錄（系列入口）**：<https://rinryanji.github.io/JustKM/learn/matt-pocock-skills.html>
+  - ✍️ 拆解 AI 寫作系統：<https://rinryanji.github.io/JustKM/learn/matt-pocock-writing-skills.html>
+  - 🏭 拆解 AI 程式開發流程：<https://rinryanji.github.io/JustKM/learn/matt-pocock-dev-workflow.html>
 - 🌐 網路小白入門（REST / WebSocket）：<https://rinryanji.github.io/JustKM/learn/network-basics.html>
 - 🎨 74 品牌設計系統圖鑑：<https://rinryanji.github.io/JustKM/design-md/>
 - 📈 美股交易教學：<https://rinryanji.github.io/JustKM/invest/course.html>
@@ -40,6 +41,7 @@ JustKM/
 | 🎨 74 品牌 DESIGN.md | [`design-md/`](design-md/index.html) | ✅ 已建立 | Stripe/Linear/Vercel/Apple/Cursor 等設計 token |
 | 🤖 Pi Agent 最佳實踐 | [`learn/ai-agents/pi-agent-best-practices-2026-06.md`](learn/ai-agents/pi-agent-best-practices-2026-06.md) | 🟡 metadata only | 暮閒 2026-06 影片,無字幕,待 Briefing Doc 補強 |
 | 🧠 訓練小模型做單一任務 | [`learn/train-slm-single-task.html`](learn/train-slm-single-task.html) | ✅ 已建立 | SLM 專用化實戰 · 13 節 · LoRA/QLoRA + 蒸餾 + NVIDIA 六步 · 含決策樹與程式範例 |
+| 🧰 Matt Pocock Skills 總覽目錄 | [`learn/matt-pocock-skills.html`](learn/matt-pocock-skills.html) | ✅ 已建立 | 系列入口 · 兩篇深入拆解 + 整個 repo 的 Skill 速查地圖 |
 | ✍️ Matt Pocock AI 寫作系統 | [`learn/matt-pocock-writing-skills.html`](learn/matt-pocock-writing-skills.html) | ✅ 已建立 | 拆解 mattpocock/skills 的 fragments/shape/beats · 探索 vs 開採 · 含手動版流程 |
 | 🏭 Matt Pocock AI 程式開發流程 | [`learn/matt-pocock-dev-workflow.html`](learn/matt-pocock-dev-workflow.html) | ✅ 已建立 | grill→spec→tickets→implement(TDD)→review 生產線 · 17 個工程 Skill · 含手動版 |
 

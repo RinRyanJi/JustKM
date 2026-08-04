@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matt Pocock AI Skills 總覽目錄 · JustKM</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131826;
+      --bg-card: #1a2138;
+      --bg-code: #0f1424;
+      --border: #2a3454;
+      --text-primary: #e8ecf4;
+      --text-secondary: #9aa3b8;
+      --text-muted: #6b7390;
+      --accent: #4f9eff;
+      --accent-green: #00d68f;
+      --accent-orange: #ff9f43;
+      --accent-red: #ff4d6d;
+      --accent-purple: #a855f7;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--bg-primary); color: var(--text-primary);
+      line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px;
+    }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster {
+      position: fixed; top: 16px; right: 16px; z-index: 999;
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 8px;
+      display: flex; align-items: center; gap: 4px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px);
+    }
+    .font-adjuster button {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-primary); width: 32px; height: 32px; border-radius: 6px;
+      font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .font-adjuster button:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--text-muted); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value {
+      font-size: 0.6875rem; color: var(--accent); font-weight: 700;
+      min-width: 36px; text-align: center; font-family: 'SF Mono', monospace;
+    }
+
+    .hero {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 16px; padding: 36px 32px; margin-bottom: 28px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #4f9eff 0%, #a855f7 33%, #00d68f 66%, #ff9f43 100%);
+    }
+    .hero h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .hero .sub { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 16px; }
+    .badge {
+      display: inline-block; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px; padding: 3px 10px; font-size: 0.6875rem;
+      color: var(--text-secondary); margin-right: 6px; margin-bottom: 6px;
+    }
+    .badge.blue { color: var(--accent); border-color: var(--accent); }
+    .badge.green { color: var(--accent-green); border-color: var(--accent-green); }
+    .badge.purple { color: var(--accent-purple); border-color: var(--accent-purple); }
+    .badge.orange { color: var(--accent-orange); border-color: var(--accent-orange); }
+
+    section {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 12px; padding: 26px 30px; margin-bottom: 22px; scroll-margin-top: 20px;
+    }
+    section h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+    section h2 .ic { font-size: 1.1rem; }
+    section h3 {
+      font-size: 1rem; font-weight: 700; color: var(--accent);
+      margin-top: 20px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
+    }
+    section p { margin-bottom: 10px; color: var(--text-secondary); font-size: 0.875rem; }
+    section ul { padding-left: 22px; margin-bottom: 14px; color: var(--text-secondary); font-size: 0.875rem; }
+    section li { margin-bottom: 4px; }
+    section strong { color: var(--text-primary); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+    p code, li code, td code {
+      background: var(--bg-code); border: 1px solid var(--border); padding: 1px 6px;
+      border-radius: 4px; font-size: 0.78125rem; color: var(--accent-orange);
+    }
+
+    /* 兩張大深入卡 */
+    .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 4px; }
+    .feature-card {
+      display: block; text-decoration: none; color: inherit;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 22px 22px; transition: all 0.18s ease; position: relative; overflow: hidden;
+    }
+    .feature-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; opacity: 0.9;
+    }
+    .feature-card.dev::before { background: linear-gradient(90deg,#4f9eff,#00d68f); }
+    .feature-card.write::before { background: linear-gradient(90deg,#a855f7,#4f9eff); }
+    .feature-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .feature-card .fc-ic { font-size: 30px; margin-bottom: 8px; }
+    .feature-card .fc-title { font-size: 1.0625rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; }
+    .feature-card .fc-desc { font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 10px; }
+    .feature-card .fc-tags span {
+      display: inline-block; font-size: 0.625rem; color: var(--text-muted);
+      border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; margin: 0 4px 4px 0;
+    }
+    .feature-card .fc-go { font-size: 0.75rem; color: var(--accent); font-weight: 700; margin-top: 6px; }
+
+    .diagram {
+      background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px;
+      padding: 16px 18px; font-family: 'SF Mono', Menlo, monospace; font-size: 0.78125rem;
+      color: var(--text-secondary); white-space: pre; overflow-x: auto; line-height: 1.5;
+    }
+    .diagram .arrow { color: var(--accent); }
+    .diagram .label { color: var(--accent-green); }
+    .diagram .purple { color: var(--accent-purple); }
+
+    table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 0.8125rem; }
+    th { text-align: left; background: var(--bg-card); color: var(--text-primary); padding: 8px 11px; border: 1px solid var(--border); font-weight: 700; }
+    td { padding: 8px 11px; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+    tr:hover td { background: rgba(79, 158, 255, 0.04); }
+    td code, th code { color: var(--accent); }
+    .star { color: var(--accent-orange); font-weight: 700; }
+
+    .callout {
+      border-left: 3px solid var(--accent); background: var(--bg-card);
+      padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0 16px;
+      font-size: 0.84375rem; color: var(--text-secondary);
+    }
+    .callout.tip { border-left-color: var(--accent-green); }
+    .callout.info { border-left-color: var(--accent-purple); }
+    .callout strong { color: var(--text-primary); }
+
+    .back-home {
+      display: inline-block; margin-bottom: 20px; color: var(--accent); text-decoration: none;
+      font-size: 0.875rem; padding: 6px 14px; border: 1px solid var(--border);
+      border-radius: 8px; background: var(--bg-secondary);
+    }
+    .back-home:hover { border-color: var(--accent); }
+    .footer {
+      text-align: center; color: var(--text-muted); font-size: 0.75rem;
+      margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border);
+    }
+    .related {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .related a {
+      color: var(--accent); text-decoration: none; font-size: 0.875rem; padding: 10px 14px;
+      border-radius: 8px; border: 1px solid var(--border); background: var(--bg-secondary);
+      transition: all 0.15s; display: block;
+    }
+    .related a:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .related .rel-title { color: var(--text-primary); font-weight: 700; }
+    .related .rel-sub { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 620px) {
+      .feature-grid, .related { grid-template-columns: 1fr; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../index.html">← 回到 JustKM 首頁</a>
+
+  <div class="hero">
+    <h1>🧰 Matt Pocock AI Skills 總覽目錄</h1>
+    <p class="sub">一站看懂 <code>mattpocock/skills</code>：一整套把隨機的 AI 馴服成可控生產力的工作流 · JustKM 深入拆解系列的入口</p>
+    <div>
+      <span class="badge blue">總覽 / 目錄頁</span>
+      <span class="badge green">開發流程</span>
+      <span class="badge purple">寫作系統</span>
+      <span class="badge orange">完整 Skill 地圖</span>
+    </div>
+  </div>
+
+  <!-- 這是什麼 -->
+  <section id="what">
+    <h2><span class="ic">📖</span> 這是什麼</h2>
+    <p><strong>Matt Pocock</strong>（TypeScript 社群知名教育者、Total TypeScript 作者）把過去一年幾乎全程依賴 AI 開發所摸索出的<strong>系統化工作流</strong>，打包成一套開源 <strong>Agent Skills</strong>（給 Claude Code 等 AI 工具用的技能包），放在 <code>github.com/mattpocock/skills</code>。</p>
+    <p>它的核心目標只有一個：<strong>把充滿隨機性的 AI 黑盒子，馴服成精準、可靠、可控的生產力工具</strong>。總綱是一句話——</p>
+    <div class="callout">
+      <strong>“Always take small, deliberate steps. The rate of feedback is your speed limit.”</strong><br>
+      永遠踏出小而審慎的一步；你能拿到回饋的速度，就是你能前進的速度上限。
+    </div>
+    <p>本頁是 JustKM 為這套 repo 做的<strong>總覽目錄</strong>：下面兩張大卡直接進入兩篇深入拆解，再往下是<strong>整個 repo 的 Skill 地圖</strong>。</p>
+  </section>
+
+  <!-- 深入拆解 -->
+  <section id="deep-dives">
+    <h2><span class="ic">🔍</span> 深入拆解（已整理成單元）</h2>
+    <div class="feature-grid">
+      <a class="feature-card dev" href="./matt-pocock-dev-workflow.html">
+        <div class="fc-ic">🏭</div>
+        <div class="fc-title">AI 程式開發流程</div>
+        <div class="fc-desc">從需求到 Code Review 的一條生產線：grill → spec → tickets → implement(TDD) → review。拆解 17 個工程 Skill 與 8 條可偷走的心法。</div>
+        <div class="fc-tags"><span>TDD</span><span>垂直切片</span><span>雙軸審查</span><span>除錯鐵律</span><span>深模組</span></div>
+        <div class="fc-go">閱讀深入拆解 →</div>
+      </a>
+      <a class="feature-card write" href="./matt-pocock-writing-skills.html">
+        <div class="fc-ic">✍️</div>
+        <div class="fc-title">AI 寫作系統</div>
+        <div class="fc-desc">從不說「幫我寫」：把寫作拆成探索(榨碎片)與開採(逐段成文)兩階段，AI 全程不代筆。拆解寫作三劍客 fragments / shape / beats。</div>
+        <div class="fc-tags"><span>探索 vs 開採</span><span>fragments</span><span>shape</span><span>beats</span><span>grounding</span></div>
+        <div class="fc-go">閱讀深入拆解 →</div>
+      </a>
+    </div>
+    <div class="callout tip">
+      <strong>💡 建議順序：</strong>想馴服 AI 寫程式 → 先看 <strong>🏭 開發流程</strong>；想讓 AI 幫你寫出「你自己的」文章而非 AI 味廢文 → 看 <strong>✍️ 寫作系統</strong>。兩者共用同一套底層心法（小步、先釐清、grounding、人類掌舵）。
+    </div>
+  </section>
+
+  <!-- 全景圖 -->
+  <section id="map">
+    <h2><span class="ic">🗺️</span> 整個 repo 的全景圖</h2>
+    <div class="diagram"><span class="label">程式開發主線（🏭 已拆解）</span>
+ 需求模糊 ─► <span class="arrow">grill-with-docs</span> ─► <span class="arrow">to-spec / to-tickets</span> ─► <span class="arrow">implement (TDD)</span> ─► <span class="arrow">code-review</span> ─► commit
+
+<span class="purple">寫作系統（✍️ 已拆解）</span>
+ 想法 ─► <span class="arrow">writing-fragments</span>（探索）─► 碎片堆 ─► <span class="arrow">writing-shape / writing-beats</span>（開採）─► 文章
+
+<span class="label">共用的底層引擎</span>
+ grilling（一次一題的訪談）· domain-modeling（磨詞彙 / CONTEXT.md）· handoff（長對話交接）</div>
+    <p>兩條主線看似不同，其實建立在同一個信念上：<strong>先把「探索/釐清」做透，再進入「開採/執行」，全程小步 + 人類掌舵，AI 不越權替你拍板。</strong></p>
+  </section>
+
+  <!-- Skill 目錄 -->
+  <section id="catalog">
+    <h2><span class="ic">📇</span> 完整 Skill 目錄（速查）</h2>
+    <p><span class="star">★</span> = 本站已收錄深入拆解。<code>🔵</code> 使用者呼叫（打指令啟動）· <code>🟣</code> 模型呼叫（AI 自動援引）。</p>
+
+    <h3>🏭 工程（engineering／17）</h3>
+    <table>
+      <thead><tr><th>Skill</th><th>一句話</th></tr></thead>
+      <tbody>
+        <tr><td><code>grill-with-docs</code> 🔵 <span class="star">★</span></td><td>不留情追問磨利設計，同時長出 CONTEXT.md 詞彙表 + ADR</td></tr>
+        <tr><td><code>to-spec</code> 🔵 <span class="star">★</span></td><td>把已討論內容綜合成規格並發到 issue tracker（不再訪談）</td></tr>
+        <tr><td><code>to-tickets</code> 🔵 <span class="star">★</span></td><td>拆成 tracer-bullet 垂直切票、宣告 blocking 相依</td></tr>
+        <tr><td><code>implement</code> 🔵 <span class="star">★</span></td><td>依規格/票開發，接縫上 TDD、以 code-review 收尾</td></tr>
+        <tr><td><code>tdd</code> 🟣 <span class="star">★</span></td><td>紅→綠循環，產出「讀起來像規格、撐得過重構」的測試</td></tr>
+        <tr><td><code>code-review</code> 🟣 <span class="star">★</span></td><td>標準 × 規格雙軸、平行子代理審查</td></tr>
+        <tr><td><code>diagnosing-bugs</code> 🟣 <span class="star">★</span></td><td>除錯鐵律：先建可重現回饋迴路，不准先猜</td></tr>
+        <tr><td><code>codebase-design</code> 🟣 <span class="star">★</span></td><td>深模組、小介面；「一個 adapter 是假設，兩個才是真實」</td></tr>
+        <tr><td><code>domain-modeling</code> 🟣 <span class="star">★</span></td><td>磨利專案詞彙、即時更新 CONTEXT.md（純詞彙表）</td></tr>
+        <tr><td><code>prototype</code> 🟣 <span class="star">★</span></td><td>拋棄式原型回答設計問題（邏輯→終端小程式；UI→多版本）</td></tr>
+        <tr><td><code>wayfinder</code> 🔵 <span class="star">★</span></td><td>超大型工程的跨 session「作戰地圖」，只產決策不產交付</td></tr>
+        <tr><td><code>triage</code> 🔵</td><td>把四面八方的需求排成狀態機流水線，教 AI 擋不合理需求</td></tr>
+        <tr><td><code>research</code> 🟣</td><td>對照第一手來源調查，產出有引用的 Markdown</td></tr>
+        <tr><td><code>resolving-merge-conflicts</code> 🟣</td><td>逐 hunk、依「意圖」解合併衝突</td></tr>
+        <tr><td><code>improve-codebase-architecture</code> 🔵</td><td>掃描「可加深」的機會，產出視覺化 HTML 報告</td></tr>
+        <tr><td><code>ask-matt</code> 🔵</td><td>路由器：判斷你的情況該用哪個 Skill / 流程</td></tr>
+        <tr><td><code>setup-matt-pocock-skills</code> 🔵</td><td>替 repo 配置好標籤、版面、issue tracker</td></tr>
+      </tbody>
+    </table>
+
+    <h3>⚡ 生產力（productivity／5）</h3>
+    <table>
+      <thead><tr><th>Skill</th><th>一句話</th></tr></thead>
+      <tbody>
+        <tr><td><code>grill-me</code> 🔵</td><td>爆紅入口：讓 AI 反問你，直到決策樹每個分支都解開</td></tr>
+        <tr><td><code>grilling</code> 🟣 <span class="star">★</span></td><td>可複用的訪談迴路，grill-me 與 grill-with-docs 的引擎</td></tr>
+        <tr><td><code>handoff</code> 🔵 <span class="star">★</span></td><td>把過長對話壓成交接文件，讓新視窗/子代理無縫接手（對治降智）</td></tr>
+        <tr><td><code>teach</code> 🔵</td><td>用當前目錄當有狀態的教學工作區，跨多 session 教你一項技能</td></tr>
+        <tr><td><code>writing-great-skills</code> 🔵</td><td>寫好 Skill 本身的參考：讓 Skill 可預測的詞彙與原則</td></tr>
+      </tbody>
+    </table>
+
+    <h3>✍️ 寫作（in-progress／打磨中）</h3>
+    <table>
+      <thead><tr><th>Skill</th><th>一句話</th></tr></thead>
+      <tbody>
+        <tr><td><code>writing-fragments</code> 🔵 <span class="star">★</span></td><td>探索：訪談逼問把你榨成碎片（含最值錢的 leading words）</td></tr>
+        <tr><td><code>writing-shape</code> 🔵 <span class="star">★</span></td><td>開採：逐段把碎片塑形成一致嗓音的文章</td></tr>
+        <tr><td><code>writing-beats</code> 🔵 <span class="star">★</span></td><td>開採：排成「選擇你的冒險」式的節拍之旅</td></tr>
+        <tr><td><code>edit-article</code> 🔵 <span class="star">★</span></td><td>改稿：把段落當相依圖(DAG)重排、逐節重寫（personal 分類）</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <strong>📌 註：</strong>repo 另有 <code>misc/</code>（如 <code>setup-pre-commit</code>、<code>git-guardrails</code>）與 <code>in-progress/</code> 的實驗性項目（如 <code>batch-grill-me</code>、<code>loop-me</code>、<code>wizard</code>）。此目錄聚焦最具方法論價值的 Skill；完整清單以 repo 為準。
+    </div>
+  </section>
+
+  <!-- 怎麼用 -->
+  <section id="use">
+    <h2><span class="ic">🚀</span> 怎麼開始用</h2>
+    <ul>
+      <li><strong>用 Claude Code</strong>：把它當唯讀 plugin 安裝（會自動更新），或用 <code>skills.sh</code> 把可編輯的檔案複製進你的專案客製。之後就能打 <code>/grill-me</code>、<code>/implement</code> 等指令。</li>
+      <li><strong>不用 Claude Code</strong>：兩篇深入拆解都各附一份<strong>「手動版」流程</strong>——把這套「小步 + 先釐清 + 先測試 / 先榨碎片 + 雙軸把關」的節奏，直接搬進任何聊天型 AI 對話，就有八成威力。</li>
+    </ul>
+    <div class="callout tip">
+      <strong>💡 最小起手式：</strong>下次要 AI 做事，先禁用「幫我做 X / 幫我寫 X」，改成「<strong>先別動手，一次問我一個問題，直到你完全懂</strong>」。光這一個切換，就能砍掉大半「做出你沒要的東西」。
+    </div>
+  </section>
+
+  <!-- 資源 -->
+  <section id="resources">
+    <h2><span class="ic">🔗</span> 資源與站內延伸</h2>
+    <div class="related">
+      <a href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">
+        <div class="rel-title">mattpocock/skills（GitHub 主 repo）</div>
+        <div class="rel-sub">原始 SKILL.md 一手來源，以最新版為準</div>
+      </a>
+      <a href="./train-slm-single-task.html">
+        <div class="rel-title">🧠 訓練小模型做單一任務</div>
+        <div class="rel-sub">同樣是「把 AI 馴服成專才」的思路</div>
+      </a>
+      <a href="./matt-pocock-dev-workflow.html">
+        <div class="rel-title">🏭 AI 程式開發流程（深入拆解）</div>
+        <div class="rel-sub">grill→spec→tickets→implement→review</div>
+      </a>
+      <a href="./matt-pocock-writing-skills.html">
+        <div class="rel-title">✍️ AI 寫作系統（深入拆解）</div>
+        <div class="rel-sub">fragments · shape · beats</div>
+      </a>
+    </div>
+    <div class="callout info">
+      <strong>📌 一句話帶走：</strong>Matt 不靠「模型升級」，只靠<strong>「環境」與「溝通」</strong>兩門功夫，就把高度隨機的 AI 調成穩定輸出。這套 repo 就是這兩門功夫的完整範本。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · Matt Pocock AI Skills 總覽目錄</p>
+    <p style="margin-top:4px;">整理自 github.com/mattpocock/skills · 建立於 2026-08-04 · 字級調整器在右上角</p>
+    <p style="margin-top:4px;"><a href="../index.html" style="color:var(--accent);text-decoration:none;">← 回到 JustKM 首頁</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) {
+        e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '-') {
+        e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '0') {
+        e.preventDefault(); apply(DEFAULT);
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>
