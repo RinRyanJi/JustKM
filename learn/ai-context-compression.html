@@ -380,6 +380,40 @@
       <li><strong>外部記憶層</strong>：<a href="https://github.com/mem0ai/mem0" target="_blank" rel="noopener" style="color:var(--accent)">Mem0</a> 等把對話事實抽取存進向量庫，跨 session 持久記憶，需要時檢索回填——等於替 Agent 外掛一顆不會被壓掉的長期腦。</li>
       <li><strong>對話記憶壓縮器</strong>：見 ⑦ 的 Agent-Memory-Compressor——摘要／抽事實／封存三策略 + 重要性評分，可獨立套在自建 Agent 上。</li>
     </ul>
+
+    <h3>🔬 技術方塊：LLMLingua 的小模型怎麼算出「資訊量」</h3>
+    <p>硬提示壓縮的核心，是用一顆小模型量化每個 token 的資訊量，把「低資訊＝冗餘」的字刪掉。機制如下：</p>
+
+    <h4>① 要算的量：自資訊（self-information / surprisal）</h4>
+    <p>對句中第 <em>i</em> 個 token <em>xᵢ</em>，其資訊量定義為它在前文條件下「不被預測到」的程度：</p>
+    <div class="diagram"><span class="label">I(xᵢ)</span> = <span class="arrow">− log</span> p(xᵢ | x₁, x₂, …, xᵢ₋₁)
+
+  機率高（好預測）→ −log p 小 → <span class="warn">資訊量低 → 冗餘 → 可刪</span>
+  機率低（出乎意料）→ −log p 大 → <span class="label">資訊量高 → 關鍵 → 保留</span></div>
+    <p><strong>困惑度（perplexity）</strong>只是它的指數形式：<code>PPL = exp(平均 −log p)</code>。低機率 = 高自資訊 = 高困惑度，三者同源。</p>
+
+    <h4>② 一次前向傳播就全部算出（teacher forcing）</h4>
+    <p>關鍵：<strong>不需要讓模型「生成」任何東西</strong>——文字本來就在了。把整段 prompt 一次餵進自迴歸小模型（GPT2-small／LLaMA-7B 這類 causal LM），每個位置都會輸出「下一個 token 的機率分布」；因為真正的下一個 token 已知，<strong>直接讀出它被賦予的機率</strong>即可。</p>
+    <span class="lang-tag" style="display:inline-block;font-size:0.625rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:700;">python · 概念示意</span>
+    <pre><code>logits = small_model(input_ids)                 # [seq_len, vocab]
+logp   = log_softmax(logits, dim=-1)
+# 讀出「實際出現的那個 token」被賦予的 log 機率（對齊下一個 token）
+token_logp = logp[range(seq_len-1), input_ids[1:]]
+self_info  = -token_logp                        # 每個 token 的資訊量</code></pre>
+    <p>只做<strong>單次前向、只讀既有 token 的機率</strong>（不 beam search、不生成），所以又快又便宜——這也是「小模型就夠」的原因：我們只需要<strong>相對排序</strong>誰重要，不需要它產生高品質文字。</p>
+
+    <h4>③ 從分數到「刪不刪」＋ 為何要迭代</h4>
+    <ul>
+      <li>依目標壓縮率／budget controller 分到的預算，把自資訊換算成一個<strong>門檻（百分位）</strong>；低於門檻 = 冗餘 → 刪。instruction／question 給更高預算、少刪。</li>
+      <li><strong>迭代的必要：</strong>刪掉 token 會改變後文的條件機率（前文變短了），所以 LLMLingua <strong>分段重算</strong>——用壓縮後的上下文重新計算下一段的機率，讓分數始終反映「當前實際上下文」，而非一次性獨立打分。</li>
+    </ul>
+
+    <div class="callout info">
+      <strong>📌 版本差異：</strong>上面是 LLMLingua v1／LongLLMLingua 的原理（用 <em>perplexity</em>）。<strong>LLMLingua-2 改走另一條路</strong>：作者認為 perplexity 是「因果單向 LM 的<strong>間接</strong>指標」，未必對齊「壓縮」這任務，於是用 <strong>GPT-4 標註「該保留哪些 token」→ 訓練 BERT 雙向 encoder 做二元分類</strong>。此時「資訊量」不再是 <code>−log p</code>，而是<strong>分類器學出來的保留機率</strong>（能看左右雙向脈絡、任務無關、快 3–6 倍）。
+    </div>
+    <div class="callout tip">
+      <strong>💡 LongLLMLingua 的加強：</strong>v1 的自資訊與「你的問題」無關；LongLLMLingua 改用<strong>對比困惑度</strong>——比較同一 token 在「有給問題 vs 沒給問題」下的機率變化，把資訊量升級成<strong>「與當前問題相關的資訊量」</strong>，避免刪掉正是問題所需的字。
+    </div>
   </section>
 
   <!-- ⑦ -->
