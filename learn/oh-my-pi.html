@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>拆解 oh-my-pi（omp）：一個 Rust 打造的 terminal-first AI 編碼 Agent · JustKM</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a; --bg-secondary: #131826; --bg-card: #1a2138; --bg-code: #0f1424;
+      --border: #2a3454; --text-primary: #e8ecf4; --text-secondary: #9aa3b8; --text-muted: #6b7390;
+      --accent: #4f9eff; --accent-green: #00d68f; --accent-orange: #ff9f43; --accent-red: #ff4d6d; --accent-purple: #a855f7;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--bg-primary); color: var(--text-primary); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; }
+    .container { max-width: 980px; margin: 0 auto; }
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 16px rgba(0,0,0,0.4); backdrop-filter: blur(8px); }
+    .font-adjuster button { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--text-muted); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--accent); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+    .hero { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; padding: 36px 32px; margin-bottom: 28px; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg,#ff9f43,#4f9eff,#a855f7); }
+    .hero h1 { font-size: 1.6875rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .hero .sub { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 3px 10px; font-size: 0.6875rem; color: var(--text-secondary); margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: var(--accent); border-color: var(--accent); }
+    .badge.green { color: var(--accent-green); border-color: var(--accent-green); }
+    .badge.purple { color: var(--accent-purple); border-color: var(--accent-purple); }
+    .badge.orange { color: var(--accent-orange); border-color: var(--accent-orange); }
+    .toc { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 32px; }
+    .toc-title { font-size: 0.8125rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px; }
+    .toc a { color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 6px; transition: all 0.15s; }
+    .toc a:hover { color: var(--accent); background: var(--bg-card); }
+    section { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; scroll-margin-top: 20px; }
+    section h2 { font-size: 1.375rem; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+    section h2 .num { color: var(--accent); font-size: 0.875rem; font-weight: 800; background: var(--bg-card); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border); }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--accent); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--text-secondary); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--text-secondary); font-size: 0.875rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--text-secondary); font-size: 0.875rem; }
+    section li { margin-bottom: 4px; }
+    section strong { color: var(--text-primary); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.8125rem; }
+    th { text-align: left; background: var(--bg-card); color: var(--text-primary); padding: 9px 12px; border: 1px solid var(--border); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+    tr:hover td { background: rgba(79, 158, 255, 0.04); }
+    pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.55; }
+    pre code { color: #e8ecf4; }
+    p code, li code, td code { background: var(--bg-code); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--accent-orange); }
+    .callout { border-left: 3px solid var(--accent); background: var(--bg-card); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0 16px; font-size: 0.84375rem; color: var(--text-secondary); }
+    .callout.warn { border-left-color: var(--accent-orange); }
+    .callout.tip { border-left-color: var(--accent-green); }
+    .callout.info { border-left-color: var(--accent-purple); }
+    .callout strong { color: var(--text-primary); }
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--accent); text-decoration: none; font-size: 0.875rem; padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-secondary); }
+    .back-home:hover { border-color: var(--accent); }
+    .footer { text-align: center; color: var(--text-muted); font-size: 0.75rem; margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); }
+    .diagram { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; font-family: 'SF Mono', Menlo, monospace; font-size: 0.78125rem; color: var(--text-secondary); white-space: pre; overflow-x: auto; line-height: 1.5; }
+    .diagram .arrow { color: var(--accent); }
+    .diagram .label { color: var(--accent-green); }
+    .diagram .purple { color: var(--accent-purple); }
+    .related { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin: 16px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--accent); text-decoration: none; font-size: 0.875rem; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-secondary); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .related .rel-title { color: var(--text-primary); font-weight: 700; }
+    .related .rel-sub { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
+    @media (max-width: 600px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../index.html">← 回到 JustKM 首頁</a>
+
+  <div class="hero">
+    <h1>🥧 拆解 oh-my-pi（omp）</h1>
+    <p class="sub">一個用 Rust 打造、terminal-first、深度整合 IDE 能力的 AI 編碼 Agent harness —— Mario Zechner「Pi」專案的進化 fork</p>
+    <div>
+      <span class="badge orange">AI 編碼 Agent</span>
+      <span class="badge blue">Rust · ~80k 行</span>
+      <span class="badge green">31 內建工具</span>
+      <span class="badge purple">60+ 模型供應商</span>
+      <span class="badge">MIT</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#problem">① 它解決什麼問題</a>
+      <a href="#what">② 定位與血統</a>
+      <a href="#arch">③ 核心架構</a>
+      <a href="#features">④ 六大特色群</a>
+      <a href="#highlights">⑤ 別家少見的亮點</a>
+      <a href="#usage">⑥ 怎麼開始用</a>
+      <a href="#relation">⑦ 與 JustKM 其他單元</a>
+      <a href="#sources">⑧ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>oh-my-pi（指令名 <code>omp</code>）是一個「電池全內建」的 AI 編碼 Agent</strong>：把互動式終端 UI、可擴充的工具系統、多模型支援，與約 <strong>8 萬行 Rust 核心</strong>整合成單一平台。它把許多在別家 agent 只是「外掛」或根本沒有的能力——<strong>LSP 串進每次寫入、真正的除錯器控制、瀏覽器/桌面自動化、跨 session 記憶</strong>——做成原生第一等公民。</p>
+    <div class="callout tip">
+      <strong>💡 定位：</strong>它自我定位為「<strong>團隊不會用膩、也長不出去的 harness</strong>」——terminal-first、深度整合、為認真的生產級編碼而設計。是 Mario Zechner <strong>Pi</strong> 專案的 fork。
+    </div>
+  </section>
+
+  <!-- ① -->
+  <section id="problem">
+    <h2><span class="num">①</span> 它解決什麼問題</h2>
+    <p>現有 AI 編碼 agent 的能力常是<strong>零散的外掛（bolt-on）</strong>、或整合得很淺：改個名字不會自動傳播、沒有真除錯器、記憶不跨 session、要跑指令得每次 fork 一個 shell…omp 的主張是——<strong>把這些「本該內建」的能力做成原生、深整合、開箱即用</strong>。</p>
+    <ul>
+      <li>編輯了程式 → <strong>LSP 立刻串動</strong>(rename/refactor 自動傳播),而不是只改字串。</li>
+      <li>要 debug → 直接<strong>控制 lldb / dlv / debugpy</strong>,設斷點、看變數,而非用 print。</li>
+      <li>跑 shell → <strong>持久 session、in-process 執行</strong>,不必每次 fork/exec。</li>
+      <li>換模型 / 分工 → <strong>角色路由</strong>,一個任務不同節點用不同模型。</li>
+    </ul>
+  </section>
+
+  <!-- ② -->
+  <section id="what">
+    <h2><span class="num">②</span> 定位與血統</h2>
+    <table>
+      <thead><tr><th>面向</th><th>內容</th></tr></thead>
+      <tbody>
+        <tr><td>是什麼</td><td>開源 AI 編碼 agent 框架（harness）</td></tr>
+        <tr><td>血統</td><td><strong>Mario Zechner「Pi」專案的 fork</strong>，繼續進化</td></tr>
+        <tr><td>核心語言</td><td>Rust，約 <strong>80,000 行</strong>核心功能</td></tr>
+        <tr><td>介面哲學</td><td><strong>Terminal-first</strong>（終端優先）的互動式 TUI</td></tr>
+        <tr><td>授權</td><td>MIT、source-available；可用 TypeScript 外掛擴充</td></tr>
+        <tr><td>可宿主性</td><td>First-class TypeScript —— 整套可在 Node 中設定與宿主</td></tr>
+      </tbody>
+    </table>
+    <div class="callout info">
+      <strong>📌 相容既有設定：</strong>omp 會直接<strong>繼承 <code>.cursor</code> / <code>.claude</code> / <code>.cline</code> 的既有設定</strong>,不需要遷移就能上手。
+    </div>
+  </section>
+
+  <!-- ③ -->
+  <section id="arch">
+    <h2><span class="num">③</span> 核心架構:為什麼「快」與「深」</h2>
+    <p>omp 跑一個<strong>常駐的 agent session</strong>,透過工具呼叫來編排工作。當模型要求動作(讀檔、改碼、跑指令),agent 路由到<strong>原生實作</strong>——而且大多數操作(grep、glob、shell)是<strong>在 libuv thread pool 上 in-process 執行</strong>,而非 shell out。</p>
+    <div class="diagram">模型要求動作 ─► <span class="arrow">omp agent 路由</span> ─► <span class="label">原生實作（多數 in-process，libuv thread pool）</span>
+   │                                    │
+   │  消除 fork/exec 開銷；bash 等工具能<span class="purple">跨呼叫保留 session 狀態</span>
+   ▼
+TUI 把工具執行渲染成「卡片」（破壞性操作先預覽）
+   │  模糊需求 → 觸發 <span class="arrow">ask</span> 結構化選擇器（turn 中途詢問）
+   ▼
+編輯先 stage 再 land ─► agent 用 <span class="purple">xd://resolve</span> 解釋改動 ─► TUI 原子確認</div>
+
+    <h3>組成(monorepo + Rust crates)</h3>
+    <table>
+      <thead><tr><th>類別</th><th>元件</th></tr></thead>
+      <tbody>
+        <tr><td>Monorepo 套件</td><td><code>pi-agent-core</code>(runtime)、<code>pi-coding-agent</code>(CLI/SDK)、<code>pi-tui</code>、<code>pi-ai</code>(LLM client)、<code>pi-catalog</code>(模型目錄)</td></tr>
+        <tr><td>Rust crates</td><td><code>pi-shell</code>(內嵌 bash 持久 session)、<code>pi-ast</code>(tree-sitter 分析)、<code>pi-iso</code>(工作區隔離:APFS clone/overlayfs)、<code>pi-walker</code>(平行檔案遍歷,支援 gitignore)</td></tr>
+        <tr><td>Vendored</td><td>brush bash、jaq(jq 引擎)、<strong>46 個 uutils coreutils</strong></td></tr>
+        <tr><td>四個入口</td><td>互動 TUI(<code>omp</code>)、一次性 CLI(<code>omp -p</code>)、Node SDK、RPC over stdio、以及 <strong>ACP</strong>(Agent Client Protocol)供編輯器整合</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ④ -->
+  <section id="features">
+    <h2><span class="num">④</span> 六大特色群</h2>
+
+    <h3>1 · 開發整合(把 IDE 能力做成原生)</h3>
+    <ul>
+      <li><strong>LSP 串進每一次寫入</strong>:rename/refactor 自動傳播。</li>
+      <li><strong>真除錯器控制</strong>:lldb、dlv、debugpy——設斷點、檢視變數。</li>
+      <li><strong>瀏覽器自動化</strong>:真 headless Chromium,或接管你現有的 Chrome 分頁。</li>
+      <li><strong>桌面自動化</strong>:截圖、視窗控制、accessibility tree。</li>
+    </ul>
+
+    <h3>2 · 編碼工具(31 個內建)</h3>
+    <ul>
+      <li><strong>Content-hash-anchored edits</strong>:用內容雜湊錨定的編輯,<strong>檔案漂移也不會改錯位置</strong>。</li>
+      <li><strong>ast-grep 結構化重寫</strong>:跨 <strong>50+ 語言文法</strong>做語法樹層級的改寫。</li>
+      <li><strong>持久 shell session + 46 個 in-process coreutils</strong>:無 fork/exec 開銷。</li>
+      <li><strong>Python / JavaScript 評估 kernel</strong>:能<strong>回呼</strong>agent 的工具。</li>
+    </ul>
+
+    <h3>3 · Agent 能力</h3>
+    <ul>
+      <li><strong>Subagent fan-out</strong> + 型別 schema 驗證(平行分工、結構化輸出)。</li>
+      <li><strong>平行 code review</strong> + 優先級排序(P0–P3)。</li>
+      <li><strong>第一等記憶系統</strong>:facts、lessons、managed skills,<strong>跨 session</strong>保留。</li>
+      <li><strong>Time-traveling stream rules</strong>:<strong>在 token 中途即時修正方向</strong>,不吃 context 稅。</li>
+    </ul>
+
+    <h3>4 · 多模型支援</h3>
+    <ul>
+      <li><strong>60+ 供應商</strong>:前沿 API、coding plan、本地伺服器都涵蓋。</li>
+      <li><strong>角色路由(role-based routing)</strong>:default、smol、slow、plan、vision、advisor…不同角色配不同模型。</li>
+      <li><strong>Per-repo 模型釘選</strong>:不動全域設定,就能替某個 repo 固定用某模型。</li>
+    </ul>
+
+    <h3>5 · 協作</h3>
+    <ul>
+      <li><strong>即時 session 分享</strong>:relay link + QR code。</li>
+      <li>讀寫 / 唯讀兩種協作模式;可用<strong>瀏覽器</strong>檢視 session。</li>
+    </ul>
+
+    <h3>6 · 相容與擴充</h3>
+    <ul>
+      <li>繼承 <code>.cursor</code> / <code>.claude</code> / <code>.cline</code> 既有設定,免遷移。</li>
+      <li>TypeScript 外掛可擴充;整套可在 Node 宿主。</li>
+    </ul>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="highlights">
+    <h2><span class="num">⑤</span> 幾個「別家少見」的亮點</h2>
+    <table>
+      <thead><tr><th>亮點</th><th>為什麼重要</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Content-hash-anchored edits</strong></td><td>傳統「行號/字串比對」的編輯,一旦檔案被改動就容易打錯位置;用內容雜湊錨定,<strong>編輯能撐過檔案漂移</strong>,大幅降低改錯風險。</td></tr>
+        <tr><td><strong>In-process coreutils / shell</strong></td><td>grep、glob、bash 等在<strong>行程內</strong>跑,省掉 fork/exec 開銷,還能<strong>跨呼叫保留 shell 狀態</strong>(cd、環境變數不會丟)。</td></tr>
+        <tr><td><strong>Time-traveling stream rules</strong></td><td>能在模型<strong>還在吐 token 的當下</strong>就修正方向,不必等整段輸出完再重來——省 context、省 token。</td></tr>
+        <tr><td><strong>Role-based routing</strong></td><td>把「規劃、視覺、快答、顧問」等角色各自路由到最合適的模型;呼應「大模型規劃、小模型雜活」的成本策略。</td></tr>
+        <tr><td><strong>ast-grep 結構化重寫</strong></td><td>改的是<strong>語法樹</strong>而非文字,跨 50+ 語言做安全的結構重構,不會誤傷字串。</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn">
+      <strong>⚠️ 成熟度提醒：</strong>omp 標示為「持續被真實使用調校中」,且目前<strong>PR 對所有人開放作為試驗</strong>。功能與細節可能快速變動,以 repo 最新為準。文中效能數字(如某模型輸出 token 少 61%、Gemini 3 Flash +5pp)為專案自述基準,情境相依。
+    </div>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="usage">
+    <h2><span class="num">⑥</span> 怎麼開始用</h2>
+    <h4>安裝(macOS / Linux)</h4>
+    <span style="display:inline-block;font-size:0.625rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:700;">shell</span>
+    <pre><code>curl -fsSL https://omp.sh/install | sh</code></pre>
+    <p>也支援 Homebrew、Bun、Windows PowerShell;可用 mise 釘選版本。</p>
+
+    <h4>基本操作</h4>
+    <ul>
+      <li><code>omp</code> 開啟 TUI;輸入 prompt,agent 執行工具並以「卡片」顯示結果。</li>
+      <li><code>omp -p "…"</code> 一次性 CLI 模式。</li>
+      <li><strong>Slash 指令</strong>改變 session 行為:<code>/model</code>、<code>/collab</code>、<code>/review</code>…</li>
+      <li><strong>Magic keywords</strong> 觸發特殊推理 / 子代理工作流:<code>ultrathink</code>、<code>orchestrate</code>、<code>workflowz</code>。</li>
+    </ul>
+    <div class="callout tip">
+      <strong>💡 上手最快路徑：</strong>因為它會<strong>繼承 <code>.claude</code> / <code>.cursor</code> / <code>.cline</code> 的既有設定</strong>,若你已在用這些工具,幾乎可以無痛切過去試。安裝腳本會下載一個外部 shell script 執行,<strong>建議先讀過再跑</strong>。
+    </div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="relation">
+    <h2><span class="num">⑦</span> 與 JustKM 其他單元的關係</h2>
+    <ul>
+      <li><strong>血緣</strong>:omp 是 <strong>Pi</strong> 的 fork,正好呼應站內既有的 <em>Pi Agent 最佳實踐</em>筆記。</li>
+      <li><strong>互補</strong>:它的 <em>role-based routing</em>(大模型規劃、小模型雜活)呼應 <em>訓練小模型做單一任務</em>;<em>記憶系統 / subagent</em> 呼應 <em>上下文壓縮</em>與 Matt Pocock 的 <em>handoff / 子代理</em>紀律。</li>
+    </ul>
+    <div class="related">
+      <a href="./ai-agents/pi-agent-best-practices-2026-06.md">
+        <div class="rel-title">🤖 Pi Agent 最佳實踐</div>
+        <div class="rel-sub">omp 的上游血緣：Pi 專案筆記</div>
+      </a>
+      <a href="./matt-pocock-dev-workflow.html">
+        <div class="rel-title">🏭 Matt Pocock 的 AI 開發流程</div>
+        <div class="rel-sub">handoff / 子代理 / 小步紀律</div>
+      </a>
+      <a href="./ai-context-compression.html">
+        <div class="rel-title">🗜️ AI 對話/上下文壓縮</div>
+        <div class="rel-sub">記憶系統與 context 管理的對照</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">🎓 AI 學習總目錄</div>
+        <div class="rel-sub">學習區入口</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="sources">
+    <h2><span class="num">⑧</span> 來源</h2>
+    <ul>
+      <li><a href="https://github.com/can1357/oh-my-pi" target="_blank" rel="noopener" style="color:var(--accent)">github.com/can1357/oh-my-pi</a> —— 主 repo 與 README(一手來源)</li>
+      <li><a href="https://omp.sh/install" target="_blank" rel="noopener" style="color:var(--accent)">omp.sh/install</a> —— 安裝腳本(執行前建議先閱讀)</li>
+      <li>上游:Mario Zechner 的 <strong>Pi</strong> 專案</li>
+    </ul>
+    <p style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;">內容整理自 repo README 之公開描述;此專案更新頻繁,功能、數字與命名可能變動,以 repo 最新版為準。</p>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · 拆解 oh-my-pi（omp）</p>
+    <p style="margin-top:4px;">整理自 github.com/can1357/oh-my-pi · 建立於 2026-08-04 · 字級調整器在右上角</p>
+    <p style="margin-top:4px;"><a href="../index.html" style="color:var(--accent);text-decoration:none;">← 回到 JustKM 首頁</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
