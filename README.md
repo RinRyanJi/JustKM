@@ -14,7 +14,8 @@
   - 🧰 Matt Pocock AI Skills 總覽（系列入口）：<https://rinryanji.github.io/JustKM/learn/matt-pocock-skills.html>
     - ✍️ AI 寫作系統：<https://rinryanji.github.io/JustKM/learn/matt-pocock-writing-skills.html>
     - 🏭 AI 程式開發流程：<https://rinryanji.github.io/JustKM/learn/matt-pocock-dev-workflow.html>
-  - 🥧 **NEW · 拆解 oh-my-pi（omp）—— Rust 的 terminal-first AI 編碼 Agent**：<https://rinryanji.github.io/JustKM/learn/oh-my-pi.html>
+  - 🥧 拆解 oh-my-pi（omp）—— Rust 的 terminal-first AI 編碼 Agent：<https://rinryanji.github.io/JustKM/learn/oh-my-pi.html>
+  - 📊 **NEW · Codex 使用量計算原理（token / 成本 / 配額怎麼算出來的）**：<https://rinryanji.github.io/JustKM/learn/codex-usage-calculation.html>
 - 🌐 網路小白入門（REST / WebSocket）：<https://rinryanji.github.io/JustKM/learn/network-basics.html>
 - 🎨 74 品牌設計系統圖鑑：<https://rinryanji.github.io/JustKM/design-md/>
 - 📈 美股交易教學：<https://rinryanji.github.io/JustKM/invest/course.html>
@@ -48,6 +49,7 @@ JustKM/
 | 🗜️ AI 對話/上下文壓縮實戰 | [`learn/ai-context-compression.html`](learn/ai-context-compression.html) | ✅ 已建立 | 跨 Agent 通用 · Claude Code/Codex 對照 + 四層次 + 通用策略 + GitHub 專案來源 |
 | 🏢 Palantir 解決資料碎片化 | [`learn/palantir-data-fragmentation.html`](learn/palantir-data-fragmentation.html) | ✅ 已建立 | 簡約明亮 · 5 張 SVG 圖解 · Foundry/Ontology/AIP/Apollo · 閉環寫回 |
 | 🥧 拆解 oh-my-pi（omp） | [`learn/oh-my-pi.html`](learn/oh-my-pi.html) | ✅ 已建立 | Rust terminal-first AI 編碼 Agent（Pi 的 fork）· 架構/31 工具/角色路由/亮點 |
+| 📊 Codex 使用量計算原理 | [`learn/codex-usage-calculation.html`](learn/codex-usage-calculation.html) | ✅ 已建立 | 10 章 · schema v8 · JSONL 事件模型／解析去重／計算公式／隱私模式／誤差來源／程式碼對照 |
 | 🧠 訓練小模型做單一任務 | [`learn/train-slm-single-task.html`](learn/train-slm-single-task.html) | ✅ 已建立 | SLM 專用化實戰 · 13 節 · LoRA/QLoRA + 蒸餾 + NVIDIA 六步 · 含決策樹與程式範例 |
 | 🧰 Matt Pocock Skills 總覽目錄 | [`learn/matt-pocock-skills.html`](learn/matt-pocock-skills.html) | ✅ 已建立 | 系列入口 · 兩篇深入拆解 + 整個 repo 的 Skill 速查地圖 |
 | ✍️ Matt Pocock AI 寫作系統 | [`learn/matt-pocock-writing-skills.html`](learn/matt-pocock-writing-skills.html) | ✅ 已建立 | 拆解 mattpocock/skills 的 fragments/shape/beats · 探索 vs 開採 · 含手動版流程 |
@@ -73,4 +75,4 @@ JustKM/
 
 ---
 
-最後更新：2026-08-04（新增 learn/oh-my-pi.html — 拆解 oh-my-pi/omp 編碼 Agent）
+最後更新：2026-08-06（新增 learn/codex-usage-calculation.html — Codex 使用量計算原理）
