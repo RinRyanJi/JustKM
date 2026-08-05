@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 對話/上下文壓縮：跨 Agent 通用實戰（Claude Code · Codex）· JustKM</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131826;
+      --bg-card: #1a2138;
+      --bg-code: #0f1424;
+      --border: #2a3454;
+      --text-primary: #e8ecf4;
+      --text-secondary: #9aa3b8;
+      --text-muted: #6b7390;
+      --accent: #4f9eff;
+      --accent-green: #00d68f;
+      --accent-orange: #ff9f43;
+      --accent-red: #ff4d6d;
+      --accent-purple: #a855f7;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--bg-primary); color: var(--text-primary);
+      line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px;
+    }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster {
+      position: fixed; top: 16px; right: 16px; z-index: 999;
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 8px;
+      display: flex; align-items: center; gap: 4px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px);
+    }
+    .font-adjuster button {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-primary); width: 32px; height: 32px; border-radius: 6px;
+      font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .font-adjuster button:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--text-muted); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value {
+      font-size: 0.6875rem; color: var(--accent); font-weight: 700;
+      min-width: 36px; text-align: center; font-family: 'SF Mono', monospace;
+    }
+
+    .hero {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 16px; padding: 36px 32px; margin-bottom: 28px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #ff9f43 0%, #4f9eff 50%, #00d68f 100%);
+    }
+    .hero h1 { font-size: 1.6875rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .hero .sub { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 16px; }
+    .badge {
+      display: inline-block; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px; padding: 3px 10px; font-size: 0.6875rem;
+      color: var(--text-secondary); margin-right: 6px; margin-bottom: 6px;
+    }
+    .badge.blue { color: var(--accent); border-color: var(--accent); }
+    .badge.green { color: var(--accent-green); border-color: var(--accent-green); }
+    .badge.purple { color: var(--accent-purple); border-color: var(--accent-purple); }
+    .badge.orange { color: var(--accent-orange); border-color: var(--accent-orange); }
+
+    .toc {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px 24px; margin-bottom: 32px;
+    }
+    .toc-title {
+      font-size: 0.8125rem; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+    }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px; }
+    .toc a {
+      color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem;
+      padding: 5px 10px; border-radius: 6px; transition: all 0.15s;
+    }
+    .toc a:hover { color: var(--accent); background: var(--bg-card); }
+
+    section {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; scroll-margin-top: 20px;
+    }
+    section h2 { font-size: 1.375rem; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+    section h2 .num {
+      color: var(--accent); font-size: 0.875rem; font-weight: 800;
+      background: var(--bg-card); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border);
+    }
+    section h3 {
+      font-size: 1.0625rem; font-weight: 700; color: var(--accent);
+      margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
+    }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--text-secondary); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--text-secondary); font-size: 0.875rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--text-secondary); font-size: 0.875rem; }
+    section li { margin-bottom: 4px; }
+    section strong { color: var(--text-primary); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.8125rem; }
+    th { text-align: left; background: var(--bg-card); color: var(--text-primary); padding: 9px 12px; border: 1px solid var(--border); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+    tr:hover td { background: rgba(79, 158, 255, 0.04); }
+
+    pre {
+      background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.55;
+    }
+    pre code { color: #e8ecf4; }
+    p code, li code, td code {
+      background: var(--bg-code); border: 1px solid var(--border); padding: 1px 6px;
+      border-radius: 4px; font-size: 0.78125rem; color: var(--accent-orange);
+    }
+
+    .callout {
+      border-left: 3px solid var(--accent); background: var(--bg-card);
+      padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0 16px;
+      font-size: 0.84375rem; color: var(--text-secondary);
+    }
+    .callout.warn { border-left-color: var(--accent-orange); }
+    .callout.danger { border-left-color: var(--accent-red); }
+    .callout.tip { border-left-color: var(--accent-green); }
+    .callout.info { border-left-color: var(--accent-purple); }
+    .callout strong { color: var(--text-primary); }
+
+    .back-home {
+      display: inline-block; margin-bottom: 20px; color: var(--accent); text-decoration: none;
+      font-size: 0.875rem; padding: 6px 14px; border: 1px solid var(--border);
+      border-radius: 8px; background: var(--bg-secondary);
+    }
+    .back-home:hover { border-color: var(--accent); }
+    .footer {
+      text-align: center; color: var(--text-muted); font-size: 0.75rem;
+      margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border);
+    }
+
+    .diagram {
+      background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px;
+      padding: 16px 18px; font-family: 'SF Mono', Menlo, monospace; font-size: 0.78125rem;
+      color: var(--text-secondary); white-space: pre; overflow-x: auto; line-height: 1.5;
+    }
+    .diagram .arrow { color: var(--accent); }
+    .diagram .label { color: var(--accent-green); }
+    .diagram .warn { color: var(--accent-orange); }
+    .diagram .purple { color: var(--accent-purple); }
+
+    .steps { counter-reset: step; margin: 12px 0 18px; }
+    .step {
+      position: relative; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 18px 14px 56px; margin-bottom: 10px;
+    }
+    .step::before {
+      counter-increment: step; content: counter(step);
+      position: absolute; left: 14px; top: 14px; width: 28px; height: 28px; border-radius: 50%;
+      background: var(--accent); color: #fff; font-weight: 800; font-size: 0.8125rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step h4 { margin-top: 0; color: var(--text-primary); font-size: 0.9375rem; }
+    .step p { margin-bottom: 0; }
+
+    .related {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 16px 20px; margin: 16px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .related a {
+      color: var(--accent); text-decoration: none; font-size: 0.875rem; padding: 10px 14px;
+      border-radius: 8px; border: 1px solid var(--border); background: var(--bg-secondary);
+      transition: all 0.15s; display: block;
+    }
+    .related a:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .related .rel-title { color: var(--text-primary); font-weight: 700; }
+    .related .rel-sub { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
+
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-family: monospace; font-weight: 700; }
+    .pill-yes { background: rgba(0, 214, 143, 0.15); color: var(--accent-green); }
+    .pill-no  { background: rgba(255, 77, 109, 0.15); color: var(--accent-red); }
+    .pill-mid { background: rgba(255, 159, 67, 0.15); color: var(--accent-orange); }
+
+    @media (max-width: 600px) {
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../index.html">← 回到 JustKM 首頁</a>
+
+  <div class="hero">
+    <h1>🗜️ AI 對話 / 上下文壓縮：跨 Agent 通用實戰</h1>
+    <p class="sub">為什麼長對話會「降智」，各家 Agent（Claude Code · Codex · OpenCode · Amp）怎麼壓，以及<strong>不管你用哪個 Agent 都適用</strong>的策略</p>
+    <div>
+      <span class="badge orange">上下文管理</span>
+      <span class="badge blue">Claude Code · Codex</span>
+      <span class="badge green">跨 Agent 通用</span>
+      <span class="badge purple">含 GitHub 專案 + 來源</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#why">① 為什麼要壓縮（降智）</a>
+      <a href="#layers">② 壓縮的四個層次</a>
+      <a href="#agents">③ 各家 Agent 怎麼壓（對照）</a>
+      <a href="#common">④ 共同機制：摘要即取代</a>
+      <a href="#universal">⑤ ⭐ 跨 Agent 通用策略</a>
+      <a href="#external">⑥ 外部工具層（LLMLingua/Mem0）</a>
+      <a href="#projects">⑦ GitHub 專案清單</a>
+      <a href="#checklist">⑧ 檢查清單 + 選型</a>
+      <a href="#sources">⑨ 資源與來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p>每個長時間運作的 AI Agent 遲早會<strong>塞爆上下文視窗</strong>，於是它會<strong>「壓縮（compaction）」</strong>——把整段對話交給模型寫成一份摘要，再<strong>用摘要取代原始歷史</strong>。問題是：<strong>預設的壓縮會流失關鍵資訊</strong>（決策理由、當前狀態、歷史脈絡），壓個 2–3 次後，Agent 就表現得像「剛開機、什麼都忘了」。</p>
+    <div class="callout tip">
+      <strong>💡 本篇重點：</strong>各家 Agent 的壓縮機制大同小異（都是「摘要即取代」），所以真正能幫到你的，是一組<strong>不綁特定工具的通用策略</strong>——<strong>主動早壓、外部化記憶、寫交接文件、隔離子任務、用檢索取代塞滿</strong>。這些在 Claude Code、Codex、Cursor、Aider… 上都有效。
+    </div>
+  </section>
+
+  <!-- ① -->
+  <section id="why">
+    <h2><span class="num">①</span> 為什麼要壓縮：從「爆視窗」到「降智」</h2>
+    <p>Agent 的上下文視窗是固定的（如 200K token）。一段長對話裡，system prompt、工具定義、<code>AGENTS.md</code>/<code>CLAUDE.md</code>、讀進來的檔案、每一輪的工具輸出，全都在燒預算。撐滿之後有兩種壞結局：</p>
+    <ul>
+      <li><strong>硬爆</strong>：超過視窗，直接塞不下、報錯或截斷。</li>
+      <li><strong>軟爆（降智）</strong>：號稱能吃百萬 token，但實測「真正敏銳」的區間小得多。塞太滿時模型會<strong>抓不到重點、開始遺漏、變笨</strong>——即所謂 <em>context rot</em> 與 <em>lost in the middle</em>。</li>
+    </ul>
+    <div class="callout danger">
+      <strong>🚫 壓縮本身也有代價：</strong>每壓一次就損失一點細節。研究與實務都指出——<strong>連續壓 2–3 次後，Agent 常表現得像「對話剛開始」</strong>：忘了為什麼這樣決定、忘了團隊狀態、忘了歷史。所以壓縮不是萬靈丹，<strong>怎麼壓、壓什麼、何時壓</strong>才是關鍵。
+    </div>
+  </section>
+
+  <!-- ② -->
+  <section id="layers">
+    <h2><span class="num">②</span> 壓縮的四個層次（先分清楚你在壓什麼）</h2>
+    <p>「對話壓縮」其實橫跨四個層次，能不能由你控制、通不通用，差很多：</p>
+    <table>
+      <thead><tr><th>層次</th><th>壓縮什麼</th><th>產物</th><th>你能控制嗎</th></tr></thead>
+      <tbody>
+        <tr><td><strong>③ 對話記憶壓縮</strong><br>（本篇主場）</td><td>多輪對話歷史</td><td>摘要 / 事實清單</td><td><span class="pill pill-yes">高</span> Agent 內建 + 你的習慣</td></tr>
+        <tr><td>① 硬提示壓縮</td><td>單次 prompt 的冗餘字</td><td>更短的文字</td><td><span class="pill pill-mid">中</span> 外掛工具</td></tr>
+        <tr><td>② 軟提示壓縮</td><td>prompt → 向量/特殊 token</td><td>embedding（人看不懂）</td><td><span class="pill pill-no">低</span> 需訓練/綁模型</td></tr>
+        <tr><td>④ KV Cache 壓縮</td><td>推論時的注意力快取</td><td>底層張量</td><td><span class="pill pill-no">低</span> 自架模型才碰得到</td></tr>
+      </tbody>
+    </table>
+    <div class="callout info">
+      <strong>📌 對使用 Claude Code / Codex 的你而言：</strong>層次 ③（對話記憶）是你日常真正能掌控的，也是本篇重點。①（如 LLMLingua）是可選的外掛加強；②④屬於模型/框架研發者的領域，理解即可（詳見 ⑦ 專案清單）。
+    </div>
+  </section>
+
+  <!-- ③ -->
+  <section id="agents">
+    <h2><span class="num">③</span> 各家 Agent 怎麼壓（對照表）</h2>
+    <p>根據對 Claude Code、Codex CLI、OpenCode、Amp 的實測研究，它們的壓縮設計如下：</p>
+    <table>
+      <thead><tr><th>Agent</th><th>觸發時機</th><th>演算法</th><th>保留 / 丟棄</th><th>使用者控制</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Claude Code</strong></td>
+          <td>自動約 <strong>~95%</strong> 視窗容量（部分實測 ~83.5%／200K 視窗約 167K）；可手動 <code>/compact</code></td>
+          <td>LLM 摘要</td>
+          <td>只留摘要，丟整段歷史</td>
+          <td><code>/compact [指示]</code> 可自訂保留內容</td>
+        </tr>
+        <tr>
+          <td><strong>Codex CLI</strong></td>
+          <td>token 門檻（依模型約 180K–244K），可設 <code>model_auto_compact_token_limit</code></td>
+          <td>LLM 摘要（強調「當前進度＋關鍵決策＋待辦」）；OpenAI 模型會呼叫伺服器端 <code>/v1/responses/compact</code> 回傳加密壓縮表示</td>
+          <td>摘要 <strong>＋ 最近約 20K token</strong></td>
+          <td>可關閉自動壓縮</td>
+        </tr>
+        <tr>
+          <td><strong>OpenCode</strong></td>
+          <td>動態溢位 <code>isOverflow()</code>（token &gt; 視窗−輸出上限）；可手動 <code>/compact</code></td>
+          <td>先 <strong>prune</strong> 工具輸出，再 LLM 摘要</td>
+          <td>摘要 <strong>＋ 受保護的最近 40K 工具輸出</strong></td>
+          <td>可關閉自動壓縮</td>
+        </tr>
+        <tr>
+          <td><strong>Amp</strong></td>
+          <td><strong>只有手動</strong>「Handoff」，不自動壓</td>
+          <td>次級模型「選擇性抽取」關鍵資訊</td>
+          <td>用 thread 引用按需取回</td>
+          <td>完全靠使用者紀律</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout warn">
+      <strong>⚠️ 共同弱點：</strong>Codex 與 OpenCode 都明白警告「多次壓縮的<strong>累積資訊流失</strong>」。這也是為什麼下面 ⑤ 的通用策略，本質上都是在<strong>「幫壓縮器留住它自己會弄丟的東西」</strong>。
+    </div>
+  </section>
+
+  <!-- ④ -->
+  <section id="common">
+    <h2><span class="num">④</span> 共同機制：摘要即取代（Summarize-and-Replace）</h2>
+    <p>除了 Amp，各家的核心演算法幾乎一樣，抽象成一句話就是：</p>
+    <div class="diagram"><span class="label">觸發（到門檻）</span> ─► 把整段對話餵給 LLM ─► 寫一份「交接摘要」 ─► <span class="warn">用摘要取代原始歷史</span> ─► 繼續
+                                        │
+             摘要通常保留：<span class="arrow">已完成什麼 · 進行中什麼 · 牽涉哪些檔案 · 下一步 · 使用者關鍵要求/限制</span></div>
+    <p>差別只在細節：<strong>要不要多留一段最近訊息</strong>（Codex 留 ~20K、OpenCode 留 ~40K 工具輸出）、<strong>要不要先剪枝再摘要</strong>（OpenCode）、<strong>摘要 prompt 強調什麼</strong>。理解這個共同骨架後，你就懂為什麼通用策略在每家都有效。</p>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="universal">
+    <h2><span class="num">⑤</span> ⭐ 跨 Agent 通用的實戰策略</h2>
+    <p>這是本篇核心。以下策略<strong>不綁任何特定 Agent</strong>——Claude Code、Codex、Cursor、Aider… 都適用。原則只有一個：<strong>別把記憶只託付給會失真的壓縮器。</strong></p>
+
+    <div class="steps">
+      <div class="step">
+        <h4>主動早壓，別等自動觸發</h4>
+        <p>自動壓縮通常在 80–95% 才啟動，那時品質已在下降、還可能打斷你。實務建議<strong>在約 60% 就手動壓</strong>——要壓的東西少，摘要品質反而更高。（Claude Code <code>/compact</code>、Codex/OpenCode 亦可手動。）</p>
+      </div>
+      <div class="step">
+        <h4>下「保留指示」保護關鍵資訊</h4>
+        <p>壓縮器不知道什麼對你最重要——直接告訴它。例：<code>/compact 只保留我們決定的 API 介面、還沒解決的 bug、以及被否決的方案</code>。把「決策理由、當前狀態、限制」點名保住。</p>
+      </div>
+      <div class="step">
+        <h4>把記憶外部化到檔案（最重要）</h4>
+        <p>不要讓重要資訊只活在對話裡——它會被壓掉。寫進<strong>會被持續讀取的檔案</strong>：<code>CLAUDE.md</code> / <code>AGENTS.md</code>（專案慣例、術語）、<code>TODO.md</code> / <code>NOTES.md</code>（決策與待辦）、以及<strong>頻繁 commit</strong>。這些檔案是壓縮壓不掉的「長期記憶」。</p>
+      </div>
+      <div class="step">
+        <h4>用「交接文件（Handoff）」接力到新 session</h4>
+        <p>與其一直壓到降智，不如在乾淨的狀態下產出一份交接文件（做了什麼、現況、下一步、關鍵決策），<strong>開一個全新 session 貼上去續作</strong>。這招各家都能手動做，Amp 甚至以此為主要機制。</p>
+      </div>
+      <div class="step">
+        <h4>用子代理 / 子任務隔離上下文</h4>
+        <p>把「讀一大堆檔案找答案」這類會吃掉大量 token 的雜活，丟給<strong>子代理</strong>去做，只把<strong>結論</strong>帶回主線。主線的上下文因此保持乾淨、不被中間過程淹沒。</p>
+      </div>
+      <div class="step">
+        <h4>用檢索取代「塞好塞滿」</h4>
+        <p>別把整個 repo/文件一次貼進去。改用<strong>檢索（RAG / grep / 檔案工具）在需要時才拉相關片段</strong>。上下文永遠只裝「此刻用得到的」，是最有效的「壓縮」——因為根本沒放進去。</p>
+      </div>
+      <div class="step">
+        <h4>控管輸入源頭：精簡指令檔、剪工具輸出</h4>
+        <p>Codex 的 <code>AGENTS.md</code> 有 <strong>32 KiB 上限</strong>；臃腫的指令檔、沒用的工具定義、動輒上千行的檔案 dump，都在開工前就吃掉預算。<strong>保持指令檔精瘦、別盲目 cat 大檔、關掉用不到的工具。</strong></p>
+      </div>
+      <div class="step">
+        <h4>一次一個任務，及早收斂</h4>
+        <p>單一 session 塞太多不相關任務，會讓壓縮器難以取捨。<strong>一個 session 專注一件事</strong>，做完就交接/開新局——這和「小步、垂直切片」的工程紀律一脈相承。</p>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <strong>💡 一句話心法：</strong>把 Agent 的上下文當成<strong>「工作桌」而非「檔案櫃」</strong>——桌上只放此刻要用的，長期資料收進檔案(檔案櫃)，需要時再拿。壓縮器負責清桌子，但真正的記憶在檔案裡。
+    </div>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="external">
+    <h2><span class="num">⑥</span> 進階：外部工具層</h2>
+    <p>若內建機制 + 通用策略還不夠，可再疊上外部工具：</p>
+    <ul>
+      <li><strong>硬提示壓縮器（前處理）</strong>：用 <a href="https://github.com/microsoft/LLMLingua" target="_blank" rel="noopener" style="color:var(--accent)">LLMLingua</a> 這類工具，在把長文/RAG 內容送進 Agent 前先壓掉冗餘 token（最高 20x、LongLLMLingua 於 RAG 上只用 1/4 token 反而提升 21.4%）。原理：用小模型算困惑度，刪掉「好預測＝低資訊」的字。</li>
+      <li><strong>外部記憶層</strong>：<a href="https://github.com/mem0ai/mem0" target="_blank" rel="noopener" style="color:var(--accent)">Mem0</a> 等把對話事實抽取存進向量庫，跨 session 持久記憶，需要時檢索回填——等於替 Agent 外掛一顆不會被壓掉的長期腦。</li>
+      <li><strong>對話記憶壓縮器</strong>：見 ⑦ 的 Agent-Memory-Compressor——摘要／抽事實／封存三策略 + 重要性評分，可獨立套在自建 Agent 上。</li>
+    </ul>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="projects">
+    <h2><span class="num">⑦</span> GitHub 專案清單（依四層次）</h2>
+
+    <h3>③ 對話記憶壓縮（最貼近「對話資料」）</h3>
+    <table>
+      <thead><tr><th>專案</th><th>原理 / 處理方法</th></tr></thead>
+      <tbody>
+        <tr><td><a href="https://github.com/dakshjain-1616/Agent-Memory-Compressor" target="_blank" rel="noopener" style="color:var(--accent)">Agent-Memory-Compressor</a></td><td>三策略（摘要／抽事實／封存）＋重要性評分（時近性指數衰減＋類型權重＋關鍵字加權）；遺忘曲線觸發（每 10 輪或超 6000 token），壓到低於 token 預算</td></tr>
+        <tr><td><a href="https://github.com/berkdurmus/adaptive-llm-memory-compressor" target="_blank" rel="noopener" style="color:var(--accent)">adaptive-llm-memory-compressor</a></td><td>自動把對話歷史壓在 token 上限內、不傷答案品質</td></tr>
+        <tr><td><a href="https://github.com/mem0ai/mem0" target="_blank" rel="noopener" style="color:var(--accent)">Mem0</a></td><td>抽取對話事實存向量庫，跨 session 持久記憶 + 檢索回填</td></tr>
+      </tbody>
+    </table>
+
+    <h3>① 硬提示壓縮</h3>
+    <table>
+      <thead><tr><th>專案</th><th>原理 / 處理方法</th></tr></thead>
+      <tbody>
+        <tr><td><a href="https://github.com/microsoft/LLMLingua" target="_blank" rel="noopener" style="color:var(--accent)">microsoft/LLMLingua</a></td><td>小模型算困惑度、由粗到細刪 token、預算控制器；最高 20x。LongLLMLingua（問題感知＋文件重排）、LLMLingua-2（BERT 分類，GPT-4 蒸餾，快 3–6x）</td></tr>
+      </tbody>
+    </table>
+
+    <h3>② 軟提示壓縮</h3>
+    <table>
+      <thead><tr><th>專案</th><th>原理 / 處理方法</th></tr></thead>
+      <tbody>
+        <tr><td><a href="https://github.com/princeton-nlp/AutoCompressors" target="_blank" rel="noopener" style="color:var(--accent)">princeton-nlp/AutoCompressors</a></td><td>把長上下文壓成 summary vectors 當 soft prompt，變相延長視窗</td></tr>
+        <tr><td>Gist Tokens（論文）</td><td>用 gist masking 逼模型把 prompt 壓進特殊 token；最高 26x、省 40% FLOPs、可存起來重用</td></tr>
+      </tbody>
+    </table>
+
+    <h3>④ KV Cache 壓縮 & 綜合清單</h3>
+    <table>
+      <thead><tr><th>專案</th><th>內容</th></tr></thead>
+      <tbody>
+        <tr><td>H2O / StreamingLLM 等</td><td>token 驅逐（保留最近＋重擊者）、attention sink、量化、低秩</td></tr>
+        <tr><td><a href="https://github.com/HuangOwen/Awesome-LLM-Compression" target="_blank" rel="noopener" style="color:var(--accent)">Awesome-LLM-Compression</a></td><td>LLM 壓縮總表（論文＋工具）</td></tr>
+        <tr><td><a href="https://github.com/ZongqianLi/Prompt-Compression-Survey" target="_blank" rel="noopener" style="color:var(--accent)">Prompt-Compression-Survey</a></td><td>Prompt 壓縮綜述（NAACL 2025）</td></tr>
+        <tr><td><a href="https://github.com/YerbaPage/Awesome-Agent-Context-Compression" target="_blank" rel="noopener" style="color:var(--accent)">Awesome-Agent-Context-Compression</a></td><td>長程 Agent 上下文壓縮</td></tr>
+        <tr><td><a href="https://github.com/October2001/Awesome-KV-Cache-Compression" target="_blank" rel="noopener" style="color:var(--accent)">Awesome-KV-Cache-Compression</a></td><td>KV Cache 壓縮必讀</td></tr>
+        <tr><td><a href="https://github.com/TsinghuaC3I/Awesome-Memory-for-Agents" target="_blank" rel="noopener" style="color:var(--accent)">Awesome-Memory-for-Agents</a></td><td>Agent 記憶論文集</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="checklist">
+    <h2><span class="num">⑧</span> 檢查清單 + 選型</h2>
+    <h3>✅ 通用檢查清單（任何 Agent 都適用）</h3>
+    <ul>
+      <li>☐ 有沒有在 <strong>~60% 就主動壓</strong>，而不是等自動觸發？</li>
+      <li>☐ 壓縮時有沒有下 <strong>保留指示</strong>，點名保住決策/狀態/限制？</li>
+      <li>☐ 重要資訊是否已<strong>外部化</strong>到 <code>CLAUDE.md</code>/<code>AGENTS.md</code>/<code>TODO.md</code> 並常 commit？</li>
+      <li>☐ 長任務是否用<strong>交接文件 + 新 session</strong>，而非硬壓到降智？</li>
+      <li>☐ 吃 token 的雜活是否丟給<strong>子代理</strong>、只帶結論回來？</li>
+      <li>☐ 是否用<strong>檢索</strong>按需取檔，而非一次塞整個 repo？</li>
+      <li>☐ 指令檔是否精瘦（Codex <code>AGENTS.md</code> ≤ 32 KiB）、有沒有關掉沒用的工具？</li>
+    </ul>
+    <h3>🎯 選型</h3>
+    <table>
+      <thead><tr><th>你的情境</th><th>建議</th></tr></thead>
+      <tbody>
+        <tr><td>用 Claude Code / Codex 做長任務</td><td>⑤ 通用策略（主動壓＋外部化＋交接）</td></tr>
+        <tr><td>RAG/長文塞爆、想省 API 費</td><td>① LLMLingua 前處理</td></tr>
+        <tr><td>要跨 session 持久記憶</td><td>Mem0 等外部記憶層</td></tr>
+        <tr><td>自建 Agent 想內建壓縮</td><td>Agent-Memory-Compressor</td></tr>
+        <tr><td>自架模型、顯存/速度吃緊</td><td>④ KV Cache（H2O/StreamingLLM）</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ⑨ -->
+  <section id="sources">
+    <h2><span class="num">⑨</span> 資源與來源</h2>
+    <h3>🔗 跨 Agent 壓縮機制（一手研究）</h3>
+    <ul>
+      <li><a href="https://gist.github.com/badlogic/cd2ef65b0697c4dbe2d13fbecb0a0a5f" target="_blank" rel="noopener" style="color:var(--accent)">Context Compaction Research: Claude Code, Codex CLI, OpenCode, Amp</a>（badlogic gist）— 本篇 ③④ 對照表主要來源</li>
+      <li><a href="https://gist.github.com/sigalovskinick/e2e329bb37ecc74b9f15d5ba74ee1ee5" target="_blank" rel="noopener" style="color:var(--accent)">Compaction Memory: Stop AI Agents From Losing Context</a>（Claude Code + Codex 實測方法）</li>
+      <li><a href="https://developers.openai.com/cookbook/examples/agents_sdk/building_reliable_agents_memory_compaction" target="_blank" rel="noopener" style="color:var(--accent)">OpenAI Cookbook — Building Reliable Agents with Memory and Compaction</a></li>
+      <li><a href="https://codex.danielvaughan.com/2026/03/31/codex-cli-context-compaction-architecture/" target="_blank" rel="noopener" style="color:var(--accent)">Codex CLI Context Compaction: Architecture</a>（Daniel Vaughan）</li>
+      <li><a href="https://claudelog.com/faqs/what-is-claude-code-auto-compact/" target="_blank" rel="noopener" style="color:var(--accent)">ClaudeLog — What is Claude Code auto-compact</a></li>
+    </ul>
+    <h3>🔗 站內延伸</h3>
+    <div class="related">
+      <a href="./index.html">
+        <div class="rel-title">🎓 回 AI 學習總目錄</div>
+        <div class="rel-sub">學習區入口</div>
+      </a>
+      <a href="./matt-pocock-dev-workflow.html#disciplines">
+        <div class="rel-title">🏭 Matt Pocock 的 handoff / 開發流程</div>
+        <div class="rel-sub">handoff 交接、子代理、小步紀律的完整脈絡</div>
+      </a>
+      <a href="./train-slm-single-task.html">
+        <div class="rel-title">🧠 訓練小模型做單一任務</div>
+        <div class="rel-sub">同屬「讓 AI 更省更專注」的主題</div>
+      </a>
+      <a href="./matt-pocock-skills.html">
+        <div class="rel-title">🧰 Matt Pocock AI Skills 總覽</div>
+        <div class="rel-sub">AI 工作流系列入口</div>
+      </a>
+    </div>
+    <div class="callout info">
+      <strong>📌 一句話帶走：</strong>各家 Agent 的壓縮都是「摘要即取代」，都會失真。你能做的最有效的事，是<strong>把長期記憶放進檔案、主動早壓、用交接與子代理保護主線上下文</strong>——這些招式，不管你今天用 Claude Code、明天換 Codex，都一樣好用。
+    </div>
+    <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;">內容整理自上列公開研究與各專案 README／文件，數字與機制可能隨版本更新而變動，以官方最新為準。</p>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 對話 / 上下文壓縮：跨 Agent 通用實戰</p>
+    <p style="margin-top:4px;">整理自 GitHub 專案與跨 Agent 壓縮研究 · 建立於 2026-08-04 · 字級調整器在右上角</p>
+    <p style="margin-top:4px;"><a href="../index.html" style="color:var(--accent);text-decoration:none;">← 回到 JustKM 首頁</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) {
+        e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '-') {
+        e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '0') {
+        e.preventDefault(); apply(DEFAULT);
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>
