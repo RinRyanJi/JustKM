@@ -8,34 +8,126 @@
         :root { --font-scale: 1; }
         html { font-size: calc(16px * var(--font-scale)); }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
+            font-family: 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', Tahoma, sans-serif;
+            line-height: 1.75;
             color: #2c3e50;
             background: #f8f9fa;
         }
 
+        .container { max-width: 860px; margin: 0 auto; padding: 48px 20px 80px; }
+
+        h1 {
+            font-size: 2.2em; color: #1f2d3d; letter-spacing: -0.5px;
+            margin-bottom: 0.25em; padding-bottom: 0.3em;
+            border-bottom: 3px solid #3498db;
+        }
+        .lede { font-size: 1.05em; color: #56687a; margin-bottom: 8px; }
+        .meta-line { font-size: 0.82em; color: #8a94a6; margin-bottom: 36px; }
+
+        h2 {
+            font-size: 1.45em; color: #1f2d3d; margin-bottom: 0.15em;
+            display: flex; align-items: baseline; gap: 10px;
+        }
+        h2 .num {
+            font-size: 0.72em; font-weight: 800; color: #3498db;
+            background: #eaf4fd; border-radius: 6px; padding: 1px 9px; flex: none;
+        }
+        h3 { font-size: 1.05em; color: #34495e; margin: 1.6em 0 0.4em; }
+
+        p { margin-bottom: 0.9em; }
+        ul, ol { margin: 0 0 1em 1.35em; }
+        li { margin-bottom: 0.35em; }
+
+        .section {
+            background: #fff; padding: 28px 30px; margin-bottom: 18px;
+            border-radius: 10px; border: 1px solid #e6eaef;
+        }
+
+        /* 每章開頭的一句話結論 */
+        .takeaway {
+            background: #f1f8ff; border-left: 4px solid #3498db;
+            padding: 12px 16px; border-radius: 0 8px 8px 0;
+            font-size: 1.02em; color: #1f4b73; margin: 14px 0 20px;
+        }
+
+        /* 具體例子 */
+        .example {
+            background: #fbfcfd; border: 1px solid #e2e8f0;
+            border-radius: 8px; padding: 18px 20px; margin: 16px 0;
+        }
+        .example .tag {
+            display: inline-block; font-size: 0.7em; font-weight: 700; letter-spacing: 0.5px;
+            color: #16a085; background: #e8f8f4; border-radius: 4px;
+            padding: 2px 8px; margin-bottom: 10px;
+        }
+        .example p:last-child, .example ul:last-child { margin-bottom: 0; }
+
+        .calc {
+            font-family: 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+            font-size: 0.86em; line-height: 1.8; color: #2c3e50;
+            background: #f5f7fa; border-radius: 6px; padding: 12px 14px;
+            margin: 10px 0; white-space: pre-wrap; overflow-x: auto;
+        }
+        .calc .hl { color: #c0392b; font-weight: 700; }
+        .calc .ok { color: #16a085; font-weight: 700; }
+
+        code {
+            font-family: 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+            font-size: 0.87em; background: #f0f3f6; border: 1px solid #e2e8f0;
+            border-radius: 4px; padding: 1px 5px; color: #b0417a;
+        }
+        .calc code { background: none; border: none; padding: 0; color: inherit; }
+
+        .warn {
+            background: #fff8ec; border-left: 4px solid #e6a23c;
+            padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0;
+            font-size: 0.95em; color: #7a5320;
+        }
+        .wrong {
+            background: #fdf1f0; border-left: 4px solid #e74c3c;
+            padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0;
+            font-size: 0.95em; color: #8a2f26;
+        }
+        .warn strong, .wrong strong, .takeaway strong { color: inherit; }
+
+        .table-wrap { overflow-x: auto; margin: 16px 0; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.92em; }
+        th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid #e6eaef; vertical-align: top; }
+        th { background: #f5f7fa; color: #34495e; font-weight: 700; white-space: nowrap; }
+        tbody tr:last-child td { border-bottom: none; }
+
+        .toc { background: #fff; border: 1px solid #e6eaef; border-radius: 10px; padding: 22px 28px; margin-bottom: 26px; }
+        .toc h3 { margin: 0 0 10px; font-size: 0.95em; color: #8a94a6; letter-spacing: 1px; text-transform: uppercase; }
+        .toc ol { margin: 0 0 0 1.2em; }
+        .toc li { margin-bottom: 6px; }
+        .toc a { color: #2c6fa8; text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+
+        .source { font-size: 0.82em; color: #8a94a6; margin-top: 6px; }
+        .source code { font-size: 0.95em; background: none; border: none; padding: 0; color: #7f8c9a; }
+
+        .timestamp {
+            text-align: center; color: #8a94a6; font-size: 0.85em;
+            margin-top: 40px; padding-top: 22px; border-top: 1px solid #e6eaef;
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 28px 14px 60px; }
+            .section { padding: 20px 18px; }
+            h1 { font-size: 1.7em; }
+        }
+
         /* 站內導覽（JustKM） */
         .back-home {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #3498db;
-            text-decoration: none;
-            font-size: 0.875rem;
-            padding: 6px 14px;
-            border: 1px solid #d8dee9;
-            border-radius: 8px;
-            background: #fff;
+            display: inline-block; margin-bottom: 20px; color: #3498db; text-decoration: none;
+            font-size: 0.875rem; padding: 6px 14px; border: 1px solid #d8dee9;
+            border-radius: 8px; background: #fff;
         }
         .back-home:hover { border-color: #3498db; }
 
-        /* 字級調整器（跨頁 localStorage 同步） */
         .font-adjuster {
             position: fixed; top: 16px; right: 16px; z-index: 999;
             background: #fff; border: 1px solid #d8dee9;
@@ -59,233 +151,6 @@
             .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
             .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
         }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-
-        h1 {
-            font-size: 2.5em;
-            color: #2c3e50;
-            margin-bottom: 0.2em;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 0.3em;
-        }
-
-        h2 {
-            font-size: 1.8em;
-            color: #34495e;
-            margin-top: 1.5em;
-            margin-bottom: 0.5em;
-            padding-left: 0.3em;
-            border-left: 4px solid #3498db;
-        }
-
-        h3 {
-            font-size: 1.4em;
-            color: #475569;
-            margin-top: 1.2em;
-            margin-bottom: 0.4em;
-        }
-
-        p {
-            margin-bottom: 1em;
-            text-align: justify;
-        }
-
-        .section {
-            background: white;
-            padding: 25px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .subsection {
-            background: #f5f7fa;
-            padding: 20px;
-            margin: 1em 0;
-            border-radius: 6px;
-            border-left: 3px solid #e74c3c;
-        }
-
-        code {
-            background: #2c3e50;
-            color: #ecf0f1;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.95em;
-        }
-
-        pre {
-            background: #2c3e50;
-            color: #ecf0f1;
-            padding: 15px;
-            border-radius: 6px;
-            overflow-x: auto;
-            margin: 1em 0;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            line-height: 1.4;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1.5em 0;
-            background: white;
-        }
-
-        th {
-            background: #3498db;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-            border: 1px solid #2980b9;
-        }
-
-        td {
-            padding: 10px 12px;
-            border: 1px solid #bdc3c7;
-        }
-
-        tr:nth-child(even) {
-            background: #ecf0f1;
-        }
-
-        tr:hover {
-            background: #d5dbec;
-        }
-
-        .warning {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 1em 0;
-            border-left: 4px solid #ff9800;
-        }
-
-        .warning::before {
-            content: "⚠️ 警告：";
-            font-weight: 600;
-            margin-right: 0.5em;
-        }
-
-        .info {
-            background: #d1ecf1;
-            border: 1px solid #17a2b8;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 1em 0;
-            border-left: 4px solid #0c5460;
-        }
-
-        .info::before {
-            content: "ℹ️ 信息：";
-            font-weight: 600;
-            margin-right: 0.5em;
-        }
-
-        .ascii-diagram {
-            background: #2c3e50;
-            color: #2ecc71;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 1.5em 0;
-            font-family: monospace;
-            font-size: 0.85em;
-            overflow-x: auto;
-            line-height: 1.5;
-        }
-
-        .formula {
-            background: #fffacd;
-            border: 1px solid #f0e68c;
-            padding: 12px;
-            border-radius: 6px;
-            margin: 1em 0;
-            font-family: monospace;
-            overflow-x: auto;
-        }
-
-        ul, ol {
-            margin-left: 1.5em;
-            margin-bottom: 1em;
-        }
-
-        li {
-            margin-bottom: 0.5em;
-        }
-
-        .header-note {
-            color: #7f8c8d;
-            font-size: 1.1em;
-            margin-bottom: 0.5em;
-        }
-
-        .toc {
-            background: #ecf0f1;
-            padding: 20px;
-            border-radius: 6px;
-            margin-bottom: 30px;
-        }
-
-        .toc h3 {
-            margin-top: 0;
-        }
-
-        .toc ul {
-            list-style: none;
-            margin-left: 0;
-        }
-
-        .toc ul li {
-            margin: 0.5em 0;
-            padding-left: 1.5em;
-            text-indent: -1.5em;
-        }
-
-        .toc a {
-            color: #3498db;
-            text-decoration: none;
-        }
-
-        .toc a:hover {
-            text-decoration: underline;
-        }
-
-        .timestamp {
-            color: #7f8c8d;
-            font-size: 0.9em;
-            margin-top: 2em;
-            padding-top: 1em;
-            border-top: 1px solid #bdc3c7;
-            text-align: center;
-        }
-
-        .code-snippet {
-            background: #f5f5f5;
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 4px;
-            margin: 0.5em 0;
-        }
-
-        .json-example {
-            background: #f5f5f5;
-            border-left: 3px solid #3498db;
-            padding: 12px;
-            border-radius: 4px;
-            margin: 1em 0;
-            font-family: monospace;
-            font-size: 0.85em;
-            overflow-x: auto;
-        }
     </style>
 </head>
 <body>
@@ -301,1352 +166,404 @@
     <div class="container">
         <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
         <h1>Codex 使用量計算原理</h1>
-        <p class="header-note">深入理解 Codex Usage Tracker 的完整資料流、解析演算法與成本計算</p>
+        <p class="lede">這些數字從哪來、怎麼變成報表、以及什麼時候不能盡信 —— 用例子講，不用公式。</p>
+        <p class="meta-line">適用版本：schema v8 · 文中每個說法都對應到程式碼位置，可自行覆核</p>
 
-        <div class="toc section">
-            <h3>目錄</h3>
-            <ul>
-                <li><a href="#architecture">架構總覽</a></li>
-                <li><a href="#dataflow">完整資料流</a></li>
-                <li><a href="#jsonl-model">JSONL 事件模型</a></li>
-                <li><a href="#parsing">解析演算法</a></li>
-                <li><a href="#schema">資料庫 Schema 與索引</a></li>
-                <li><a href="#calculation">計算公式</a></li>
-                <li><a href="#dedup-ingestion">去重與增量匯入</a></li>
-                <li><a href="#privacy">隱私與 Payload 模式</a></li>
-                <li><a href="#limits">限制與可能誤差</a></li>
-                <li><a href="#code-reference">程式碼對照表</a></li>
-                <li><a href="#usage-examples">實際使用命令</a></li>
-            </ul>
-        </div>
-
-        <div id="architecture" class="section">
-            <h2>1. 架構總覽</h2>
-
-            <h3>系統設計原則</h3>
-            <p>Codex Usage Tracker 採用 <strong>本機優先</strong>（local-first）的設計，由兩層架構組成：</p>
-
-            <ul>
-                <li><strong>Python 後端</strong>：負責 JSONL 檔案解析、SQLite 資料存儲、CLI 報表與成本估算</li>
-                <li><strong>Next.js 前端</strong>：提供互動式儀表板，直接查詢同一個 SQLite 資料庫</li>
-            </ul>
-
-            <p>核心優勢：</p>
-            <ul>
-                <li>完全本機儲存，無需網路連接</li>
-                <li>增量匯入機制，避免重複處理相同檔案</li>
-                <li>靈活的隱私控制（payload 捕捉選項）</li>
-                <li>模型定價別名與成本估算</li>
-            </ul>
-
-            <div class="ascii-diagram">
-~/.codex/sessions/
-    └── rollout-*.jsonl  ───→ Python Parser ───→ UsageEvent
-                                    │
-                                    ↓
-                            SQLite Database
-                          (events, sessions, turns,
-                           content_messages, tool_calls)
-                                    ↓
-         ┌──────────────────────────┼──────────────────────────┐
-         ↓                          ↓                          ↓
-    CLI Report          Next.js API Routes          Web Dashboard
-  (table/json/csv)     (filter, aggregation)      (charts, insights)
-            </div>
-
-            <p>定價資料來源：</p>
-            <ul>
-                <li><strong>預設定價</strong>：內嵌於 <code>report.py</code>（保守估算）</li>
-                <li><strong>自訂定價</strong>：從 SQLite 旁邊的 <code>config.json</code> 讀取</li>
-                <li><strong>環境變數覆蓋</strong>：<code>CODEX_USAGE_CONFIG</code></li>
-            </ul>
-        </div>
-
-        <div id="dataflow" class="section">
-            <h2>2. 完整資料流</h2>
-
-            <h3>資料來源</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>來源</th>
-                        <th>格式</th>
-                        <th>發現方式</th>
-                        <th>觸發條件</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>Rollout JSONL</strong></td>
-                        <td>逐行 JSON</td>
-                        <td>遞迴搜尋 <code>~/.codex/sessions/**</code></td>
-                        <td>自動（命令執行時）</td>
-                    </tr>
-                    <tr>
-                        <td>CLI 日誌</td>
-                        <td>純文字</td>
-                        <td>明確指定 <code>--log</code> 路徑</td>
-                        <td><code>ingest-cli</code> 命令</td>
-                    </tr>
-                    <tr>
-                        <td>App-server JSON-RPC</td>
-                        <td>JSON 行</td>
-                        <td>明確指定 <code>--log</code> 路徑</td>
-                        <td><code>ingest-app-server</code> 命令</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div class="ascii-diagram">
-┌─────────────────────────────────────────────────────────────┐
-│ 命令執行：codex-track report / export / status / web       │
-└─────────────────────────────────────────────────────────────┘
-                            ↓
-         ┌──────────────────────────────────────┐
-         │ 時間範圍篩選 (--last, --today, --from/to) │
-         └──────────────────────────────────────┘
-                            ↓
-    ┌────────────────────────────────────────────────┐
-    │ rollout.py: 發現 ~/.codex/sessions/**/*.jsonl │
-    │ （基於 mtime/size 過濾範圍內的檔案）           │
-    └────────────────────────────────────────────────┘
-                            ↓
-    ┌─────────────────────────────────────────────────┐
-    │ store.py: 查詢 ingestion_files 表                │
-    │ 比較 mtime/size，跳過已處理的檔案               │
-    └─────────────────────────────────────────────────┘
-                            ↓
-         ┌─────────────────────────────────┐
-         │ 需要處理？             ┌─ 是 ─→ 解析 JSONL  │
-         │                      │          │
-         │                      └─ 否 ─→ 跳過       │
-         └─────────────────────────────────┘
-                            ↓
-         ┌───────────────────────────────────────┐
-         │ parser.py: 逐行解析 JSONL           │
-         │  • 提取 event_type, token_count      │
-         │  • 解析 StatusSnapshot               │
-         │  • 構建 UsageEvent/SessionMeta 物件  │
-         └───────────────────────────────────────┘
-                            ↓
-    ┌────────────────────────────────────────────────┐
-    │ store.py: 去重檢查（source_id + content hash） │
-    │ INSERT/IGNORE 新事件、會話、轉換                 │
-    └────────────────────────────────────────────────┘
-                            ↓
-    ┌────────────────────────────────────────────────┐
-    │ ingestion_files 記錄更新：mtime/size/last_ingested │
-    └────────────────────────────────────────────────┘
-                            ↓
-    ┌─────────────────────────────────────────────────┐
-    │ 報表生成 / 匯出 / UI 查詢                         │
-    │ report.py: 聚合、計算成本、格式化                 │
-    └─────────────────────────────────────────────────┘
-            </div>
-
-            <div class="info">
-                <strong>時間戳記策略：</strong> 所有事件同時存儲 <code>captured_at</code>（本機時間）與 <code>captured_at_utc</code>（UTC）。報表使用本機時間；UI 時區可動態切換。
-            </div>
-        </div>
-
-        <div id="jsonl-model" class="section">
-            <h2>3. JSONL 事件模型</h2>
-
-            <h3>典型 Rollout JSONL 事件結構</h3>
-
-            <p>Codex rollout JSONL 檔案包含多種事件類型，核心的 token 使用事件如下：</p>
-
-            <div class="json-example">
-{
-  "type": "token_count",
-  "timestamp": "2026-03-15T10:23:45Z",
-  "context": {
-    "session_id": "sess_abc123def456",
-    "model": "gpt-5.2-codex",
-    "directory": "/home/user/project"
-  },
-  "token_usage": {
-    "total": 2847,
-    "input": 1200,
-    "cached": 0,
-    "output": 1647,
-    "reasoning": 0
-  },
-  "status": "success",
-  "lifecycle": {
-    "total_input": 5000,
-    "total_output": 3500,
-    "lifetime_total": 125000
-  }
-}
-            </div>
-
-            <h3>事件類型清單</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>事件類型</th>
-                        <th>說明</th>
-                        <th>主要欄位</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>token_count</code></td>
-                        <td>單一 turn 的 token 使用統計</td>
-                        <td>total, input, output, cached, reasoning</td>
-                    </tr>
-                    <tr>
-                        <td><code>status_snapshot</code></td>
-                        <td>會話狀態快照（5h/weekly 限制百分比）</td>
-                        <td>limit_5h_percent, limit_weekly_percent, context_window</td>
-                    </tr>
-                    <tr>
-                        <td><code>session_start</code></td>
-                        <td>會話初始化元資料</td>
-                        <td>session_id, cwd, git_info, cli_version</td>
-                    </tr>
-                    <tr>
-                        <td><code>turn_start</code></td>
-                        <td>turn 開始標記</td>
-                        <td>turn_index, model, approval_policy</td>
-                    </tr>
-                    <tr>
-                        <td><code>message</code></td>
-                        <td>對話訊息（user/assistant）</td>
-                        <td>role, message_type, content</td>
-                    </tr>
-                    <tr>
-                        <td><code>tool_call</code></td>
-                        <td>工具調用事件</td>
-                        <td>tool_type, tool_name, input, output, status</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h3>Token Count 事件詳解</h3>
-
-            <p><strong>欄位含義：</strong></p>
-            <ul>
-                <li><code>total</code>：本次 turn 的所有 token 總和（input + output）</li>
-                <li><code>input</code>：普通輸入 token（不含快取）</li>
-                <li><code>cached</code>：快取輸入 token（如果存在）</li>
-                <li><code>output</code>：模型輸出 token</li>
-                <li><code>reasoning</code>：推理層 token（針對 reasoning 模型）</li>
-            </ul>
-
-            <div class="warning">
-                <strong>關鍵區別：</strong> <code>total</code> 通常等於 <code>input + output</code>，但在某些情境下可能包含推理 token。系統會分別追蹤 <code>cached_input_tokens</code>。
-            </div>
-
-            <h3>Lifetime（生命週期）Token</h3>
-
-            <p>某些事件會附加累積統計：</p>
-            <ul>
-                <li><code>lifetime_total_tokens</code>：此會話自開始以來的 token 累積</li>
-                <li><code>lifetime_input_tokens</code>：累積輸入 token</li>
-                <li><code>lifetime_output_tokens</code>：累積輸出 token</li>
-            </ul>
-
-            <div class="info">
-                <strong>用途：</strong> Lifetime token 用於驗證重複計算、檢測丟失事件或判斷會話的總消耗量。
-            </div>
-        </div>
-
-        <div id="parsing" class="section">
-            <h2>4. 解析演算法</h2>
-
-            <h3>核心解析流程</h3>
-
-            <p>系統採用逐行流式解析（streaming）JSONL 檔案，避免一次性載入整個檔案：</p>
-
-            <div class="ascii-diagram">
-JSONL 檔案逐行讀取
-         ↓
-┌─────────────────────────────────┐
-│ 嘗試 JSON 解析當前行             │
-├─────────────────────────────────┤
-│ 成功？                           │
-│ ├─ 是 → 檢查 "type" 欄位       │
-│ └─ 否 → 記錄警告，跳過此行     │
-└─────────────────────────────────┘
-         ↓
-┌──────────────────────────────────┐
-│ 根據 type 路由到對應解析器       │
-├──────────────────────────────────┤
-│ • "token_count" → parse_token_usage() │
-│ • "status_snapshot" → parse_status_panel() │
-│ • "session_start" → parse_session_meta() │
-│ • 其他 → extract_activity_event() │
-└──────────────────────────────────┘
-         ↓
-┌──────────────────────────────────┐
-│ 構建 UsageEvent / SessionMeta    │
-│ 物件（含時間戳記轉換）           │
-└──────────────────────────────────┘
-         ↓
-存儲到 SQLite
-            </div>
-
-            <h3>時間戳記轉換</h3>
-
-            <p>JSONL 事件通常包含 UTC 時間戳記。系統會：</p>
+        <div class="toc">
+            <h3>九個觀念</h3>
             <ol>
-                <li>讀取 UTC 時間戳記（<code>timestamp</code> 欄位）</li>
-                <li>根據配置的時區轉換為本機時間（預設：<code>Europe/Stockholm</code>）</li>
-                <li>同時存儲兩個時間戳記：<code>captured_at</code>（本機）和 <code>captured_at_utc</code>（UTC）</li>
+                <li><a href="#c1">數字不是我們算的，是 Codex 自己記的</a></li>
+                <li><a href="#c2">「這一輪」和「整段對話」是兩個不同的數字</a></li>
+                <li><a href="#c3">cached 是 input 的一部分，不是額外多出來的</a></li>
+                <li><a href="#c4">成本是估算，不是帳單</a></li>
+                <li><a href="#c5">三種百分比長得很像，意思完全不同</a></li>
+                <li><a href="#c6">配額的絕對值是反推出來的</a></li>
+                <li><a href="#c7">重複匯入為什麼不會重複計算</a></li>
+                <li><a href="#c8">預設不會存下你的對話內容</a></li>
+                <li><a href="#c9">什麼情況下這些數字會不準</a></li>
             </ol>
+            <p style="margin:12px 0 0;font-size:0.9em;"><a href="#code">附：想自己看程式碼的話</a></p>
+        </div>
 
-            <div class="formula">
-from datetime import datetime
-from zoneinfo import ZoneInfo
+        <!-- ============ 1 ============ -->
+        <div id="c1" class="section">
+            <h2><span class="num">觀念 1</span>數字不是我們算的，是 Codex 自己記的</h2>
 
-utc_time = datetime.fromisoformat(event['timestamp'])
-local_tz = ZoneInfo('Europe/Stockholm')
-local_time = utc_time.astimezone(local_tz)
-
-captured_at_utc = utc_time.isoformat()
-captured_at = local_time.isoformat()
+            <div class="takeaway">
+                這個工具是<strong>讀者</strong>，不是計量器。它不攔截任何 API 請求、也不自己數 token；它只是去讀 Codex CLI 早就寫在你硬碟上的日誌。
             </div>
 
-            <h3>去重機制</h3>
+            <p>你每次跟 Codex 對話，Codex 都會在 <code>~/.codex/sessions/</code> 下寫一個 rollout JSONL 檔案 —— 一行一個事件，其中一種事件就是「這一輪用了多少 token」。這個工具做的事只有三件：找到這些檔案、把裡面的數字搬進 SQLite、然後查詢它們。</p>
 
-            <p>為避免重複計算相同事件，系統使用兩級去重：</p>
-
-            <div class="subsection">
-                <h4>第一級：檔案級去重</h4>
-                <p>使用 <code>ingestion_files</code> 表追蹤：</p>
+            <div class="example">
+                <span class="tag">推論</span>
+                <p>因為是「讀」而不是「量」，所以有一條鐵律：<strong>Codex 沒寫進 JSONL 的東西，這個工具永遠看不到。</strong></p>
                 <ul>
-                    <li><code>path</code>：檔案的絕對路徑</li>
-                    <li><code>mtime_ns</code>：檔案修改時間（納秒）</li>
-                    <li><code>size</code>：檔案大小（字節）</li>
-                    <li><code>last_ingested_at</code>：上次匯入時間戳記</li>
-                    <li><code>content_hash</code>：檔案內容 SHA256 雜湊（可選）</li>
-                </ul>
-                <p>邏輯：若 mtime 和 size 未變，則跳過此檔案。</p>
-            </div>
-
-            <div class="subsection">
-                <h4>第二級：事件級去重</h4>
-                <p>使用 <code>sources</code 表追蹤來源路徑，並：</p>
-                <ul>
-                    <li>為每個事件記錄 <code>source_id</code>（檔案來源）</li>
-                    <li>計算事件內容的雜湊值（session_id + timestamp + type + token 值）</li>
-                    <li>使用 <code>INSERT OR IGNORE</code> 避免重複插入</li>
+                    <li>Codex 版本升級後改了日誌格式 → 新欄位要等工具跟上才讀得到</li>
+                    <li>你在 ChatGPT 網頁版或其他工具用掉的量 → 完全不在這裡</li>
+                    <li>把 <code>~/.codex/sessions/</code> 刪掉 → 歷史就真的沒了（不過已經匯入 SQLite 的還在）</li>
                 </ul>
             </div>
 
-            <h3>CLI 日誌與 App-server 日誌解析</h3>
-
-            <p><strong>CLI 日誌解析（<code>ingest-cli</code>）：</strong></p>
-            <pre>典型行格式：
-Token usage: total=2847 input=1200 output=1647
-或帶快取：
-Token usage: total=10,857 input=10,562 (+ 48,000 cached) output=295
-或帶推理：
-Token usage: total=120 input=100 output=20 (reasoning 5)
-
-正則表達式（parser.py）：
-TOKEN_USAGE_RE = re.compile(
-    r"Token usage:\s*total=(?P&lt;total&gt;[0-9,]+)\s+input=(?P&lt;input&gt;[0-9,]+)"
-    r"(?:\s*\(\+\s*(?P&lt;cached&gt;[0-9,]+)\s+cached\))?\s+output=(?P&lt;output&gt;[0-9,]+)"
-    r"(?:\s*\(reasoning\s+(?P&lt;reasoning&gt;[0-9,]+)\))?",
-    re.IGNORECASE,
-)</pre>
-
-            <p><strong>App-server JSON-RPC 日誌解析（<code>ingest-app-server</code>）：</strong></p>
-            <p>解析 JSON-RPC 方法調用，提取：</p>
-            <ul>
-                <li><code>turn_started</code> 事件 → turn 計時開始</li>
-                <li><code>item_started</code> 事件 → 工具調用、命令執行計時</li>
-                <li><code>turn_completed</code> 事件 → turn 計時完成與狀態</li>
-            </ul>
+            <p>反過來說，這也是它的優點：全部在本機，不需要登入、不需要網路、不會把你的用量送去任何地方。</p>
+            <p class="source">程式碼：檔案發現與 JSONL 解析在 <code>rollout.py</code>；資料寫入在 <code>store.py</code>。（順帶一提，<code>parser.py</code> 處理的是另一件事 —— CLI 純文字日誌裡 <code>/status</code> 面板的文字，跟 JSONL 無關。）</p>
         </div>
 
-        <div id="schema" class="section">
-            <h2>5. 資料庫 Schema 與索引</h2>
+        <!-- ============ 2 ============ -->
+        <div id="c2" class="section">
+            <h2><span class="num">觀念 2</span>「這一輪」和「整段對話」是兩個不同的數字</h2>
 
-            <h3>核心表結構</h3>
-
-            <h4>meta</h4>
-            <table>
-                <thead>
-                    <tr>
-                        <th>欄位</th>
-                        <th>類型</th>
-                        <th>說明</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>key</td>
-                        <td>TEXT PRIMARY KEY</td>
-                        <td>元資料鑰匙（e.g., 'schema_version'）</td>
-                    </tr>
-                    <tr>
-                        <td>value</td>
-                        <td>TEXT</td>
-                        <td>值</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h4>events（核心表）</h4>
-            <table>
-                <thead>
-                    <tr>
-                        <th>欄位</th>
-                        <th>類型</th>
-                        <th>用途</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>id</td>
-                        <td>INTEGER PRIMARY KEY</td>
-                        <td>自增唯一識別</td>
-                    </tr>
-                    <tr>
-                        <td>captured_at</td>
-                        <td>TEXT</td>
-                        <td>本機時間戳記（ISO 8601）</td>
-                    </tr>
-                    <tr>
-                        <td>captured_at_utc</td>
-                        <td>TEXT</td>
-                        <td>UTC 時間戳記</td>
-                    </tr>
-                    <tr>
-                        <td>event_type</td>
-                        <td>TEXT</td>
-                        <td>事件類型（token_count, status_snapshot 等）</td>
-                    </tr>
-                    <tr>
-                        <td>total_tokens</td>
-                        <td>INTEGER</td>
-                        <td>本次 turn 總 token</td>
-                    </tr>
-                    <tr>
-                        <td>input_tokens</td>
-                        <td>INTEGER</td>
-                        <td>輸入 token（不含快取）</td>
-                    </tr>
-                    <tr>
-                        <td>cached_input_tokens</td>
-                        <td>INTEGER</td>
-                        <td>快取輸入 token</td>
-                    </tr>
-                    <tr>
-                        <td>output_tokens</td>
-                        <td>INTEGER</td>
-                        <td>輸出 token</td>
-                    </tr>
-                    <tr>
-                        <td>reasoning_output_tokens</td>
-                        <td>INTEGER</td>
-                        <td>推理層輸出 token</td>
-                    </tr>
-                    <tr>
-                        <td>lifetime_*_tokens</td>
-                        <td>INTEGER</td>
-                        <td>累積 token（用於驗證）</td>
-                    </tr>
-                    <tr>
-                        <td>context_used</td>
-                        <td>INTEGER</td>
-                        <td>本次 turn 使用的 context window token</td>
-                    </tr>
-                    <tr>
-                        <td>context_total</td>
-                        <td>INTEGER</td>
-                        <td>context window 總大小</td>
-                    </tr>
-                    <tr>
-                        <td>limit_5h_percent_left</td>
-                        <td>REAL</td>
-                        <td>5 小時限制剩餘百分比</td>
-                    </tr>
-                    <tr>
-                        <td>limit_weekly_percent_left</td>
-                        <td>REAL</td>
-                        <td>週限制剩餘百分比</td>
-                    </tr>
-                    <tr>
-                        <td>limit_5h_resets_at</td>
-                        <td>TEXT</td>
-                        <td>5 小時限制重置時間</td>
-                    </tr>
-                    <tr>
-                        <td>limit_weekly_resets_at</td>
-                        <td>TEXT</td>
-                        <td>週限制重置時間</td>
-                    </tr>
-                    <tr>
-                        <td>model</td>
-                        <td>TEXT</td>
-                        <td>模型名稱（e.g., 'gpt-5.2-codex'）</td>
-                    </tr>
-                    <tr>
-                        <td>directory</td>
-                        <td>TEXT</td>
-                        <td>工作目錄路徑</td>
-                    </tr>
-                    <tr>
-                        <td>session_id</td>
-                        <td>TEXT</td>
-                        <td>會話識別符</td>
-                    </tr>
-                    <tr>
-                        <td>source_id</td>
-                        <td>INTEGER</td>
-                        <td>外鍵指向 sources 表</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h4>sessions</h4>
-            <table>
-                <thead>
-                    <tr>
-                        <th>欄位</th>
-                        <th>類型</th>
-                        <th>說明</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>session_id</td>
-                        <td>TEXT PRIMARY KEY</td>
-                        <td>會話唯一識別符</td>
-                    </tr>
-                    <tr>
-                        <td>cwd</td>
-                        <td>TEXT</td>
-                        <td>會話開始時的工作目錄</td>
-                    </tr>
-                    <tr>
-                        <td>originator</td>
-                        <td>TEXT</td>
-                        <td>誰發起了此會話（user/bot 標籤）</td>
-                    </tr>
-                    <tr>
-                        <td>cli_version</td>
-                        <td>TEXT</td>
-                        <td>Codex CLI 版本</td>
-                    </tr>
-                    <tr>
-                        <td>model_provider</td>
-                        <td>TEXT</td>
-                        <td>模型提供者（OpenAI 等）</td>
-                    </tr>
-                    <tr>
-                        <td>git_commit_hash</td>
-                        <td>TEXT</td>
-                        <td>會話時的 Git commit</td>
-                    </tr>
-                    <tr>
-                        <td>git_branch</td>
-                        <td>TEXT</td>
-                        <td>Git 分支名稱</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h4>turns（轉換上下文）</h4>
-            <p>記錄每個 turn 的上下文（模型參數、政策設定、指令等）：</p>
-            <ul>
-                <li><code>session_id</code> 和 <code>turn_index</code></li>
-                <li><code>model</code>、<code>approval_policy</code></li>
-                <li>沙箱設定、截斷政策、推理努力程度</li>
-                <li>是否有基礎指令、使用者指令、開發者指令等</li>
-            </ul>
-
-            <h4>content_messages 與 tool_calls</h4>
-            <p>隱私相關表（預設不儲存，除非啟用 <code>--with-payloads</code>）：</p>
-            <ul>
-                <li><code>content_messages</code>：完整訊息文本（role, message_type, message）</li>
-                <li><code>tool_calls</code>：工具調用及其輸入/輸出有效負載</li>
-            </ul>
-
-            <h3>關鍵索引</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>索引名稱</th>
-                        <th>表</th>
-                        <th>欄位</th>
-                        <th>用途</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>events_captured_at_utc_idx</td>
-                        <td>events</td>
-                        <td>captured_at_utc</td>
-                        <td>時間範圍查詢加速</td>
-                    </tr>
-                    <tr>
-                        <td>events_event_type_idx</td>
-                        <td>events</td>
-                        <td>event_type</td>
-                        <td>按事件類型篩選</td>
-                    </tr>
-                    <tr>
-                        <td>events_event_type_captured_at_utc_idx</td>
-                        <td>events</td>
-                        <td>event_type, captured_at_utc</td>
-                        <td>複合查詢優化</td>
-                    </tr>
-                    <tr>
-                        <td>turns_session_idx</td>
-                        <td>turns</td>
-                        <td>session_id</td>
-                        <td>會話 turn 查詢</td>
-                    </tr>
-                    <tr>
-                        <td>messages_session_ordinal_idx</td>
-                        <td>messages</td>
-                        <td>session_id, ordinal</td>
-                        <td>會話內訊息排序查詢</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div class="info">
-                <strong>Schema 版本：</strong> 目前版本為 8（store.py 中 <code>SCHEMA_VERSION = 8</code>）。遷移邏輯在 <code>_migrate_schema()</code> 中處理版本升級。
+            <div class="takeaway">
+                每個 token 事件裡同時有兩組數字：<code>last_token_usage</code>（剛剛這一輪）和 <code>total_token_usage</code>（這個 session 從頭到現在的累計）。<strong>用途不同，不能互換。</strong>
             </div>
+
+            <p>這是最容易搞混的一點，因為兩組數字的欄位名稱一模一樣（都有 input、output、total）。差別在於：</p>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>數字</th><th>意思</th><th>拿來做什麼</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>last_token_usage</code></td>
+                            <td>剛剛這一次請求用掉的量</td>
+                            <td><strong>存進 events 表、算報表、算成本</strong></td>
+                        </tr>
+                        <tr>
+                            <td><code>total_token_usage</code></td>
+                            <td>這個 session 累計用掉的量</td>
+                            <td>拿來算 context 用了多少（見觀念 5）</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="example">
+                <span class="tag">例子</span>
+                <p>一段三輪的對話，Codex 記下來大概是這樣（只列關鍵數字）：</p>
+                <div class="calc">第 1 輪   這一輪 12,000     session 累計 12,000
+第 2 輪   這一輪 15,500     session 累計 27,500
+第 3 輪   這一輪  9,200     session 累計 36,700</div>
+                <p>報表要的是「這段時間總共用了多少」，所以加總的是<strong>左欄</strong>：12,000 + 15,500 + 9,200 = 36,700。</p>
+                <p>如果誤把右欄加起來，會得到 76,200 —— 灌水一倍以上。這就是為什麼兩者不能混用。</p>
+            </div>
+
+            <div class="warn">
+                <strong>順帶一提：</strong>每筆事件的 <code>total</code> 也是 Codex 給的，不是工具把 input + output 相加得出來的。所以偶爾會遇到 total 跟各分項對不太起來的情況 —— 以 Codex 給的 total 為準，工具不會去「修正」它。
+            </div>
+
+            <p class="source">程式碼：<code>rollout.py</code> 讀取 <code>last_token_usage</code> / <code>total_token_usage</code>（約 L786-L826）；報表加總見 <code>report.py</code> L422。</p>
         </div>
 
-        <div id="calculation" class="section">
-            <h2>6. 計算公式</h2>
+        <!-- ============ 3 ============ -->
+        <div id="c3" class="section">
+            <h2><span class="num">觀念 3</span>cached 是 input 的一部分，不是額外多出來的</h2>
 
-            <h3>基本 Token 計算</h3>
-
-            <div class="formula">
-/* 本次 turn 的計算 */
-turn_total_tokens = input_tokens + cached_input_tokens + output_tokens
-
-/* 如果包含推理 token（某些模型） */
-if reasoning_output_tokens > 0:
-    turn_total_tokens = input_tokens + cached_input_tokens + output_tokens + reasoning_output_tokens
-
-/* 累積（lifetime）驗證 */
-expected_lifetime = previous_lifetime + turn_total_tokens
-actual_lifetime = event.lifetime_total_tokens
-if expected_lifetime != actual_lifetime:
-    log("Possible missing events or session restart")
+            <div class="takeaway">
+                <code>cached_input_tokens</code> 是 <code>input_tokens</code> 裡面<strong>已經被快取</strong>的那一部分，不是另外一筆。算錢的時候要把它從 input 扣掉，用比較便宜的費率單獨計價。
             </div>
 
-            <h3>成本估算公式</h3>
+            <p>這是整份文件最重要、也最容易算錯的一個觀念。因為兩個數字是包含關係，如果當成並列的兩筆，成本會被高估。</p>
 
-            <p>系統使用 <strong>per 1M tokens</strong> 的定價模型：</p>
+            <div class="example">
+                <span class="tag">例子</span>
+                <p>某一輪的數字是 <code>input = 1,000</code>、<code>cached = 800</code>、<code>output = 500</code>，費率用 gpt-5.2 的每百萬 $1.75 / 快取 $0.175 / 輸出 $14.00。</p>
 
-            <div class="formula">
-/* 基本成本計算 */
-cost = (input_tokens × input_rate +
-        cached_input_tokens × cached_input_rate +
-        output_tokens × output_rate) / 1_000_000
+                <p style="margin-top:14px;"><strong>正確：先把 cached 從 input 扣掉</strong></p>
+                <div class="calc">實際要全價的 input = 1,000 − 800 = <span class="ok">200</span>
 
-例子（GPT-5.2 Codex）：
-  input_rate = 1.75 美元/百萬
-  cached_input_rate = 0.175 美元/百萬
-  output_rate = 14.00 美元/百萬
+   200 × $1.75   ÷ 1M = $0.00035
+   800 × $0.175  ÷ 1M = $0.00014
+   500 × $14.00  ÷ 1M = $0.00700
+                       ─────────
+                        <span class="ok">$0.00749</span></div>
 
-  假設事件：
-    input_tokens = 1000
-    cached_input_tokens = 500
-    output_tokens = 800
+                <p><strong>常見的錯誤算法：把 input 和 cached 當兩筆並列</strong></p>
+                <div class="calc"> 1,000 × $1.75   ÷ 1M = $0.00175
+   800 × $0.175  ÷ 1M = $0.00014
+   500 × $14.00  ÷ 1M = $0.00700
+                       ─────────
+                        <span class="hl">$0.00889</span>  ← 多算了約 19%</div>
 
-  cost = (1000 × 1.75 + 500 × 0.175 + 800 × 14.00) / 1_000_000
-       = (1750 + 87.5 + 11200) / 1_000_000
-       = 13037.5 / 1_000_000
-       = $0.0130
+                <p>單筆差幾釐錢看不出來，但長期對話的快取命中率常常在 80% 以上，累積下來誤差非常可觀。</p>
             </div>
 
-            <h3>聚合與報表成本</h3>
-
-            <p><strong>按時間段聚合：</strong></p>
-            <ol>
-                <li>按時段（日/週/月）和分組（模型/目錄/會話）查詢事件</li>
-                <li>對每個組合求和：<code>SUM(input_tokens), SUM(cached_input_tokens), SUM(output_tokens)</code></li>
-                <li>使用聚合後的 token 數重新計算成本</li>
-            </ol>
-
-            <div class="formula">
-/* SQL 查詢示例 */
-SELECT
-    DATE(captured_at) AS period,
-    model,
-    SUM(input_tokens) AS total_input,
-    SUM(cached_input_tokens) AS total_cached,
-    SUM(output_tokens) AS total_output
-FROM events
-WHERE captured_at >= ? AND captured_at <= ?
-    AND event_type = 'token_count'
-GROUP BY DATE(captured_at), model
-ORDER BY period, model;
-
-/* 報表行計算 */
-for each (period, model) group:
-    pricing = lookup_pricing(model)
-    cost = (total_input × pricing.input_rate +
-            total_cached × pricing.cached_input_rate +
-            total_output × pricing.output_rate) / 1_000_000
+            <div class="warn">
+                <strong>例外：</strong>Pro 系列模型（<code>gpt-5.2-pro</code>、<code>gpt-5.4-pro</code>…）沒有公布快取折扣價，所以工具把它們的快取費率設成跟一般 input 一樣。這時扣不扣 cached 結果都相同。
             </div>
 
-            <h3>5 小時限制與週限制計算</h3>
-
-            <p><strong>5 小時限制（5h rate limit）：</strong></p>
-            <ul>
-                <li>顯示為 <code>limit_5h_percent_left</code>（剩餘百分比）</li>
-                <li>當 percent_left = 50% 表示已使用 50% 的 5 小時額度</li>
-                <li><code>limit_5h_resets_at</code> 欄位指示下次重置時間</li>
-                <li>5 小時窗口是滑動的，不是固定的日期邊界</li>
-            </ul>
-
-            <p><strong>週限制（weekly limit）：</strong></p>
-            <ul>
-                <li>預設重置時間：<code>Thursday 09:15 Europe/Stockholm</code></li>
-                <li>可透過環境變數 <code>CODEX_USAGE_WEEKLY_RESET</code> 覆蓋</li>
-                <li>顯示為 <code>limit_weekly_percent_left</code></li>
-                <li>系統會計算週配額估計（基於上個完整週的使用）</li>
-            </ul>
-
-            <div class="formula">
-/* 週配額估計邏輯 */
-last_week_start = current_time - (days_since_reset + 7) days
-last_week_end = current_time - days_since_reset days
-
-if last_week_end &lt; current_time:
-    last_week_total = sum_tokens(last_week_start, last_week_end)
-    weekly_quota_estimate = last_week_total
-    current_week_used = sum_tokens(last_week_end, current_time)
-    if weekly_quota_estimate > 0:
-        weekly_percent_used = (current_week_used / weekly_quota_estimate) × 100
-            </div>
-
-            <h3>Context Window 計算</h3>
-
-            <div class="formula">
-/* 每個事件的 context 信息 */
-context_used = tokens used in this turn
-context_total = maximum context window size
-
-context_percent_left = ((context_total - context_used) / context_total) × 100
-
-/* 模型典型 context 大小（GPT-5 系列） */
-GPT-5.2-Codex: ~128K tokens (128,000)
-GPT-5.4-Codex: ~128K tokens
-GPT-5 家族: 通常 128K-200K
-            </div>
-
-            <div class="warning">
-                <strong>Context 計算注意：</strong> Context window 是 <strong>最大可用容量</strong>，而非實際使用。<code>context_used</code> 反映本次 turn 實際消耗的 token；<code>context_percent_left</code> 基於剩餘百分比，不是 token 超限警告。
-            </div>
+            <p class="source">程式碼：<code>report.py</code> L249 的 <code>non_cached = max(input_tokens - cached_tokens, 0)</code> 就是這件事。</p>
         </div>
 
-        <div id="dedup-ingestion" class="section">
-            <h2>7. 去重與增量匯入</h2>
+        <!-- ============ 4 ============ -->
+        <div id="c4" class="section">
+            <h2><span class="num">觀念 4</span>成本是估算，不是帳單</h2>
 
-            <h3>增量匯入策略</h3>
-
-            <p>Codex Usage Tracker 核心優勢在於避免重複處理相同檔案。運作流程：</p>
-
-            <h4>第 1 步：檔案發現與篩選</h4>
-            <div class="code-snippet">
-# 在 rollout.py 中
-files_to_process = []
-for rollout_file in discover_rollout_files(start_dir):
-    file_stat = rollout_file.stat()
-    mtime_ns = file_stat.st_mtime_ns
-    size = file_stat.st_size
-
-    # 若檔案修改時間在要求範圍內
-    if is_in_time_range(mtime_ns, time_start, time_end):
-        files_to_process.append((rollout_file, mtime_ns, size))
+            <div class="takeaway">
+                費率表是<strong>寫死在程式裡的</strong>。它不會去查你的方案、你的折扣、也不知道 OpenAI 什麼時候調價。這個數字用來看趨勢和比例，不要拿去對帳。
             </div>
 
-            <h4>第 2 步：查詢已處理檔案</h4>
-            <div class="code-snippet">
-# 查詢 ingestion_files 表
-existing = conn.execute(
-    "SELECT mtime_ns, size, content_hash FROM ingestion_files WHERE path = ?",
-    (str(rollout_file),)
-).fetchone()
+            <p>三件跟這個估算有關、值得知道的事：</p>
 
-if existing:
-    if existing['mtime_ns'] == mtime_ns and existing['size'] == size:
-        # 檔案未變，跳過
-        print(f"Skipping unchanged: {rollout_file}")
-        continue
+            <h3>一、模型名稱會被正規化</h3>
+            <p>日誌裡的模型名稱五花八門，工具會依序嘗試對應到費率表：完全相同 → 去掉 <code>(fast)</code> 這類裝飾 → 去掉日期後綴 → 查別名表。</p>
+            <div class="example">
+                <span class="tag">例子</span>
+                <div class="calc">"gpt-5.2-codex (fast)"      → 去掉裝飾 → gpt-5.2-codex
+"gpt-5.2-codex-2026-01-15"  → 去掉日期 → gpt-5.2-codex
+"gpt-5-codex"               → 查別名   → gpt-5.2-codex
+"某個沒見過的模型"           → <span class="hl">找不到 → 這筆不計成本</span></div>
+                <p>注意最後一種：認不出來的模型<strong>不會被當成 $0</strong>，而是整筆跳過不算。所以報表會另外告訴你「涵蓋率」—— 有多少事件真的算得出成本。看到涵蓋率不到 100%，代表有模型不在費率表裡，成本被低估了。</p>
             </div>
 
-            <h4>第 3 步：解析與去重</h4>
-            <div class="code-snippet">
-# 逐行解析新檔案
-with open(rollout_file) as f:
-    for line in f:
-        event = json.loads(line)
-        parsed = parse_event(event)  # 返回 UsageEvent 物件
+            <h3>二、成本是一筆一筆算完再加總</h3>
+            <p>不是「把整天的 token 加起來再乘費率」。因為一天之內你可能換過模型，先加總再乘會用錯費率。工具的做法是每個事件各自套自己模型的費率算完，再把金額相加。</p>
 
-        # 計算事件雜湊（用於去重）
-        event_hash = compute_hash(
-            parsed.session_id,
-            parsed.captured_at_utc,
-            parsed.event_type,
-            parsed.total_tokens
-        )
+            <h3>三、費率可以自己改</h3>
+            <p>在 SQLite 檔案旁邊放一個 <code>config.json</code> 就能覆蓋任何模型的費率（或新增費率表裡沒有的模型），也可以改幣別標籤。想放別的位置就用 <code>CODEX_USAGE_CONFIG</code> 環境變數指定。這是讓估算貼近你實際方案最直接的辦法。</p>
 
-        # 使用 INSERT OR IGNORE
-        insert_event(parsed, event_hash)
+            <div class="warn">
+                <strong>還有一點：</strong><code>reasoning_output_tokens</code> 只是記錄下來給你看，計價時只用 <code>output_tokens</code>，不會再另外加一次。
             </div>
 
-            <h4>第 4 步：更新追蹤表</h4>
-            <div class="code-snippet">
-# 處理完成後更新 ingestion_files 表
-conn.execute("""
-    INSERT OR REPLACE INTO ingestion_files
-    (path, mtime_ns, size, last_ingested_at, content_hash)
-    VALUES (?, ?, ?, ?, ?)
-""", (
-    str(rollout_file),
-    mtime_ns,
-    size,
-    datetime.now().isoformat(),
-    file_content_hash  # 可選
-))
-            </div>
-
-            <h3>去重衝突處理</h3>
-
-            <p><strong>情況 1：檔案修改（新增事件）</strong></p>
-            <ul>
-                <li>若 rollout 檔案新增了事件行（大小增加），系統會重新讀取</li>
-                <li>新事件與舊事件一起插入（舊事件透過 <code>INSERT OR IGNORE</code> 被跳過）</li>
-                <li>效率：只新增增量部分的成本</li>
-            </ul>
-
-            <p><strong>情況 2：檔案未修改</strong></p>
-            <ul>
-                <li>mtime 和 size 完全相同 → 整個檔案跳過</li>
-                <li>不進行任何雜湊計算或行掃描</li>
-            </ul>
-
-            <p><strong>情況 3：檔案截斷或修改（罕見）</strong></p>
-            <ul>
-                <li>若檔案被編輯，重新讀取整個檔案</li>
-                <li>重複的事件會透過 <code>source_id + content_hash</code> 被去重</li>
-                <li>新事件被新增，舊事件保留在資料庫</li>
-            </ul>
-
-            <div class="info">
-                <strong>最佳實踐：</strong> Rollout 檔案通常是 <strong>只追加</strong>（append-only）的，因此增量匯入非常高效。若手動編輯了 rollout 檔案，可能需要重新匯入。
-            </div>
+            <p class="source">程式碼：費率表 <code>report.py</code> <code>default_pricing()</code>；名稱正規化 <code>_resolve_pricing_model_name()</code>；覆蓋設定 <code>config.py</code>。</p>
         </div>
 
-        <div id="privacy" class="section">
-            <h2>8. 隱私與 Payload 模式</h2>
+        <!-- ============ 5 ============ -->
+        <div id="c5" class="section">
+            <h2><span class="num">觀念 5</span>三種百分比長得很像，意思完全不同</h2>
 
-            <h3>三層隱私控制</h3>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>模式</th>
-                        <th>CLI 旗標</th>
-                        <th>content_messages</th>
-                        <th>tool_calls payload</th>
-                        <th>用途</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>預設</strong></td>
-                        <td>無</td>
-                        <td>不儲存</td>
-                        <td>NULL</td>
-                        <td>隱私優先；Token 數據仍被追蹤</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Payload</strong></td>
-                        <td><code>--with-payloads</code></td>
-                        <td>完整儲存</td>
-                        <td>完整儲存</td>
-                        <td>調試、完整審計；需要更多儲存空間</td>
-                    </tr>
-                    <tr>
-                        <td><strong>無內容</strong></td>
-                        <td><code>--no-content</code></td>
-                        <td>不儲存</td>
-                        <td>不儲存</td>
-                        <td>最高隱私；僅 token 計數與元資料</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h3>儲存配置</h3>
-
-            <p>隱私設定儲存在 <code>meta</code> 表中：</p>
-            <div class="code-snippet">
-INSERT INTO meta (key, value) VALUES
-  ('storage_profile_version', '3'),
-  ('capture_payloads', 'true'),    -- true 或 false
-  ('tool_payload_profile_version', '1');
+            <div class="takeaway">
+                介面上會看到三個「還剩百分之幾」：context、5 小時限制、週限制。它們<strong>互相獨立</strong>，一個滿了不代表另一個也滿了。
             </div>
 
-            <h3>Payload 淨化命令</h3>
-
-            <p><strong>移除已儲存的 payload：</strong></p>
-            <ul>
-                <li><code>codex-track purge-payloads</code>：刪除訊息，消毒工具呼叫</li>
-                <li><code>codex-track purge-content</code>：刪除訊息和工具呼叫</li>
-                <li><code>codex-track vacuum</code>：回收刪除後的磁碟空間</li>
-            </ul>
-
-            <h3>UI 隱私設定</h3>
-
-            <p>在儀表板 Settings → Privacy 中可設定：</p>
-            <ul>
-                <li>「Store full message text and tool call payloads in the DB」複選框</li>
-                <li>變更會立即影響後續匯入</li>
-                <li>不會回溯修改已儲存的資料</li>
-            </ul>
-
-            <div class="warning">
-                <strong>注意：</strong> 預設不儲存 payload。若需要完整審計日誌，需明確啟用 <code>--with-payloads</code> 或在 UI 中開啟。
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>百分比</th><th>在衡量什麼</th><th>範圍</th><th>怎麼恢復</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Context 剩餘</strong></td>
+                            <td>這段對話塞了多少進模型的視窗</td>
+                            <td>單一 session</td>
+                            <td>開新對話 / 壓縮上下文</td>
+                        </tr>
+                        <tr>
+                            <td><strong>5h 限制剩餘</strong></td>
+                            <td>滾動 5 小時內的用量配額</td>
+                            <td>整個帳號</td>
+                            <td>等時間過去（滑動視窗）</td>
+                        </tr>
+                        <tr>
+                            <td><strong>週限制剩餘</strong></td>
+                            <td>這一週的用量配額</td>
+                            <td>整個帳號</td>
+                            <td>等每週重置點</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
+
+            <div class="example">
+                <span class="tag">例子</span>
+                <p>你剛開始一段大型重構，聊了兩小時：</p>
+                <div class="calc">Context 剩餘   <span class="hl">18%</span>   ← 這段對話快塞爆了
+5h 限制剩餘    <span class="ok">86%</span>   ← 帳號額度還很充裕
+週限制剩餘     <span class="ok">61%</span></div>
+                <p>該做的是開一段新對話（或壓縮），而不是停下來等額度恢復 —— 因為額度根本沒問題。反過來如果是 5h 剩 4%、context 還很空，那就是真的得等了。</p>
+            </div>
+
+            <h3>Context 用的是「累計」不是「這一輪」</h3>
+            <p>Context 剩餘的算法是拿<strong>整個 session 的累計 token</strong>去比模型的視窗大小 —— 這正是觀念 2 裡 <code>total_token_usage</code> 的用途。所以它會隨著對話一路往下掉，不會因為某一輪問得短就回升。</p>
+
+            <div class="warn">
+                <strong>視窗大小不用猜：</strong>Codex 會在日誌裡直接告訴工具這個模型的 context 上限（<code>model_context_window</code>），所以不同模型會自動用各自的數字，不需要記憶哪個模型是幾 K。
+            </div>
+
+            <p class="source">程式碼：<code>rollout.py</code> 約 L819-L835 —— context 用 <code>total_token_usage.total_tokens</code>，5h/週則來自日誌裡的 <code>rate_limits.primary</code> / <code>rate_limits.secondary</code>。</p>
         </div>
 
-        <div id="limits" class="section">
-            <h2>9. 限制與可能誤差</h2>
+        <!-- ============ 6 ============ -->
+        <div id="c6" class="section">
+            <h2><span class="num">觀念 6</span>配額的絕對值是反推出來的</h2>
 
-            <h3>已知限制</h3>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>限制</th>
-                        <th>說明</th>
-                        <th>影響</th>
-                        <th>緩解方案</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>遺失事件</strong></td>
-                        <td>若 rollout 檔案損壞或不完整</td>
-                        <td>Token 數據不完整</td>
-                        <td>檢查 lifetime_tokens 差異；定期備份</td>
-                    </tr>
-                    <tr>
-                        <td><strong>時區轉換誤差</strong></td>
-                        <td>DST（夏令時）切換可能導致邊界混亂</td>
-                        <td>日邊界附近的報表±1 小時誤差</td>
-                        <td>使用 UTC 時間戳記進行跨時區比較</td>
-                    </tr>
-                    <tr>
-                        <td><strong>定價別名延遲</strong></td>
-                        <td>新模型發布後，內嵌定價不會立即更新</td>
-                        <td>新模型成本估算可能不準確</td>
-                        <td>透過 config.json 手動設定定價</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Cache 計算精度</strong></td>
-                        <td>某些模型可能不報告快取 token</td>
-                        <td>cached_input_tokens 為 0（underestimate）</td>
-                        <td>手動審視原始 rollout 檔案</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Context 超限檢測</strong></td>
-                        <td>系統不進行主動的 context 超限檢測</td>
-                        <td>無法警告 context window 即將滿</td>
-                        <td>監控 context_percent_left 欄位</td>
-                    </tr>
-                    <tr>
-                        <td><strong>SKU 別名不同步</strong></td>
-                        <td>模型可能用多個名稱報告（gpt-5-codex vs gpt-5.2-codex）</td>
-                        <td>報表分組不一致</td>
-                        <td>使用 config.json 設定模型別名映射</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h3>可能的計算誤差來源</h3>
-
-            <h4>1. Lifetime Token 不匹配</h4>
-            <div class="code-snippet">
-/* 檢測邏輯 */
-for event in events_in_session:
-    expected = previous_lifetime + event.total_tokens
-    actual = event.lifetime_total_tokens
-
-    if expected != actual:
-        print(f"WARNING: Lifetime mismatch at {event.timestamp}")
-        print(f"  Expected: {expected}, Actual: {actual}")
-        print(f"  Possible: missing event, session restart, API error")
+            <div class="takeaway">
+                Codex 只告訴你「用掉了百分之幾」，<strong>從來不說配額本身是多少 token</strong>。所以「你這週還能用多少」是工具用比例反推的估計值。
             </div>
 
-            <h4>2. Token 總和驗證失敗</h4>
-            <div class="code-snippet">
-/* 事件級驗證 */
-reported_total = event.total_tokens
-calculated = event.input_tokens + event.output_tokens
-cached = event.cached_input_tokens
+            <p>反推的邏輯其實很直覺：如果我知道上週用了多少 token，也知道那時候最高用到了幾 %，就能推出 100% 是多少。</p>
 
-if reported_total != calculated and not event.reasoning_output_tokens:
-    log(f"Token sum mismatch: reported={reported_total}, "
-        f"calculated={calculated}, cached={cached}")
+            <div class="example">
+                <span class="tag">例子</span>
+                <p>上一個完整週：實際記錄到 <code>3,200,000</code> tokens，期間看過的最高用量是 <code>80%</code>。</p>
+                <div class="calc">3,200,000 是整週配額的 80%
+                ↓
+整週配額 ≈ 3,200,000 × (100 ÷ 80) = <span class="ok">4,000,000 tokens</span></div>
+                <p>有了這個估計值，本週用掉的量就能換算成百分比，成本也用同樣比例放大成「整週配額值多少錢」。</p>
             </div>
 
-            <h4>3. 時間戳記不連續</h4>
-            <ul>
-                <li>若事件時間戳記出現倒序，可能表示系統時鐘調整或時區變更</li>
-                <li>建議使用 UTC 時間戳記進行排序和比較</li>
-            </ul>
-
-            <h3>資料驗證檢查清單</h3>
-
-            <div class="subsection">
-                <ul>
-                    <li>✓ 定期執行 <code>codex-track status</code> 驗證最新快照</li>
-                    <li>✓ 比較 <code>total_tokens = input + output</code></li>
-                    <li>✓ 監控 <code>lifetime_total_tokens</code> 是否單調遞增</li>
-                    <li>✓ 驗證時間戳記順序（按 captured_at_utc）</li>
-                    <li>✓ 檢查 rollout 檔案大小是否增加（append-only）</li>
-                    <li>✓ 定期備份 SQLite 資料庫</li>
+            <div class="wrong">
+                <strong>這個估計什麼時候會偏：</strong>
+                <ul style="margin-bottom:0;">
+                    <li><strong>那週用得很少</strong> —— 最高只到 5%，等於用 1/20 的樣本去推全體，一點誤差都會被放大 20 倍</li>
+                    <li><strong>剛開始用這個工具</strong> —— 沒有完整的上一週資料，就退回用最近一次算過的估計值</li>
+                    <li><strong>方案改了</strong> —— 配額變了，但估計值還停留在舊方案的水準</li>
                 </ul>
             </div>
+
+            <p>至於「這一週」從哪天算起：預設是<strong>週四 09:15（Europe/Stockholm）</strong>重置，可以用 <code>CODEX_USAGE_WEEKLY_RESET</code> 環境變數改成符合你帳號的時間。這個設定只影響工具怎麼切週界線，不影響 OpenAI 那邊真正的重置時刻 —— 兩者對不上的話，跨週的數字就會怪怪的。</p>
+
+            <p class="source">程式碼：<code>cli.py</code> <code>_estimate_weekly_quota()</code>，關鍵是 <code>scale = 100 / used_percent_max</code> 那一步。</p>
         </div>
 
-        <div id="code-reference" class="section">
-            <h2>10. 程式碼對照表</h2>
+        <!-- ============ 7 ============ -->
+        <div id="c7" class="section">
+            <h2><span class="num">觀念 7</span>重複匯入為什麼不會重複計算</h2>
 
-            <h3>核心模組與函式</h3>
+            <div class="takeaway">
+                你可以放心地一天跑十次匯入。工具有<strong>兩道防線</strong>：檔案沒變就整個跳過；檔案變了就只認新事件。
+            </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>模組</th>
-                        <th>主要函式/類</th>
-                        <th>職責</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>parser.py</code></td>
-                        <td>
-                            <code>parse_token_usage_line()</code><br>
-                            <code>parse_status_panel()</code><br>
-                            <code>StatusCapture</code>
-                        </td>
-                        <td>正則表達式解析 token 行；狀態面板分析</td>
-                    </tr>
-                    <tr>
-                        <td><code>store.py</code></td>
-                        <td>
-                            <code>UsageStore</code><br>
-                            <code>UsageEvent</code><br>
-                            <code>SessionMeta</code>
-                        </td>
-                        <td>SQLite 連接、schema 初始化、事件插入</td>
-                    </tr>
-                    <tr>
-                        <td><code>rollout.py</code></td>
-                        <td>
-                            <code>discover_rollout_files()</code><br>
-                            <code>ingest_rollouts()</code>
-                        </td>
-                        <td>檔案發現、增量匯入邏輯</td>
-                    </tr>
-                    <tr>
-                        <td><code>report.py</code></td>
-                        <td>
-                            <code>default_pricing()</code><br>
-                            <code>compute_cost()</code><br>
-                            <code>render_table()</code>
-                        </td>
-                        <td>定價查詢、成本計算、報表格式化</td>
-                    </tr>
-                    <tr>
-                        <td><code>config.py</code></td>
-                        <td>
-                            <code>resolve_timezone()</code><br>
-                            <code>resolve_capture_payloads()</code>
-                        </td>
-                        <td>配置檔案載入、時區驗證</td>
-                    </tr>
-                    <tr>
-                        <td><code>cli.py</code></td>
-                        <td>
-                            <code>main()</code><br>
-                            <code>cmd_report()</code><br>
-                            <code>cmd_web()</code>
-                        </td>
-                        <td>CLI 進入點、子命令路由</td>
-                    </tr>
-                </tbody>
-            </table>
+            <h3>第一道：檔案層級</h3>
+            <p>每個處理過的檔案，工具都記下它的修改時間和大小。下次再看到同一個路徑，先比對這兩個值 —— 一模一樣就直接跳過，連開都不開。這讓「幾千個歷史檔案 + 今天剛寫的兩個」這種情況，只需要處理那兩個。</p>
 
-            <h3>關鍵資料結構</h3>
+            <h3>第二道：事件層級</h3>
+            <p>但有一種情況第一道防線擋不住：<strong>還在進行中的 session</strong>。它的檔案每講一句就變大一次，所以每次匯入都得重讀。這時靠的是事件本身的去重 —— 已經在資料庫裡的事件不會再插一次，只有新長出來的那幾行會被寫入。</p>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>類</th>
-                        <th>定義位置</th>
-                        <th>用途</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>UsageEvent</code></td>
-                        <td><code>store.py</code> L103</td>
-                        <td>單一 token 計數事件（資料類別）</td>
-                    </tr>
-                    <tr>
-                        <td><code>StatusSnapshot</code></td>
-                        <td><code>parser.py</code> L36</td>
-                        <td>狀態快照（限制百分比、context）</td>
-                    </tr>
-                    <tr>
-                        <td><code>ReportRow</code></td>
-                        <td><code>report.py</code> L20</td>
-                        <td>報表行（period, group, tokens, cost）</td>
-                    </tr>
-                    <tr>
-                        <td><code>PricingModel</code></td>
-                        <td><code>report.py</code> L33</td>
-                        <td>單一模型的三層定價（input, cached, output）</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="example">
+                <span class="tag">例子</span>
+                <div class="calc">早上 10:00  匯入 → session A 讀進 8 個事件
+（你繼續跟 Codex 聊，A 又多了 3 輪）
+下午 15:00  匯入 → 檔案變大了，重讀整個 A
+                    前 8 個已存在 → <span class="ok">略過</span>
+                    後 3 個是新的 → <span class="ok">寫入</span>
+                    結果：11 個事件，沒有任何重複</div>
+            </div>
 
-            <h3>重要常數</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>常數</th>
-                        <th>值</th>
-                        <th>說明</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>SCHEMA_VERSION</code></td>
-                        <td>8</td>
-                        <td>當前資料庫 schema 版本</td>
-                    </tr>
-                    <tr>
-                        <td><code>DEFAULT_TIMEZONE</code></td>
-                        <td><code>Europe/Stockholm</code></td>
-                        <td>預設本機時區</td>
-                    </tr>
-                    <tr>
-                        <td><code>DEFAULT_CURRENCY_LABEL</code></td>
-                        <td><code>$</code></td>
-                        <td>成本報表貨幣標籤</td>
-                    </tr>
-                    <tr>
-                        <td><code>BASELINE_TOKENS</code></td>
-                        <td>12000</td>
-                        <td>會話基準 token 數（rollout.py）</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="warn">
+                <strong>什麼時候該強制重新匯入：</strong>如果你曾用「不存內容」的模式匯入、後來想補上對話內容，光靠增量匯入是不會回頭補的 —— 因為那些檔案在工具眼中「已經處理過了」。這種情況需要明確要求重新處理。
+            </div>
+
+            <p class="source">程式碼：<code>store.py</code> <code>file_needs_ingest()</code>（比對 mtime/size）與 <code>ingestion_files</code> 表。</p>
         </div>
 
-        <div id="usage-examples" class="section">
-            <h2>11. 實際使用命令</h2>
+        <!-- ============ 8 ============ -->
+        <div id="c8" class="section">
+            <h2><span class="num">觀念 8</span>預設不會存下你的對話內容</h2>
 
-            <h3>基本報表命令</h3>
+            <div class="takeaway">
+                開箱即用的模式<strong>只存數字，不存文字</strong>。要存內容必須自己明確打開，而且每一筆資料都會記下它是用哪種模式存進來的。
+            </div>
 
-            <h4>顯示今日使用量</h4>
-            <pre>$ codex-track report --today</pre>
-            <p>顯示從本地午夜到現在的使用量統計。</p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>模式</th><th>存了什麼</th><th>適合</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>預設</strong></td>
+                            <td>token 數、模型、時間、目錄、工具呼叫的中繼資料</td>
+                            <td>只想看用量與成本</td>
+                        </tr>
+                        <tr>
+                            <td><code>--with-payloads</code></td>
+                            <td>以上 ＋ 完整訊息文字與工具參數</td>
+                            <td>想搜尋「我上次是怎麼問的」</td>
+                        </tr>
+                        <tr>
+                            <td><code>--no-content</code> / <code>--redact</code></td>
+                            <td>只留骨架，訊息與工具內容一律不存</td>
+                            <td>共用機器、要給別人看資料庫</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-            <h4>過去 7 天，按日分組</h4>
-            <pre>$ codex-track report --last 7d --group day</pre>
+            <p>值得注意的是，就算選了最嚴格的模式，<strong>原始的 rollout JSONL 還是完整躺在 <code>~/.codex/sessions/</code></strong> —— 那是 Codex 寫的，不歸這個工具管。隱私模式管的是「要不要抄一份進 SQLite」。</p>
 
-            <h4>按模型分解</h4>
-            <pre>$ codex-track report --last 7d --by model</pre>
-
-            <h4>輸出為 JSON</h4>
-            <pre>$ codex-track report --today --format json</pre>
-
-            <h4>自訂時間範圍</h4>
-            <pre>$ codex-track report --from 2026-03-01 --to 2026-03-15</pre>
-
-            <h4>全部歷史資料</h4>
-            <pre>$ codex-track report --last total</pre>
-
-            <h3>匯出與備份</h3>
-
-            <h4>匯出為 CSV</h4>
-            <pre>$ codex-track export --format csv --out events.csv</pre>
-
-            <h4>建立 Rollout 備份</h4>
-            <pre>$ codex-track web
-# 登入儀表板 → DB Insights → Session Rollout Backup
-# 選擇日期範圍 → 下載 tar.xz</pre>
-
-            <h3>隱私與維護</h3>
-
-            <h4>啟用 Payload 捕捉（匯入新檔案）</h4>
-            <pre>$ codex-track report --today --with-payloads</pre>
-
-            <h4>禁用 Payload 捕捉</h4>
-            <pre>$ codex-track report --today --no-content</pre>
-
-            <h4>移除已儲存的訊息</h4>
-            <pre>$ codex-track purge-payloads --yes</pre>
-
-            <h4>回收資料庫空間</h4>
-            <pre>$ codex-track vacuum --yes</pre>
-
-            <h3>啟動 Web 儀表板</h3>
-
-            <h4>預設設定（localhost:3000，自動開啟瀏覽器）</h4>
-            <pre>$ codex-track web</pre>
-
-            <h4>自訂連接埠，不開啟瀏覽器</h4>
-            <pre>$ codex-track web --port 3001 --no-open</pre>
-
-            <h4>監視新檔案</h4>
-            <pre>$ codex-track watch --interval 30</pre>
-            <p>每 30 秒檢查一次新的 rollout 檔案。</p>
-
-            <h3>日誌和狀態</h3>
-
-            <h4>查看最新快照</h4>
-            <pre>$ codex-track status</pre>
-
-            <h4>清空資料庫</h4>
-            <pre>$ codex-track clear-db --yes</pre>
-
-            <h3>進階：自訂定價</h3>
-
-            <h4>建立 config.json（與 SQLite 在同一目錄）</h4>
-            <pre>{
-  "currency_label": "CNY",
-  "pricing": {
-    "models": {
-      "gpt-5.2-codex": {
-        "input_rate": 10.50,
-        "cached_input_rate": 1.05,
-        "output_rate": 84.00
-      }
-    }
-  }
-}</pre>
-
-            <h4>使用自訂配置</h4>
-            <pre>$ CODEX_USAGE_CONFIG=~/.codex/config.json codex-track report --today</pre>
-
-            <h3>進階：自訂時區</h3>
-
-            <h4>一次性覆蓋</h4>
-            <pre>$ codex-track report --today --timezone America/New_York</pre>
-
-            <h4>持久設定（在 config.json 中）</h4>
-            <pre>{
-  "timezone": "Asia/Shanghai"
-}</pre>
-
-            <h3>進階：自訂資料庫路徑</h3>
-
-            <pre>$ codex-track report --db /custom/path/usage.sqlite</pre>
-
-            <h3>進階：自訂 Rollout 目錄</h3>
-
-            <pre>$ codex-track report --rollouts /mnt/archive/codex/sessions</pre>
-
-            <h3>CLI 日誌匯入</h3>
-
-            <h4>從檔案匯入</h4>
-            <pre>$ codex-track ingest-cli --log /path/to/cli-output.log</pre>
-
-            <h4>從管道匯入</h4>
-            <pre>$ cat cli-output.log | codex-track ingest-cli --log -</pre>
-
-            <h3>App-server 日誌匯入</h3>
-
-            <pre>$ codex-track ingest-app-server --log /path/to/app-server.jsonl</pre>
-
-            <h3>組合命令示例</h3>
-
-            <h4>完整工作流程</h4>
-            <pre>#!/bin/bash
-# 1. 匯入 CLI 日誌
-cat ~/codex-output.log | codex-track ingest-cli --log -
-
-# 2. 查看今日情況
-codex-track report --today
-
-# 3. 生成過去 30 天的 CSV
-codex-track export --last 30d --format csv --out monthly-usage.csv
-
-# 4. 啟動儀表板以互動查看
-codex-track web --port 3000 --no-open &
-echo "Dashboard running at http://localhost:3000"</pre>
+            <p class="source">程式碼：模式定義在 <code>cli.py</code> 的 <code>IngestMode</code>（<code>full</code> / <code>redact_payloads</code> / <code>none</code>）。</p>
         </div>
 
-        <div class="section" style="background: #f0f7ff; border-left: 4px solid #0066cc;">
-            <h2>附錄：術語詞彙表</h2>
+        <!-- ============ 9 ============ -->
+        <div id="c9" class="section">
+            <h2><span class="num">觀念 9</span>什麼情況下這些數字會不準</h2>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>術語</th>
-                        <th>定義</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>Session（會話）</strong></td>
-                        <td>單一 Codex CLI 實例，包含多個 turn</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Turn（轉換）</strong></td>
-                        <td>一個 user prompt + AI response 的循環</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Token</strong></td>
-                        <td>文字片段的最小計費單位</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Cached Input</strong></td>
-                        <td>AI 模型快取層中的輸入 token（成本較低）</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Context Window</strong></td>
-                        <td>模型可同時處理的最大 token 數</td>
-                    </tr>
-                    <tr>
-                        <td><strong>5h Limit</strong></td>
-                        <td>最後 5 小時內的 API 使用配額</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Weekly Limit</strong></td>
-                        <td>本週（通常週一-週四）的 API 使用配額</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Rollout JSONL</strong></td>
-                        <td>Codex 記錄的事件日誌檔案（逐行 JSON）</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Payload</strong></td>
-                        <td>完整的訊息文本和工具呼叫參數</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Incremental Ingestion</strong></td>
-                        <td>只處理變更檔案，避免重複計算</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="takeaway">
+                誠實地說：這是一份<strong>可靠的相對指標</strong>，不是精準的絕對值。知道它哪裡會偏，比相信它更有用。
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>狀況</th><th>會發生什麼</th><th>怎麼判斷</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>模型不在費率表</td>
+                            <td>該筆完全不計成本，總額被低估</td>
+                            <td>看報表的成本涵蓋率是否 100%</td>
+                        </tr>
+                        <tr>
+                            <td>費率過期或方案有折扣</td>
+                            <td>金額整體偏高或偏低</td>
+                            <td>用 <code>config.json</code> 填自己的真實費率</td>
+                        </tr>
+                        <tr>
+                            <td>上週用量很低</td>
+                            <td>週配額估計嚴重失真（觀念 6）</td>
+                            <td>看那週觀察到的 used_percent 高不高</td>
+                        </tr>
+                        <tr>
+                            <td>週重置時間設錯</td>
+                            <td>跨週的統計切在錯的地方</td>
+                            <td>對照 Codex 顯示的實際重置時間</td>
+                        </tr>
+                        <tr>
+                            <td>匯入時的時區跟現在不同</td>
+                            <td>舊資料的「本地時間」是當初那個時區的</td>
+                            <td>比對 UTC 欄位（兩種時間都有存）</td>
+                        </tr>
+                        <tr>
+                            <td>Codex 升級改了日誌格式</td>
+                            <td>新欄位讀不到，可能整段沒有數字</td>
+                            <td>看某個時間點之後事件數是否突然歸零</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p>一句話總結這份文件：<strong>拿它來回答「我這週比上週多用了多少」、「哪個專案最燒 token」、「什麼時候該開新對話」很可靠；拿它去跟 OpenAI 的帳單對到分，不會準。</strong></p>
+        </div>
+
+        <!-- ============ 附錄 ============ -->
+        <div id="code" class="section">
+            <h2><span class="num">附錄</span>想自己看程式碼的話</h2>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>想找什麼</th><th>去哪看</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>JSONL 怎麼被讀成事件</td><td><code>rollout.py</code>（<code>session_meta</code> / <code>turn_context</code> / <code>response_item</code> / <code>event_msg</code> 四種項目的處理）</td></tr>
+                        <tr><td>token 數字從哪個欄位來</td><td><code>rollout.py</code> 約 L786-L826</td></tr>
+                        <tr><td>成本怎麼算</td><td><code>report.py</code> <code>estimate_event_cost()</code>（L238 起）</td></tr>
+                        <tr><td>內建費率表</td><td><code>report.py</code> <code>default_pricing()</code></td></tr>
+                        <tr><td>報表怎麼分組加總</td><td><code>report.py</code> L390-L432</td></tr>
+                        <tr><td>週配額怎麼反推</td><td><code>cli.py</code> <code>_estimate_weekly_quota()</code></td></tr>
+                        <tr><td>增量匯入的判斷</td><td><code>store.py</code> <code>file_needs_ingest()</code></td></tr>
+                        <tr><td>資料表結構</td><td><code>store.py</code>（<code>SCHEMA_VERSION = 8</code>）</td></tr>
+                        <tr><td>CLI 文字日誌解析（另一條路）</td><td><code>parser.py</code> —— 處理 <code>/status</code> 面板文字，與 JSONL 無關</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="timestamp">
-            <p>文檔日期：2026-08-05 | 適用版本：schema v8 | <strong>使用前請驗證版本相符</strong></p>
+            <p>文檔日期：2026-08-06 · 適用 schema v8 · 內容以程式碼為準，版本更新後請重新覆核</p>
             <p style="margin-top:8px;"><a href="./index.html" style="color:#3498db;text-decoration:none;">← 回到 AI 學習總目錄</a> · <a href="../index.html" style="color:#3498db;text-decoration:none;">JustKM 首頁</a></p>
         </div>
     </div>
@@ -1667,21 +584,14 @@ echo "Dashboard running at http://localhost:3000"</pre>
     let saved = DEFAULT;
     try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
     apply(saved);
-    document.getElementById('fa-dec').addEventListener('click', () => {
-      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP);
-    });
-    document.getElementById('fa-inc').addEventListener('click', () => {
-      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP);
-    });
+    function cur() { return parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; }
+    document.getElementById('fa-dec').addEventListener('click', () => apply(cur() - STEP));
+    document.getElementById('fa-inc').addEventListener('click', () => apply(cur() + STEP));
     document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
     document.addEventListener('keydown', (e) => {
-      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) {
-        e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP);
-      } else if ((e.metaKey || e.ctrlKey) && e.key === '-') {
-        e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP);
-      } else if ((e.metaKey || e.ctrlKey) && e.key === '0') {
-        e.preventDefault(); apply(DEFAULT);
-      }
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); apply(cur() + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); apply(cur() - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
     });
   })();
 </script>
