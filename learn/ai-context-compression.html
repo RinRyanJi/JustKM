@@ -414,6 +414,58 @@ self_info  = -token_logp                        # 每個 token 的資訊量</cod
     <div class="callout tip">
       <strong>💡 LongLLMLingua 的加強：</strong>v1 的自資訊與「你的問題」無關；LongLLMLingua 改用<strong>對比困惑度</strong>——比較同一 token 在「有給問題 vs 沒給問題」下的機率變化，把資訊量升級成<strong>「與當前問題相關的資訊量」</strong>，避免刪掉正是問題所需的字。
     </div>
+
+    <h3>🛠️ 實務部署：怎麼實際跑起來</h3>
+
+    <h4>觀念：三個角色別搞混</h4>
+    <ul>
+      <li><strong>「小模型」＝ 本地跑的壓縮器</strong>，不是 GLM/DeepSeek。LLMLingua 需要<strong>逐 token 機率</strong>，必須在本地載入模型自己算——聊天 API 拿不到，所以<strong>不能</strong>用 LiteLLM 呼叫 GLM/DeepSeek 來「做壓縮」。</li>
+      <li><strong>LiteLLM / GLM / DeepSeek ＝ 壓縮後要送去的「目標大模型」</strong>，負責回答，不負責壓縮。</li>
+      <li><strong>你不跟小模型對話</strong>：把輸入拆成 <code>instruction</code>（保留）＋ <code>context</code>（唯一被壓）＋ <code>question</code>（保留＋問題感知），設好 <code>rate</code> 與 <code>force_tokens</code>，它回傳組好的 <code>compressed_prompt</code>。</li>
+    </ul>
+    <div class="diagram">你的長資料 ─► <span class="label">本地 LLMLingua-2（CPU 或 GPU）</span> ── 壓縮 ──► compressed_prompt
+                                                      │
+                                                      ▼
+                              <span class="arrow">內網 LiteLLM ─► GLM / DeepSeek</span>（拿短 prompt 回答）</div>
+
+    <h4>沒有自迴歸模型也沒關係 → 用 LLMLingua-2</h4>
+    <p>你不需要自迴歸大模型。<strong>LLMLingua-2 的壓縮器是一顆很小的 BERT 級分類模型，CPU 就能跑</strong>；有 GPU 只會更快更省。若內網連不到 HuggingFace，先在能連網處抓好模型檔、放進內網用本地路徑載入即可。</p>
+    <pre><code>from llmlingua import PromptCompressor
+c = PromptCompressor(
+    model_name="microsoft/llmlingua-2-bert-base-multilingual-cased-meetingbank",
+    use_llmlingua2=True,
+    device_map="cuda",      # 有 GPU 用 "cuda"；沒有就 "cpu"
+)
+r = c.compress_prompt(context=long_docs, instruction="只依下列資料回答。",
+                      question="退貨要幾天內申請？", rate=0.5,
+                      force_reserve_digit=True, force_tokens=['\n','。','，'])
+send_to_litellm(r["compressed_prompt"])   # 再送去 GLM / DeepSeek</code></pre>
+
+    <h4>資源占用 + VRAM + 選型（完整對照）</h4>
+    <table>
+      <thead><tr><th>壓縮模型</th><th>參數 / 磁碟</th><th>CPU 記憶體</th><th>GPU VRAM</th><th>延遲（壓 ~2–3K token）</th><th>適用</th></tr></thead>
+      <tbody>
+        <tr><td><strong>LLMLingua-2 · bert-base</strong><br><span style="color:var(--text-muted);font-size:0.9em;">multilingual（推薦起步）</span></td><td>~178M ／ ~0.7 GB</td><td>~1.5–2.5 GB</td><td>~1 GB</td><td>CPU 1–3 秒｜GPU 數十 ms</td><td><span class="pill pill-yes">通用首選</span> 任務多變、要快要省</td></tr>
+        <tr><td><strong>LLMLingua-2 · xlm-roberta-large</strong></td><td>~561M ／ ~2.2 GB</td><td>~3–4 GB</td><td>~2–2.5 GB</td><td>CPU 3–8 秒｜GPU &lt;1 秒</td><td><span class="pill pill-mid">較準</span> 對壓縮品質要求高</td></tr>
+        <tr><td><strong>LLMLingua v1 · GPT2-small</strong></td><td>~124M</td><td>可 CPU</td><td>~1 GB</td><td>—</td><td>輕量、perplexity 路線</td></tr>
+        <tr><td><strong>LongLLMLingua · LLaMA-2-7B</strong><br><span style="color:var(--text-muted);font-size:0.9em;">問題感知、RAG 最強</span></td><td>~7B</td><td><span class="pill pill-no">不實用</span></td><td>fp16 ~14 GB｜<strong>GPTQ 4-bit ~5–6 GB</strong></td><td>需 GPU</td><td>RAG 長文、要問題感知高品質</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <strong>📌 別忘了環境本身：</strong>安裝 <code>llmlingua</code> 會拉進 <strong>PyTorch（CPU 版約 2–3 GB）</strong>+ transformers，整個 Python 環境約 <strong>3–5 GB 磁碟</strong>。模型服務常駐後，記憶體/VRAM 才是穩態成本。
+    </div>
+    <div class="callout tip">
+      <strong>💡 最低規格 &amp; 省法：</strong>
+      <ul style="margin-top:6px;">
+        <li><strong>bert-base</strong>：CPU 4 GB RAM 起（8 GB 舒適）／任何 4 GB VRAM 入門 GPU 都輕鬆跑。</li>
+        <li><strong>再更省</strong>：用 <strong>INT8 量化 / ONNX Runtime</strong>（<code>optimum</code>+<code>onnxruntime</code>）可把記憶體與磁碟大約<strong>砍半</strong>、CPU 還更快。</li>
+        <li><strong>選型一句話</strong>：先用 <strong>LLMLingua-2 bert-base</strong>；要更準上 xlm-roberta-large；要「問題感知」且有 ≥6 GB VRAM 才上 LongLLMLingua。</li>
+      </ul>
+    </div>
+    <div class="callout danger">
+      <strong>🚫 提醒：</strong>不論 CPU/GPU，都<strong>只壓自然語言的大塊 context</strong>；<strong>程式碼、JSON、工具呼叫別壓</strong>（會壞結構），指令與問題放專屬欄位保留。詳見 ⑤ 通用策略與本節「三個角色」。
+    </div>
   </section>
 
   <!-- ⑦ -->
