@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Palantir 如何一站式解決資料碎片化 · JustKM</title>
+  <style>
+    :root {
+      --ink: #0f172a;
+      --ink2: #475569;
+      --muted: #94a3b8;
+      --line: #e2e8f0;
+      --line2: #eef2f7;
+      --accent: #2563eb;
+      --accent-soft: #eff6ff;
+      --sky: #0ea5e9;
+      --green: #10b981;
+      --amber: #f59e0b;
+      --violet: #7c3aed;
+      --rose: #e11d48;
+      --card: #ffffff;
+      --page: #f7f9fc;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--ink);
+      line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+
+    .font-adjuster {
+      position: fixed; top: 16px; right: 16px; z-index: 999;
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: 10px; padding: 6px 8px;
+      display: flex; align-items: center; gap: 4px;
+      box-shadow: 0 4px 14px rgba(15,23,42,0.08);
+    }
+    .font-adjuster button {
+      background: #fff; border: 1px solid var(--line);
+      color: var(--ink); width: 32px; height: 32px; border-radius: 6px;
+      font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .font-adjuster button:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--muted); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--accent); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home {
+      display: inline-block; margin-bottom: 22px; color: var(--accent); text-decoration: none;
+      font-size: 0.875rem; padding: 6px 14px; border: 1px solid var(--line);
+      border-radius: 8px; background: #fff;
+    }
+    .back-home:hover { border-color: var(--accent); }
+
+    .hero {
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: 18px; padding: 40px 36px; margin-bottom: 26px;
+      box-shadow: 0 1px 3px rgba(15,23,42,0.05);
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:4px;
+      background: linear-gradient(90deg,#2563eb,#0ea5e9,#10b981);
+    }
+    .hero .eyebrow { font-size:0.75rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--accent); margin-bottom:10px; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing:-0.5px; margin-bottom: 10px; line-height:1.25; }
+    .hero p { color: var(--ink2); font-size: 0.9375rem; }
+    .chips { margin-top:16px; }
+    .chip {
+      display:inline-block; background:var(--accent-soft); color:var(--accent);
+      border-radius:20px; padding:4px 12px; font-size:0.72rem; font-weight:600;
+      margin-right:6px; margin-bottom:6px;
+    }
+    .chip.g { background:#ecfdf5; color:#059669; }
+    .chip.v { background:#f5f3ff; color:#7c3aed; }
+    .chip.a { background:#fffbeb; color:#d97706; }
+
+    .toc {
+      background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+      padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(15,23,42,0.04);
+    }
+    .toc-title { font-size:0.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+    .toc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:4px; }
+    .toc a { color:var(--ink2); text-decoration:none; font-size:0.8125rem; padding:5px 10px; border-radius:7px; transition:all .15s; }
+    .toc a:hover { color:var(--accent); background:var(--accent-soft); }
+
+    section {
+      background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+      padding: 30px 34px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(15,23,42,0.04);
+      scroll-margin-top: 20px;
+    }
+    section h2 { font-size:1.3rem; font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:10px; letter-spacing:-0.3px; }
+    section h2 .num {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:30px; height:30px; border-radius:9px; background:var(--accent); color:#fff;
+      font-size:0.875rem; font-weight:800; flex-shrink:0;
+    }
+    section h3 { font-size:1.0625rem; font-weight:700; color:var(--ink); margin-top:22px; margin-bottom:10px; }
+    section p { margin-bottom:11px; color:var(--ink2); font-size:0.9rem; }
+    section ul, section ol { padding-left:22px; margin-bottom:14px; color:var(--ink2); font-size:0.9rem; }
+    section li { margin-bottom:5px; }
+    section strong { color:var(--ink); }
+    a.inline { color:var(--accent); text-decoration:none; }
+    a.inline:hover { text-decoration:underline; }
+
+    .fig { margin: 8px 0 6px; border:1px solid var(--line2); border-radius:14px; padding:18px; background:linear-gradient(180deg,#fcfdff,#f7f9fc); overflow-x:auto; }
+    .fig svg { display:block; width:100%; height:auto; min-width:520px; }
+    .fig-cap { font-size:0.75rem; color:var(--muted); text-align:center; margin-top:8px; }
+
+    table { width:100%; border-collapse:collapse; margin:12px 0 16px; font-size:0.82rem; }
+    th { text-align:left; background:#f8fafc; color:var(--ink); padding:9px 12px; border:1px solid var(--line); font-weight:700; }
+    td { padding:9px 12px; border:1px solid var(--line); color:var(--ink2); vertical-align:top; }
+    tr:hover td { background:#fafcff; }
+
+    .callout {
+      border-left:3px solid var(--accent); background:var(--accent-soft);
+      padding:13px 16px; border-radius:0 10px 10px 0; margin:14px 0; font-size:0.86rem; color:var(--ink2);
+    }
+    .callout.green { border-left-color:var(--green); background:#ecfdf5; }
+    .callout.amber { border-left-color:var(--amber); background:#fffbeb; }
+    .callout.violet { border-left-color:var(--violet); background:#f5f3ff; }
+    .callout strong { color:var(--ink); }
+
+    .cards2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:10px 0; }
+    .pcard { border:1px solid var(--line); border-radius:12px; padding:16px 18px; background:#fff; }
+    .pcard h4 { font-size:0.95rem; font-weight:800; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+    .pcard p { font-size:0.8rem; margin:0; color:var(--ink2); }
+    .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+
+    .related { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:10px 0; }
+    .related a { color:var(--accent); text-decoration:none; font-size:0.875rem; padding:12px 15px; border-radius:10px; border:1px solid var(--line); background:#fff; display:block; transition:all .15s; }
+    .related a:hover { border-color:var(--accent); box-shadow:0 2px 8px rgba(37,99,235,0.08); }
+    .related .rt { color:var(--ink); font-weight:700; }
+    .related .rs { color:var(--muted); font-size:0.75rem; margin-top:2px; }
+
+    .footer { text-align:center; color:var(--muted); font-size:0.75rem; margin-top:40px; padding-top:22px; border-top:1px solid var(--line); }
+    .footer a { color:var(--accent); text-decoration:none; }
+
+    @media (max-width:640px){
+      .cards2, .related { grid-template-columns:1fr; }
+      .toc-grid { grid-template-columns:1fr 1fr; }
+      section { padding:24px 20px; }
+      .font-adjuster { top:8px; right:8px; padding:4px 6px; }
+      .font-adjuster button { width:28px; height:28px; font-size:12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../index.html">← 回到 JustKM 首頁</a>
+
+  <div class="hero">
+    <div class="eyebrow">Enterprise Data Platform</div>
+    <h1>Palantir 如何一站式解決資料碎片化</h1>
+    <p>把散落在數十套系統的孤島資料，接入 → 整理 → 統一成單一商業模型（Ontology）→ 讓人與 AI 做決策 → 寫回來源系統的閉環。</p>
+    <div class="chips">
+      <span class="chip">Foundry</span>
+      <span class="chip g">Ontology</span>
+      <span class="chip v">AIP</span>
+      <span class="chip a">閉環寫回</span>
+      <span class="chip">圖解版</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">目錄</div>
+    <div class="toc-grid">
+      <a href="#problem">① 問題：資料碎片化</a>
+      <a href="#philosophy">② 核心：疊一層作業層</a>
+      <a href="#stack">③ 一站式分層堆疊</a>
+      <a href="#ontology">④ Ontology 三元素</a>
+      <a href="#loop">⑤ 端到端閉環流程</a>
+      <a href="#products">⑥ 四大產品</a>
+      <a href="#why">⑦ 為什麼算「一站式」</a>
+      <a href="#sources">⑧ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ① -->
+  <section id="problem">
+    <h2><span class="num">①</span> 問題：資料碎片化（Data Silos）</h2>
+    <p>大型企業通常有數十套彼此獨立的系統——ERP、CRM、MES、財務、HR、IoT——每套只為自己的功能優化，卻對其他系統一無所知。結果是<strong>「一團義大利麵般的孤島，每個團隊都有自己的一套真相」</strong>，決策只能建立在殘缺的畫面上。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 800 250" role="img" aria-label="碎片化的系統孤島示意">
+        <!-- tangled faint links -->
+        <g stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 5" fill="none" opacity="0.8">
+          <path d="M150 70 C 300 20, 360 40, 470 66"/>
+          <path d="M180 96 C 300 170, 420 120, 560 96"/>
+          <path d="M120 120 C 260 200, 300 150, 430 180"/>
+          <path d="M500 96 C 560 150, 600 140, 650 176"/>
+          <path d="M470 66 C 520 110, 560 120, 640 100"/>
+          <path d="M210 180 C 360 210, 470 195, 600 186"/>
+        </g>
+        <!-- system boxes -->
+        <g font-family="inherit">
+          <!-- box helper style repeated -->
+          <g>
+            <rect x="60" y="46" width="120" height="52" rx="11" fill="#fff" stroke="#e2e8f0"/>
+            <circle cx="82" cy="72" r="6" fill="#2563eb"/>
+            <text x="98" y="69" font-size="14" font-weight="700" fill="#0f172a">ERP</text>
+            <text x="98" y="86" font-size="10" fill="#94a3b8">自己的真相</text>
+          </g>
+          <g>
+            <rect x="410" y="40" width="120" height="52" rx="11" fill="#fff" stroke="#e2e8f0"/>
+            <circle cx="432" cy="66" r="6" fill="#0ea5e9"/>
+            <text x="448" y="63" font-size="14" font-weight="700" fill="#0f172a">CRM</text>
+            <text x="448" y="80" font-size="10" fill="#94a3b8">自己的真相</text>
+          </g>
+          <g>
+            <rect x="600" y="70" width="120" height="52" rx="11" fill="#fff" stroke="#e2e8f0"/>
+            <circle cx="622" cy="96" r="6" fill="#7c3aed"/>
+            <text x="638" y="93" font-size="14" font-weight="700" fill="#0f172a">MES</text>
+            <text x="638" y="110" font-size="10" fill="#94a3b8">自己的真相</text>
+          </g>
+          <g>
+            <rect x="70" y="150" width="130" height="52" rx="11" fill="#fff" stroke="#e2e8f0"/>
+            <circle cx="92" cy="176" r="6" fill="#10b981"/>
+            <text x="108" y="173" font-size="14" font-weight="700" fill="#0f172a">財務</text>
+            <text x="108" y="190" font-size="10" fill="#94a3b8">自己的真相</text>
+          </g>
+          <g>
+            <rect x="360" y="160" width="120" height="52" rx="11" fill="#fff" stroke="#e2e8f0"/>
+            <circle cx="382" cy="186" r="6" fill="#f59e0b"/>
+            <text x="398" y="183" font-size="14" font-weight="700" fill="#0f172a">HR</text>
+            <text x="398" y="200" font-size="10" fill="#94a3b8">自己的真相</text>
+          </g>
+          <g>
+            <rect x="590" y="160" width="130" height="52" rx="11" fill="#fff" stroke="#e2e8f0"/>
+            <circle cx="612" cy="186" r="6" fill="#e11d48"/>
+            <text x="628" y="183" font-size="14" font-weight="700" fill="#0f172a">IoT</text>
+            <text x="628" y="200" font-size="10" fill="#94a3b8">自己的真相</text>
+          </g>
+        </g>
+        <text x="400" y="235" text-anchor="middle" font-size="12" fill="#e11d48" font-weight="600">彼此看不見 · 無統一畫面 · 決策各憑一套資料</text>
+      </svg>
+      <div class="fig-cap">圖 1 · 碎片化的現況：系統各自為政，連線是一團亂麻</div>
+    </div>
+  </section>
+
+  <!-- ② -->
+  <section id="philosophy">
+    <h2><span class="num">②</span> 核心解法：不砸掉重來，而是「疊一層作業層」</h2>
+    <p>Palantir 的關鍵思路<strong>不是取代</strong>你現有的系統，而是在其<strong>上方疊一個作業層（operational layer）</strong>：把所有異質系統的資料接進來、整理乾淨、統一成一個<strong>共享的商業模型</strong>，再把決策<strong>推回第一線工作流</strong>。它的定位是「<strong>執行營運</strong>，而非只是分析營運」——多數平台停在分析，它要能真正跑營運。</p>
+    <div class="callout green">
+      <strong>一句話定位：</strong>不做 rip-and-replace（砸掉重建），而是當一層「作業系統」，讓既有系統繼續跑，卻第一次擁有<strong>單一、一致、可執行</strong>的營運畫面。
+    </div>
+  </section>
+
+  <!-- ③ -->
+  <section id="stack">
+    <h2><span class="num">③</span> 一站式的分層堆疊（以 Foundry 為核心）</h2>
+    <p>從最底層的來源系統，一路往上到第一線應用，每一層都有專屬元件把關；兩側由 Apollo（交付維運）與 Governance（治理與血緣）貫穿。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 800 470" role="img" aria-label="Palantir Foundry 分層堆疊">
+        <!-- side rails -->
+        <rect x="26" y="60" width="92" height="360" rx="12" fill="#f5f3ff" stroke="#ddd6fe"/>
+        <text x="72" y="52" text-anchor="middle" font-size="12" font-weight="700" fill="#7c3aed">Apollo</text>
+        <text x="72" y="245" text-anchor="middle" font-size="11" fill="#7c3aed" transform="rotate(-90 72 245)">跨雲交付 · 維運 · 更新</text>
+
+        <rect x="682" y="60" width="92" height="360" rx="12" fill="#ecfdf5" stroke="#a7f3d0"/>
+        <text x="728" y="52" text-anchor="middle" font-size="12" font-weight="700" fill="#059669">Governance</text>
+        <text x="728" y="245" text-anchor="middle" font-size="11" fill="#059669" transform="rotate(-90 728 245)">權限 · 稽核 · 資料血緣</text>
+
+        <!-- main stack -->
+        <g font-family="inherit">
+          <!-- AIP ribbon -->
+          <rect x="150" y="64" width="500" height="42" rx="10" fill="#eff6ff" stroke="#bfdbfe"/>
+          <text x="170" y="90" font-size="14" font-weight="800" fill="#2563eb">AIP</text>
+          <text x="235" y="90" font-size="12" fill="#475569">把 LLM 接到 Ontology 上，做 AI 決策 / 代理</text>
+
+          <!-- Apps -->
+          <rect x="150" y="118" width="500" height="52" rx="10" fill="#fff" stroke="#e2e8f0"/>
+          <text x="170" y="141" font-size="13" font-weight="800" fill="#0f172a">④ 應用層</text>
+          <text x="170" y="159" font-size="11" fill="#64748b">Workshop · Contour · Quiver · Object Explorer（第一線人員操作、分析、決策）</text>
+
+          <!-- Ontology (emphasized) -->
+          <rect x="150" y="182" width="500" height="78" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+          <text x="170" y="208" font-size="15" font-weight="800" fill="#2563eb">③ Ontology　本體（單一真相）</text>
+          <g>
+            <rect x="170" y="220" width="120" height="28" rx="8" fill="#fff" stroke="#bfdbfe"/><text x="230" y="239" text-anchor="middle" font-size="12" fill="#2563eb" font-weight="700">Objects 物件</text>
+            <rect x="300" y="220" width="120" height="28" rx="8" fill="#fff" stroke="#bfdbfe"/><text x="360" y="239" text-anchor="middle" font-size="12" fill="#2563eb" font-weight="700">Links 關係</text>
+            <rect x="430" y="220" width="130" height="28" rx="8" fill="#fff" stroke="#bfdbfe"/><text x="495" y="239" text-anchor="middle" font-size="12" fill="#2563eb" font-weight="700">Actions 動作</text>
+          </g>
+
+          <!-- Pipeline -->
+          <rect x="150" y="272" width="500" height="46" rx="10" fill="#fff" stroke="#e2e8f0"/>
+          <text x="170" y="292" font-size="13" font-weight="800" fill="#0f172a">② Pipeline Builder</text>
+          <text x="170" y="309" font-size="11" fill="#64748b">低程式碼管線：清洗 / 轉換 / 合併 · LLM 轉換 · 資料血緣</text>
+
+          <!-- Data connection -->
+          <rect x="150" y="330" width="500" height="46" rx="10" fill="#fff" stroke="#e2e8f0"/>
+          <text x="170" y="350" font-size="13" font-weight="800" fill="#0f172a">① Data Connection</text>
+          <text x="170" y="367" font-size="11" fill="#64748b">200+ 連接器 · 批次 / 微批次 / 串流 · 結構化 / 半 / 非結構化</text>
+
+          <!-- sources -->
+          <rect x="150" y="388" width="500" height="44" rx="10" fill="#f8fafc" stroke="#e2e8f0"/>
+          <text x="170" y="408" font-size="12" font-weight="700" fill="#475569">來源系統</text>
+          <text x="170" y="424" font-size="11" fill="#94a3b8">ERP · CRM · MES · 財務 · HR · IoT · 試算表 · 舊系統…</text>
+        </g>
+
+        <!-- upward flow arrow -->
+        <g stroke="#2563eb" stroke-width="2" fill="#2563eb" opacity="0.5">
+          <line x1="400" y1="388" x2="400" y2="264"/>
+          <polygon points="400,258 394,270 406,270"/>
+        </g>
+      </svg>
+      <div class="fig-cap">圖 2 · 分層堆疊：資料由下往上，經整理成為單一真相，最終服務第一線決策</div>
+    </div>
+  </section>
+
+  <!-- ④ -->
+  <section id="ontology">
+    <h2><span class="num">④</span> Ontology 是心臟：它模型化的是「決策」，不只是資料</h2>
+    <p>Ontology（本體）把整理好的資料，對應成<strong>真實世界的實體</strong>。它有三個基本元素：</p>
+    <ul>
+      <li><strong>Objects（物件）</strong>——你營運的實體：客戶、訂單、產品、設備、廠房…</li>
+      <li><strong>Links（關係）</strong>——物件之間怎麼關聯：「客戶 下單 訂單」「訂單 包含 產品」</li>
+      <li><strong>Actions（動作）</strong>——「受治理的動詞」：有權限、可稽核的操作，能<strong>更新物件</strong>、或透過 API <strong>觸發外部系統</strong>的工作</li>
+    </ul>
+
+    <div class="fig">
+      <svg viewBox="0 0 800 250" role="img" aria-label="Ontology 的 Objects、Links、Actions">
+        <!-- links -->
+        <g font-family="inherit">
+          <line x1="212" y1="120" x2="356" y2="96" stroke="#94a3b8" stroke-width="2"/>
+          <text x="270" y="98" font-size="11" fill="#64748b">下單 →</text>
+          <line x1="452" y1="96" x2="596" y2="120" stroke="#94a3b8" stroke-width="2"/>
+          <text x="505" y="98" font-size="11" fill="#64748b">包含 →</text>
+
+          <!-- object nodes -->
+          <circle cx="160" cy="120" r="52" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+          <text x="160" y="116" text-anchor="middle" font-size="14" font-weight="800" fill="#2563eb">客戶</text>
+          <text x="160" y="134" text-anchor="middle" font-size="10" fill="#64748b">Customer</text>
+
+          <circle cx="404" cy="96" r="52" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+          <text x="404" y="92" text-anchor="middle" font-size="14" font-weight="800" fill="#059669">訂單</text>
+          <text x="404" y="110" text-anchor="middle" font-size="10" fill="#64748b">Order</text>
+
+          <circle cx="648" cy="120" r="52" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+          <text x="648" y="116" text-anchor="middle" font-size="14" font-weight="800" fill="#7c3aed">產品</text>
+          <text x="648" y="134" text-anchor="middle" font-size="10" fill="#64748b">Product</text>
+
+          <!-- action -->
+          <line x1="404" y1="148" x2="404" y2="188" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4 4"/>
+          <rect x="316" y="188" width="176" height="40" rx="20" fill="#fffbeb" stroke="#f59e0b"/>
+          <text x="404" y="213" text-anchor="middle" font-size="13" font-weight="700" fill="#d97706">⚙ 動作：核准訂單</text>
+          <!-- writeback arrow to external -->
+          <line x1="492" y1="208" x2="600" y2="208" stroke="#f59e0b" stroke-width="2"/>
+          <polygon points="606,208 596,203 596,213" fill="#f59e0b"/>
+          <text x="612" y="205" font-size="11" fill="#d97706">寫回</text>
+          <text x="612" y="219" font-size="11" fill="#d97706">ERP</text>
+        </g>
+      </svg>
+      <div class="fig-cap">圖 3 · Ontology 三元素：物件（節點）· 關係（連線）· 動作（受治理、可寫回外部系統）</div>
+    </div>
+
+    <div class="callout">
+      <strong>為什麼關鍵：</strong>Ontology 讓資料不再只是表格，而是「<strong>會關聯、能被操作、可被 AI 讀懂的營運現實</strong>」。它與既有企業系統是<strong>雙向互通</strong>——這也是 AIP 能讓 LLM 直接對「企業真實狀態」做決策的原因。
+    </div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="loop">
+    <h2><span class="num">⑤</span> 端到端閉環：碎片 → 單一真相 → 寫回</h2>
+    <p>最大的差異化在<strong>最後一步「Writeback（寫回）」</strong>：多數分析平台到「分析」就停了，Palantir 用 Actions 把決策結果<strong>寫回營運系統</strong>，形成閉環並持續學習。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 800 280" role="img" aria-label="Palantir 的端到端閉環流程">
+        <defs>
+          <marker id="ah" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#2563eb"/>
+          </marker>
+          <marker id="ah2" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#10b981"/>
+          </marker>
+        </defs>
+        <g font-family="inherit">
+          <!-- nodes row -->
+          <g>
+            <rect x="24" y="60" width="120" height="58" rx="12" fill="#f8fafc" stroke="#e2e8f0"/>
+            <text x="84" y="84" text-anchor="middle" font-size="12" font-weight="700" fill="#475569">來源系統</text>
+            <text x="84" y="101" text-anchor="middle" font-size="10" fill="#94a3b8">ERP/CRM/IoT</text>
+          </g>
+          <g>
+            <rect x="180" y="60" width="120" height="58" rx="12" fill="#eff6ff" stroke="#bfdbfe"/>
+            <text x="240" y="84" text-anchor="middle" font-size="12" font-weight="700" fill="#2563eb">接入+管線</text>
+            <text x="240" y="101" text-anchor="middle" font-size="10" fill="#64748b">連接器·清洗</text>
+          </g>
+          <g>
+            <rect x="336" y="60" width="128" height="58" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+            <text x="400" y="84" text-anchor="middle" font-size="12" font-weight="800" fill="#1d4ed8">Ontology</text>
+            <text x="400" y="101" text-anchor="middle" font-size="10" fill="#2563eb">單一真相</text>
+          </g>
+          <g>
+            <rect x="500" y="60" width="120" height="58" rx="12" fill="#eff6ff" stroke="#bfdbfe"/>
+            <text x="560" y="84" text-anchor="middle" font-size="12" font-weight="700" fill="#2563eb">應用 + AIP</text>
+            <text x="560" y="101" text-anchor="middle" font-size="10" fill="#64748b">人/AI 決策</text>
+          </g>
+          <g>
+            <rect x="656" y="60" width="120" height="58" rx="12" fill="#ecfdf5" stroke="#10b981"/>
+            <text x="716" y="84" text-anchor="middle" font-size="12" font-weight="800" fill="#059669">Action</text>
+            <text x="716" y="101" text-anchor="middle" font-size="10" fill="#059669">受治理動作</text>
+          </g>
+
+          <!-- forward arrows -->
+          <g stroke="#2563eb" stroke-width="2" marker-end="url(#ah)">
+            <line x1="146" y1="89" x2="176" y2="89"/>
+            <line x1="302" y1="89" x2="332" y2="89"/>
+            <line x1="466" y1="89" x2="496" y2="89"/>
+            <line x1="622" y1="89" x2="652" y2="89"/>
+          </g>
+
+          <!-- writeback loop -->
+          <path d="M716 118 C 716 210, 84 210, 84 122" fill="none" stroke="#10b981" stroke-width="2.5" stroke-dasharray="2 0" marker-end="url(#ah2)"/>
+          <rect x="300" y="188" width="200" height="34" rx="17" fill="#ecfdf5" stroke="#10b981"/>
+          <text x="400" y="210" text-anchor="middle" font-size="12.5" font-weight="700" fill="#059669">🔁 Writeback 寫回 · 持續學習</text>
+        </g>
+      </svg>
+      <div class="fig-cap">圖 4 · 閉環：藍色為「資料上行、形成決策」，綠色為「決策寫回來源系統」——閉環才能真正跑營運</div>
+    </div>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="products">
+    <h2><span class="num">⑥</span> 四大產品：解決方案全貌</h2>
+    <p>Palantir 的能力由四個產品組成，彼此堆疊協作：<strong>Apollo</strong> 當地基負責交付維運，<strong>Foundry / Gotham</strong> 是兩大平台，<strong>AIP</strong> 從上方把 AI 注入。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 800 260" role="img" aria-label="Palantir 四大產品堆疊">
+        <g font-family="inherit">
+          <!-- AIP top ribbon -->
+          <rect x="60" y="30" width="680" height="46" rx="12" fill="#f5f3ff" stroke="#c4b5fd"/>
+          <text x="80" y="52" font-size="14" font-weight="800" fill="#7c3aed">AIP</text>
+          <text x="130" y="52" font-size="12" fill="#6d28d9">把最新 AI / LLM 注入下方平台，讓決策 AI 化</text>
+          <text x="80" y="68" font-size="10" fill="#a78bfa">Artificial Intelligence Platform</text>
+
+          <!-- two platforms -->
+          <rect x="60" y="92" width="330" height="86" rx="12" fill="#eff6ff" stroke="#2563eb"/>
+          <text x="80" y="118" font-size="15" font-weight="800" fill="#1d4ed8">Foundry</text>
+          <text x="80" y="139" font-size="11.5" fill="#475569">商用旗艦：整合企業資料、</text>
+          <text x="80" y="156" font-size="11.5" fill="#475569">打破孤島、統一成單一框架</text>
+          <text x="80" y="171" font-size="10" fill="#93c5fd">本篇主角</text>
+
+          <rect x="410" y="92" width="330" height="86" rx="12" fill="#eef2ff" stroke="#6366f1"/>
+          <text x="430" y="118" font-size="15" font-weight="800" fill="#4338ca">Gotham</text>
+          <text x="430" y="139" font-size="11.5" fill="#475569">最早的產品：國防 / 情報，</text>
+          <text x="430" y="156" font-size="11.5" fill="#475569">整合異質來源、產生作戰洞察</text>
+
+          <!-- Apollo base -->
+          <rect x="60" y="194" width="680" height="46" rx="12" fill="#ecfdf5" stroke="#10b981"/>
+          <text x="80" y="216" font-size="14" font-weight="800" fill="#059669">Apollo</text>
+          <text x="150" y="216" font-size="12" fill="#047857">幕後交付層：跨雲、單一控制面，持續部署更新與安全修補</text>
+          <text x="80" y="232" font-size="10" fill="#6ee7b7">Delivery / Operations</text>
+        </g>
+      </svg>
+      <div class="fig-cap">圖 5 · 四大產品：Apollo（地基）→ Foundry / Gotham（平台）→ AIP（AI 注入）</div>
+    </div>
+
+    <div class="cards2">
+      <div class="pcard"><h4><span class="dot" style="background:#2563eb"></span>Foundry</h4><p>商用：整合企業資料、打破孤島、統一單一框架。</p></div>
+      <div class="pcard"><h4><span class="dot" style="background:#6366f1"></span>Gotham</h4><p>國防／情報：整合異質來源、產生作戰洞察（最早產品）。</p></div>
+      <div class="pcard"><h4><span class="dot" style="background:#7c3aed"></span>AIP</h4><p>把 LLM 注入 Foundry / Gotham，讓決策 AI 化。</p></div>
+      <div class="pcard"><h4><span class="dot" style="background:#10b981"></span>Apollo</h4><p>跨雲交付層：持續部署、更新、安全修補的單一控制面。</p></div>
+    </div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="why">
+    <h2><span class="num">⑦</span> 為什麼算「一站式」——五個差異化</h2>
+    <table>
+      <thead><tr><th>差異化</th><th>意義</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1. 不砸掉重來</strong></td><td>疊在既有系統上，漸進整合，不強迫 rip-and-replace</td></tr>
+        <tr><td><strong>2. 單一真相</strong></td><td>Ontology 統一商業模型，消除「各團隊各自真相」</td></tr>
+        <tr><td><strong>3. 從分析到執行</strong></td><td>Actions + Writeback 形成閉環，不只看報表</td></tr>
+        <tr><td><strong>4. 治理與血緣內建</strong></td><td>每個動作有權限、可稽核、可追溯</td></tr>
+        <tr><td><strong>5. AI 原生</strong></td><td>Ontology 讓 LLM 接得到「營運現實」，AIP 直接在其上決策</td></tr>
+      </tbody>
+    </table>
+    <div class="callout violet">
+      <strong>一句話總結：</strong>Palantir 用「連接器接入 → 低程式碼管線整理 → Ontology 統一成單一商業模型 → 應用讓人／AI 決策 → Actions 寫回來源系統」這條<strong>閉環</strong>，把碎片化的孤島變成一個<strong>可執行營運</strong>的統一作業系統。
+    </div>
+    <h3>生態與落地</h3>
+    <p>Palantir 也與 <strong>Deloitte</strong>（顧問落地）、<strong>Databricks</strong>（資料智能）、<strong>Google Cloud</strong> 等結盟，協助跨產業導入、打破孤島、加速數位轉型。</p>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="sources">
+    <h2><span class="num">⑧</span> 來源</h2>
+    <h3>官方文件</h3>
+    <ul>
+      <li><a class="inline" href="https://www.palantir.com/docs/foundry/ontology/overview" target="_blank" rel="noopener">Ontology 總覽</a> · <a class="inline" href="https://www.palantir.com/docs/foundry/architecture-center/ontology-system" target="_blank" rel="noopener">Ontology 系統架構</a></li>
+      <li><a class="inline" href="https://www.palantir.com/docs/foundry/architecture-center/platforms" target="_blank" rel="noopener">平台架構：AIP / Foundry / Apollo</a> · <a class="inline" href="https://www.palantir.com/docs/foundry/data-integration/overview" target="_blank" rel="noopener">資料整合總覽</a></li>
+      <li><a class="inline" href="https://www.palantir.com/docs/foundry/quiver/overview" target="_blank" rel="noopener">Quiver（寫回 Ontology）</a> · <a class="inline" href="https://www.palantir.com/docs/foundry/pipeline-builder/core-concepts" target="_blank" rel="noopener">Pipeline Builder 核心概念</a></li>
+    </ul>
+    <h3>解析文章</h3>
+    <ul>
+      <li><a class="inline" href="https://morphsys.substack.com/p/what-does-palantir-really-do-a-deep" target="_blank" rel="noopener">What Does Palantir Really Do（morphsys）</a></li>
+      <li><a class="inline" href="https://www.bdemerson.com/article/palantir-ontology-explained" target="_blank" rel="noopener">The Palantir Ontology, Explained（BD Emerson）</a></li>
+      <li><a class="inline" href="https://unit8.com/resources/palantir-foundry-101-2/" target="_blank" rel="noopener">Palantir Foundry 101（Unit8）</a> · <a class="inline" href="https://note.com/repkuririn7/n/n5a1d3e088397" target="_blank" rel="noopener">四大產品解析（note.com）</a></li>
+      <li><a class="inline" href="https://www.deloitte.com/us/en/alliances/palantir.html" target="_blank" rel="noopener">Deloitte × Palantir</a> · <a class="inline" href="https://blog.palantir.com/connecting-ai-to-decisions-with-the-palantir-ontology-c73f7b0a1a72" target="_blank" rel="noopener">Connecting AI to Decisions（Palantir Blog）</a></li>
+    </ul>
+    <p style="font-size:0.75rem;color:var(--muted);margin-top:6px;">內容整理自上列公開資料，產品與命名可能隨版本更新而變動，以 Palantir 官方最新為準。</p>
+
+    <h3>站內延伸</h3>
+    <div class="related">
+      <a href="./index.html"><div class="rt">🎓 AI 學習總目錄</div><div class="rs">學習區入口</div></a>
+      <a href="./ai-context-compression.html"><div class="rt">🗜️ AI 對話/上下文壓縮</div><div class="rs">同屬資料/上下文處理主題</div></a>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · Palantir 如何一站式解決資料碎片化</p>
+    <p style="margin-top:4px;">整理自 Palantir 官方文件與公開解析 · 建立於 2026-08-04 · 字級調整器在右上角</p>
+    <p style="margin-top:4px;"><a href="../index.html">← 回到 JustKM 首頁</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) {
+        e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '-') {
+        e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '0') {
+        e.preventDefault(); apply(DEFAULT);
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>

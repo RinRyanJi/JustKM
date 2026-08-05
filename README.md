@@ -8,7 +8,8 @@
 
 - 🏠 **網站首頁**：<https://rinryanji.github.io/JustKM/>
 - 🎓 **AI 學習總目錄（學習區入口）**：<https://rinryanji.github.io/JustKM/learn/>
-  - 🗜️ **NEW · AI 對話/上下文壓縮實戰（跨 Agent 通用）**：<https://rinryanji.github.io/JustKM/learn/ai-context-compression.html>
+  - 🗜️ AI 對話/上下文壓縮實戰（跨 Agent 通用）：<https://rinryanji.github.io/JustKM/learn/ai-context-compression.html>
+  - 🏢 **NEW · Palantir 如何一站式解決資料碎片化（SVG 圖解／簡約明亮）**：<https://rinryanji.github.io/JustKM/learn/palantir-data-fragmentation.html>
   - 🧠 訓練小模型做單一任務（SLM 專用化）：<https://rinryanji.github.io/JustKM/learn/train-slm-single-task.html>
   - 🧰 Matt Pocock AI Skills 總覽（系列入口）：<https://rinryanji.github.io/JustKM/learn/matt-pocock-skills.html>
     - ✍️ AI 寫作系統：<https://rinryanji.github.io/JustKM/learn/matt-pocock-writing-skills.html>
@@ -44,6 +45,7 @@ JustKM/
 | 🤖 Pi Agent 最佳實踐 | [`learn/ai-agents/pi-agent-best-practices-2026-06.md`](learn/ai-agents/pi-agent-best-practices-2026-06.md) | 🟡 metadata only | 暮閒 2026-06 影片,無字幕,待 Briefing Doc 補強 |
 | 🎓 AI 學習總目錄 | [`learn/`](learn/index.html) | ✅ 已建立 | AI/ML 學習區入口 · 收整下列所有單元，分區導覽 |
 | 🗜️ AI 對話/上下文壓縮實戰 | [`learn/ai-context-compression.html`](learn/ai-context-compression.html) | ✅ 已建立 | 跨 Agent 通用 · Claude Code/Codex 對照 + 四層次 + 通用策略 + GitHub 專案來源 |
+| 🏢 Palantir 解決資料碎片化 | [`learn/palantir-data-fragmentation.html`](learn/palantir-data-fragmentation.html) | ✅ 已建立 | 簡約明亮 · 5 張 SVG 圖解 · Foundry/Ontology/AIP/Apollo · 閉環寫回 |
 | 🧠 訓練小模型做單一任務 | [`learn/train-slm-single-task.html`](learn/train-slm-single-task.html) | ✅ 已建立 | SLM 專用化實戰 · 13 節 · LoRA/QLoRA + 蒸餾 + NVIDIA 六步 · 含決策樹與程式範例 |
 | 🧰 Matt Pocock Skills 總覽目錄 | [`learn/matt-pocock-skills.html`](learn/matt-pocock-skills.html) | ✅ 已建立 | 系列入口 · 兩篇深入拆解 + 整個 repo 的 Skill 速查地圖 |
 | ✍️ Matt Pocock AI 寫作系統 | [`learn/matt-pocock-writing-skills.html`](learn/matt-pocock-writing-skills.html) | ✅ 已建立 | 拆解 mattpocock/skills 的 fragments/shape/beats · 探索 vs 開採 · 含手動版流程 |
@@ -69,4 +71,4 @@ JustKM/
 
 ---
 
-最後更新：2026-08-04（新增 learn/ai-context-compression.html — AI 對話/上下文壓縮，跨 Agent 通用）
+最後更新：2026-08-04（新增 learn/palantir-data-fragmentation.html — Palantir 資料碎片化圖解，簡約明亮 SVG）
