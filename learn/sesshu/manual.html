@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sesshu 使用手冊：安裝與日常操作</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --card: #f7f8fa;
+    --fg: #16191d;
+    --muted: #5b6472;
+    --line: #d8dde5;
+    --accent: #2f6f8f;
+    --accent-soft: #e3eef4;
+    --warm: #b5651d;
+    --warm-soft: #f6e8da;
+    --good: #2e7d55;
+    --good-soft: #e0f0e8;
+    --bad: #b03a3a;
+    --bad-soft: #f7e3e3;
+    --code-bg: #eef1f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14171b;
+      --card: #1c2026;
+      --fg: #e6e9ee;
+      --muted: #9aa5b4;
+      --line: #333a44;
+      --accent: #6fb4d4;
+      --accent-soft: #1e2c35;
+      --warm: #d99a5b;
+      --warm-soft: #302620;
+      --good: #6cc39a;
+      --good-soft: #1c2a24;
+      --bad: #e08585;
+      --bad-soft: #2e2020;
+      --code-bg: #23282f;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC",
+                 "PingFang TC", "Microsoft JhengHei", Roboto, sans-serif;
+    line-height: 1.75;
+    font-size: 16px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 48px 24px 96px; }
+
+  header.title { border-bottom: 2px solid var(--line); padding-bottom: 24px; }
+  h1 { font-size: 1.9rem; line-height: 1.35; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .subtitle { color: var(--muted); margin: 0; font-size: 0.98rem; }
+
+  nav.toc {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin: 28px 0 8px;
+  }
+  nav.toc p { margin: 0 0 8px; font-size: 0.78rem; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; columns: 2; column-gap: 32px; font-size: 0.94rem; }
+  nav.toc li { margin: 3px 0; break-inside: avoid; }
+  nav.toc a { color: var(--fg); text-decoration: none; border-bottom: 1px solid transparent; }
+  nav.toc a:hover { border-bottom-color: var(--accent); }
+  @media (max-width: 620px) { nav.toc ol { columns: 1; } }
+
+  h2 {
+    font-size: 1.35rem;
+    margin: 56px 0 4px;
+    padding-top: 8px;
+    letter-spacing: -0.01em;
+    scroll-margin-top: 16px;
+  }
+  h2 .num { display: inline-block; min-width: 1.8em; color: var(--accent); font-variant-numeric: tabular-nums; }
+  h3 { font-size: 1.05rem; margin: 32px 0 4px; }
+  p { margin: 12px 0; }
+
+  code, .mono {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.88em;
+  }
+  code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    line-height: 1.65;
+    margin: 8px 0 16px;
+  }
+  pre code { background: none; padding: 0; }
+  .cmd-label {
+    font-size: 0.76rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 16px 0 0;
+    font-weight: 600;
+  }
+  .cmt { color: var(--muted); }
+
+  .lead {
+    background: var(--accent-soft);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 24px 0;
+  }
+  .lead p:first-child { margin-top: 0; }
+  .lead p:last-child { margin-bottom: 0; }
+
+  .note, .warn {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 20px 0;
+    font-size: 0.94rem;
+    color: var(--muted);
+    background: var(--card);
+  }
+  .warn { border-color: var(--warm); background: var(--warm-soft); }
+  .note strong, .warn strong { color: var(--fg); }
+
+  figure { margin: 28px 0; }
+  .figbox {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 16px 10px;
+    overflow-x: auto;
+  }
+  figure svg { display: block; width: 100%; height: auto; min-width: 560px; }
+  figcaption { color: var(--muted); font-size: 0.88rem; margin-top: 10px; text-align: center; }
+
+  .tablewrap { overflow-x: auto; margin: 20px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.93rem; min-width: 480px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--card); font-weight: 600; }
+  td.nowrap { white-space: nowrap; }
+
+  ul, ol { padding-left: 1.4em; }
+  li { margin: 6px 0; }
+
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li {
+    padding-left: 30px;
+    position: relative;
+    margin: 10px 0;
+  }
+  .checklist li::before {
+    content: "□";
+    position: absolute;
+    left: 6px;
+    top: 0;
+    color: var(--accent);
+    font-size: 1.1em;
+  }
+
+  .step {
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 4px 22px 16px;
+    margin: 22px 0;
+    background: var(--card);
+  }
+  .step h3 { margin-top: 18px; }
+  .step h3 .n {
+    display: inline-flex;
+    width: 26px; height: 26px;
+    align-items: center; justify-content: center;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 0.82rem;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+  @media (prefers-color-scheme: dark) { .step h3 .n { color: #10161a; } }
+
+  footer {
+    margin-top: 72px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+  footer a { color: var(--accent); }
+
+  svg text { font-family: -apple-system, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif; }
+  .s-fg   { fill: var(--fg); }
+  .s-mut  { fill: var(--muted); }
+  .s-acc  { fill: var(--accent); }
+  .s-good { fill: var(--good); }
+  .s-bad  { fill: var(--bad); }
+  .s-warm { fill: var(--warm); }
+  .box      { fill: var(--bg); stroke: var(--line); stroke-width: 1.5; }
+  .box-acc  { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+  .box-good { fill: var(--good-soft); stroke: var(--good); stroke-width: 1.5; }
+  .box-bad  { fill: var(--bad-soft); stroke: var(--bad); stroke-width: 1.5; }
+  .box-warm { fill: var(--warm-soft); stroke: var(--warm); stroke-width: 1.5; }
+  .ln { stroke: var(--line); stroke-width: 1.5; fill: none; }
+  .ln-acc { stroke: var(--accent); stroke-width: 2; fill: none; }
+  .ln-good { stroke: var(--good); stroke-width: 2; fill: none; }
+  .ln-dash { stroke: var(--muted); stroke-width: 1.4; fill: none; stroke-dasharray: 5 4; }
+  .tree { stroke: var(--muted); stroke-width: 1.2; fill: none; }
+  .t-sm { font-size: 12px; }
+  .t-xs { font-size: 10.5px; }
+  .t-md { font-size: 13.5px; }
+  .t-lg { font-size: 15px; }
+  .t-b  { font-weight: 600; }
+  .t-mono { font-family: Consolas, "SFMono-Regular", Menlo, monospace; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="title">
+  <h1>Sesshu 使用手冊</h1>
+  <p class="subtitle">安裝、設定，以及日常怎麼用。想了解它「為什麼這樣運作」，請看同目錄的 <code>sesshu-compression-explained.html</code>。</p>
+</header>
+
+<nav class="toc">
+  <p>目錄</p>
+  <ol>
+    <li><a href="#s1">Sesshu 幫你做什麼</a></li>
+    <li><a href="#s2">安裝前的準備</a></li>
+    <li><a href="#s3">安裝步驟</a></li>
+    <li><a href="#s4">設定語言模型端點</a></li>
+    <li><a href="#s5">確認安裝成功</a></li>
+    <li><a href="#s6">日常使用</a></li>
+    <li><a href="#s7">用 /sesshu-config 調整設定</a></li>
+    <li><a href="#s8">依情境調參數</a></li>
+    <li><a href="#s9">疑難排解</a></li>
+    <li><a href="#s10">解除安裝</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1"><span class="num">1.</span> Sesshu 幫你做什麼</h2>
+
+<div class="lead">
+  <p>你跟 AI coding agent 講得越久，它就越貴、越健忘，最後只能 <code>/clear</code> 重來 —— 然後所有脈絡一起消失。</p>
+  <p>Sesshu 在背景默默把你的對話整理成一份結構化筆記存在磁碟上。當 context 太大時它提醒你可以 <code>/clear</code>；你按下去之後，新對話會<strong>自動帶著整理好的脈絡開始</strong>，不用重講一遍。</p>
+</div>
+
+<p><strong>你需要做的事只有一件：看到提示時按 <code>/clear</code>。</strong>其餘全部自動。</p>
+
+<div class="tablewrap">
+  <table>
+    <thead><tr><th style="width:34%">你會得到</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr><td>對話可以無限接續</td><td><code>/clear</code> 之後 agent 仍記得目標、決策、改過哪些檔、踩過哪些坑</td></tr>
+      <tr><td>省 token</td><td>整理工作交給本機小模型，不消耗主模型的額度</td></tr>
+      <tr><td>永久可搜尋的工作紀錄</td><td>每次壓縮都留下一頁 Markdown，跨 session 可以被搜尋回來</td></tr>
+      <tr><td>資料不出門</td><td>用本機 Ollama 時，對話內容完全不離開你的電腦</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="s2"><span class="num">2.</span> 安裝前的準備</h2>
+
+<div class="tablewrap">
+  <table>
+    <thead><tr><th style="width:26%">項目</th><th>需求</th></tr></thead>
+    <tbody>
+      <tr><td class="nowrap">Python</td><td>3.9 或更新版本，且 <code>python</code> 或 <code>python3</code> 在 PATH 中</td></tr>
+      <tr><td class="nowrap">AI CLI</td><td>Claude Code、Codex CLI、Gemini CLI 或 GitHub Copilot CLI（擇一或多個）</td></tr>
+      <tr><td class="nowrap">語言模型端點</td><td>任何 OpenAI 相容的 <code>/chat/completions</code> 端點：Ollama、LM Studio、vLLM、OpenRouter、OpenAI 都可以</td></tr>
+      <tr><td class="nowrap">額外套件</td><td><strong>不需要</strong>。執行期只用 Python 標準函式庫</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <strong>建議用 Ollama 跑在本機。</strong>整理摘要是高頻但不難的工作，7B 等級的小模型就夠用；跑在本機既不花錢、速度也夠，而且對話內容不會傳到任何外部服務。
+</div>
+
+<h2 id="s3"><span class="num">3.</span> 安裝步驟</h2>
+
+<figure>
+  <div class="figbox">
+    <svg viewBox="0 0 780 200" role="img" aria-label="三步驟安裝流程圖">
+      <defs>
+        <marker id="mA" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+          <path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--accent)"/>
+        </marker>
+      </defs>
+
+      <rect class="box-acc" x="20" y="40" width="200" height="100" rx="10"/>
+      <circle cx="52" cy="70" r="14" fill="var(--accent)"/>
+      <text x="52" y="75" text-anchor="middle" class="t-sm t-b" fill="#fff">1</text>
+      <text class="s-fg t-md t-b" x="76" y="75">安裝套件與 hook</text>
+      <text class="s-mut t-sm t-mono" x="40" y="103">pip install sesshu</text>
+      <text class="s-mut t-sm t-mono" x="40" y="122">sesshu install</text>
+
+      <path class="ln-acc" d="M224 90 L 252 90" marker-end="url(#mA)"/>
+
+      <rect class="box-acc" x="258" y="40" width="200" height="100" rx="10"/>
+      <circle cx="290" cy="70" r="14" fill="var(--accent)"/>
+      <text x="290" y="75" text-anchor="middle" class="t-sm t-b" fill="#fff">2</text>
+      <text class="s-fg t-md t-b" x="314" y="75">設定模型端點</text>
+      <text class="s-mut t-sm t-mono" x="278" y="103">sesshu config init</text>
+      <text class="s-mut t-sm" x="278" y="122">編輯 .env，填 URL 與模型</text>
+
+      <path class="ln-acc" d="M462 90 L 490 90" marker-end="url(#mA)"/>
+
+      <rect class="box-good" x="496" y="40" width="200" height="100" rx="10"/>
+      <circle cx="528" cy="70" r="14" fill="var(--good)"/>
+      <text x="528" y="75" text-anchor="middle" class="t-sm t-b" fill="#fff">3</text>
+      <text class="s-fg t-md t-b" x="552" y="75">重新啟動 CLI</text>
+      <text class="s-mut t-sm" x="516" y="103">關掉再開，讓新的 hook</text>
+      <text class="s-mut t-sm" x="516" y="122">設定生效。完成。</text>
+
+      <text class="s-mut t-xs" x="20" y="172">※ 步驟 3 常被忽略 —— 沒重啟的話 hook 不會載入，看起來就像「裝了但沒反應」。</text>
+      <text class="s-mut t-xs" x="20" y="190">※ 全程不需要 sudo／系統管理員權限，所有檔案都寫在你的家目錄底下。</text>
+    </svg>
+  </div>
+  <figcaption>圖 1 — 安裝只有三步，最後一步是重啟。</figcaption>
+</figure>
+
+<div class="step">
+  <h3><span class="n">1</span>安裝套件並註冊 hook</h3>
+
+  <p class="cmd-label">PowerShell（Windows）／ Bash（macOS・Linux）通用</p>
+<pre><code>pip install sesshu
+sesshu install --runtime claude --scope user</code></pre>
+
+  <p><code>--runtime</code> 可以填 <code>claude</code>、<code>codex</code>、<code>gemini</code>、<code>copilot</code>、<code>both</code>（Claude + Codex）或 <code>all</code>（全部四種）。<code>--scope</code> 填 <code>user</code>（整台電腦通用，預設）或 <code>repo</code>（只在這個專案生效）。</p>
+
+<pre><code><span class="cmt"># 只裝 Gemini CLI</span>
+sesshu install --runtime gemini --scope user
+
+<span class="cmt"># 四種 runtime 全裝，但只在目前這個專案生效</span>
+sesshu install --runtime all --scope repo</code></pre>
+
+  <div class="note">
+    安裝程式會<strong>合併</strong>而不是覆寫你的設定檔 —— 已存在的其他 hook 不會被移除。既有的 <code>prompts.json</code> 若已存在也會被保留，不會蓋掉你改過的提示詞。
+  </div>
+
+  <h3>從原始碼安裝（開發者用）</h3>
+  <p>如果你是從 GitHub clone 下來要改程式碼，用隨附的安裝腳本，它會把本地的 <code>src/sesshu</code> 直接複製進 hook 目錄：</p>
+
+  <p class="cmd-label">PowerShell（Windows）</p>
+<pre><code>git clone https://github.com/Nexplico-Ltd/Sesshu.git
+cd Sesshu
+.\install.ps1 -Runtime claude -Scope user</code></pre>
+
+  <p class="cmd-label">Bash（macOS・Linux）</p>
+<pre><code>git clone https://github.com/Nexplico-Ltd/Sesshu.git
+cd Sesshu
+bash ./install.sh --runtime claude --scope user</code></pre>
+</div>
+
+<div class="step">
+  <h3><span class="n">2</span>建立設定檔</h3>
+
+<pre><code>sesshu config init</code></pre>
+
+  <p>這會產生設定檔，路徑是：</p>
+  <ul>
+    <li><strong>Windows</strong>：<code>%USERPROFILE%\.sesshu\.env</code></li>
+    <li><strong>macOS・Linux</strong>：<code>~/.sesshu/.env</code></li>
+  </ul>
+  <p>接下來的第 4 節會說明怎麼填。</p>
+</div>
+
+<div class="step">
+  <h3><span class="n">3</span>重新啟動 AI CLI</h3>
+  <p>完全關閉再重新開啟。hook 設定與 <code>/sesshu-config</code> 指令都是在啟動時載入的，不重啟不會生效。</p>
+</div>
+
+<h3>安裝後檔案跑到哪裡</h3>
+
+<figure>
+  <div class="figbox">
+    <svg viewBox="0 0 780 300" role="img" aria-label="安裝後的檔案落點樹狀圖">
+      <!-- left: runtime dir -->
+      <rect class="box-acc" x="20" y="20" width="350" height="30" rx="6"/>
+      <text class="s-fg t-md t-b t-mono" x="36" y="40">~/.claude/</text>
+      <text class="s-mut t-xs" x="200" y="40">（runtime 設定目錄）</text>
+
+      <path class="tree" d="M40 50 L 40 92 M40 74 L 56 74 M40 118 L 56 118 M40 250 L 56 250"/>
+      <text class="s-fg t-sm t-mono" x="62" y="78">settings.json</text>
+      <text class="s-mut t-xs" x="180" y="78">← hook 註冊寫在這裡</text>
+
+      <text class="s-fg t-sm t-mono" x="62" y="122">hooks/</text>
+      <path class="tree" d="M70 128 L 70 226 M70 150 L 86 150 M70 176 L 86 176 M70 202 L 86 202 M70 226 L 86 226"/>
+      <text class="s-mut t-xs t-mono" x="92" y="154">sesshu_claude_stop.py</text>
+      <text class="s-mut t-xs t-mono" x="92" y="180">sesshu_claude_start.py</text>
+      <text class="s-mut t-xs t-mono" x="92" y="206">sesshu_claude_precompact.py</text>
+      <text class="s-mut t-xs t-mono" x="92" y="230">sesshu/</text>
+      <text class="s-mut t-xs" x="150" y="230">（程式本體）</text>
+
+      <path class="tree" d="M40 250 L 40 252"/>
+      <text class="s-fg t-sm t-mono" x="62" y="254">commands/sesshu-config.md</text>
+      <text class="s-mut t-xs" x="62" y="276">→ 提供 /sesshu-config 斜線指令</text>
+
+      <!-- divider -->
+      <line class="ln-dash" x1="392" y1="16" x2="392" y2="286"/>
+
+      <!-- right: data dir -->
+      <rect class="box-good" x="410" y="20" width="350" height="30" rx="6"/>
+      <text class="s-fg t-md t-b t-mono" x="426" y="40">~/.sesshu/</text>
+      <text class="s-mut t-xs" x="580" y="40">（Sesshu 資料目錄）</text>
+
+      <path class="tree" d="M430 50 L 430 224 M430 74 L 446 74 M430 100 L 446 100 M430 126 L 446 126 M430 152 L 446 152 M430 178 L 446 178"/>
+      <text class="s-fg t-sm t-mono" x="452" y="78">.env</text>
+      <text class="s-mut t-xs" x="530" y="78">你的設定（要編輯的就是它）</text>
+
+      <text class="s-fg t-sm t-mono" x="452" y="104">prompts.json</text>
+      <text class="s-mut t-xs" x="560" y="104">提示詞模板，可自訂</text>
+
+      <text class="s-mut t-sm t-mono" x="452" y="130">seed.md</text>
+      <text class="s-mut t-xs" x="560" y="130">種子摘要（暫存，用完即刪）</text>
+
+      <text class="s-mut t-sm t-mono" x="452" y="156">cursor.json</text>
+      <text class="s-mut t-xs" x="560" y="156">攝取進度（暫存）</text>
+
+      <text class="s-fg t-sm t-mono" x="452" y="182">wiki/</text>
+      <path class="tree" d="M462 188 L 462 262 M462 210 L 478 210 M462 236 L 478 236 M462 262 L 478 262"/>
+      <text class="s-mut t-xs t-mono" x="484" y="214">index.md</text>
+      <text class="s-mut t-xs t-mono" x="484" y="240">log.md</text>
+      <text class="s-good t-xs t-b t-mono" x="484" y="266">sessions/*.md</text>
+      <text class="s-mut t-xs" x="570" y="266">← 你的工作紀錄在這</text>
+    </svg>
+  </div>
+  <figcaption>圖 2 — 左邊是給 CLI 讀的 hook，右邊是 Sesshu 自己的資料。要備份的話，備份右邊就夠。</figcaption>
+</figure>
+
+<h2 id="s4"><span class="num">4.</span> 設定語言模型端點</h2>
+
+<h3>做法 A：本機 Ollama（推薦）</h3>
+<p>預設值就是為 Ollama 準備的，只要把模型抓下來就能直接用：</p>
+<pre><code>ollama pull qwen2.5:7b</code></pre>
+
+<p>對應的 <code>.env</code> 內容（<code>sesshu config init</code> 已經幫你寫好，通常不用改）：</p>
+<pre><code>SESSHU_LM_URL=http://localhost:11434/v1
+SESSHU_LM_MODEL=qwen2.5:7b
+SESSHU_LM_API_KEY=ollama</code></pre>
+
+<h3>做法 B：雲端或其他端點</h3>
+<p>任何 OpenAI 相容端點都可以，把三個值換掉即可：</p>
+<pre><code><span class="cmt"># OpenAI</span>
+SESSHU_LM_URL=https://api.openai.com/v1
+SESSHU_LM_MODEL=gpt-4o-mini
+SESSHU_LM_API_KEY=sk-...
+
+<span class="cmt"># LM Studio（本機）</span>
+SESSHU_LM_URL=http://localhost:1234/v1
+SESSHU_LM_MODEL=your-loaded-model
+SESSHU_LM_API_KEY=lm-studio</code></pre>
+
+<div class="warn">
+  <strong>隱私提醒：</strong>用雲端端點時，逐字稿的片段（最多每次 20,000 字元）會送到該服務。如果你的專案含有機敏內容，請使用本機端點。
+</div>
+
+<div class="note">
+  <strong>為什麼 <code>SESSHU_DATA_DIR</code> 不能寫在 <code>.env</code> 裡？</strong>因為 Sesshu 要先知道資料目錄在哪，才找得到 <code>.env</code> —— 有先後順序問題。它必須設成環境變數，或由安裝程式寫進 hook 命令中（安裝時已自動處理）。
+</div>
+
+<h2 id="s5"><span class="num">5.</span> 確認安裝成功</h2>
+
+<p>重啟 CLI 之後，用這份清單快速檢查：</p>
+
+<ul class="checklist">
+  <li>輸入 <code>/sesshu-config</code>，會列出目前所有設定值 —— 看得到就代表指令檔安裝正確。</li>
+  <li>資料目錄存在：Windows 看 <code>%USERPROFILE%\.sesshu\</code>，其他系統看 <code>~/.sesshu/</code>，裡面應有 <code>.env</code> 與 <code>prompts.json</code>。</li>
+  <li>端點通得到：<code>curl http://localhost:11434/v1/models</code>（Ollama）能回應。</li>
+  <li>正常聊個十幾分鐘後，<code>~/.sesshu/wiki/sessions/</code> 底下開始出現 <code>.md</code> 檔案 —— 這代表壓縮真的在跑。</li>
+</ul>
+
+<div class="note">
+  最後一項需要一點耐心：預設每次攝取至少間隔 <strong>300 秒</strong>，而且要有新的對話內容。想立刻驗證的話，臨時把間隔設成 0：<code>/sesshu-config SESSHU_INGEST_MIN_INTERVAL=0</code>，測完記得改回來。
+</div>
+
+<h2 id="s6"><span class="num">6.</span> 日常使用</h2>
+
+<p>Sesshu 有兩種運作模式，預設是 <strong>hitl</strong>（由你決定何時壓縮）。</p>
+
+<figure>
+  <div class="figbox">
+    <svg viewBox="0 0 780 250" role="img" aria-label="hitl 模式與 auto 模式對比">
+      <!-- hitl -->
+      <rect class="box-acc" x="20" y="20" width="360" height="200" rx="10"/>
+      <text class="s-fg t-lg t-b" x="40" y="48">hitl 模式（預設）</text>
+      <text class="s-mut t-xs" x="40" y="68">SESSHU_MODE=hitl · 四種 runtime 都支援</text>
+
+      <rect class="box" x="40" y="82" width="320" height="30" rx="6"/>
+      <text class="s-fg t-sm" x="54" y="102">① 背景默默整理，你完全無感</text>
+
+      <rect class="box-warm" x="40" y="118" width="320" height="30" rx="6"/>
+      <text class="s-fg t-sm" x="54" y="138">② context 太大時，跳出一則提示訊息</text>
+
+      <rect class="box-good" x="40" y="154" width="320" height="30" rx="6"/>
+      <text class="s-fg t-sm t-b" x="54" y="174">③ 你決定要不要按 /clear ←唯一要做的事</text>
+
+      <text class="s-mut t-xs" x="40" y="204">忽略提示也沒關係，只是 context 繼續變大而已。</text>
+
+      <!-- auto -->
+      <rect class="box" x="400" y="20" width="360" height="200" rx="10"/>
+      <text class="s-fg t-lg t-b" x="420" y="48">auto 模式</text>
+      <text class="s-mut t-xs" x="420" y="68">SESSHU_MODE=auto · 四種 runtime 都支援</text>
+
+      <rect class="box" x="420" y="82" width="320" height="30" rx="6"/>
+      <text class="s-fg t-sm" x="434" y="102">① CLI 準備要自動壓縮對話</text>
+
+      <rect class="box-acc" x="420" y="118" width="320" height="30" rx="6"/>
+      <text class="s-fg t-sm" x="434" y="138">② Sesshu 搶在它之前先寫好 wiki 頁</text>
+
+      <rect class="box-good" x="420" y="154" width="320" height="30" rx="6"/>
+      <text class="s-fg t-sm t-b" x="434" y="174">③ 全自動，不打擾你</text>
+
+      <text class="s-mut t-xs" x="420" y="204">代價：壓縮時機由 CLI 決定，你無法介入。</text>
+    </svg>
+  </div>
+  <figcaption>圖 3 — 兩種模式。不確定要用哪種就維持預設的 hitl。</figcaption>
+</figure>
+
+<h3>hitl 模式：你會看到什麼</h3>
+
+<figure>
+  <div class="figbox">
+    <svg viewBox="0 0 780 260" role="img" aria-label="使用者視角的一次壓縮循環">
+      <defs>
+        <marker id="mB" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+          <path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--accent)"/>
+        </marker>
+      </defs>
+
+      <text class="s-mut t-xs t-b" x="20" y="28">你的畫面</text>
+
+      <rect class="box" x="20" y="40" width="170" height="56" rx="8"/>
+      <text class="s-fg t-sm t-b" x="105" y="64" text-anchor="middle">正常對話</text>
+      <text class="s-mut t-xs" x="105" y="82" text-anchor="middle">什麼都不用做</text>
+
+      <path class="ln-acc" d="M194 68 L 216 68" marker-end="url(#mB)"/>
+
+      <rect class="box-warm" x="222" y="34" width="240" height="68" rx="8"/>
+      <text class="s-warm t-xs t-b" x="238" y="54">系統訊息</text>
+      <text class="s-fg t-sm t-mono" x="238" y="74">Context is large (124K chars).</text>
+      <text class="s-fg t-sm t-mono" x="238" y="92">Run /clear to resume.</text>
+
+      <path class="ln-acc" d="M466 68 L 488 68" marker-end="url(#mB)"/>
+
+      <rect class="box-good" x="494" y="40" width="170" height="56" rx="8"/>
+      <text class="s-fg t-sm t-b" x="579" y="64" text-anchor="middle">你輸入 /clear</text>
+      <text class="s-mut t-xs" x="579" y="82" text-anchor="middle">← 唯一的手動操作</text>
+
+      <path class="ln-acc" d="M579 100 L 579 126" marker-end="url(#mB)"/>
+
+      <rect class="box-acc" x="240" y="132" width="424" height="62" rx="8"/>
+      <text class="s-acc t-xs t-b" x="258" y="152">新 session 自動載入</text>
+      <text class="s-fg t-sm" x="258" y="171">目標、待辦、已做的決策、改過的檔案、踩過的坑、目前狀態</text>
+      <text class="s-mut t-xs" x="258" y="187">＋ 最近 4 組對話原文 ＋ 相關歷史頁面的路徑（需要時才讀）</text>
+
+      <path class="ln-acc" d="M240 163 L 200 163 L 200 100" marker-end="url(#mB)"/>
+      <text class="s-mut t-xs" x="120" y="150">接著繼續講下去就好</text>
+      <text class="s-mut t-xs" x="120" y="166">不需要重新交代背景</text>
+
+      <text class="s-mut t-xs" x="20" y="222">※ 提示訊息每一輪壓縮只出現一次，不會反覆打擾。</text>
+      <text class="s-mut t-xs" x="20" y="240">※ 不想現在中斷？直接忽略它，繼續對話即可，之後仍可隨時 /clear。</text>
+    </svg>
+  </div>
+  <figcaption>圖 4 — 使用者視角的完整循環。你只負責按 <code>/clear</code>。</figcaption>
+</figure>
+
+<h3>切換到 auto 模式</h3>
+<pre><code>/sesshu-config SESSHU_MODE=auto</code></pre>
+<p>改完要重啟 CLI。auto 模式下 Sesshu 改掛在「CLI 即將自動壓縮」的時機點，搶先把完整 wiki 頁寫下來，然後安靜退出 —— 不會有任何提示訊息。</p>
+
+<h3>翻閱你的工作紀錄</h3>
+<p>所有壓縮產物都是純 Markdown，可以直接用任何編輯器打開：</p>
+
+<div class="tablewrap">
+  <table>
+    <thead><tr><th style="width:34%">檔案</th><th>內容</th></tr></thead>
+    <tbody>
+      <tr><td><code>~/.sesshu/wiki/index.md</code></td><td>所有 session 頁面的索引清單</td></tr>
+      <tr><td><code>~/.sesshu/wiki/log.md</code></td><td>時間順序的活動紀錄（超過 1 MB 會自動輪替）</td></tr>
+      <tr><td><code>~/.sesshu/wiki/sessions/</code></td><td>一次攝取一頁，檔名是時間戳。每頁固定 12 個章節</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>每一頁的固定章節是：Goal、Tasks、Plans、Decisions made、Rejected Approaches、Constraints、Code changes、Git operations、Errors &amp; resolutions、Blockers、External References、Current state。</p>
+
+<div class="note">
+  這些檔案<strong>可以手動編輯</strong>。如果某次摘要寫錯了，直接改掉即可 —— 下一次 <code>/clear</code> 時被讀取的就是你改過的版本。
+</div>
+
+<h2 id="s7"><span class="num">7.</span> 用 /sesshu-config 調整設定</h2>
+
+<p>安裝時會附帶一個斜線指令（Copilot CLI 除外），不用手動編輯 <code>.env</code>。</p>
+
+<p class="cmd-label">列出目前所有設定</p>
+<pre><code>/sesshu-config</code></pre>
+
+<p class="cmd-label">修改單一設定</p>
+<pre><code>/sesshu-config SESSHU_THRESHOLD=80000
+/sesshu-config SESSHU_VERBOSE=1
+/sesshu-config SESSHU_MODE=auto</code></pre>
+
+<p class="cmd-label">清空設定，回到預設值</p>
+<pre><code>/sesshu-config SESSHU_VERBOSE=</code></pre>
+
+<p>格式錯誤或值不合法時它會拒絕修改並告訴你原因，不會把 <code>.env</code> 弄壞。改完設定<strong>需要重啟 CLI</strong> 才生效。</p>
+
+<h2 id="s8"><span class="num">8.</span> 依情境調參數</h2>
+
+<p>不用背所有變數，照你遇到的狀況查就好：</p>
+
+<div class="tablewrap">
+  <table>
+    <thead><tr><th style="width:30%">你的感受</th><th style="width:36%">調這個</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>提示訊息太晚才出現，我早就卡了</td>
+        <td><code>SESSHU_THRESHOLD=80000</code></td>
+        <td>調低觸發門檻（預設 120000 字元）</td>
+      </tr>
+      <tr>
+        <td>提示訊息太吵</td>
+        <td><code>SESSHU_THRESHOLD=200000</code></td>
+        <td>調高門檻。或改用 auto 模式完全不提示</td>
+      </tr>
+      <tr>
+        <td>每次回話都卡一下</td>
+        <td><code>SESSHU_INGEST_MODE=background</code></td>
+        <td>攝取改用背景子行程，hook 立即返回</td>
+      </tr>
+      <tr>
+        <td>還是卡</td>
+        <td><code>SESSHU_INGEST_MIN_INTERVAL=600</code></td>
+        <td>拉長攝取間隔（預設 300 秒），呼叫模型的次數減半</td>
+      </tr>
+      <tr>
+        <td>摘要太簡略，細節都不見了</td>
+        <td><code>SESSHU_MAX_WORDS=1000</code></td>
+        <td>放寬摘要字數（預設 600 字）</td>
+      </tr>
+      <tr>
+        <td>接續時忘記剛剛在講什麼</td>
+        <td><code>SESSHU_KEEP_TURNS=8</code></td>
+        <td>保留更多組近期對話原文（預設 4 組）</td>
+      </tr>
+      <tr>
+        <td>模型很慢，常常來不及</td>
+        <td><code>SESSHU_TIMEOUT=180</code></td>
+        <td>拉長逾時（預設 90 秒）。或換更小的模型</td>
+      </tr>
+      <tr>
+        <td>想知道它到底有沒有在動</td>
+        <td><code>SESSHU_VERBOSE=1</code></td>
+        <td>連未達門檻時也顯示狀態訊息</td>
+      </tr>
+      <tr>
+        <td>要查問題</td>
+        <td><code>SESSHU_DEBUG=1</code></td>
+        <td>輸出診斷紀錄到 <code>~/.sesshu/debug.jsonl</code>（不含對話內容）</td>
+      </tr>
+      <tr>
+        <td>想被提醒「以前做過類似的事」</td>
+        <td><code>SESSHU_RELATED=1</code></td>
+        <td>攝取時偵測相關的歷史 session 並通知（預設關閉）</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="s9"><span class="num">9.</span> 疑難排解</h2>
+
+<figure>
+  <div class="figbox">
+    <svg viewBox="0 0 780 330" role="img" aria-label="疑難排解決策樹">
+      <defs>
+        <marker id="mC" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+
+      <rect class="box-bad" x="270" y="16" width="240" height="38" rx="8"/>
+      <text class="s-fg t-md t-b" x="390" y="40" text-anchor="middle">感覺 Sesshu 沒有在運作</text>
+
+      <path class="ln" d="M390 54 L 390 74" marker-end="url(#mC)"/>
+
+      <rect class="box" x="250" y="78" width="280" height="38" rx="8"/>
+      <text class="s-fg t-sm" x="390" y="102" text-anchor="middle">輸入 /sesshu-config 有反應嗎？</text>
+
+      <path class="ln" d="M250 97 L 170 97 L 170 138" marker-end="url(#mC)"/>
+      <text class="s-bad t-xs t-b" x="200" y="92">沒有</text>
+      <rect class="box-warm" x="30" y="142" width="280" height="52" rx="8"/>
+      <text class="s-fg t-sm t-b" x="46" y="163">hook 沒安裝或沒重啟</text>
+      <text class="s-mut t-xs" x="46" y="181">重跑 sesshu install，然後完全關閉再開啟 CLI</text>
+
+      <path class="ln" d="M390 116 L 390 138" marker-end="url(#mC)"/>
+      <text class="s-good t-xs t-b" x="400" y="132">有</text>
+
+      <rect class="box" x="330" y="142" width="330" height="38" rx="8"/>
+      <text class="s-fg t-sm" x="495" y="166" text-anchor="middle">wiki/sessions/ 裡有 .md 檔嗎？</text>
+
+      <path class="ln" d="M660 161 L 700 161 L 700 210" marker-end="url(#mC)"/>
+      <text class="s-good t-xs t-b" x="668" y="156">有</text>
+      <rect class="box-good" x="500" y="214" width="260" height="52" rx="8"/>
+      <text class="s-fg t-sm t-b" x="516" y="235">一切正常</text>
+      <text class="s-mut t-xs" x="516" y="253">只是還沒到門檻。可調低 THRESHOLD</text>
+
+      <path class="ln" d="M420 180 L 420 210" marker-end="url(#mC)"/>
+      <text class="s-bad t-xs t-b" x="428" y="200">沒有</text>
+
+      <rect class="box" x="250" y="214" width="230" height="38" rx="8"/>
+      <text class="s-fg t-sm" x="365" y="238" text-anchor="middle">模型端點連得上嗎？</text>
+
+      <path class="ln" d="M250 233 L 170 233 L 170 274" marker-end="url(#mC)"/>
+      <text class="s-bad t-xs t-b" x="196" y="228">連不上</text>
+      <rect class="box-warm" x="30" y="278" width="280" height="44" rx="8"/>
+      <text class="s-fg t-sm t-b" x="46" y="298">先把端點弄通</text>
+      <text class="s-mut t-xs" x="46" y="314">ollama serve · 檢查 .env 的 URL 與模型名稱</text>
+
+      <path class="ln" d="M400 252 L 400 274" marker-end="url(#mC)"/>
+      <text class="s-good t-xs t-b" x="408" y="268">連得上</text>
+      <rect class="box-acc" x="330" y="278" width="330" height="44" rx="8"/>
+      <text class="s-fg t-sm t-b" x="346" y="298">開 debug 看紀錄</text>
+      <text class="s-mut t-xs" x="346" y="314">/sesshu-config SESSHU_DEBUG=1 → 讀 ~/.sesshu/debug.jsonl</text>
+    </svg>
+  </div>
+  <figcaption>圖 5 — 由上往下依序排除，四步之內一定能定位問題。</figcaption>
+</figure>
+
+<div class="tablewrap">
+  <table>
+    <thead><tr><th style="width:32%">症狀</th><th>原因與處理</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>/sesshu-config</code> 找不到</td>
+        <td>安裝後沒重啟 CLI；或安裝的是 Copilot CLI（它沒有指令目錄，請直接編輯 <code>.env</code>）</td>
+      </tr>
+      <tr>
+        <td>完全沒有任何提示訊息</td>
+        <td>逐字稿還沒到 120,000 字元。先開 <code>SESSHU_VERBOSE=1</code> 確認它有在運作</td>
+      </tr>
+      <tr>
+        <td><code>wiki/sessions/</code> 一直是空的</td>
+        <td>多半是模型端點不通。先 <code>curl</code> 測端點，再開 <code>SESSHU_DEBUG=1</code> 看 <code>debug.jsonl</code></td>
+      </tr>
+      <tr>
+        <td>頁面內容只有檔案清單，寫著 <em>Fallback snapshot</em></td>
+        <td>模型當時掛掉或逾時，Sesshu 走了備援路徑。修好端點後下一輪會自動補上完整摘要</td>
+      </tr>
+      <tr>
+        <td>每次回話都要等一下</td>
+        <td>改成 <code>SESSHU_INGEST_MODE=background</code>，或拉長 <code>SESSHU_INGEST_MIN_INTERVAL</code></td>
+      </tr>
+      <tr>
+        <td><code>/clear</code> 之後沒有帶回脈絡</td>
+        <td>表示當下還沒有 <code>seed.md</code>（攝取尚未跑過任何一次）。確認端點正常，並讓對話累積久一點</td>
+      </tr>
+      <tr>
+        <td>擔心它會不會弄壞我的對話紀錄</td>
+        <td>不會。Sesshu <strong>只讀取</strong>逐字稿，從不寫入、截斷或刪除，而且任何錯誤都靜默退出，不會中斷 agent</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="s10"><span class="num">10.</span> 解除安裝</h2>
+
+<p>用跟當初安裝時相同的 <code>--scope</code>：</p>
+<pre><code>sesshu uninstall --scope user</code></pre>
+
+<p>預設<strong>只移除 hook 註冊與指令檔，保留 <code>~/.sesshu/</code> 底下的所有資料</strong>（wiki 頁面、設定、提示詞模板都還在）。要連資料一起刪：</p>
+<pre><code>sesshu uninstall --runtime all --scope user --remove-data</code></pre>
+
+<p>從原始碼安裝的話，用對應的腳本：</p>
+<pre><code>bash ./uninstall.sh --scope user      <span class="cmt"># macOS・Linux</span>
+.\uninstall.ps1 -Scope user           <span class="cmt"># Windows</span></code></pre>
+
+<div class="note">
+  移除後你的 AI CLI 會恢復成原本的行為，其他 hook 不受影響。<code>~/.sesshu/wiki/</code> 裡的 Markdown 就算 Sesshu 不在了也還是能直接閱讀。
+</div>
+
+<footer>
+  <p>想知道這一切背後的原理 —— 為什麼要用游標、為什麼是 12 個章節、為什麼壓縮不是在 <code>/clear</code> 當下發生 —— 請看同目錄的 <code>sesshu-compression-explained.html</code>。完整的技術參考與各 runtime 差異請看 <code>sesshu-architecture-and-usage-guide.html</code>。</p>
+</footer>
+
+</div>
+</body>
+</html>

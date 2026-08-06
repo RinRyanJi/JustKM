@@ -158,6 +158,38 @@
   }
   @media (prefers-color-scheme: dark) { .concept .tag { color: #10161a; } }
 
+  .misread {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 24px 0;
+    background: var(--bg);
+  }
+  .misread .mis-label {
+    font-size: 0.76rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin: 0 0 12px;
+    text-transform: uppercase;
+  }
+  .mis-row {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    margin: 10px 0;
+    font-size: 0.92rem;
+  }
+  .mis-row .mark { flex: 0 0 auto; font-weight: 700; }
+  .mis-bad .mark { color: var(--bad); }
+  .mis-good .mark { color: var(--good); }
+  .mis-row .flow {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.84rem;
+    line-height: 1.9;
+  }
+  .mis-good .flow strong { color: var(--good); }
+  .mis-bad .flow strong { color: var(--bad); }
+
   .qa { margin: 20px 0; }
   .qa dt { font-weight: 600; margin-top: 18px; }
   .qa dd { margin: 6px 0 0; color: var(--muted); }
@@ -315,6 +347,20 @@
   <h3><span class="tag">觀念 2</span>游標式增量攝取：只讀新的那一段</h3>
   <p>如果每次都把整份逐字稿丟給摘要模型，那摘要本身就變成了第二個平方成本問題。Sesshu 用一個 <code>cursor.json</code> 記住「這份逐字稿我已經讀到第幾個字元」，之後每次<strong>只處理游標之後新增的那一段</strong>。</p>
 
+  <div class="misread">
+    <p class="mis-label">先破除一個常見誤會</p>
+    <div class="mis-row mis-bad">
+      <span class="mark">✗</span>
+      <span class="flow">以為：一直對話 …… → 撞到門檻 → <strong>提取重點（一次）</strong> → /clear → 新對話</span>
+    </div>
+    <div class="mis-row mis-good">
+      <span class="mark">✓</span>
+      <span class="flow">實際：對話 → <strong>攝取</strong> → 對話 → <strong>攝取</strong> → 對話 → <strong>攝取</strong> → …… → 撞到門檻 → /clear → 新對話</span>
+    </div>
+    <p style="margin:14px 0 0; font-size:0.94rem;">壓縮<strong>不是</strong>在 <code>/clear</code> 那一刻才發生的。它在整個 session 進行中就反覆執行了很多次，每次消化一小段。<code>/clear</code> 當下不做任何計算，只是把早就寫好的 <code>seed.md</code> 讀出來注入 —— 所以它是瞬間的。</p>
+    <p style="margin:10px 0 0; font-size:0.94rem;">游標存在的意義，就是讓這一連串「反覆攝取」知道彼此的進度，不會互相重工。</p>
+  </div>
+
   <figure>
     <div class="figbox">
       <svg viewBox="0 0 720 210" role="img" aria-label="游標式增量攝取示意圖">
@@ -351,8 +397,168 @@
         </defs>
       </svg>
     </div>
-    <figcaption>圖 3 — 游標讓摘要成本從 O(全部) 降成 O(新增)，而且每次送出的量有硬上限。</figcaption>
+    <figcaption>圖 3 — 游標讓每次只重送新增的片段（硬上限 20,000 字元）；既有摘要大小不隨對話成長，因此總成本是線性而非平方。</figcaption>
   </figure>
+
+  <h3 style="margin-top:28px">精確一點說：每次到底送出什麼</h3>
+  <p>「只送新增的那一段」是個好用的簡化說法，但不完全精確。第二次以後的攝取走的是 <strong>update</strong> 提示詞，它同時帶著<strong>目前那份完整的 wiki 頁</strong> —— 因為模型必須看得到既有結論，才知道要更新哪一節、哪些任務已經完成。實際送出的三個成分是：</p>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:26%">提示詞成分</th><th style="width:20%">大小上限</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>excerpt</code><br><span style="font-size:0.86em;color:var(--muted)">新增片段</span></td>
+          <td><strong>硬上限</strong><br>20,000 字元</td>
+          <td>由程式強制切斷，取 <code>chunk_chars</code> 與 <code>max_input</code> 的較小者。這是唯一真正被程式保證的上限</td>
+        </tr>
+        <tr>
+          <td><code>existing</code><br><span style="font-size:0.86em;color:var(--muted)">目前的 wiki 頁</span></td>
+          <td>軟上限<br>約 600 字</td>
+          <td><code>max_words</code> 只是寫在提示詞裡的「請控制在 N 字內」<em>要求</em>，程式並未截斷。<strong>但關鍵是它不隨對話長度成長</strong> —— 永遠就是那 12 個章節，第 3 次攝取和第 30 次攝取差不多大</td>
+        </tr>
+        <tr>
+          <td><code>structured_events</code><br><span style="font-size:0.86em;color:var(--muted)">結構化事件</span></td>
+          <td>部分有上限</td>
+          <td>bash 指令最多 20 筆、每筆 80 字元、錯誤訊息每筆 120 字元；但檔案編輯與 git 操作的<em>筆數</em>沒有上限</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>所以正確的說法是：<strong>每次呼叫的輸入 ≈ 恆定大小的摘要 ＋ 至多 20,000 字元的新增片段</strong>。恆定項不會隨對話變大，這才是平方成本被消滅的真正原因 —— 而不是因為「只送了新增的部分」。</p>
+
+  <div class="note">
+    <strong>換算成累計成本：</strong>若整場對話產生 N 個字元，攝取次數約為 N ÷ 20,000，每次輸入約「摘要 + 20,000」。總量因此是 <strong>N 的線性倍數</strong>。相對地，每次都重送全文的做法，累計會是 N 的<strong>平方</strong>等級 —— 對話越長差距越懸殊。
+  </div>
+
+  <h3 style="margin-top:28px">cursor.json 到底記了什麼</h3>
+  <p>它就只是一個書籤，作用範圍是<strong>單一 session 之內</strong>，不跨 session。整個檔案只有三個欄位：</p>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:28%">欄位</th><th>意義</th></tr></thead>
+      <tbody>
+        <tr><td><code>session_id</code></td><td>這個書籤屬於哪一個 session。對不上就整個重置，避免把上一個 session 的進度誤用在新對話上</td></tr>
+        <tr><td><code>chars_processed</code></td><td>書籤位置：逐字稿的前 N 個字元已經被摘要過了，下次從第 N+1 個字元開始讀</td></tr>
+        <tr><td><code>last_ingest_ts</code></td><td>上次攝取的時間戳，供 300 秒節流閘判斷這次要不要跳過</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin-top:28px">一個 session 的實際節奏</h3>
+  <p>把上面的機制放進真實時間軸，一次 session 的生命大概長這樣：</p>
+
+  <figure>
+    <div class="figbox">
+      <svg viewBox="0 0 880 330" role="img" aria-label="單一 session 中游標隨每次攝取前移的時間軸">
+        <!-- row labels -->
+        <text class="s-mut t-sm t-b" x="96" y="46"  text-anchor="end">時間 · 事件</text>
+        <text class="s-mut t-sm t-b" x="96" y="98"  text-anchor="end">逐字稿總長</text>
+        <text class="s-mut t-sm t-b" x="96" y="152" text-anchor="end">這次做了什麼</text>
+        <text class="s-mut t-sm t-b" x="96" y="209" text-anchor="end">cursor 之後的值</text>
+
+        <!-- column 1 : Stop #1 -->
+        <rect class="box-acc" x="107" y="26" width="122" height="30" rx="6"/>
+        <text class="s-fg t-sm t-b" x="168" y="46" text-anchor="middle">09:05 · Stop #1</text>
+        <rect class="box" x="107" y="78" width="122" height="28" rx="6"/>
+        <text class="s-fg t-sm" x="168" y="97" text-anchor="middle">8,000</text>
+        <rect class="box-acc" x="107" y="114" width="122" height="66" rx="6"/>
+        <text class="s-fg t-xs" x="168" y="132" text-anchor="middle">沒有 cursor</text>
+        <text class="s-acc t-xs t-b" x="168" y="148" text-anchor="middle">送 [0 : 8,000]</text>
+        <text class="s-mut t-xs" x="168" y="163" text-anchor="middle">create 提示詞</text>
+        <text class="s-mut t-xs" x="168" y="176" text-anchor="middle">寫出 seed v1</text>
+        <rect class="box-good" x="107" y="190" width="122" height="30" rx="6"/>
+        <text class="s-fg t-sm t-b" x="168" y="210" text-anchor="middle">8,000</text>
+
+        <!-- column 2 : Stop #2 (skipped) -->
+        <rect class="box" x="233" y="26" width="122" height="30" rx="6"/>
+        <text class="s-mut t-sm t-b" x="294" y="46" text-anchor="middle">09:07 · Stop #2</text>
+        <rect class="box" x="233" y="78" width="122" height="28" rx="6"/>
+        <text class="s-fg t-sm" x="294" y="97" text-anchor="middle">15,000</text>
+        <rect class="box" x="233" y="114" width="122" height="66" rx="6"/>
+        <text class="s-mut t-xs" x="294" y="136" text-anchor="middle">距上次僅 120 秒</text>
+        <text class="s-mut t-xs" x="294" y="151" text-anchor="middle">&lt; 300 秒節流閘</text>
+        <text class="s-mut t-xs t-b" x="294" y="168" text-anchor="middle">不呼叫 LM</text>
+        <rect class="box" x="233" y="190" width="122" height="30" rx="6"/>
+        <text class="s-mut t-sm" x="294" y="210" text-anchor="middle">8,000（不變）</text>
+
+        <!-- column 3 : Stop #3 -->
+        <rect class="box-acc" x="359" y="26" width="122" height="30" rx="6"/>
+        <text class="s-fg t-sm t-b" x="420" y="46" text-anchor="middle">09:11 · Stop #3</text>
+        <rect class="box" x="359" y="78" width="122" height="28" rx="6"/>
+        <text class="s-fg t-sm" x="420" y="97" text-anchor="middle">26,000</text>
+        <rect class="box-acc" x="359" y="114" width="122" height="66" rx="6"/>
+        <text class="s-mut t-xs" x="420" y="132" text-anchor="middle">已過 360 秒</text>
+        <text class="s-acc t-xs t-b" x="420" y="148" text-anchor="middle">只送 [8,000 : 26,000]</text>
+        <text class="s-mut t-xs" x="420" y="163" text-anchor="middle">update 提示詞</text>
+        <text class="s-mut t-xs" x="420" y="176" text-anchor="middle">更新成 seed v2</text>
+        <rect class="box-good" x="359" y="190" width="122" height="30" rx="6"/>
+        <text class="s-fg t-sm t-b" x="420" y="210" text-anchor="middle">26,000</text>
+
+        <!-- column 4 : Stop #4 -->
+        <rect class="box-acc" x="485" y="26" width="122" height="30" rx="6"/>
+        <text class="s-fg t-sm t-b" x="546" y="46" text-anchor="middle">09:20 · Stop #4</text>
+        <rect class="box" x="485" y="78" width="122" height="28" rx="6"/>
+        <text class="s-fg t-sm" x="546" y="97" text-anchor="middle">47,000</text>
+        <rect class="box-acc" x="485" y="114" width="122" height="66" rx="6"/>
+        <text class="s-acc t-xs t-b" x="546" y="134" text-anchor="middle">只送 [26,000 : 46,000]</text>
+        <text class="s-mut t-xs" x="546" y="150" text-anchor="middle">被 20,000 上限切斷</text>
+        <text class="s-mut t-xs" x="546" y="165" text-anchor="middle">剩下的下一輪再吃</text>
+        <text class="s-mut t-xs" x="546" y="178" text-anchor="middle">更新成 seed v3</text>
+        <rect class="box-good" x="485" y="190" width="122" height="30" rx="6"/>
+        <text class="s-fg t-sm t-b" x="546" y="210" text-anchor="middle">46,000</text>
+
+        <!-- ellipsis separator -->
+        <line class="ln-dash" x1="609" y1="20" x2="609" y2="226"/>
+        <text class="s-mut t-sm t-b" x="609" y="16" text-anchor="middle">⋯</text>
+
+        <!-- column 5 : Stop #N (threshold) -->
+        <rect class="box-warm" x="611" y="26" width="122" height="30" rx="6"/>
+        <text class="s-fg t-sm t-b" x="672" y="46" text-anchor="middle">10:30 · Stop #N</text>
+        <rect class="box-warm" x="611" y="78" width="122" height="28" rx="6"/>
+        <text class="s-fg t-sm t-b" x="672" y="97" text-anchor="middle">121,000</text>
+        <rect class="box-warm" x="611" y="114" width="122" height="66" rx="6"/>
+        <text class="s-warm t-xs t-b" x="672" y="134" text-anchor="middle">超過 120,000 門檻</text>
+        <text class="s-mut t-xs" x="672" y="150" text-anchor="middle">顯示「可以 /clear」</text>
+        <text class="s-mut t-xs" x="672" y="167" text-anchor="middle">seed 早已備妥</text>
+        <rect class="box" x="611" y="190" width="122" height="30" rx="6"/>
+        <text class="s-mut t-sm" x="672" y="210" text-anchor="middle">不變</text>
+
+        <!-- column 6 : /clear -->
+        <rect class="box-good" x="737" y="26" width="122" height="30" rx="6"/>
+        <text class="s-fg t-sm t-b" x="798" y="46" text-anchor="middle">10:31 · /clear</text>
+        <rect class="box" x="737" y="78" width="122" height="28" rx="6"/>
+        <text class="s-mut t-sm" x="798" y="97" text-anchor="middle">—</text>
+        <rect class="box-good" x="737" y="114" width="122" height="66" rx="6"/>
+        <text class="s-good t-xs t-b" x="798" y="138" text-anchor="middle">讀出 seed 注入</text>
+        <text class="s-good t-xs t-b" x="798" y="153" text-anchor="middle">全新 session</text>
+        <text class="s-mut t-xs" x="798" y="170" text-anchor="middle">不做任何計算</text>
+        <rect class="box-bad" x="737" y="190" width="122" height="30" rx="6"/>
+        <text class="s-bad t-sm t-b" x="798" y="210" text-anchor="middle">刪除</text>
+
+        <!-- direction of travel -->
+        <path class="ln-acc" d="M120 238 L 860 238" marker-end="url(#arwT)"/>
+        <text class="s-acc t-xs t-b" x="440" y="256" text-anchor="middle">游標單調前移，永不回頭</text>
+        <defs>
+          <marker id="arwT" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+
+        <text class="s-mut t-xs" x="107" y="278">重點一：Stop #2 被節流閘擋下 —— 每次回話都會觸發 hook，但大部分不會真的呼叫語言模型。</text>
+        <text class="s-mut t-xs" x="107" y="296">重點二：第二次以後一律用 update 提示詞（既有 seed + 新增段落），既有結論被保留而不是重寫。</text>
+        <text class="s-mut t-xs" x="107" y="314">重點三：/clear 時 cursor.json 被刪除；新 session 有新的 .jsonl 與新的 session_id，一切從零重新累積。</text>
+      </svg>
+    </div>
+    <figcaption>圖 4 — 單一 session 內的游標軌跡。攝取反覆發生，<code>/clear</code> 只是收割。</figcaption>
+  </figure>
+
+  <p>換句話說：cursor 不記錄「這個專案的歷史」，那是 wiki 的工作；它只記錄「<strong>這份還沒被 clear 掉的逐字稿，我消化到哪了</strong>」。壽命跟 session 一樣長，用完即刪。</p>
+
+  <div class="note">
+    <strong>為什麼不乾脆等到最後一次做完？</strong>因為那要把 120,000 字元一口氣塞給本機的 7B 小模型 —— 多數小模型的 context 根本吃不下，就算吃得下使用者也得卡在 <code>/clear</code> 前面乾等，而且只有一次機會，失敗就全沒了。拆成每次 ≤ 20,000 字元之後，小模型輕鬆應付、失敗可重試、使用者完全無感。
+  </div>
 
   <p>這裡有個關鍵的正確性細節：<strong>游標只在成功時才前移</strong>。如果語言模型呼叫失敗，游標留在原地，下一輪會帶著完整的 diff 重試 —— 資訊不會因為一次失敗就被跳過。</p>
 </div>
@@ -384,7 +590,7 @@
         <text class="s-mut t-xs" x="360" y="188" text-anchor="middle">沒有內容的章節寫「_(not recorded)_」，而不是省略 —— 結構永遠完整</text>
       </svg>
     </div>
-    <figcaption>圖 4 — 12 個必要章節。固定結構才能被機器驗證，也才能被安全地增量更新。</figcaption>
+    <figcaption>圖 5 — 12 個必要章節。固定結構才能被機器驗證，也才能被安全地增量更新。</figcaption>
   </figure>
 
   <p>固定結構帶來三個好處：</p>
@@ -445,7 +651,7 @@
         </defs>
       </svg>
     </div>
-    <figcaption>圖 5 — 同一份結構化事件同時當作「LM 的事實錨點」和「LM 失效時的備援內容」。</figcaption>
+    <figcaption>圖 6 — 同一份結構化事件同時當作「LM 的事實錨點」和「LM 失效時的備援內容」。</figcaption>
   </figure>
 
   <p>這個設計有個一箭雙鵰的巧思：那份用程式硬解出來的事件清單（改了哪些檔、跑了哪些 git 指令、出了哪些錯），<strong>不只是在 LM 掛掉時當備胎</strong> —— 它平常就會被貼進 LM 的提示詞裡。小模型很容易在長逐字稿裡把檔名記錯，給它一份確定正確的清單，等於幫它把事實釘死，只讓它負責它擅長的部分：歸納意圖與決策。</p>
@@ -502,7 +708,7 @@
       <text class="s-mut t-sm" x="460" y="299" text-anchor="end">注入新 session</text>
     </svg>
   </div>
-  <figcaption>圖 6 — 壓縮漏斗。②③ 是「切窗」，④ 才是語意壓縮，⑤ 刻意加回一小段原文以保留即時脈絡。</figcaption>
+  <figcaption>圖 7 — 壓縮漏斗。②③ 是「切窗」，④ 才是語意壓縮，⑤ 刻意加回一小段原文以保留即時脈絡。</figcaption>
 </figure>
 
 <div class="note">
@@ -606,7 +812,7 @@
       <text class="s-mut t-xs" x="80" y="392">↑ 若背景攝取還在跑，這裡會先等它幾秒；等不到就用上一份完整的 seed（寫檔是原子操作，不會讀到半份）。</text>
     </svg>
   </div>
-  <figcaption>圖 7 — 完整生命週期。A 持續累積、B 提醒人類、C 換血重生。</figcaption>
+  <figcaption>圖 8 — 完整生命週期。A 持續累積、B 提醒人類、C 換血重生。</figcaption>
 </figure>
 
 <h2><span class="num">5.</span> 那 wiki 讀回來不會又塞爆嗎？</h2>

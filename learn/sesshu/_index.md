@@ -40,7 +40,8 @@ Sesshu（摂取）是一套給 **Claude Code / Codex CLI / Gemini CLI / GitHub C
 | 文件 | 格式 | 說明 |
 |---|---|---|
 | [sesshu-architecture-and-usage-guide.html](sesshu-architecture-and-usage-guide.html) | HTML（英文） | 來源專案 `docs/` 的官方架構與使用指南原檔，**逐位元組原樣複製**（UTF-8 無 BOM，36,400 bytes） |
-| [sesshu-compression-explained.html](sesshu-compression-explained.html) | HTML（繁中） | 來源專案 `docs/` 的**壓縮技術說明**原檔，**逐位元組原樣複製**（UTF-8 無 BOM，40,130 bytes） |
+| [sesshu-compression-explained.html](sesshu-compression-explained.html) | HTML（繁中） | 來源專案 `docs/` 的**壓縮技術說明**原檔，**逐位元組原樣複製**（UTF-8 無 BOM，53,960 bytes，8 張內嵌 SVG） |
+| [manual.html](manual.html) | HTML（繁中） | 來源專案 `docs/` 的**使用手冊**原檔，**逐位元組原樣複製**（UTF-8 無 BOM，35,713 bytes，5 張內嵌 SVG） |
 
 **《Sesshu 壓縮技術：核心觀念與方法》** 是來源專案作者用繁體中文撰寫的長文，
 專講「壓縮」這件事本身：為什麼對話會因 context 塞滿而「死掉」、四個核心觀念
@@ -48,8 +49,19 @@ Sesshu（摂取）是一套給 **Claude Code / Codex CLI / Gemini CLI / GitHub C
 三個時間點的完整生命週期、wiki 讀回來為何不會再次塞爆、三條不可違反的紀律、
 常見誤解、參數速查，以及與原始碼的對照表。
 
-> 想理解 Sesshu「怎麼壓」的人，這份是最直接的入口；
-> 想理解「整體架構怎麼組起來」的人，讀上面那份英文指南。
+> 2026-08-06 更新：新增「精確一點說：每次到底送出什麼」小節（拆解 `excerpt` /
+> `existing` / `structured_events` 三個提示詞成分的大小上限），以及 cursor 的
+> 完整說明 —— 誤會澄清框、`cursor.json` 三個欄位的意義，與一張「單一 session 內
+> 游標如何隨每次攝取前移」的時間軸圖。圖數由 7 張增為 8 張。
+
+**《Sesshu 使用手冊》** 是同一位作者撰寫的操作導向文件，不談原理只講怎麼用：
+安裝三步驟（pip 與原始碼兩種路徑，含 PowerShell 與 Bash 指令）、安裝後檔案落點、
+LM endpoint 設定（Ollama 本機／雲端）、安裝成功檢查清單、hitl 與 auto 兩種模式的
+日常操作、`/sesshu-config` 用法、依情境調參數對照表、疑難排解決策樹、解除安裝。
+
+> 三份 HTML 的分工：**要裝要用** → `manual.html`；**想懂原理** →
+> `sesshu-compression-explained.html`；**要完整技術參考** →
+> `sesshu-architecture-and-usage-guide.html`（英文）。
 
 這份英文 HTML 是來源專案作者撰寫的單一長文，涵蓋 Introduction、Problem & Motivation、
 Architecture Overview、Operating Principles、Core Flows、Runtime Adapters、Configuration、
