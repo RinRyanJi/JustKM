@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sesshu 壓縮技術：核心觀念與方法</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --card: #f7f8fa;
+    --fg: #16191d;
+    --muted: #5b6472;
+    --line: #d8dde5;
+    --accent: #2f6f8f;
+    --accent-soft: #e3eef4;
+    --warm: #b5651d;
+    --warm-soft: #f6e8da;
+    --good: #2e7d55;
+    --good-soft: #e0f0e8;
+    --bad: #b03a3a;
+    --bad-soft: #f7e3e3;
+    --code-bg: #eef1f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14171b;
+      --card: #1c2026;
+      --fg: #e6e9ee;
+      --muted: #9aa5b4;
+      --line: #333a44;
+      --accent: #6fb4d4;
+      --accent-soft: #1e2c35;
+      --warm: #d99a5b;
+      --warm-soft: #302620;
+      --good: #6cc39a;
+      --good-soft: #1c2a24;
+      --bad: #e08585;
+      --bad-soft: #2e2020;
+      --code-bg: #23282f;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC",
+                 "PingFang TC", "Microsoft JhengHei", Roboto, sans-serif;
+    line-height: 1.75;
+    font-size: 16px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 48px 24px 96px; }
+
+  header.title { border-bottom: 2px solid var(--line); padding-bottom: 24px; margin-bottom: 8px; }
+  h1 { font-size: 1.9rem; line-height: 1.35; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .subtitle { color: var(--muted); margin: 0; font-size: 0.98rem; }
+
+  h2 {
+    font-size: 1.35rem;
+    margin: 56px 0 4px;
+    padding-top: 8px;
+    letter-spacing: -0.01em;
+  }
+  h2 .num {
+    display: inline-block;
+    min-width: 1.8em;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  h3 { font-size: 1.05rem; margin: 32px 0 4px; }
+  p { margin: 12px 0; }
+
+  code, .mono {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.88em;
+  }
+  code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    line-height: 1.6;
+  }
+  pre code { background: none; padding: 0; }
+
+  .lead {
+    background: var(--accent-soft);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 24px 0;
+  }
+  .lead p:first-child { margin-top: 0; }
+  .lead p:last-child { margin-bottom: 0; }
+
+  .note {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 20px 0;
+    font-size: 0.94rem;
+    color: var(--muted);
+  }
+  .note strong { color: var(--fg); }
+
+  figure { margin: 28px 0; }
+  .figbox {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 16px 10px;
+    overflow-x: auto;
+  }
+  figure svg { display: block; width: 100%; height: auto; min-width: 560px; }
+  figcaption {
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  .tablewrap { overflow-x: auto; margin: 20px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.93rem; min-width: 480px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--card); font-weight: 600; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  ul, ol { padding-left: 1.4em; }
+  li { margin: 6px 0; }
+
+  .concept {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 4px 22px 18px;
+    margin: 24px 0;
+    background: var(--card);
+  }
+  .concept h3 { margin-top: 20px; }
+  .concept .tag {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    padding: 2px 9px;
+    border-radius: 999px;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  @media (prefers-color-scheme: dark) { .concept .tag { color: #10161a; } }
+
+  .qa { margin: 20px 0; }
+  .qa dt { font-weight: 600; margin-top: 18px; }
+  .qa dd { margin: 6px 0 0; color: var(--muted); }
+
+  .srcmap code { white-space: nowrap; }
+
+  footer {
+    margin-top: 72px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+
+  /* SVG text defaults */
+  svg text { font-family: -apple-system, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif; }
+  .s-fg   { fill: var(--fg); }
+  .s-mut  { fill: var(--muted); }
+  .s-acc  { fill: var(--accent); }
+  .s-good { fill: var(--good); }
+  .s-bad  { fill: var(--bad); }
+  .s-warm { fill: var(--warm); }
+  .box    { fill: var(--bg); stroke: var(--line); stroke-width: 1.5; }
+  .box-acc  { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+  .box-good { fill: var(--good-soft); stroke: var(--good); stroke-width: 1.5; }
+  .box-bad  { fill: var(--bad-soft); stroke: var(--bad); stroke-width: 1.5; }
+  .box-warm { fill: var(--warm-soft); stroke: var(--warm); stroke-width: 1.5; }
+  .ln  { stroke: var(--line); stroke-width: 1.5; fill: none; }
+  .ln-acc { stroke: var(--accent); stroke-width: 2; fill: none; }
+  .ln-bad { stroke: var(--bad); stroke-width: 2.5; fill: none; }
+  .ln-good { stroke: var(--good); stroke-width: 2.5; fill: none; }
+  .ln-dash { stroke: var(--muted); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+  .t-sm { font-size: 12px; }
+  .t-xs { font-size: 10.5px; }
+  .t-md { font-size: 13.5px; }
+  .t-b  { font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="title">
+  <h1>Sesshu 壓縮技術：核心觀念與方法</h1>
+  <p class="subtitle">一份給人看的說明 —— 不談實作細節，先講「為什麼這樣設計」。對應原始碼：<code>src/sesshu/</code></p>
+</header>
+
+<div class="lead">
+  <p><strong>一句話版本：</strong>Sesshu 不是把對話「壓小」，而是把對話<strong>搬家</strong> —— 從昂貴、會被塞爆的 context window，搬到便宜、可以無限長大、而且能被搜尋的磁碟檔案。context 裡只留一份約 600 字的結構化摘要，和一組「要更多細節就去這裡找」的路徑。</p>
+</div>
+
+<h2><span class="num">1.</span> 先看問題：對話為什麼會「死掉」</h2>
+
+<p>與 AI coding agent 的對話，逐字稿（transcript）是<strong>只增不減</strong>的。每一次工具呼叫、每一份檔案內容、每一段錯誤訊息，都會永久累積在同一個 <code>.jsonl</code> 檔裡，並且在每一輪都重新餵給模型。</p>
+
+<p>結果是兩件事同時惡化：<strong>成本隨輪數平方成長</strong>（第 N 輪要重讀前面 N-1 輪），而且遲早會撞到 context window 上限。撞到之後，你只有兩個選擇：忍受 agent 開始遺忘，或是 <code>/clear</code> 從零開始 —— 把所有脈絡一起丟掉。</p>
+
+<figure>
+  <div class="figbox">
+    <svg viewBox="0 0 720 280" role="img" aria-label="有無 Sesshu 的 context 使用量對比曲線圖">
+      <!-- axes -->
+      <line class="ln" x1="60" y1="30" x2="60" y2="225"/>
+      <line class="ln" x1="60" y1="225" x2="680" y2="225"/>
+      <text class="s-mut t-xs" x="52" y="34" text-anchor="end">滿</text>
+      <text class="s-mut t-xs" x="52" y="228" text-anchor="end">0</text>
+      <text class="s-mut t-sm" x="14" y="130" text-anchor="middle" transform="rotate(-90 14 130)">context 使用量</text>
+      <text class="s-mut t-sm" x="370" y="252" text-anchor="middle">對話輪數 →</text>
+
+      <!-- limit line -->
+      <line class="ln-dash" x1="60" y1="55" x2="680" y2="55"/>
+      <text class="s-mut t-xs" x="676" y="50" text-anchor="end">context window 上限</text>
+
+      <!-- without sesshu: rising then flat at ceiling -->
+      <path class="ln-bad" d="M60 225 C 180 215, 250 150, 330 95 C 380 62, 410 56, 430 55 L 680 55"/>
+      <circle cx="430" cy="55" r="4.5" fill="var(--bad)"/>
+      <text class="s-bad t-sm t-b" x="440" y="44">撞牆：開始遺忘 / 被迫 /clear</text>
+
+      <!-- with sesshu: sawtooth -->
+      <path class="ln-good" d="M60 225 C 120 210, 160 175, 200 150
+                               L 200 196
+                               C 250 186, 290 155, 330 132
+                               L 330 196
+                               C 380 186, 420 155, 460 132
+                               L 460 196
+                               C 510 186, 550 155, 590 132
+                               L 590 196
+                               C 630 189, 655 176, 680 166"/>
+      <g>
+        <circle cx="200" cy="150" r="3.5" fill="var(--good)"/>
+        <circle cx="330" cy="132" r="3.5" fill="var(--good)"/>
+        <circle cx="460" cy="132" r="3.5" fill="var(--good)"/>
+        <circle cx="590" cy="132" r="3.5" fill="var(--good)"/>
+      </g>
+      <text class="s-good t-xs" x="205" y="214">壓縮 + /clear</text>
+      <text class="s-good t-xs" x="335" y="214">壓縮 + /clear</text>
+      <text class="s-good t-xs" x="465" y="214">壓縮 + /clear</text>
+
+      <!-- legend -->
+      <line class="ln-bad" x1="80" y1="270" x2="112" y2="270"/>
+      <text class="s-fg t-sm" x="118" y="274">沒有 Sesshu</text>
+      <line class="ln-good" x1="230" y1="270" x2="262" y2="270"/>
+      <text class="s-fg t-sm" x="268" y="274">有 Sesshu：鋸齒狀，每次歸零但脈絡不掉</text>
+    </svg>
+  </div>
+  <figcaption>圖 1 — Sesshu 要達成的效果：讓 context 使用量變成鋸齒狀，而不是單調上升到撞牆。</figcaption>
+</figure>
+
+<h2><span class="num">2.</span> 四個核心觀念</h2>
+
+<p>整套系統其實只建立在四個想法上。理解這四個，實作細節都只是它們的自然結果。</p>
+
+<div class="concept">
+  <h3><span class="tag">觀念 1</span>卸載（offload），不是刪減（truncate）</h3>
+  <p>一般的「壓縮」直覺是把文字砍短 —— 但砍掉的資訊就永久消失了。Sesshu 的做法是把資訊<strong>移到另一層儲存</strong>，並在 context 裡留下一個指標。</p>
+  <p>這等於在 agent 身上建立了三層記憶結構，跟 CPU 的 L1 / L2 / 主記憶體是同一個概念：</p>
+
+  <figure>
+    <div class="figbox">
+      <svg viewBox="0 0 720 250" role="img" aria-label="三層記憶結構圖">
+        <!-- L1 -->
+        <rect class="box-acc" x="60" y="26" width="600" height="52" rx="8"/>
+        <text class="s-fg t-md t-b" x="80" y="49">熱層 — Context Window</text>
+        <text class="s-mut t-sm" x="80" y="68">目前這一輪對話。最貴、最小、每輪都要重付一次錢。</text>
+        <text class="s-acc t-sm t-b" x="640" y="58" text-anchor="end">數 KB</text>
+
+        <!-- L2 -->
+        <rect class="box-good" x="60" y="94" width="600" height="52" rx="8"/>
+        <text class="s-fg t-md t-b" x="80" y="117">溫層 — seed.md（種子摘要）</text>
+        <text class="s-mut t-sm" x="80" y="136">12 節結構化摘要 + 最近 4 組對話原文。/clear 後自動注入回熱層。</text>
+        <text class="s-good t-sm t-b" x="640" y="126" text-anchor="end">約 600 字</text>
+
+        <!-- L3 -->
+        <rect class="box-warm" x="60" y="162" width="600" height="60" rx="8"/>
+        <text class="s-fg t-md t-b" x="80" y="185">冷層 — wiki/ 頁面 + FTS5 索引</text>
+        <text class="s-mut t-sm" x="80" y="204">每次壓縮存一頁，永久保留。不進 context，需要時才被 Read 工具撈出來。</text>
+        <text class="s-warm t-sm t-b" x="640" y="194" text-anchor="end">無上限</text>
+
+        <!-- arrows -->
+        <path class="ln-acc" d="M366 78 L 366 92" marker-end="url(#arw1)"/>
+        <path class="ln-acc" d="M330 146 L 330 160" marker-end="url(#arw1)"/>
+        <path class="ln-acc" d="M402 160 L 402 146" marker-end="url(#arw1)"/>
+        <text class="s-mut t-xs" x="374" y="90">壓縮寫入</text>
+        <text class="s-mut t-xs" x="412" y="156">按需讀回</text>
+        <defs>
+          <marker id="arw1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+    <figcaption>圖 2 — 三層記憶。資訊往下沉，需要時再往上撈，沒有東西被真正丟掉。</figcaption>
+  </figure>
+</div>
+
+<div class="concept">
+  <h3><span class="tag">觀念 2</span>游標式增量攝取：只讀新的那一段</h3>
+  <p>如果每次都把整份逐字稿丟給摘要模型，那摘要本身就變成了第二個平方成本問題。Sesshu 用一個 <code>cursor.json</code> 記住「這份逐字稿我已經讀到第幾個字元」，之後每次<strong>只處理游標之後新增的那一段</strong>。</p>
+
+  <figure>
+    <div class="figbox">
+      <svg viewBox="0 0 720 210" role="img" aria-label="游標式增量攝取示意圖">
+        <text class="s-mut t-sm" x="60" y="24">逐字稿 transcript.jsonl（只增不減）</text>
+
+        <!-- bar -->
+        <rect class="box" x="60" y="34" width="600" height="40" rx="5"/>
+        <rect x="61.5" y="35.5" width="340" height="37" fill="var(--code-bg)"/>
+        <rect x="401" y="35.5" width="130" height="37" fill="var(--accent-soft)"/>
+        <rect class="box" x="60" y="34" width="600" height="40" rx="5" fill="none"/>
+
+        <text class="s-mut t-sm" x="230" y="59" text-anchor="middle">已攝取過（不再重送）</text>
+        <text class="s-acc t-sm t-b" x="466" y="59" text-anchor="middle">本次的 diff</text>
+        <text class="s-mut t-sm" x="595" y="59" text-anchor="middle">尚未產生</text>
+
+        <!-- cursor marker -->
+        <line class="ln-acc" x1="401" y1="26" x2="401" y2="86"/>
+        <text class="s-acc t-sm t-b" x="401" y="20" text-anchor="middle">cursor</text>
+        <text class="s-mut t-xs" x="401" y="100" text-anchor="middle">chars_processed</text>
+
+        <!-- chunk cap -->
+        <path class="ln" d="M401 112 L 401 120 L 531 120 L 531 112"/>
+        <text class="s-mut t-xs" x="466" y="134" text-anchor="middle">單次上限 20,000 字元（SESSHU_INGEST_CHUNK_CHARS）</text>
+
+        <!-- after -->
+        <text class="s-mut t-sm" x="60" y="166">攝取成功後，游標前移：</text>
+        <line class="ln-acc" x1="531" y1="150" x2="531" y2="186"/>
+        <path class="ln-acc" d="M410 172 L 522 172" marker-end="url(#arw2)"/>
+        <text class="s-acc t-sm t-b" x="540" y="176">新的 cursor</text>
+        <defs>
+          <marker id="arw2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+    <figcaption>圖 3 — 游標讓摘要成本從 O(全部) 降成 O(新增)，而且每次送出的量有硬上限。</figcaption>
+  </figure>
+
+  <p>這裡有個關鍵的正確性細節：<strong>游標只在成功時才前移</strong>。如果語言模型呼叫失敗，游標留在原地，下一輪會帶著完整的 diff 重試 —— 資訊不會因為一次失敗就被跳過。</p>
+</div>
+
+<div class="concept">
+  <h3><span class="tag">觀念 3</span>固定 12 節結構：讓摘要可以被「更新」而不是「重寫」</h3>
+  <p>這是 Sesshu 跟一般「請幫我摘要這段對話」最不一樣的地方。摘要不是自由格式的段落，而是一份<strong>固定 schema 的 wiki 頁</strong>，永遠有這 12 個標題：</p>
+
+  <figure>
+    <div class="figbox">
+      <svg viewBox="0 0 720 200" role="img" aria-label="12 個必要章節">
+        <g>
+          <rect class="box-acc" x="30" y="20"  width="150" height="34" rx="6"/><text class="s-fg t-sm" x="105" y="42" text-anchor="middle">## Goal</text>
+          <rect class="box-acc" x="196" y="20" width="150" height="34" rx="6"/><text class="s-fg t-sm" x="271" y="42" text-anchor="middle">## Tasks</text>
+          <rect class="box-acc" x="362" y="20" width="150" height="34" rx="6"/><text class="s-fg t-sm" x="437" y="42" text-anchor="middle">## Plans</text>
+          <rect class="box-acc" x="528" y="20" width="162" height="34" rx="6"/><text class="s-fg t-sm" x="609" y="42" text-anchor="middle">## Decisions made</text>
+
+          <rect class="box" x="30" y="64"  width="150" height="34" rx="6"/><text class="s-fg t-xs" x="105" y="86" text-anchor="middle">## Rejected Approaches</text>
+          <rect class="box" x="196" y="64" width="150" height="34" rx="6"/><text class="s-fg t-sm" x="271" y="86" text-anchor="middle">## Constraints</text>
+          <rect class="box" x="362" y="64" width="150" height="34" rx="6"/><text class="s-fg t-sm" x="437" y="86" text-anchor="middle">## Code changes</text>
+          <rect class="box" x="528" y="64" width="162" height="34" rx="6"/><text class="s-fg t-sm" x="609" y="86" text-anchor="middle">## Git operations</text>
+
+          <rect class="box" x="30" y="108"  width="150" height="34" rx="6"/><text class="s-fg t-xs" x="105" y="130" text-anchor="middle">## Errors &amp; resolutions</text>
+          <rect class="box" x="196" y="108" width="150" height="34" rx="6"/><text class="s-fg t-sm" x="271" y="130" text-anchor="middle">## Blockers</text>
+          <rect class="box" x="362" y="108" width="150" height="34" rx="6"/><text class="s-fg t-xs" x="437" y="130" text-anchor="middle">## External References</text>
+          <rect class="box-good" x="528" y="108" width="162" height="34" rx="6"/><text class="s-fg t-sm" x="609" y="130" text-anchor="middle">## Current state</text>
+        </g>
+        <text class="s-mut t-sm" x="360" y="168" text-anchor="middle">缺任何一節 → 自動重試，把缺的節名寫進提示詞要求重寫（最多 2 次）</text>
+        <text class="s-mut t-xs" x="360" y="188" text-anchor="middle">沒有內容的章節寫「_(not recorded)_」，而不是省略 —— 結構永遠完整</text>
+      </svg>
+    </div>
+    <figcaption>圖 4 — 12 個必要章節。固定結構才能被機器驗證，也才能被安全地增量更新。</figcaption>
+  </figure>
+
+  <p>固定結構帶來三個好處：</p>
+  <ul>
+    <li><strong>可驗證</strong> —— 程式可以逐行檢查標題在不在，不在就要求模型重寫。摘要品質不再靠運氣。</li>
+    <li><strong>可增量更新</strong> —— 第二次以後的提示詞是「這是既有的 wiki 頁，這是新發生的事，請更新它」，而不是「請重新摘要全部」。既有結論被保留，新資訊被歸位到對應章節。</li>
+    <li><strong>有記憶負片</strong> —— <code>## Rejected Approaches</code>（被否決的做法）這一節特別重要：它記住了「不要再試什麼」，這正是一般摘要最容易弄丟、卻最浪費時間重踩的資訊。</li>
+  </ul>
+</div>
+
+<div class="concept">
+  <h3><span class="tag">觀念 4</span>分層降級：語言模型是加分項，不是單點故障</h3>
+  <p>摘要用的是本機或遠端的小模型（預設 Ollama 上的 <code>qwen2.5:7b</code>）。它可能沒開、可能逾時、可能回傳垃圾。Sesshu 的設計是<strong>兩條軌道並行</strong>：一條確定性的、一條語意的。</p>
+
+  <figure>
+    <div class="figbox">
+      <svg viewBox="0 0 720 260" role="img" aria-label="LM 成功與 fallback 雙軌流程">
+        <!-- input -->
+        <rect class="box" x="40" y="106" width="120" height="46" rx="7"/>
+        <text class="s-fg t-sm t-b" x="100" y="126" text-anchor="middle">transcript diff</text>
+        <text class="s-mut t-xs" x="100" y="143" text-anchor="middle">原始 JSONL</text>
+
+        <!-- deterministic extraction -->
+        <path class="ln-acc" d="M160 129 L 196 129" marker-end="url(#arw3)"/>
+        <rect class="box-good" x="200" y="96" width="150" height="66" rx="7"/>
+        <text class="s-fg t-sm t-b" x="275" y="118" text-anchor="middle">結構化事件抽取</text>
+        <text class="s-mut t-xs" x="275" y="135" text-anchor="middle">純程式，不用模型</text>
+        <text class="s-mut t-xs" x="275" y="150" text-anchor="middle">檔案編輯 / git / 指令 / 錯誤</text>
+
+        <!-- split -->
+        <path class="ln-acc" d="M350 112 C 380 112, 380 62, 410 62" marker-end="url(#arw3)"/>
+        <path class="ln-acc" d="M350 146 C 380 146, 380 200, 410 200" marker-end="url(#arw3)"/>
+
+        <!-- LM path -->
+        <rect class="box-acc" x="414" y="34" width="150" height="56" rx="7"/>
+        <text class="s-fg t-sm t-b" x="489" y="56" text-anchor="middle">送進 LM 提示詞</text>
+        <text class="s-mut t-xs" x="489" y="73" text-anchor="middle">事實錨點 + 逐字稿原文</text>
+        <path class="ln-acc" d="M564 62 L 600 62" marker-end="url(#arw3)"/>
+        <rect class="box-acc" x="604" y="34" width="86" height="56" rx="7"/>
+        <text class="s-fg t-sm t-b" x="647" y="56" text-anchor="middle">完整</text>
+        <text class="s-fg t-sm t-b" x="647" y="73" text-anchor="middle">wiki 頁</text>
+
+        <!-- fallback path -->
+        <rect class="box-warm" x="414" y="172" width="150" height="56" rx="7"/>
+        <text class="s-fg t-sm t-b" x="489" y="194" text-anchor="middle">LM 掛掉時的備援</text>
+        <text class="s-mut t-xs" x="489" y="211" text-anchor="middle">直接填入 12 節骨架</text>
+        <path class="ln-acc" d="M564 200 L 600 200" marker-end="url(#arw3)"/>
+        <rect class="box-warm" x="604" y="172" width="86" height="56" rx="7"/>
+        <text class="s-fg t-sm t-b" x="647" y="194" text-anchor="middle">降級</text>
+        <text class="s-fg t-sm t-b" x="647" y="211" text-anchor="middle">wiki 頁</text>
+
+        <text class="s-mut t-xs" x="360" y="252" text-anchor="middle">兩條路徑產出的頁面章節結構完全相同 —— 下游不需要知道是哪一條產生的</text>
+
+        <defs>
+          <marker id="arw3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+    <figcaption>圖 5 — 同一份結構化事件同時當作「LM 的事實錨點」和「LM 失效時的備援內容」。</figcaption>
+  </figure>
+
+  <p>這個設計有個一箭雙鵰的巧思：那份用程式硬解出來的事件清單（改了哪些檔、跑了哪些 git 指令、出了哪些錯），<strong>不只是在 LM 掛掉時當備胎</strong> —— 它平常就會被貼進 LM 的提示詞裡。小模型很容易在長逐字稿裡把檔名記錯，給它一份確定正確的清單，等於幫它把事實釘死，只讓它負責它擅長的部分：歸納意圖與決策。</p>
+</div>
+
+<h2><span class="num">3.</span> 方法：資料是怎麼一層層變小的</h2>
+
+<p>把上面四個觀念接起來，一次壓縮的資料流長這樣。注意每一階段的縮減機制都不同 —— 有的是切窗、有的是抽取、有的才是真正的語意壓縮。</p>
+
+<figure>
+  <div class="figbox">
+    <svg viewBox="0 0 720 330" role="img" aria-label="壓縮漏斗，各階段資料量遞減">
+      <defs>
+        <marker id="arw4" markerWidth="9" markerHeight="9" refX="4.5" refY="7" orient="auto">
+          <path d="M0,0 L9,0 L4.5,7 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+
+      <!-- stage 1 -->
+      <rect class="box" x="110" y="16" width="500" height="42" rx="6"/>
+      <text class="s-fg t-md t-b" x="130" y="43">① 整份逐字稿</text>
+      <text class="s-mut t-sm" x="590" y="43" text-anchor="end">120,000 字元才觸發</text>
+
+      <line class="ln" x1="360" y1="58" x2="360" y2="72" marker-end="url(#arw4)"/>
+      <text class="s-mut t-xs" x="372" y="72">游標切出增量</text>
+
+      <!-- stage 2 -->
+      <rect class="box" x="160" y="80" width="400" height="42" rx="6"/>
+      <text class="s-fg t-md t-b" x="180" y="107">② 本次 diff</text>
+      <text class="s-mut t-sm" x="540" y="107" text-anchor="end">≤ 20,000 字元</text>
+
+      <line class="ln" x1="360" y1="122" x2="360" y2="136" marker-end="url(#arw4)"/>
+      <text class="s-mut t-xs" x="372" y="136">尾端切窗（上限 60,000，預設不會觸發）</text>
+
+      <!-- stage 3 -->
+      <rect class="box-good" x="200" y="144" width="320" height="42" rx="6"/>
+      <text class="s-fg t-md t-b" x="220" y="171">③ excerpt + 結構化事件</text>
+      <text class="s-mut t-sm" x="500" y="171" text-anchor="end">事實錨點</text>
+
+      <line class="ln" x1="360" y1="186" x2="360" y2="200" marker-end="url(#arw4)"/>
+      <text class="s-mut t-xs" x="372" y="200">語言模型：真正的語意壓縮（最多重試 2 次）</text>
+
+      <!-- stage 4 -->
+      <rect class="box-acc" x="240" y="208" width="240" height="42" rx="6"/>
+      <text class="s-fg t-md t-b" x="260" y="235">④ 12 節 wiki 頁</text>
+      <text class="s-mut t-sm" x="460" y="235" text-anchor="end">≤ 600 字</text>
+
+      <line class="ln" x1="360" y1="250" x2="360" y2="264" marker-end="url(#arw4)"/>
+      <text class="s-mut t-xs" x="372" y="264">加上最近 4 組對話原文（每則截到 800 字元）</text>
+
+      <!-- stage 5 -->
+      <rect class="box-acc" x="240" y="272" width="240" height="42" rx="6"/>
+      <text class="s-fg t-md t-b" x="260" y="299">⑤ seed.md</text>
+      <text class="s-mut t-sm" x="460" y="299" text-anchor="end">注入新 session</text>
+    </svg>
+  </div>
+  <figcaption>圖 6 — 壓縮漏斗。②③ 是「切窗」，④ 才是語意壓縮，⑤ 刻意加回一小段原文以保留即時脈絡。</figcaption>
+</figure>
+
+<div class="note">
+  <strong>為什麼最後要「加回」原文？</strong>摘要擅長保留結論，卻會抹掉語氣與最後那句沒說完的話。保留最近 4 組對話的原文，是為了讓 <code>/clear</code> 之後的第一句話能無縫接上 —— agent 知道「剛剛我們正在做什麼」，而不只是「這個 session 整體在做什麼」。
+</div>
+
+<h3>量級感</h3>
+<p>以預設值粗估：觸發門檻是 120,000 字元的逐字稿，注入回去的 <code>seed.md</code> 大約是 600 字摘要（約 4,000 字元）加上最多 8 則各 800 字元的近期對話，合計約 10,000 字元上下。也就是<strong>大約一個數量級的縮減</strong>，而被拿掉的那 90%＋並沒有消失，它們在 <code>wiki/sessions/</code> 裡等著被搜尋。</p>
+
+<h2><span class="num">4.</span> 三個時間點：完整生命週期</h2>
+
+<p>Sesshu 全部的行為都掛在 agent runtime 的 hook 上。它從來不主動跑，也從來不修改逐字稿本身。</p>
+
+<figure>
+  <div class="figbox">
+    <svg viewBox="0 0 720 400" role="img" aria-label="Sesshu 完整生命週期流程圖">
+      <defs>
+        <marker id="arw5" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 z" fill="var(--accent)"/>
+        </marker>
+        <marker id="arw5m" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+
+      <!-- lane labels -->
+      <text class="s-mut t-xs t-b" x="16" y="46">階段 A</text>
+      <text class="s-mut t-xs t-b" x="16" y="196">階段 B</text>
+      <text class="s-mut t-xs t-b" x="16" y="330">階段 C</text>
+      <line class="ln-dash" x1="70" y1="150" x2="700" y2="150"/>
+      <line class="ln-dash" x1="70" y1="284" x2="700" y2="284"/>
+
+      <!-- Stage A: every stop -->
+      <rect class="box" x="80" y="24" width="128" height="44" rx="7"/>
+      <text class="s-fg t-sm t-b" x="144" y="42" text-anchor="middle">Stop Hook</text>
+      <text class="s-mut t-xs" x="144" y="58" text-anchor="middle">每次 agent 回完話</text>
+
+      <path class="ln-acc" d="M208 46 L 244 46" marker-end="url(#arw5)"/>
+      <rect class="box" x="248" y="18" width="140" height="56" rx="7"/>
+      <text class="s-fg t-sm t-b" x="318" y="38" text-anchor="middle">節流閘</text>
+      <text class="s-mut t-xs" x="318" y="54" text-anchor="middle">距上次攝取 &lt; 300 秒？</text>
+      <text class="s-mut t-xs" x="318" y="68" text-anchor="middle">diff 是空的？→ 直接離開</text>
+
+      <path class="ln-acc" d="M388 46 L 424 46" marker-end="url(#arw5)"/>
+      <rect class="box-acc" x="428" y="18" width="150" height="56" rx="7"/>
+      <text class="s-fg t-sm t-b" x="503" y="38" text-anchor="middle">攝取 run_ingest()</text>
+      <text class="s-mut t-xs" x="503" y="54" text-anchor="middle">抽事件 → 呼叫 LM</text>
+      <text class="s-mut t-xs" x="503" y="68" text-anchor="middle">→ 寫 seed + wiki + 游標</text>
+
+      <path class="ln-acc" d="M578 46 L 614 46" marker-end="url(#arw5)"/>
+      <rect class="box-good" x="618" y="24" width="76" height="44" rx="7"/>
+      <text class="s-fg t-xs t-b" x="656" y="42" text-anchor="middle">seed.md</text>
+      <text class="s-mut t-xs" x="656" y="58" text-anchor="middle">wiki 頁</text>
+
+      <text class="s-mut t-xs" x="80" y="92">↑ 這一段是背景工作，使用者感覺不到；預設同步執行，可設為背景子行程。</text>
+      <text class="s-mut t-xs" x="80" y="108">↑ 每次 Stop 都會跑，但被 300 秒節流閘擋掉大部分呼叫 —— 所以實際上 LM 很少被吵醒。</text>
+
+      <!-- Stage B: threshold -->
+      <rect class="box" x="80" y="166" width="128" height="44" rx="7"/>
+      <text class="s-fg t-sm t-b" x="144" y="184" text-anchor="middle">同一個 Stop Hook</text>
+      <text class="s-mut t-xs" x="144" y="200" text-anchor="middle">run_stop()</text>
+
+      <path class="ln-acc" d="M208 188 L 244 188" marker-end="url(#arw5)"/>
+      <rect class="box" x="248" y="160" width="140" height="56" rx="7"/>
+      <text class="s-fg t-sm t-b" x="318" y="180" text-anchor="middle">三道閘門</text>
+      <text class="s-mut t-xs" x="318" y="196" text-anchor="middle">逐字稿 ≥ 120K？</text>
+      <text class="s-mut t-xs" x="318" y="210" text-anchor="middle">seed 已存在？沒提醒過？</text>
+
+      <path class="ln-acc" d="M388 188 L 424 188" marker-end="url(#arw5)"/>
+      <rect class="box-warm" x="428" y="160" width="266" height="56" rx="7"/>
+      <text class="s-fg t-sm t-b" x="561" y="180" text-anchor="middle">向使用者顯示一則 systemMessage</text>
+      <text class="s-mut t-xs" x="561" y="197" text-anchor="middle">「context 很大了，wiki 頁已存好，可以 /clear」</text>
+      <text class="s-mut t-xs" x="561" y="211" text-anchor="middle">陳述事實 + 建議，不下指令（避免觸發無限迴圈）</text>
+
+      <text class="s-mut t-xs" x="80" y="238">↑ 決定權在人手上（hitl 模式）。切成 auto 模式的話，改由 PreCompact hook 在 runtime 自動壓縮前搶先寫檔。</text>
+      <text class="s-mut t-xs" x="80" y="256">↑ <tspan class="s-fg">shown.flag</tspan> 確保同一輪壓縮只提醒一次，不會每回話都嘮叨。</text>
+
+      <!-- Stage C: session start -->
+      <rect class="box" x="80" y="300" width="128" height="44" rx="7"/>
+      <text class="s-fg t-sm t-b" x="144" y="318" text-anchor="middle">SessionStart</text>
+      <text class="s-mut t-xs" x="144" y="334" text-anchor="middle">使用者按下 /clear</text>
+
+      <path class="ln-acc" d="M208 322 L 244 322" marker-end="url(#arw5)"/>
+      <rect class="box" x="248" y="294" width="140" height="56" rx="7"/>
+      <text class="s-fg t-sm t-b" x="318" y="314" text-anchor="middle">讀 seed + 挑相關頁</text>
+      <text class="s-mut t-xs" x="318" y="330" text-anchor="middle">關鍵字 → FTS5 搜尋</text>
+      <text class="s-mut t-xs" x="318" y="344" text-anchor="middle">取最相關的 5 頁路徑</text>
+
+      <path class="ln-acc" d="M388 322 L 424 322" marker-end="url(#arw5)"/>
+      <rect class="box-good" x="428" y="294" width="150" height="56" rx="7"/>
+      <text class="s-fg t-sm t-b" x="503" y="314" text-anchor="middle">additionalContext</text>
+      <text class="s-mut t-xs" x="503" y="330" text-anchor="middle">摘要 + wiki 路徑提示</text>
+      <text class="s-mut t-xs" x="503" y="344" text-anchor="middle">注入全新 session</text>
+
+      <path class="ln-acc" d="M578 322 L 614 322" marker-end="url(#arw5)"/>
+      <rect class="box" x="618" y="300" width="76" height="44" rx="7"/>
+      <text class="s-fg t-xs t-b" x="656" y="318" text-anchor="middle">清掉 seed</text>
+      <text class="s-mut t-xs" x="656" y="334" text-anchor="middle">與游標</text>
+
+      <text class="s-mut t-xs" x="80" y="374">↑ 種子用完即焚：注入後立刻刪除 seed.md、shown.flag、cursor.json，下一輪從乾淨狀態重新累積。wiki 頁則永久保留。</text>
+      <text class="s-mut t-xs" x="80" y="392">↑ 若背景攝取還在跑，這裡會先等它幾秒；等不到就用上一份完整的 seed（寫檔是原子操作，不會讀到半份）。</text>
+    </svg>
+  </div>
+  <figcaption>圖 7 — 完整生命週期。A 持續累積、B 提醒人類、C 換血重生。</figcaption>
+</figure>
+
+<h2><span class="num">5.</span> 那 wiki 讀回來不會又塞爆嗎？</h2>
+
+<p>不會，因為<strong>注入 context 的是路徑，不是內容</strong>。SessionStart 只放進去五行檔案路徑，加上一句「如果摘要不夠細，用 Read 工具去讀對應的頁」。</p>
+
+<p>這把「要不要花 token 讀細節」的決定權，從壓縮時（那時還不知道哪些細節會有用）延後到使用時（那時 agent 已經知道自己在找什麼）。這就是<strong>惰性取用</strong>：資訊隨時可得，但只有真正需要時才付代價。</p>
+
+<p>要讓「找得到」成立，Sesshu 在寫入每一頁時就同步維護一個 SQLite FTS5 全文索引（沒有 FTS5 就退回 grep）。挑頁的流程是：從當前 seed 的 Goal / Tasks / Current state 等章節抽出關鍵詞 → 查索引 → 取前 5 名；查不到東西時，退回「最近 5 頁」。</p>
+
+<div class="note">
+  索引與檔案可能不同步（例如手動刪了某頁）。讀取前會先跑一次對帳，把新增、修改、刪除的頁面補進索引 —— <strong>檔案永遠是唯一真相，索引只是加速層</strong>。這也意味著索引整個刪掉也不會壞事，最多是慢一點。
+</div>
+
+<h2><span class="num">6.</span> 三條不可違反的紀律</h2>
+
+<p>這套東西跑在別人的開發流程中間，一旦出錯就會擋住整個 agent。所以有三條硬規則貫穿全部程式碼：</p>
+
+<div class="tablewrap">
+<table>
+  <thead><tr><th style="width:30%">紀律</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>永遠回傳 exit 0</strong></td>
+      <td>hook 只要非零退出就會中斷 agent。所以任何失敗 —— 模型掛了、檔案讀不到、JSON 壞了 —— 都是靜默記錄後正常退出。最壞情況是「這次沒壓縮」，絕不會是「你的 agent 卡住了」。</td>
+    </tr>
+    <tr>
+      <td><strong>絕不碰逐字稿</strong></td>
+      <td>只讀取，不寫入、不截斷、不刪除 <code>.jsonl</code>。原始紀錄是使用者的資產，壓縮產物一律另存他處。這也讓 Sesshu 隨時可以整包移除而不留後遺症。</td>
+    </tr>
+    <tr>
+      <td><strong>提示訊息只陳述事實</strong></td>
+      <td>給使用者看的 <code>systemMessage</code> 只能是「狀態描述 + 簡短建議」，不能寫成給 agent 的任務指令 —— 否則 agent 會把它當成新任務去執行，然後再次觸發 Stop hook，形成無限迴圈。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2><span class="num">7.</span> 常見誤解</h2>
+
+<dl class="qa">
+  <dt>Q：這跟 runtime 內建的 auto-compact 有什麼不同？</dt>
+  <dd>內建壓縮的產物活在 context 裡，下次再壓還是會被壓一次，資訊逐輪衰減，而且你看不到、改不了。Sesshu 的產物是磁碟上的 Markdown 檔，永久、可讀、可手改、可跨 session 搜尋。</dd>
+
+  <dt>Q：為什麼摘要要用另一個模型，不用主模型？</dt>
+  <dd>摘要是高頻、低難度的工作，用小模型跑在本機既便宜又不佔主模型的 context。也因為預設走本機 Ollama，逐字稿內容不必離開你的機器。</dd>
+
+  <dt>Q：小模型摘要品質不好怎麼辦？</dt>
+  <dd>這正是「固定 12 節 + 結構驗證重試 + 結構化事件錨點」三件事要解決的問題 —— 把模型的自由度壓到最低，讓它只做歸納，事實部分由程式提供。真的失敗時還有 LM-free 備援頁墊底。</dd>
+
+  <dt>Q：每次 Stop 都呼叫 LM，不會很慢嗎？</dt>
+  <dd>不會。預設有 300 秒的節流閘，多數 Stop 事件會直接跳過。若仍嫌卡，可把攝取模式切成背景子行程，Stop hook 立即返回，壓縮在背景完成。</dd>
+
+  <dt>Q：壓縮失敗會不會遺失那段對話？</dt>
+  <dd>不會。游標只在成功寫入後才前移，失敗時下一輪會帶著同一段 diff 重試；而且逐字稿本身從未被修改，原始紀錄一直都在。</dd>
+</dl>
+
+<h2><span class="num">8.</span> 參數速查</h2>
+
+<div class="tablewrap">
+<table>
+  <thead><tr><th>環境變數</th><th class="num">預設值</th><th>它在調整什麼</th></tr></thead>
+  <tbody>
+    <tr><td><code>SESSHU_THRESHOLD</code></td><td class="num">120,000</td><td>逐字稿到多大才提醒該 <code>/clear</code>（字元數）</td></tr>
+    <tr><td><code>SESSHU_INGEST_CHUNK_CHARS</code></td><td class="num">20,000</td><td>單次攝取最多吃多少新字元 —— 控制每次 LM 呼叫的規模</td></tr>
+    <tr><td><code>SESSHU_MAX_INPUT</code></td><td class="num">60,000</td><td>送進 LM 的硬上限；預設大於 chunk，只有調大 chunk 時才會生效</td></tr>
+    <tr><td><code>SESSHU_MAX_WORDS</code></td><td class="num">600</td><td>要求摘要的目標字數 —— 直接決定壓縮比</td></tr>
+    <tr><td><code>SESSHU_KEEP_TURNS</code></td><td class="num">4</td><td>seed 尾端保留幾組對話原文（每則截到 800 字元）</td></tr>
+    <tr><td><code>SESSHU_INGEST_MIN_INTERVAL</code></td><td class="num">300</td><td>兩次 LM 攝取的最短間隔秒數；設 0 表示每次 Stop 都攝取</td></tr>
+    <tr><td><code>SESSHU_TIMEOUT</code></td><td class="num">90</td><td>LM 請求逾時秒數；逾時就走備援路徑</td></tr>
+    <tr><td><code>SESSHU_MODE</code></td><td class="num">hitl</td><td><code>hitl</code>＝提醒人類手動 <code>/clear</code>；<code>auto</code>＝改掛 PreCompact 全自動</td></tr>
+    <tr><td><code>SESSHU_INGEST_MODE</code></td><td class="num">sync</td><td><code>sync</code>＝Stop 時同步跑完；<code>background</code>＝丟給子行程、Stop 立即返回</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2><span class="num">9.</span> 對照原始碼</h2>
+
+<div class="tablewrap srcmap">
+<table>
+  <thead><tr><th style="width:34%">觀念 / 步驟</th><th>檔案</th></tr></thead>
+  <tbody>
+    <tr><td>三個階段的主流程</td><td><code>src/sesshu/core.py</code>（<code>run_ingest</code> / <code>run_stop</code> / <code>run_start</code> / <code>run_precompact</code>）</td></tr>
+    <tr><td>游標與增量切片</td><td><code>src/sesshu/core.py</code>（<code>_load_cursor</code> / <code>_write_cursor</code>）</td></tr>
+    <tr><td>12 節結構與驗證重試</td><td><code>src/sesshu/structure.py</code></td></tr>
+    <tr><td>結構化事件抽取</td><td><code>src/sesshu/events.py</code></td></tr>
+    <tr><td>LM-free 備援頁</td><td><code>src/sesshu/fallback.py</code></td></tr>
+    <tr><td>wiki 寫入、索引、挑頁</td><td><code>src/sesshu/wiki.py</code></td></tr>
+    <tr><td>FTS5 全文檢索與對帳</td><td><code>src/sesshu/search.py</code></td></tr>
+    <tr><td>提示詞模板</td><td><code>data/prompts.json</code></td></tr>
+    <tr><td>參數與預設值</td><td><code>src/sesshu/config.py</code></td></tr>
+    <tr><td>逐字稿讀取與近期對話擷取</td><td><code>src/sesshu/transcript.py</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<footer>
+  <p>這份文件講的是「為什麼」。完整的模組參考、各 runtime adapter 差異、測試與除錯方式，請見同目錄的 <code>sesshu-architecture-and-usage-guide.html</code>。</p>
+</footer>
+
+</div>
+</body>
+</html>

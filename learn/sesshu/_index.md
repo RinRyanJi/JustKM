@@ -40,8 +40,18 @@ Sesshu（摂取）是一套給 **Claude Code / Codex CLI / Gemini CLI / GitHub C
 | 文件 | 格式 | 說明 |
 |---|---|---|
 | [sesshu-architecture-and-usage-guide.html](sesshu-architecture-and-usage-guide.html) | HTML（英文） | 來源專案 `docs/` 的官方架構與使用指南原檔，**逐位元組原樣複製**（UTF-8 無 BOM，36,400 bytes） |
+| [sesshu-compression-explained.html](sesshu-compression-explained.html) | HTML（繁中） | 來源專案 `docs/` 的**壓縮技術說明**原檔，**逐位元組原樣複製**（UTF-8 無 BOM，40,130 bytes） |
 
-這份 HTML 是來源專案作者撰寫的單一長文，涵蓋 Introduction、Problem & Motivation、
+**《Sesshu 壓縮技術：核心觀念與方法》** 是來源專案作者用繁體中文撰寫的長文，
+專講「壓縮」這件事本身：為什麼對話會因 context 塞滿而「死掉」、四個核心觀念
+（卸載而非刪減、游標式增量攝取、固定 12 節結構、分層降級）、資料如何一層層變小、
+三個時間點的完整生命週期、wiki 讀回來為何不會再次塞爆、三條不可違反的紀律、
+常見誤解、參數速查，以及與原始碼的對照表。
+
+> 想理解 Sesshu「怎麼壓」的人，這份是最直接的入口；
+> 想理解「整體架構怎麼組起來」的人，讀上面那份英文指南。
+
+這份英文 HTML 是來源專案作者撰寫的單一長文，涵蓋 Introduction、Problem & Motivation、
 Architecture Overview、Operating Principles、Core Flows、Runtime Adapters、Configuration、
 Trusted Config/Data Directories、Transcript Processing、Structured Event Extraction、
 LM Interaction & Validation、Wiki Persistence & Search、Fallback Path (LM-Free)、
@@ -87,9 +97,9 @@ Limitations & Extension Points 等章節。
 - 完整原始碼（`src/sesshu/**/*.py`，約 20 個模組）
 - 測試檔（`tests/test_*.py`，30 個）
 - `install.sh` / `install.ps1` 完整腳本（僅摘要行為）
-- `docs/sesshu-compression-explained.html`（壓縮技術中文長文，另一份 HTML）
 - `docs/smoke-test.md`
 - `benchmarks/tasks/*.md`（4 份 benchmark 任務 prompt）
 
-> 註：`docs/sesshu-architecture-and-usage-guide.html` 原本列在此清單，
+> 註：`docs/sesshu-architecture-and-usage-guide.html` 與
+> `docs/sesshu-compression-explained.html` 原本列在此清單，
 > 已於 2026-08-06 改為原樣複製進本目錄，見上方「原始文件」段落。
