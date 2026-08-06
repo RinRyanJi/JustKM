@@ -40,7 +40,7 @@ Sesshu（摂取）是一套給 **Claude Code / Codex CLI / Gemini CLI / GitHub C
 | 文件 | 格式 | 說明 |
 |---|---|---|
 | [sesshu-architecture-and-usage-guide.html](sesshu-architecture-and-usage-guide.html) | HTML（英文） | 來源專案 `docs/` 的官方架構與使用指南原檔，**逐位元組原樣複製**（UTF-8 無 BOM，36,400 bytes） |
-| [sesshu-compression-explained.html](sesshu-compression-explained.html) | HTML（繁中） | 來源專案 `docs/` 的**壓縮技術說明**原檔，**逐位元組原樣複製**（UTF-8 無 BOM，53,960 bytes，8 張內嵌 SVG） |
+| [sesshu-compression-explained.html](sesshu-compression-explained.html) | HTML（繁中） | 來源專案 `docs/` 的**壓縮技術說明**原檔，**逐位元組原樣複製**（UTF-8 無 BOM，68,454 bytes，9 張內嵌 SVG） |
 | [manual.html](manual.html) | HTML（繁中） | 來源專案 `docs/` 的**使用手冊**原檔，**逐位元組原樣複製**（UTF-8 無 BOM，35,713 bytes，5 張內嵌 SVG） |
 
 **《Sesshu 壓縮技術：核心觀念與方法》** 是來源專案作者用繁體中文撰寫的長文，
@@ -49,10 +49,17 @@ Sesshu（摂取）是一套給 **Claude Code / Codex CLI / Gemini CLI / GitHub C
 三個時間點的完整生命週期、wiki 讀回來為何不會再次塞爆、三條不可違反的紀律、
 常見誤解、參數速查，以及與原始碼的對照表。
 
-> 2026-08-06 更新：新增「精確一點說：每次到底送出什麼」小節（拆解 `excerpt` /
-> `existing` / `structured_events` 三個提示詞成分的大小上限），以及 cursor 的
-> 完整說明 —— 誤會澄清框、`cursor.json` 三個欄位的意義，與一張「單一 session 內
-> 游標如何隨每次攝取前移」的時間軸圖。圖數由 7 張增為 8 張。
+> 2026-08-06 更新（兩批）：
+>
+> 1. 新增「精確一點說：每次到底送出什麼」小節（拆解 `excerpt` / `existing` /
+>    `structured_events` 三個提示詞成分的大小上限），以及 cursor 的完整說明 ——
+>    誤會澄清框、`cursor.json` 三個欄位的意義，與一張「單一 session 內游標如何隨
+>    每次攝取前移」的時間軸圖。
+> 2. **每個核心觀念都補上「代價」區塊**，並新增「事件清單是怎麼硬解出來的」小節
+>    （含一張抽取篩子圖：哪些記錄被保留、哪些被靜默丟棄）與第 7 節「代價總表」
+>    （9 項設計選擇的得失對照）。
+>
+> 圖數由 7 張增為 9 張，章節由 9 節增為 10 節。
 
 **《Sesshu 使用手冊》** 是同一位作者撰寫的操作導向文件，不談原理只講怎麼用：
 安裝三步驟（pip 與原始碼兩種路徑，含 PowerShell 與 Bash 指令）、安裝後檔案落點、

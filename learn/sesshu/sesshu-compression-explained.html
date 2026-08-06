@@ -158,6 +158,27 @@
   }
   @media (prefers-color-scheme: dark) { .concept .tag { color: #10161a; } }
 
+  .cost {
+    border-top: 1px dashed var(--line);
+    margin-top: 22px;
+    padding-top: 14px;
+  }
+  .cost-label {
+    display: inline-block;
+    background: var(--bad-soft);
+    color: var(--bad);
+    border: 1px solid var(--bad);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    padding: 1px 10px;
+    border-radius: 999px;
+    vertical-align: middle;
+  }
+  .cost .hd { margin: 0 0 4px; font-size: 0.94rem; }
+  .cost .hd .txt { margin-left: 8px; color: var(--muted); }
+  .cost ul { margin: 8px 0 0; font-size: 0.93rem; }
+  .cost li { margin: 7px 0; }
+
   .misread {
     border: 1px solid var(--line);
     border-radius: 10px;
@@ -341,6 +362,15 @@
     </div>
     <figcaption>圖 2 — 三層記憶。資訊往下沉，需要時再往上撈，沒有東西被真正丟掉。</figcaption>
   </figure>
+
+  <div class="cost">
+    <p class="hd"><span class="cost-label">代價</span><span class="txt">卸載換來永久保存，但沒有免費的</span></p>
+    <ul>
+      <li><strong>冷層只增不減。</strong>每次攝取寫一頁，沒有任何淘汰、歸檔或壓縮機制（只有 <code>log.md</code> 有 1 MB 輪替，session 頁面沒有）。用久了要自己清。</li>
+      <li><strong>「找得到」不等於「會去找」。</strong>資訊搬到冷層之後，agent 必須<em>主動想到</em>要去查才會用上。摘要裡沒被提及的線索，實務上等同不存在。</li>
+      <li><strong>對話內容以明文落地。</strong>wiki 頁是純 Markdown（權限設為 <code>0o600</code>，但未加密）。context window 是暫時的，磁碟不是。</li>
+    </ul>
+  </div>
 </div>
 
 <div class="concept">
@@ -561,6 +591,15 @@
   </div>
 
   <p>這裡有個關鍵的正確性細節：<strong>游標只在成功時才前移</strong>。如果語言模型呼叫失敗，游標留在原地，下一輪會帶著完整的 diff 重試 —— 資訊不會因為一次失敗就被跳過。</p>
+
+  <div class="cost">
+    <p class="hd"><span class="cost-label">代價</span><span class="txt">增量換來線性成本，但把「重新理解」的機會關掉了</span></p>
+    <ul>
+      <li><strong>游標前移即定案。</strong>那段內容不會再被讀第二次。如果模型第一次就理解錯了，錯誤會沿著往後每一次 <code>update</code> 一路傳遞下去，而且沒有任何機制會回頭校正 —— 這是典型的<em>誤差累積</em>。</li>
+      <li><strong>切塊邊界不對齊行邊界。</strong>切片是純字元運算（<code>raw[chars_processed : target_end]</code>），所以每個 chunk 的頭尾通常各有一筆被切成兩半的 JSON 記錄。對 LM 只是看到半句話，但對觀念 4 的事件抽取來說，那筆記錄會<strong>在兩個 chunk 裡都消失</strong>。</li>
+      <li><strong>seed 的新鮮度會落後。</strong>節流閘擋掉的那段對話並不會補做。若你在距上次攝取 290 秒時按下 <code>/clear</code>，這近 5 分鐘的內容既不在摘要裡、也不在近期對話原文裡（那份原文是<em>上次攝取當下</em>擷取的，不是 <code>/clear</code> 當下重算的）—— 直接遺失。</li>
+    </ul>
+  </div>
 </div>
 
 <div class="concept">
@@ -599,6 +638,16 @@
     <li><strong>可增量更新</strong> —— 第二次以後的提示詞是「這是既有的 wiki 頁，這是新發生的事，請更新它」，而不是「請重新摘要全部」。既有結論被保留，新資訊被歸位到對應章節。</li>
     <li><strong>有記憶負片</strong> —— <code>## Rejected Approaches</code>（被否決的做法）這一節特別重要：它記住了「不要再試什麼」，這正是一般摘要最容易弄丟、卻最浪費時間重踩的資訊。</li>
   </ul>
+
+  <div class="cost">
+    <p class="hd"><span class="cost-label">代價</span><span class="txt">固定 schema 換來可驗證性，但 schema 本身就是一種偏見</span></p>
+    <ul>
+      <li><strong>12 節裝不下的東西無處可去。</strong>使用者的偏好、風格要求、領域背景知識、正在讀的參考資料 —— 這些沒有對應章節，只能被硬塞進不合適的節，或直接消失。</li>
+      <li><strong>驗證只檢查標題，不檢查內容。</strong><code>validate_sections()</code> 比對的是「這 12 行標題在不在」。一份 12 節俱全、但每節都寫著「_(not recorded)_」的頁面，會被判定為完全合格。<strong>形式正確不等於內容正確。</strong></li>
+      <li><strong>每一輪都重寫整頁。</strong><code>update</code> 提示詞要求模型輸出完整的新頁面，所以既有的正確結論每一輪都要重新經歷一次模型的手。它可能被改述、被弱化，或在小模型的手上悄悄消失。</li>
+      <li><strong>重試的成本是加倍的。</strong>缺章節就整頁重寫（最多 2 次），失敗的那次輸出直接丟棄。兩次都缺就接受殘缺頁面。</li>
+    </ul>
+  </div>
 </div>
 
 <div class="concept">
@@ -655,6 +704,100 @@
   </figure>
 
   <p>這個設計有個一箭雙鵰的巧思：那份用程式硬解出來的事件清單（改了哪些檔、跑了哪些 git 指令、出了哪些錯），<strong>不只是在 LM 掛掉時當備胎</strong> —— 它平常就會被貼進 LM 的提示詞裡。小模型很容易在長逐字稿裡把檔名記錯，給它一份確定正確的清單，等於幫它把事實釘死，只讓它負責它擅長的部分：歸納意圖與決策。</p>
+
+  <h3 style="margin-top:28px">事件清單是怎麼硬解出來的</h3>
+  <p>抽取完全不用模型，只有純字串與 JSON 操作（<code>events.py:86</code>）：逐行切開 diff，每行 <code>json.loads()</code>，解析成功就遞迴下探物件，看它是不是 <code>tool_use</code> 或 <code>tool_result</code>。分類規則只有四條 —— 而<strong>這四條也就是它能看見的全部</strong>：</p>
+
+  <figure>
+    <div class="figbox">
+      <svg viewBox="0 0 780 350" role="img" aria-label="事件抽取篩子：哪些記錄被保留、哪些被丟棄">
+        <defs>
+          <marker id="mS" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 z" fill="var(--muted)"/>
+          </marker>
+        </defs>
+
+        <text class="s-mut t-sm t-b" x="16" y="30">逐字稿中的記錄</text>
+        <text class="s-mut t-sm t-b" x="310" y="30">抽取結果</text>
+
+        <!-- row 1 -->
+        <rect class="box" x="16" y="40" width="250" height="34" rx="6"/>
+        <text class="s-fg t-xs" x="28" y="62">tool_use · Write / Edit / NotebookEdit</text>
+        <path class="ln" d="M270 57 L 304 57" marker-end="url(#mS)"/>
+        <rect class="box-good" x="310" y="40" width="454" height="34" rx="6"/>
+        <text class="s-good t-xs t-b" x="324" y="55">→ file_edits</text>
+        <text class="s-mut t-xs" x="324" y="69">去重；只留 file_path。同一個檔改 10 次也只記 1 筆，次數與順序消失</text>
+
+        <!-- row 2 -->
+        <rect class="box" x="16" y="80" width="250" height="34" rx="6"/>
+        <text class="s-fg t-xs" x="28" y="102">tool_use · Bash（指令含 "git "）</text>
+        <path class="ln" d="M270 97 L 304 97" marker-end="url(#mS)"/>
+        <rect class="box-good" x="310" y="80" width="454" height="34" rx="6"/>
+        <text class="s-good t-xs t-b" x="324" y="95">→ git_ops</text>
+        <text class="s-mut t-xs" x="324" y="109">去重；截斷到 80 字元。子字串比對，echo "digit 5" 也會被誤判成 git</text>
+
+        <!-- row 3 -->
+        <rect class="box" x="16" y="120" width="250" height="34" rx="6"/>
+        <text class="s-fg t-xs" x="28" y="142">tool_use · Bash（其他指令）</text>
+        <path class="ln" d="M270 137 L 304 137" marker-end="url(#mS)"/>
+        <rect class="box-good" x="310" y="120" width="454" height="34" rx="6"/>
+        <text class="s-good t-xs t-b" x="324" y="135">→ bash_commands</text>
+        <text class="s-mut t-xs" x="324" y="149">截斷到 80 字元；最多 20 筆，第 21 筆起靜默丟棄</text>
+
+        <!-- row 4 -->
+        <rect class="box" x="16" y="160" width="250" height="34" rx="6"/>
+        <text class="s-fg t-xs" x="28" y="182">tool_result · is_error = true</text>
+        <path class="ln" d="M270 177 L 304 177" marker-end="url(#mS)"/>
+        <rect class="box-good" x="310" y="160" width="454" height="34" rx="6"/>
+        <text class="s-good t-xs t-b" x="324" y="175">→ errors</text>
+        <text class="s-mut t-xs" x="324" y="189">截斷到 120 字元；content 有多段 text 時只取第一段</text>
+
+        <!-- separator -->
+        <line class="ln-dash" x1="16" y1="204" x2="764" y2="204"/>
+        <text class="s-bad t-xs t-b" x="764" y="200" text-anchor="end">以下完全不進事件清單</text>
+
+        <!-- row 5 -->
+        <rect class="box" x="16" y="212" width="250" height="34" rx="6"/>
+        <text class="s-mut t-xs" x="28" y="234">tool_result · 成功的輸出</text>
+        <path class="ln" d="M270 229 L 304 229" marker-end="url(#mS)"/>
+        <rect class="box-bad" x="310" y="212" width="454" height="34" rx="6"/>
+        <text class="s-bad t-xs t-b" x="324" y="234">✗ 完全不記錄 —— 刻意的：工具輸出太大，記了會撐爆提示詞</text>
+
+        <!-- row 6 -->
+        <rect class="box" x="16" y="252" width="250" height="34" rx="6"/>
+        <text class="s-mut t-xs" x="28" y="274">tool_use · Read / Grep / Glob / Task / MCP…</text>
+        <path class="ln" d="M270 269 L 304 269" marker-end="url(#mS)"/>
+        <rect class="box-bad" x="310" y="252" width="454" height="34" rx="6"/>
+        <text class="s-bad t-xs t-b" x="324" y="274">✗ 完全不記錄 —— 不在那三個工具名單內，讀了什麼、搜了什麼都不留痕</text>
+
+        <!-- row 7 -->
+        <rect class="box" x="16" y="292" width="250" height="34" rx="6"/>
+        <text class="s-mut t-xs" x="28" y="314">被 chunk 邊界切半的 JSON 行</text>
+        <path class="ln" d="M270 309 L 304 309" marker-end="url(#mS)"/>
+        <rect class="box-bad" x="310" y="292" width="454" height="34" rx="6"/>
+        <text class="s-bad t-xs t-b" x="324" y="314">✗ json.loads() 失敗，靜默跳過 —— 而另外半截在下一個 chunk 同樣失敗</text>
+
+        <text class="s-mut t-xs" x="16" y="344">✗ 的三類仍原封不動留在 excerpt 原文裡 —— LM 讀得到，只有「LM 掛掉時的備援頁」看不到。</text>
+      </svg>
+    </div>
+    <figcaption>圖 7 — 事件抽取是一張粗篩子。它保證<strong>抽到的都是對的</strong>，但完全不保證<strong>該抽的都抽到了</strong>。</figcaption>
+  </figure>
+
+  <div class="note">
+    <strong>為什麼「有損」在這裡是可以接受的？</strong>因為事件清單從來不是唯一的資訊來源。提示詞裡同時有 <code>structured_events</code> <strong>和</strong> <code>excerpt</code> 原文 —— 清單只需要<em>正確</em>（不能寫錯檔名），不需要<em>完整</em>；漏掉的部分 LM 從原文照樣讀得到。上圖被丟棄的三類，字元本身都還在 <code>excerpt</code> 裡。
+  </div>
+
+  <p>唯一真正依賴這份清單完整性的，是 LM 掛掉時的備援頁。而它會誠實標記自己不完整（<code>fallback.py:19</code> 寫入 <code>Fallback snapshot (LM unavailable). Re-ingest pending.</code>），而且<strong>走備援路徑時游標不前移</strong> —— 下一輪會帶著同一段完整的 diff 重跑，用正式摘要覆蓋掉這張暫時快照。所以備援頁的殘缺是暫時的。</p>
+
+  <div class="cost">
+    <p class="hd"><span class="cost-label">代價</span><span class="txt">確定性換來可靠，但那份確定性看得很窄</span></p>
+    <ul>
+      <li><strong>抽取本身刻意有損</strong> —— 只認三個檔案工具名、只記失敗的工具結果、指令截斷 80 字元、錯誤截斷 120 字元、bash 上限 20 筆、全部去重。上圖是完整清單。</li>
+      <li><strong>時間軸與因果關係全部丟失。</strong><code>EventSnapshot</code> 是四個扁平清單，誰先誰後、哪個錯誤是哪個指令造成的，都不在裡面。</li>
+      <li><strong>錯誤沒有去重也沒有筆數上限。</strong>同一個錯誤重複 200 次，就會有 200 筆進提示詞 —— 這是唯一可能無界成長的成分。</li>
+      <li><strong>真正的單向門：LM 呼叫「成功」但摘要品質差時，游標照樣前移。</strong>那段 diff 永遠不會被重讀，wiki 頁上遺漏的內容就永久不在 wiki 裡了。結構驗證只檢查標題在不在，攔不住這種情況。逐字稿裡還有原始紀錄，但沒有任何機制會回頭去撈。</li>
+    </ul>
+  </div>
 </div>
 
 <h2><span class="num">3.</span> 方法：資料是怎麼一層層變小的</h2>
@@ -708,7 +851,7 @@
       <text class="s-mut t-sm" x="460" y="299" text-anchor="end">注入新 session</text>
     </svg>
   </div>
-  <figcaption>圖 7 — 壓縮漏斗。②③ 是「切窗」，④ 才是語意壓縮，⑤ 刻意加回一小段原文以保留即時脈絡。</figcaption>
+  <figcaption>圖 8 — 壓縮漏斗。②③ 是「切窗」，④ 才是語意壓縮，⑤ 刻意加回一小段原文以保留即時脈絡。</figcaption>
 </figure>
 
 <div class="note">
@@ -812,7 +955,7 @@
       <text class="s-mut t-xs" x="80" y="392">↑ 若背景攝取還在跑，這裡會先等它幾秒；等不到就用上一份完整的 seed（寫檔是原子操作，不會讀到半份）。</text>
     </svg>
   </div>
-  <figcaption>圖 8 — 完整生命週期。A 持續累積、B 提醒人類、C 換血重生。</figcaption>
+  <figcaption>圖 9 — 完整生命週期。A 持續累積、B 提醒人類、C 換血重生。</figcaption>
 </figure>
 
 <h2><span class="num">5.</span> 那 wiki 讀回來不會又塞爆嗎？</h2>
@@ -851,7 +994,68 @@
 </table>
 </div>
 
-<h2><span class="num">7.</span> 常見誤解</h2>
+<h2><span class="num">7.</span> 代價總表</h2>
+
+<p>前面每個觀念底下都標了它自己的代價。這裡把全部收攏成一張表 —— <strong>沒有一個選擇是免費的</strong>，重點是知道自己付了什麼。</p>
+
+<div class="tablewrap">
+<table>
+  <thead><tr><th style="width:22%">設計選擇</th><th style="width:30%">換來了什麼</th><th>付出的代價</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>卸載到磁碟</strong><br><span style="font-size:0.86em;color:var(--muted)">而非刪減</span></td>
+      <td>資訊永久保存、可搜尋、可手動修改</td>
+      <td>wiki 只增不減，沒有淘汰機制；「找得到」不等於 agent「會去找」；對話內容以明文落在磁碟上</td>
+    </tr>
+    <tr>
+      <td><strong>游標式增量攝取</strong></td>
+      <td>總成本線性而非平方；每次呼叫的輸入都有界，小模型吃得下</td>
+      <td>游標前移即定案，早期的誤解會沿 <code>update</code> 鏈一路傳遞；切塊邊界會切半 JSON 記錄；最後一次攝取到 <code>/clear</code> 之間的對話直接遺失</td>
+    </tr>
+    <tr>
+      <td><strong>固定 12 節結構</strong></td>
+      <td>可被程式驗證、可安全增量更新、保留了被否決的做法</td>
+      <td>12 節之外的資訊無處可放；驗證只看標題不看內容；每輪重寫整頁都有把既有正確結論改壞的機會</td>
+    </tr>
+    <tr>
+      <td><strong>程式硬解事件清單</strong></td>
+      <td>給 LM 一組不會記錯的事實錨點；LM 掛掉時仍有結構完整的備援頁</td>
+      <td>抽取刻意有損：只認三個工具名、只記失敗結果、有截斷與筆數上限、全部去重、時間軸消失</td>
+    </tr>
+    <tr>
+      <td><strong>結構驗證最多重試 2 次</strong></td>
+      <td>避免無窮重試把 hook 拖死</td>
+      <td>兩次都缺章節就接受殘缺頁面；失敗那次的輸出直接丟棄，成本白付</td>
+    </tr>
+    <tr>
+      <td><strong>300 秒攝取節流</strong></td>
+      <td>小模型不會被每次回話吵醒，使用者幾乎無感</td>
+      <td>seed 的新鮮度最差落後約 5 分鐘，而且那段落差不會補做</td>
+    </tr>
+    <tr>
+      <td><strong>永遠回傳 exit 0</strong></td>
+      <td>不管出什麼事都不會擋住 agent</td>
+      <td>所有失敗都是靜默的。不開 <code>SESSHU_DEBUG=1</code> 就不會知道它其實一直在失敗</td>
+    </tr>
+    <tr>
+      <td><strong>只讀不寫逐字稿</strong></td>
+      <td>使用者的原始資產零風險，隨時可整包移除</td>
+      <td>無法在來源端做任何最佳化（例如就地去重、標記已處理），一切狀態只能靠外部的 <code>cursor.json</code> 維持</td>
+    </tr>
+    <tr>
+      <td><strong>用本機小模型摘要</strong></td>
+      <td>不花主模型 token、資料不出門</td>
+      <td>摘要品質受限於 7B 等級模型；需要自行架設與維護端點</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note">
+  <strong>如果只能記住一條：</strong>Sesshu 用「<em>可能漏一些</em>」換「<em>永遠不會擋住你，而且永遠不會弄壞你的原始紀錄</em>」。在 hook 這種跑在別人流程中間的位置，這個交換是划算的 —— 但你應該知道它成立的前提是：<strong>逐字稿本身才是真相，wiki 只是索引</strong>。
+</div>
+
+<h2><span class="num">8.</span> 常見誤解</h2>
 
 <dl class="qa">
   <dt>Q：這跟 runtime 內建的 auto-compact 有什麼不同？</dt>
@@ -870,7 +1074,7 @@
   <dd>不會。游標只在成功寫入後才前移，失敗時下一輪會帶著同一段 diff 重試；而且逐字稿本身從未被修改，原始紀錄一直都在。</dd>
 </dl>
 
-<h2><span class="num">8.</span> 參數速查</h2>
+<h2><span class="num">9.</span> 參數速查</h2>
 
 <div class="tablewrap">
 <table>
@@ -889,7 +1093,7 @@
 </table>
 </div>
 
-<h2><span class="num">9.</span> 對照原始碼</h2>
+<h2><span class="num">10.</span> 對照原始碼</h2>
 
 <div class="tablewrap srcmap">
 <table>
