@@ -32,6 +32,7 @@ JustKM/
 ├── index.html            ← 入口（74 個設計模板 + 主題卡）
 ├── invest/               ← 美股交易教學（AutoInvest）
 ├── learn/                ← AI / ML 學習（SLM 訓練、網路基礎、Agent）
+├── legal/                ← 契約 / 法務（租約逐條解析）
 ├── raw/                  ← 原始資料
 ├── design-md/            ← 74 個品牌 DESIGN.md
 └── travel/               ← 旅遊行程
@@ -48,6 +49,7 @@ JustKM/
 | 🧳 石垣跳島 · 行李 | [`travel/ishigaki-2026/index.html`](travel/ishigaki-2026/index.html) | ✅ 已建立 | Binance 風格 · 14 段含 SVG 時間軸 · 2人 6D5N |
 | 🗓️ 石垣跳島 · 行程 | [`travel/ishigaki-2026/itinerary.html`](travel/ishigaki-2026/itinerary.html) | ✅ 重列 | Sanity 風格 · 兩段住宿 + 颱風應變 SOP |
 | 🎨 74 品牌 DESIGN.md | [`design-md/`](design-md/index.html) | ✅ 已建立 | Stripe/Linear/Vercel/Apple/Cursor 等設計 token |
+| 📑 蝦皮租約逐條解析 | [`legal/shopee-lease-review.html`](legal/shopee-lease-review.html) | ✅ 已建立 | 房東視角逐條風險分級 · 含搜尋/篩選/列印（自足網頁） |
 | 🤖 Pi Agent 最佳實踐 | [`learn/ai-agents/pi-agent-best-practices-2026-06.md`](learn/ai-agents/pi-agent-best-practices-2026-06.md) | 🟡 metadata only | 暮閒 2026-06 影片,無字幕,待 Briefing Doc 補強 |
 | 🎓 AI 學習總目錄 | [`learn/`](learn/index.html) | ✅ 已建立 | AI/ML 學習區入口 · 收整下列所有單元，分區導覽 |
 | 🗜️ AI 對話/上下文壓縮實戰 | [`learn/ai-context-compression.html`](learn/ai-context-compression.html) | ✅ 已建立 | 跨 Agent 通用 · Claude Code/Codex 對照 + 四層次 + 通用策略 + GitHub 專案來源 |
@@ -80,4 +82,4 @@ JustKM/
 
 ---
 
-最後更新：2026-08-06（新增 learn/sesshu/manual.html — Sesshu 使用手冊；壓縮技術說明同步更新至含 cursor 完整解說的版本）
+最後更新：2026-08-10（新增 legal/shopee-lease-review.html — 蝦皮租約逐條實務解析）

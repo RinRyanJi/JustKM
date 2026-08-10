@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>蝦皮店到店租賃契約｜房東逐條實務解析</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #667085;
+      --line: #d9e0e8;
+      --paper: #ffffff;
+      --canvas: #f3f6f9;
+      --navy: #17355c;
+      --navy-2: #244d7c;
+      --accent: #e85d31;
+      --accent-soft: #fff1eb;
+      --critical: #b42318;
+      --critical-bg: #fff0ee;
+      --high: #b54708;
+      --high-bg: #fff5e8;
+      --medium: #175cd3;
+      --medium-bg: #eef4ff;
+      --low: #027a48;
+      --low-bg: #ecfdf3;
+      --shadow: 0 12px 30px rgba(16, 24, 40, .08);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      line-height: 1.75;
+    }
+    a { color: #175cd3; text-underline-offset: 3px; }
+    button, input { font: inherit; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 18px;
+      color: white;
+      background: rgba(23, 53, 92, .97);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 10px rgba(0,0,0,.12);
+    }
+    .topbar .brand { font-weight: 800; white-space: nowrap; }
+    .topbar input {
+      width: min(540px, 48vw);
+      margin-left: auto;
+      padding: 9px 12px;
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 10px;
+      color: white;
+      background: rgba(255,255,255,.12);
+      outline: none;
+    }
+    .topbar input::placeholder { color: rgba(255,255,255,.72); }
+    .topbar button {
+      padding: 8px 11px;
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 9px;
+      color: white;
+      background: transparent;
+      cursor: pointer;
+    }
+    .topbar button:hover { background: rgba(255,255,255,.13); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 270px minmax(0, 1000px);
+      gap: 26px;
+      justify-content: center;
+      padding: 28px 22px 60px;
+    }
+    aside {
+      position: sticky;
+      top: 74px;
+      align-self: start;
+      max-height: calc(100vh - 92px);
+      overflow: auto;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+    aside h2 {
+      margin: 0 0 10px;
+      font-size: .96rem;
+      color: var(--navy);
+    }
+    .nav-list { display: grid; gap: 3px; }
+    .nav-list a {
+      padding: 5px 8px;
+      border-radius: 7px;
+      color: #344054;
+      text-decoration: none;
+      font-size: .9rem;
+    }
+    .nav-list a:hover { color: var(--navy); background: #eef3f8; }
+    .filter-box {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      font-size: .88rem;
+    }
+    .filter-box label { display: block; margin: 5px 0; cursor: pointer; }
+
+    main { min-width: 0; }
+    .hero {
+      overflow: hidden;
+      position: relative;
+      padding: 42px;
+      border-radius: 24px;
+      color: white;
+      background:
+        radial-gradient(circle at 88% 14%, rgba(232,93,49,.75), transparent 25%),
+        linear-gradient(135deg, #102a4a, #244d7c 65%, #315f90);
+      box-shadow: var(--shadow);
+    }
+    .hero::after {
+      content: "§";
+      position: absolute;
+      right: 36px;
+      bottom: -85px;
+      color: rgba(255,255,255,.08);
+      font-family: Georgia, serif;
+      font-size: 240px;
+      line-height: 1;
+    }
+    .eyebrow {
+      margin: 0 0 12px;
+      color: #ffd8ca;
+      font-size: .88rem;
+      font-weight: 800;
+      letter-spacing: .09em;
+    }
+    h1 { max-width: 760px; margin: 0; font-size: clamp(2rem, 4vw, 3.2rem); line-height: 1.22; }
+    .hero p { max-width: 740px; margin: 18px 0 0; color: rgba(255,255,255,.87); }
+    .hero .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: .82rem;
+      font-weight: 800;
+    }
+    .hero .pill { border: 1px solid rgba(255,255,255,.28); background: rgba(255,255,255,.1); }
+
+    .notice {
+      margin: 22px 0;
+      padding: 16px 18px;
+      border-left: 5px solid var(--accent);
+      border-radius: 0 12px 12px 0;
+      background: var(--accent-soft);
+    }
+    .notice strong { color: #9a3412; }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 22px 0;
+    }
+    .metric {
+      padding: 19px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--paper);
+      box-shadow: 0 6px 18px rgba(16,24,40,.05);
+    }
+    .metric .label { color: var(--muted); font-size: .82rem; }
+    .metric .value { margin: 3px 0; color: var(--navy); font-size: 1.5rem; font-weight: 900; line-height: 1.25; }
+    .metric .hint { color: #475467; font-size: .82rem; }
+
+    .section-card {
+      scroll-margin-top: 76px;
+      margin: 22px 0;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+    .section-card[hidden] { display: none !important; }
+    .section-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .section-head h2 { margin: 0; color: var(--navy); font-size: 1.55rem; line-height: 1.35; }
+    .section-head p { margin: 5px 0 0; color: var(--muted); }
+    .risk-critical { color: var(--critical); background: var(--critical-bg); }
+    .risk-high { color: var(--high); background: var(--high-bg); }
+    .risk-medium { color: var(--medium); background: var(--medium-bg); }
+    .risk-low { color: var(--low); background: var(--low-bg); }
+
+    details.original {
+      margin: 12px 0 20px;
+      border: 1px solid #cfd8e3;
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+    details.original summary {
+      padding: 12px 15px;
+      color: var(--navy);
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .original-text { padding: 0 17px 15px; color: #344054; font-size: .92rem; }
+    .original-text ol { margin: 4px 0; padding-left: 23px; }
+    .original-text li { margin: 7px 0; }
+
+    .subclause {
+      margin: 16px 0;
+      padding: 18px;
+      border: 1px solid #e2e8f0;
+      border-radius: 13px;
+      background: #fff;
+    }
+    .subclause h3 { margin: 0 0 10px; color: #243b59; font-size: 1.08rem; }
+    .analysis {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 7px 13px;
+      margin: 0;
+    }
+    .analysis dt { color: var(--muted); font-size: .83rem; font-weight: 900; }
+    .analysis dd { margin: 0; }
+    .scenario {
+      margin-top: 11px;
+      padding: 12px 14px;
+      border-left: 4px solid #7f9dbd;
+      border-radius: 0 9px 9px 0;
+      background: #f4f7fb;
+    }
+    .scenario strong { color: var(--navy); }
+    .loss {
+      margin-top: 11px;
+      padding: 12px 14px;
+      border-radius: 9px;
+      color: #7a271a;
+      background: #fff1ed;
+    }
+    .action {
+      margin-top: 11px;
+      padding: 12px 14px;
+      border-radius: 9px;
+      color: #075e45;
+      background: #ecfdf3;
+    }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    th, td { padding: 11px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--navy); background: #f2f6fa; }
+    tr:last-child td { border-bottom: 0; }
+    .number { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+    .timeline { display: grid; gap: 0; margin: 10px 0; }
+    .time-item { position: relative; display: grid; grid-template-columns: 128px 1fr; gap: 16px; padding: 0 0 22px 22px; }
+    .time-item::before { content: ""; position: absolute; left: 5px; top: 8px; bottom: -7px; width: 2px; background: #cbd5e1; }
+    .time-item:last-child::before { display: none; }
+    .time-item::after { content: ""; position: absolute; left: 0; top: 6px; width: 12px; height: 12px; border: 3px solid white; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    .time-item time { color: var(--navy); font-weight: 900; }
+
+    .callout {
+      margin: 17px 0;
+      padding: 17px;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+    }
+    .callout h3 { margin: 0 0 7px; color: var(--navy); }
+    .callout ul, .callout ol { margin: 7px 0; padding-left: 22px; }
+    .callout li { margin: 5px 0; }
+    .draft {
+      white-space: pre-wrap;
+      padding: 16px;
+      border: 1px dashed #94a3b8;
+      border-radius: 10px;
+      color: #243b59;
+      background: #f8fafc;
+      font-family: "Microsoft JhengHei", sans-serif;
+      font-size: .91rem;
+    }
+    .empty-state { display: none; padding: 28px; text-align: center; color: var(--muted); }
+    .source-list li { margin: 7px 0; }
+    footer { margin-top: 28px; color: var(--muted); font-size: .82rem; text-align: center; }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; padding: 18px 14px 44px; }
+      aside { display: none; }
+      .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .hero { padding: 30px 25px; }
+      .topbar .brand { display: none; }
+      .topbar input { width: 100%; margin-left: 0; }
+    }
+    @media (max-width: 620px) {
+      .dashboard { grid-template-columns: 1fr; }
+      .section-card { padding: 19px 15px; }
+      .section-head { display: block; }
+      .section-head .pill { margin-top: 9px; }
+      .analysis { grid-template-columns: 1fr; }
+      .analysis dt { margin-top: 5px; }
+      .time-item { grid-template-columns: 1fr; gap: 2px; }
+      .topbar button:nth-of-type(1) { display: none; }
+    }
+
+    @media print {
+      @page { size: A4; margin: 14mm; }
+      body { color: #000; background: #fff; font-size: 10.5pt; }
+      .topbar, aside, .filter-box { display: none !important; }
+      .layout { display: block; padding: 0; }
+      .hero { padding: 24px; border-radius: 0; color: #000; background: #fff; box-shadow: none; border-bottom: 3px solid #17355c; }
+      .hero p, .hero .eyebrow { color: #333; }
+      .hero .pill { color: #000; border-color: #777; }
+      .dashboard { grid-template-columns: repeat(3, 1fr); }
+      .metric, .section-card { break-inside: avoid; box-shadow: none; }
+      .section-card { border-color: #aaa; }
+      details.original { break-inside: avoid; }
+      details.original:not([open]) > *:not(summary) { display: block; }
+      a { color: #000; text-decoration: none; }
+      a::after { content: " (" attr(href) ")"; font-size: 8pt; word-break: break-all; }
+      .nav-list a::after { content: ""; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="../index.html" style="color:#fff;text-decoration:none;font-size:13px;white-space:nowrap;opacity:.85;">← JustKM</a>
+    <div class="brand">蝦皮租約實務解析</div>
+    <input id="search" type="search" placeholder="搜尋：提前解約、修繕、售屋、押金、檢舉……" aria-label="搜尋條款內容">
+    <button id="expandAll" type="button">展開原文</button>
+    <button type="button" onclick="window.print()">列印／存 PDF</button>
+  </div>
+
+  <div class="layout">
+    <aside>
+      <h2>快速目錄</h2>
+      <nav class="nav-list" aria-label="條款目錄">
+        <a href="#summary">總體判讀</a>
+        <a href="#timeline">日期與金流</a>
+        <a href="#article-0">基本資訊表</a>
+        <a href="#article-1">第1條　租金</a>
+        <a href="#article-2">第2條　押金</a>
+        <a href="#article-3">第3條　稅費與費用</a>
+        <a href="#article-4">第4條　點交</a>
+        <a href="#article-5">第5條　房屋使用</a>
+        <a href="#article-6">第6條　修繕與裝修</a>
+        <a href="#article-7">第7條　返還</a>
+        <a href="#article-8">第8條　售屋與繼承</a>
+        <a href="#article-9">第9條　蝦皮提前退租</a>
+        <a href="#article-10">第10條　房東終止</a>
+        <a href="#article-11">第11條　蝦皮無責終止</a>
+        <a href="#article-12">第12條　其他終止</a>
+        <a href="#article-13">第13條　續約</a>
+        <a href="#article-14">第14條　爭議處理</a>
+        <a href="#article-15">第15條　其他</a>
+        <a href="#missing">合約未寫但應補事項</a>
+        <a href="#amendments">優先修改條文</a>
+      </nav>
+      <div class="filter-box">
+        <strong>依風險篩選</strong>
+        <label><input class="riskFilter" type="checkbox" value="critical" checked> 極高風險</label>
+        <label><input class="riskFilter" type="checkbox" value="high" checked> 高風險</label>
+        <label><input class="riskFilter" type="checkbox" value="medium" checked> 中度風險</label>
+        <label><input class="riskFilter" type="checkbox" value="low" checked> 一般／低風險</label>
+      </div>
+    </aside>
+
+    <main>
+      <header class="hero">
+        <p class="eyebrow">房東視角｜逐條、逐項、實際事務解析</p>
+        <h1>蝦皮店到店租賃契約<br>完整實務閱讀版</h1>
+        <p>分析標的為台南柳營店面之五年期制式租約。每一條均分成合約原文、白話效果、可能發生的事件、房東金錢影響、證據與修改方向。</p>
+        <div class="meta">
+          <span class="pill">分析日期：2026-08-10</span>
+          <span class="pill">承租人：蝦皮台灣分公司</span>
+          <span class="pill">用途：店到店商業使用</span>
+        </div>
+      </header>
+
+      <div class="notice">
+        <strong>閱讀前先確認：</strong>上傳的 PDF 簽約日期仍空白，且檔案中只看見「附件六所有權人同意書」。若正式紙本已填日期並另行裝訂其他附件，應以雙方實際簽章的完整版本為準。本頁是契約風險與實務情境分析，不取代律師就房屋謄本、使用執照及現場狀況提出的正式法律意見。
+      </div>
+
+      <section id="summary" class="section-card searchable" data-risk="critical">
+        <div class="section-head">
+          <div>
+            <h2>總體判讀</h2>
+            <p>這不是「穩定收五年租金」的租約，而是房東承諾保留五年，蝦皮保留低成本退出權。</p>
+          </div>
+          <span class="pill risk-critical">整體：極高風險</span>
+        </div>
+
+        <div class="dashboard">
+          <div class="metric"><div class="label">名目租期</div><div class="value">5 年</div><div class="hint">房東無任意終止權</div></div>
+          <div class="metric"><div class="label">免租期</div><div class="value">2 個月</div><div class="hint">文件延誤時可能再延長</div></div>
+          <div class="metric"><div class="label">房東月入帳</div><div class="value">約 23,000</div><div class="hint">總租金26,169扣稅與健保</div></div>
+          <div class="metric"><div class="label">蝦皮任意退租成本</div><div class="value">1 個月租金</div><div class="hint">另提前1個月通知</div></div>
+          <div class="metric"><div class="label">初始5年調租</div><div class="value">沒有</div><div class="hint">市場上漲也維持原租金</div></div>
+          <div class="metric"><div class="label">退租標準</div><div class="value">清空現狀</div><div class="hint">並非恢復點交原狀</div></div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>問題</th><th>實際效果</th><th>最可能發生的爭議</th></tr></thead>
+            <tbody>
+              <tr><td>五年租期</td><td>你不能因自用、行情上漲或想空屋出售而要求提前搬遷。</td><td>買方不願承接租約，要求降價或放棄購買。</td></tr>
+              <tr><td>蝦皮退出權</td><td>蝦皮可因店點績效不好，以1個月違約金退出。</td><td>房東原先預估的五年現金流突然中止。</td></tr>
+              <tr><td>房屋合法性</td><td>第三人主張權利或檢舉合法性，房東可能減租並賠全部損失。</td><td>違建、共有範圍、用途、消防或招牌申請問題。</td></tr>
+              <tr><td>修繕與裝修</td><td>房東負一般修繕；蝦皮可自行修後請款，且可減租。</td><td>漏水原因、裝修損壞、修繕價格是否合理。</td></tr>
+              <tr><td>退租屋況</td><td>只寫「清空現狀」，未要求拆裝潢與恢復原狀。</td><td>牆洞、配線、招牌、隔間與地板痕跡由誰修。</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="timeline" class="section-card searchable" data-risk="high">
+        <div class="section-head">
+          <div><h2>日期、金流與第一年會發生什麼</h2><p>依合約表面日期整理；若尚未簽署，這些日期仍應重新確認。</p></div>
+          <span class="pill risk-high">高風險</span>
+        </div>
+        <div class="timeline">
+          <div class="time-item"><time>2026-06-25</time><div><strong>點交、起租及免租開始。</strong><br>蝦皮取得鑰匙並可進場施工，但此時押金尚未到期。</div></div>
+          <div class="time-item"><time>2026-07-10</time><div><strong>押金46,000元到期。</strong><br>等於房東可能先交屋約15天才拿到擔保。</div></div>
+          <div class="time-item"><time>2026-08-24</time><div><strong>原定免租期最後一天。</strong><br>若電表、裝修、消防或招牌文件因房東延誤，可能不是最後一天。</div></div>
+          <div class="time-item"><time>2026-08-25</time><div><strong>租金起算及付款日。</strong><br>但合約沒有明載本次付款究竟對應8/25至9/24，或僅屬8月租金。</div></div>
+          <div class="time-item"><time>2030-12-24前</time><div><strong>蝦皮若要行使續約協商，最遲約在期滿前6個月通知。</strong></div></div>
+          <div class="time-item"><time>2031-04-24前</time><div><strong>續約新契約應在期滿前2個月完成簽署。</strong></div></div>
+          <div class="time-item"><time>2031-06-24</time><div><strong>原租期屆滿。</strong><br>若未簽新約，原則上不續租，也排除默示轉成不定期租賃。</div></div>
+        </div>
+
+        <div class="callout">
+          <h3>完整履約的帳面金流</h3>
+          <ul>
+            <li>60個月租期－2個月免租＝預計收租58個月。</li>
+            <li>租金總額：26,169 × 58＝<strong>1,517,802元</strong>。</li>
+            <li>依現行扣繳方式估計實際匯入：23,000 × 58＝<strong>1,334,000元</strong>。</li>
+            <li>以上並非蝦皮保證支付的五年總額，因第9條允許蝦皮提前退出。</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="article-0" class="section-card searchable" data-risk="high">
+        <div class="section-head">
+          <div><h2>基本資訊表</h2><p>它不是單純封面；勾選項目會決定費用、出入口及使用範圍。</p></div>
+          <span class="pill risk-high">高風險</span>
+        </div>
+        <details class="original">
+          <summary>查看本案重要勾選內容</summary>
+          <div class="original-text">
+            <ul>
+              <li>租賃一樓部分，勾選「有與其他樓層間獨立出入口」。</li>
+              <li>租期2026年6月25日至2031年6月24日；免租至2026年8月24日。</li>
+              <li>每月租金26,169元，含扣繳與二代健保計算。</li>
+              <li>押金46,000元，2026年7月10日支付。</li>
+              <li>電費由房東過戶給蝦皮後由蝦皮負擔；水費由房東負擔。</li>
+              <li>目前無管理費；房屋稅及地價稅由房東負擔。</li>
+            </ul>
+          </div>
+        </details>
+
+        <div class="subclause">
+          <h3>0-A　租賃範圍與獨立出入口</h3>
+          <dl class="analysis">
+            <dt>白話效果</dt><dd>蝦皮只租一樓；因表格勾選有獨立出入口，房東原則上仍能正常使用其他樓層。</dd>
+            <dt>必要證據</dt><dd>附件五平面圖、現場照片、樓梯及走道位置、騎樓與後方增建是否包含。</dd>
+          </dl>
+          <div class="scenario"><strong>實例：</strong>如果上二樓仍須穿過蝦皮店內，蝦皮可能主張實際上不是獨立出入口，進一步限制房東或其他人通行。</div>
+          <div class="action"><strong>房東處理：</strong>附件五應以顏色清楚區分租賃區、保留區、共用區；每一方在圖上簽名。</div>
+        </div>
+        <div class="subclause">
+          <h3>0-B　簽約日空白與附件不完整</h3>
+          <dl class="analysis">
+            <dt>白話效果</dt><dd>第15條說簽約日起生效；若日期空白，日後可能爭執生效日、交屋是否依正式契約進行。</dd>
+            <dt>目前檔案</dt><dd>上傳PDF僅見附件六；附件五租賃範圍圖、附件七租金分配表等未包含在同一檔案。</dd>
+          </dl>
+          <div class="loss"><strong>可能損失：</strong>租賃範圍、屋況、租金淨額及押金收據都可能因附件版本不同而爭執。</div>
+        </div>
+      </section>
+
+      <section id="article-1" class="section-card searchable" data-risk="high">
+        <div class="section-head"><div><h2>第1條　租金</h2><p>重點不只是多少錢，而是免租期可能延長、入帳金額與最後一期算法。</p></div><span class="pill risk-high">高風險</span></div>
+        <details class="original"><summary>查看合約原文重點</summary><div class="original-text"><ol>
+          <li>免租裝修期間無需支付租金及管理費；如有第3條第4項或第6條第6項情形，延長至完成相關申請後一個月。</li>
+          <li>承租人於付款日以電匯支付扣繳後租金。</li>
+          <li>指定收款人資料錯誤造成爭議，由出租人負責。</li>
+          <li>匯入指定收款人帳戶不改變出租人納稅義務。</li>
+          <li>承租人代繳二代健保並自租金扣除；稅制或健保規範變更，租金總額不變。</li>
+          <li>不足月按實際日數比例；計算日租金時一律月租除以30。</li>
+        </ol></div></details>
+
+        <div class="subclause"><h3>1(1)　免租期不是固定只有兩個月</h3><dl class="analysis"><dt>白話效果</dt><dd>文件延誤只要可歸責房東，蝦皮可能在原免租期後繼續不付租。</dd><dt>連動條款</dt><dd>獨立電表文件（3(4)）、裝修／消防／招牌等文件（6(6)）。</dd></dl><div class="scenario"><strong>實例：</strong>消防或招牌申請因房東文件錯誤，到10月1日才完成；蝦皮可主張免租再延至11月1日。</div><div class="loss"><strong>金錢效果：</strong>租期終點沒有順延，延長免租就是永久少收；也沒有設定最多延長幾個月。</div><div class="action"><strong>應修改：</strong>僅延長「實際可歸責房東的延誤日數」，總延長上限30日；主管機關審查時間不計入。</div></div>
+        <div class="subclause"><h3>1(2)～1(5)　你看到26,169元，但入帳約23,000元</h3><dl class="analysis"><dt>白話效果</dt><dd>蝦皮先扣約10%所得稅及2.11%補充保費，再把餘額匯入。</dd><dt>年度申報</dt><dd>所得稅扣繳是預繳性質，應取得扣繳憑單；租金收入仍以給付總額申報處理。</dd></dl><div class="scenario"><strong>現行估算：</strong>26,169－2,617－552＝約23,000元。</div><div class="loss"><strong>規則變更：</strong>合約把租金總額鎖死；日後健保費率提高時，房東淨入帳可能下降。</div></div>
+        <div class="subclause"><h3>1(6)　不足月有兩種算法</h3><dl class="analysis"><dt>文字問題</dt><dd>同時出現「實際日數占當月日數比例」及「月租除以30」；31天月份與2月會產生不同結果。</dd></dl><div class="scenario"><strong>實例：</strong>31天月份使用10天，一種算法約8,442元，另一種約8,723元。</div><div class="action"><strong>應修改：</strong>統一寫成「任何不足月均以月租除以30乘實際日數計算」，並定義起訖日是否都計租。</div></div>
+        <div class="subclause"><h3>1-補充　付款對應期間沒有寫</h3><dl class="analysis"><dt>白話效果</dt><dd>每月25日付款，但沒有說付當月、次月，或25日至次月24日。</dd></dl><div class="scenario"><strong>實例：</strong>3月10日退租時，雙方可能不確定2月25日支付的租金涵蓋到哪一天。</div><div class="action"><strong>應修改：</strong>明訂首期、每期及末期租金所對應的確切日期。</div></div>
+      </section>
+
+      <section id="article-2" class="section-card searchable" data-risk="high">
+        <div class="section-head"><div><h2>第2條　押金</h2><p>最大問題是先交屋後收押金，以及退租後要求立即全額返還。</p></div><span class="pill risk-high">高風險</span></div>
+        <details class="original"><summary>查看合約原文重點</summary><div class="original-text"><ol><li>押金為2個月未稅租金；承租人可通知遲延並告知新付款日。</li><li>房東收受後立即開押金領收書。</li><li>租約結束、返還房屋並完成第7條義務後，立即全額無息返還。</li><li>房東抵扣欠租、費用、利息或違約金，須書面通知並附證據、明細及算法。</li></ol></div></details>
+        <div class="subclause"><h3>2(1)～2(2)　蝦皮可先進場約15天才付押金</h3><dl class="analysis"><dt>白話效果</dt><dd>6月25日點交，押金7月10日才到期。若蝦皮不付，只能按一般違約催告。</dd><dt>額外問題</dt><dd>蝦皮可用Email或通訊軟體另告知新付款日，但條款沒有最晚期限。</dd></dl><div class="loss"><strong>可能損失：</strong>進場拆裝、施工或占用期間，房東沒有押金可供擔保。</div><div class="action"><strong>應修改：</strong>「押金實際入帳為點交及交付鑰匙的先決條件」。</div></div>
+        <div class="subclause"><h3>2(3)　押金要立即全額退還</h3><dl class="analysis"><dt>白話效果</dt><dd>完成返還及第7條義務後，房東不能自行保留押金等待後續。</dd></dl><div class="scenario"><strong>實例：</strong>點交當天最後一期電費、水費尚未出帳，或拆招牌後才發現滲水孔洞，房東可能已被要求先退完整押金。</div><div class="action"><strong>應修改：</strong>點交後15～30日內結算；允許保留最後帳單與合理修復預估金額，結清後返還餘額。</div></div>
+        <div class="subclause"><h3>2(4)　抵扣不是房東說扣就扣</h3><dl class="analysis"><dt>必要程序</dt><dd>書面通知、照片、估價單或發票、計算明細。</dd><dt>爭議風險</dt><dd>蝦皮有異議時只寫友好協商，沒有第三方鑑定或結算期限。</dd></dl><div class="action"><strong>證據清單：</strong>共同點交表、施工前後照片、修繕通知、兩家估價、付款憑證、最後水電帳單。</div></div>
+      </section>
+
+      <section id="article-3" class="section-card searchable" data-risk="high">
+        <div class="section-head"><div><h2>第3條　稅費及其他費用</h2><p>店面日常成本不是全由蝦皮負擔；水費、未來管理費及持有稅都留給房東。</p></div><span class="pill risk-high">高風險</span></div>
+        <details class="original"><summary>查看合約原文重點</summary><div class="original-text"><ol><li>費用依基本資訊表。</li><li>日後新增管理費由房東負擔；管理費增減不改租金總額。</li><li>水電若過戶給蝦皮，房東應在點交日前辦理並確認僅蝦皮使用。</li><li>蝦皮需要獨立電表時，房東3日內交文件；房東延誤時可能延長免租期。</li><li>仲介費由蝦皮於條件成就後支付。</li></ol></div></details>
+        <div class="subclause"><h3>3(1)～3(2)　水費與未來管理費由房東負擔</h3><dl class="analysis"><dt>白話效果</dt><dd>電費由蝦皮；水費無上限由房東；現在雖無管理費，未來新增也由房東。</dd></dl><div class="scenario"><strong>實例：</strong>管委會日後每月收1,000元，剩餘48個月就是房東增加48,000元成本，不能加租。</div><div class="action"><strong>應修改：</strong>營業期間水費、管理費及因蝦皮營業新增的特別費用均由蝦皮負擔；共用部分再按表計或比例分攤。</div></div>
+        <div class="subclause"><h3>3-稅務　營業使用可能提高持有成本</h3><dl class="analysis"><dt>房屋稅</dt><dd>營業部分通常可能改按營業用稅率；實際依房屋現值及使用比例。</dd><dt>地價稅</dt><dd>營業／出租部分可能不能適用自用住宅用地2‰優惠，而按一般用地稅率。</dd></dl><div class="loss"><strong>合約效果：</strong>增加的房屋稅、地價稅仍由房東負擔，且沒有租金調整機制。</div><div class="action"><strong>事前試算：</strong>向臺南市財政稅務局提供房屋現值、土地公告地價及營業面積，詢問一年差額。</div></div>
+        <div class="subclause"><h3>3(3)～3(4)　水電過戶與獨立電表文件</h3><dl class="analysis"><dt>白話效果</dt><dd>你要確保電號可過戶、且沒有其他樓層共用；收到要求3日內交獨立電表申請文件。</dd></dl><div class="scenario"><strong>實例：</strong>一樓與二樓共用同一電表，台電要求重新拉線或補所有權文件。若因此延誤營業，蝦皮可能要求延長免租。</div><div class="action"><strong>應處理：</strong>點交前確認電號、水號、表位、欠費、申請資格及共用管線，拍下起始度數。</div></div>
+        <div class="subclause"><h3>3(5)　仲介費</h3><dl class="analysis"><dt>白話效果</dt><dd>11,500元由蝦皮付給仲介，通常不是房東成本；付款要等房東收到押金及仲介開正確發票。</dd></dl><div class="action"><strong>確認：</strong>另檢查你與仲介是否還簽了另一份委託書；本租約只處理蝦皮要付的11,500元，未必排除仲介向房東另主張報酬。</div></div>
+      </section>
+
+      <section id="article-4" class="section-card searchable" data-risk="high">
+        <div class="section-head"><div><h2>第4條　點交</h2><p>原始屋況竟以蝦皮拍攝的照片為據；延遲點交還同時發生雙倍日租賠償與免租順延。</p></div><span class="pill risk-high">高風險</span></div>
+        <details class="original"><summary>查看合約原文</summary><div class="original-text"><ol><li>房東於約定日完成現狀點交；原狀以蝦皮於點交日拍攝照片為據。</li><li>因房東因素延遲，按日賠雙倍日租金，蝦皮並得要求遞延免租期起算。</li></ol></div></details>
+        <div class="subclause"><h3>4(1)　照片控制權偏向蝦皮</h3><dl class="analysis"><dt>白話效果</dt><dd>不是以雙方共同簽認照片為準，而是以蝦皮拍攝的照片為準。</dd></dl><div class="scenario"><strong>實例：</strong>某面牆點交時完整，但蝦皮照片沒有拍到；退租時牆面有破洞，房東較難證明不是原有。</div><div class="action"><strong>點交包：</strong>360度錄影、逐牆照片、屋頂與地板、門窗、衛浴、水電表、鑰匙、既有瑕疵、設備清冊，雙方簽章並各留完整檔案。</div></div>
+        <div class="subclause"><h3>4(2)　房東延遲一天約賠1,745元</h3><dl class="analysis"><dt>算法</dt><dd>26,169÷30＝872.30元日租；雙倍＝1,744.60元／日。</dd></dl><div class="scenario"><strong>實例：</strong>因房東尚未清空而延遲10天，約賠17,446元，免租期還可能再往後10天。</div><div class="action"><strong>應修改：</strong>只有房東故意或重大過失才負雙倍賠償；不可抗力、蝦皮施工需求或雙方同意展延應排除。</div></div>
+      </section>
+
+      <section id="article-5" class="section-card searchable" data-risk="critical">
+        <div class="section-head"><div><h2>第5條　房屋使用</h2><p>第5(2)是整份契約最重的房東責任：保證沒有第三人主張或檢舉合法性，且損失沒有上限。</p></div><span class="pill risk-critical">極高風險</span></div>
+        <details class="original"><summary>查看合約原文重點</summary><div class="original-text"><ol><li>房屋供商業使用；不能商業使用時，房東自費協助完成商業使用分區申請。</li><li>房東保證第三人不因租賃標的主張權利或檢舉合法性；不可歸責蝦皮而面積減少或須遷離時，房東減租並賠償損失。</li><li>蝦皮應符合法規並以善良管理人注意使用。</li><li>蝦皮通知轉租等事項後，房東7個工作日不反對即視為同意。</li><li>次承租人違約視為蝦皮違約。</li><li>若只租一樓且無獨立出入口，房東不得使用或通行其他部分。</li></ol></div></details>
+        <div class="subclause"><h3>5(1)　「能當店面」由房東兜底</h3><dl class="analysis"><dt>白話效果</dt><dd>房東必須確保土地分區、建物用途、使用執照等足以支援蝦皮營業。</dd><dt>用語問題</dt><dd>「商業使用分區申請」過度概括；有些分區依法無法變更，不是花錢就能完成。</dd></dl><div class="scenario"><strong>實例：</strong>主管機關認定登記用途、消防設備或出入口不符合店面使用；蝦皮要求房東補辦、施工或無責退租。</div><div class="action"><strong>簽前核對：</strong>土地使用分區、建物謄本用途、使用執照、違建紀錄、騎樓、後方增建、消防、招牌位置。</div></div>
+        <div class="subclause"><h3>5(2)　第三人主張／檢舉的無上限責任</h3><dl class="analysis"><dt>白話效果</dt><dd>不只是房東保證有所有權，還保證任何第三人不會主張權利或檢舉合法性。</dd><dt>賠償範圍</dt><dd>「承租人因此所受損失」未設上限，也沒有排除間接損失、營業損失、裝修攤提或搬遷費。</dd></dl><div class="scenario"><strong>實例A：</strong>鄰居檢舉後方增建，主管機關要求拆5坪；蝦皮要求按比例減租、貨架重裝及營業中斷損失。<br><strong>實例B：</strong>共有人主張房東無權出租某走道或騎樓，蝦皮被迫縮小營業面積。</div><div class="loss"><strong>最壞情況：</strong>同時少收租、支付改善費、賠裝修與搬遷，蝦皮再依第11條無責終止。</div><div class="action"><strong>必改：</strong>限於「簽約前已存在、可歸責房東且未揭露的權利或合法性瑕疵」；賠償限直接、必要且有單據的損失，排除營業利益與間接損失並設金額上限。</div></div>
+        <div class="subclause"><h3>5(3)　營運違規雖屬蝦皮，但責任切割不夠清楚</h3><dl class="analysis"><dt>白話效果</dt><dd>蝦皮要合法經營；理論上噪音、違停、物流或顧客造成的問題應可歸責蝦皮。</dd><dt>缺口</dt><dd>沒有明文說物流商、合作商、員工及顧客行為都視為蝦皮行為，也沒有賠償房東條款。</dd></dl><div class="scenario"><strong>實例：</strong>深夜卸貨被檢舉、貨車擋住鄰居、顧客機車占用騎樓；房東收到管委會或主管機關通知。</div><div class="action"><strong>必加：</strong>所有營運衍生陳情、罰鍰、改善、鄰損與第三人請求由蝦皮處理並使房東免責。</div></div>
+        <div class="subclause"><h3>5(4)～5(5)　7個工作日沉默就算同意轉租</h3><dl class="analysis"><dt>白話效果</dt><dd>蝦皮可交給關係企業、合作廠商或自行洽商的次承租人；房東必須在期限內主動反對。</dd><dt>好的一面</dt><dd>次承租人違約會視為蝦皮違約，蝦皮仍不能完全脫責。</dd></dl><div class="scenario"><strong>實例：</strong>通知寄到平常少看的Email，房東第8個工作日才發現，已被視為同意物流合作商使用。</div><div class="action"><strong>應修改：</strong>未取得房東明確書面同意不得轉租；至少限定只能給蝦皮100%控制的關係企業，且不得改變用途或增加風險。</div></div>
+        <div class="subclause"><h3>5(6)　本案勾選有獨立出入口，仍應現場驗證</h3><dl class="analysis"><dt>白話效果</dt><dd>若確有獨立出入口，本款原則上不限制房東使用二樓以上。</dd></dl><div class="action"><strong>要做：</strong>把二樓入口、樓梯與通道拍照並在附件五標明；不得僅依勾選框而忽略現況。</div></div>
+      </section>
+
+      <section id="article-6" class="section-card searchable" data-risk="critical">
+        <div class="section-head"><div><h2>第6條　修繕及裝修</h2><p>房東負一般修繕；蝦皮能自己修後請款、同時減租，並已取得很寬的概括裝修同意。</p></div><span class="pill risk-critical">極高風險</span></div>
+        <details class="original"><summary>查看合約原文重點</summary><div class="original-text"><ol><li>房東確保房屋正常使用收益。</li><li>房屋或附屬設備需修繕，由房東負責；蝦皮或其裝修造成者除外。</li><li>房東未在蝦皮指定合理期限完成，蝦皮可自行或委外修繕並向房東請款。</li><li>修繕期間不能使用時，蝦皮可扣除相應租金。</li><li>房東同意蝦皮裝修，但不得違法或損害結構。</li><li>許可由蝦皮申請；房東3日內交文件，否則可能延長免租。</li></ol></div></details>
+        <div class="subclause"><h3>6(1)～6(2)　哪些是房東修、哪些是蝦皮修</h3><dl class="analysis"><dt>通常房東</dt><dd>原有屋頂、外牆、結構、老舊水電管線、門窗及交屋時附屬設備。</dd><dt>通常蝦皮</dt><dd>貨架撞損、施工打孔破壞、防水層被裝修破壞、物流或顧客造成的損害。</dd><dt>灰色地帶</dt><dd>漏水、跳電、排水堵塞、冷氣孔滲水，常同時可能來自老舊與施工。</dd></dl><div class="action"><strong>證據：</strong>施工前屋況鑑定、原始水電圖、蝦皮施工圖、報修時間、原因鑑定及現場照片。</div></div>
+        <div class="subclause"><h3>6(3)　蝦皮可自行找廠商，房東付錢</h3><dl class="analysis"><dt>白話效果</dt><dd>只要房東沒在「合理期限」完成，蝦皮就能修後請款。</dd><dt>缺少限制</dt><dd>未區分緊急／一般修繕，沒有估價、金額上限、房東選商權或完工驗收。</dd></dl><div class="scenario"><strong>實例：</strong>蝦皮通知7日內處理漏水；房東尚在找原因，蝦皮先花12萬元找廠商施工並請求全額支付。</div><div class="action"><strong>必改：</strong>非緊急修繕須先提供原因報告與兩家估價，經房東書面同意；緊急處置限防止損害擴大之必要費用。</div></div>
+        <div class="subclause"><h3>6(4)　修繕費之外還可減租</h3><dl class="analysis"><dt>白話效果</dt><dd>房東可能同時負擔修理費與不能使用期間的租金減免。</dd></dl><div class="scenario"><strong>實例：</strong>半間店面停用20日，蝦皮除要求修繕費外，再按使用面積與天數減租。</div><div class="action"><strong>應明訂：</strong>不能使用比例由雙方會勘確認；不影響營業或蝦皮仍實際使用的區域不得減租。</div></div>
+        <div class="subclause"><h3>6(5)　概括同意裝修，但沒有圖說審核</h3><dl class="analysis"><dt>白話效果</dt><dd>蝦皮原則上已取得裝修同意，只要自認符合法規且不傷結構。</dd><dt>房東缺少</dt><dd>事前圖面、施工廠商、保險、施工時段、鑽孔位置、載重、完工圖與復原責任。</dd></dl><div class="scenario"><strong>實例：</strong>蝦皮在牆體、地板或招牌位置大量固定設備，退租時只拆動產並留下孔洞。</div><div class="action"><strong>必加：</strong>施工前送審圖、不得未經同意鑽樑柱／外牆、完工提供竣工圖、施工造成損害由蝦皮修復，退租按房東選擇保留或拆除。</div></div>
+        <div class="subclause"><h3>6(6)　3日交申請文件與免租延長</h3><dl class="analysis"><dt>白話效果</dt><dd>房東回覆時間極短；文件錯誤可能把主管機關整段審查延誤轉成房東免租責任。</dd></dl><div class="action"><strong>應修改：</strong>改為5～10個工作日；房東只負責提供其持有且依法可提供的真實文件，申請內容與審查結果由蝦皮負責。</div></div>
+      </section>
+
+      <section id="article-7" class="section-card searchable" data-risk="critical">
+        <div class="section-head"><div><h2>第7條　返還</h2><p>「清空現狀返還」是房東日後最容易吃虧的四個字，因為它不是恢復交屋原狀。</p></div><span class="pill risk-critical">極高風險</span></div>
+        <details class="original"><summary>查看合約原文</summary><div class="original-text"><ol><li>租期屆滿或終止時，蝦皮立即清空現狀返還、移除動產並交鑰匙。</li><li>蝦皮儘速辦理營利事業及稅籍遷出，結清水電與管理費。</li><li>雙方共同點交；一方經催告仍不會同，視為完成點交。</li></ol></div></details>
+        <div class="subclause"><h3>7(1)　只需清空，不一定要拆裝潢或修牆</h3><dl class="analysis"><dt>清空現狀</dt><dd>通常著重移除動產，可能保留隔間、天花板、配線、油漆、孔洞與固定痕跡。</dd><dt>恢復原狀</dt><dd>應是回到點交照片及清冊所記錄的狀態；本約沒有如此寫。</dd></dl><div class="scenario"><strong>實例：</strong>蝦皮移走貨架、機台與招牌，但留下橘色牆面、招牌螺絲孔、裸露電線、地板固定痕跡，主張已清空。</div><div class="loss"><strong>可能損失：</strong>房東自行花錢拆隔間、補土、油漆、封孔、整理配線，空置期同時延長。</div><div class="action"><strong>必改：</strong>房東可在期滿前30日選擇「無償保留」或「由蝦皮拆除並恢復點交原狀」；未完成前不視為返還。</div></div>
+        <div class="subclause"><h3>7(2)　公司登記及稅籍只寫「儘速」</h3><dl class="analysis"><dt>白話效果</dt><dd>沒有10日、15日等明確期限，也未規定逾期違約金。</dd></dl><div class="scenario"><strong>實例：</strong>蝦皮實際搬走，但分支機構或稅籍仍掛在地址，新租客無法順利登記，或稅務機關仍認定營業使用。</div><div class="action"><strong>必改：</strong>返還後10個工作日內完成並提出證明；逾期按日支付占用或違約金，押金得保留至完成。</div></div>
+        <div class="subclause"><h3>7(3)　房東拒絕點交可能被視為已點交</h3><dl class="analysis"><dt>白話效果</dt><dd>若你因不滿屋況而不到場，蝦皮催告後可主張點交已完成。</dd></dl><div class="scenario"><strong>實例：</strong>房東認為修復未完成而拒絕簽收鑰匙；蝦皮書面催告後留下鑰匙並要求立即退押金。</div><div class="action"><strong>正確做法：</strong>到場但在點交表逐項註記「有爭議／未完成」，收鑰匙不等於放棄損害賠償，並當場拍照錄影。</div></div>
+      </section>
+
+      <section id="article-8" class="section-card searchable" data-risk="high">
+        <div class="section-head"><div><h2>第8條　所有權讓與：售屋與繼承</h2><p>你可以賣，但不能把「讓蝦皮搬走」當成交屋條件；買方要承接租約與押金。</p></div><span class="pill risk-high">高風險</span></div>
+        <details class="original"><summary>查看合約原文</summary><div class="original-text"><ol><li>租期內移轉所有權，租約對受讓人繼續存在；繼承亦同。</li><li>房東／買方或繼承人儘速書面通知蝦皮，原房東與買方結算押金及已收租金。</li><li>蝦皮與新房東書面確認付款條件前，未按期付租不構成遲延或終止事由。</li></ol></div></details>
+        <div class="subclause"><h3>8(1)　買賣不破租賃</h3><dl class="analysis"><dt>白話效果</dt><dd>新買家接替房東，剩餘租期仍要讓蝦皮使用。</dd><dt>法律背景</dt><dd>民法第425條原則上也如此；未公證租約「逾五年」才有特別例外，本約表面上是剛好五年。</dd></dl><div class="scenario"><strong>實例：</strong>你在2028年出售，新買家不能因完成過戶就要求蝦皮搬遷；除非另與蝦皮達成終止協議。</div><div class="loss"><strong>交易影響：</strong>只想買空屋自用的買方會退出或要求降價；可接受長期店租收益的投資買方才合適。</div></div>
+        <div class="subclause"><h3>8(2)　押金與租金要在交割時結算</h3><dl class="analysis"><dt>房東要做</dt><dd>在買賣契約列明租約、押金46,000元、租金計至哪一天、買方承擔義務及通知方式。</dd></dl><div class="scenario"><strong>實例：</strong>原房東沒有把押金交給買方；蝦皮退租時仍可能要求新房東返還，買方再向原房東追償。</div><div class="action"><strong>交割文件：</strong>三方通知／確認書、新帳戶、租金分界日、押金移交收據、原租約與附件全套。</div></div>
+        <div class="subclause"><h3>8(3)　帳戶確認前，蝦皮晚付不算違約</h3><dl class="analysis"><dt>白話效果</dt><dd>原、新房東若沒有事先協調，租金可能暫停，不能用欠租兩月終止。</dd></dl><div class="action"><strong>應做：</strong>過戶前即把新房東資料送蝦皮確認，並在買賣價款中預留可能的租金差額。</div></div>
+      </section>
+
+      <section id="article-9" class="section-card searchable" data-risk="critical">
+        <div class="section-head"><div><h2>第9條　期前終止：蝦皮可低成本任意退租</h2><p>第9(1)說雙方不得任意終止，但第9(2)實際只給蝦皮一個完整任意退出權。</p></div><span class="pill risk-critical">極高風險</span></div>
+        <details class="original"><summary>查看合約原文</summary><div class="original-text"><ol><li>期滿前除另有約定，雙方不得任意終止。</li><li>蝦皮欲終止，提前1個月書面通知並給房東1個月租金違約金。</li><li>違約金可由押金抵扣。</li></ol></div></details>
+        <div class="subclause"><h3>9(1)～9(3)　法律上可退，不必證明店面有問題</h3><dl class="analysis"><dt>蝦皮</dt><dd>只要通知與付違約金，不必證明虧損、檢舉、房屋瑕疵或房東違約。</dd><dt>房東</dt><dd>沒有對稱權利；自用、售空屋、行情上漲或另有更高租客都不能任意解約。</dd></dl><div class="scenario"><strong>實例：</strong>蝦皮營運一年後評估該點效率不佳，提前1個月通知；從46,000元押金扣26,169元違約金，剩餘約19,831元仍應結算返還。</div><div class="loss"><strong>現金流對比：</strong>若已收租12個月，原本尚有46個計租月，帳面租金總額約1,203,774元；蝦皮退出代價卻只有26,169元。剩餘租金不是可向蝦皮請求的債權。</div><div class="action"><strong>必改：</strong>改成階梯式違約金，並追回未攤免租期、房東出資工程及招商成本；至少前兩年6個月、第三至四年3個月、最後一年2個月。</div></div>
+      </section>
+
+      <section id="article-10" class="section-card searchable" data-risk="high">
+        <div class="section-head"><div><h2>第10條　出租人終止</h2><p>房東的終止權必須先累積條件、書面催告並給改善期限；不能自行換鎖或斷水電。</p></div><span class="pill risk-high">高風險</span></div>
+        <details class="original"><summary>查看合約原文</summary><div class="original-text"><ol><li>欠租總額達2個月，房東定期書面催告後仍未全額支付。</li><li>蝦皮違約，房東定期書面催告改善後仍不履行。</li></ol></div></details>
+        <div class="subclause"><h3>10(1)　欠租達兩個月也不能立刻解約</h3><dl class="analysis"><dt>程序</dt><dd>確認欠租總額達兩月→發書面催告→給相當期限→仍未全付→再發終止通知。</dd><dt>不能做</dt><dd>自行換鎖、斷水電、搬貨、阻止營業，可能反而構成侵權或違約。</dd></dl><div class="action"><strong>證據：</strong>租金明細、銀行紀錄、存證信函、Email送達回條、期限計算與終止通知。</div></div>
+        <div class="subclause"><h3>10(2)　任何違約通常都要先給改善機會</h3><dl class="analysis"><dt>白話效果</dt><dd>例如違法使用、未經同意轉租、破壞房屋，原則上先催告，除非另有立即終止依據。</dd></dl><div class="scenario"><strong>實例：</strong>物流合作商占用非租賃區，房東應書面列出位置、照片、改善期限與逾期後果。</div></div>
+        <div class="subclause"><h3>10-執行　契約沒有公證執行力</h3><dl class="analysis"><dt>白話效果</dt><dd>即使終止有效，蝦皮拒絕搬遷時，通常仍需取得可執行的法院文書；本PDF未見公證及逕受強制執行條款。</dd></dl><div class="action"><strong>建議：</strong>雙方辦理租約公證，將租金、違約金、期滿返還房屋及押金返還列入逕受強制執行事項。</div></div>
+      </section>
+
+      <section id="article-11" class="section-card searchable" data-risk="critical">
+        <div class="section-head"><div><h2>第11條　承租人無責終止</h2><p>只要房東違約或房屋有問題，蝦皮不只可退出，還不用付第9條的一個月違約金。</p></div><span class="pill risk-critical">極高風險</span></div>
+        <details class="original"><summary>查看合約原文</summary><div class="original-text"><ol><li>應由房東修繕，催告後仍未修到可達使用目的。</li><li>房東違反第5條第1項或第6項，催告後仍不補正。</li><li>發生第5條第2項情形，減租談不攏或剩餘部分不能達使用目的。</li><li>有危及安全或健康瑕疵；蝦皮簽約時已知或拋棄終止權亦同。</li><li>房東其他違約，催告後仍不改善。</li></ol></div></details>
+        <div class="subclause"><h3>11(1)　修不好即可無責退租</h3><dl class="analysis"><dt>白話效果</dt><dd>漏水、電力或房屋本體問題經催告仍影響營業，蝦皮可終止而不賠。</dd></dl><div class="scenario"><strong>實例：</strong>雨季持續漏水，房東多次補漏仍未根治；即使房東有處理，蝦皮仍可能主張「未修繕完畢致不能達使用目的」。</div><div class="action"><strong>應做：</strong>每次報修均書面確認原因、施工內容、預定完成日、蝦皮是否仍能營業及完工驗收。</div></div>
+        <div class="subclause"><h3>11(2)～11(3)　合法性、出入口與第三人問題</h3><dl class="analysis"><dt>白話效果</dt><dd>不能商用、非真正獨立出入口、第三人權利或合法性檢舉，都可能成為免違約金退出理由。</dd></dl><div class="loss"><strong>連鎖效果：</strong>第5(2)減租＋賠損失，再加第11條終止；房東可能同時賠錢又失去租約。</div></div>
+        <div class="subclause"><h3>11(4)　已知危險也保留終止權</h3><dl class="analysis"><dt>白話效果</dt><dd>即使蝦皮簽約時知道瑕疵，甚至曾表示放棄，仍可因危害安全或健康終止。</dd></dl><div class="scenario"><strong>實例：</strong>老舊配電或結構問題在點交表已有記載，但後來被認為危及員工安全，蝦皮仍可退。</div><div class="action"><strong>房東處理：</strong>危險項目不能只靠「現況承租」免責，應在開業前完成專業檢測與改善。</div></div>
+        <div class="subclause"><h3>11(5)　其他違約的兜底條款</h3><dl class="analysis"><dt>白話效果</dt><dd>任何房東義務，只要催告仍不履行，都可能被拿來終止。</dd></dl><div class="action"><strong>管理方法：</strong>建立單一通知Email與通訊地址，每週確認；因多數期限從「收到通知」開始計算。</div></div>
+      </section>
+
+      <section id="article-12" class="section-card searchable" data-risk="medium">
+        <div class="section-head"><div><h2>第12條　其他終止事由</h2><p>處理天災、政府命令、破產與解散；但「不能履行」與「損害賠償是否保留」仍可能爭議。</p></div><span class="pill risk-medium">中度風險</span></div>
+        <details class="original"><summary>查看合約原文</summary><div class="original-text"><ol><li>不可抗力致全部或部分無法履行，超過1個月且協商不成，任一方可終止、互不賠償。</li><li>任一方受歇業、破產、解散、清算、重整等聲請或成為拒絕往來戶，致不能履約，他方可終止。</li><li>依契約行使終止權，不妨礙損害賠償及其他救濟。</li></ol></div></details>
+        <div class="subclause"><h3>12(1)　不可抗力超過一個月</h3><dl class="analysis"><dt>白話效果</dt><dd>地震、颱風、法令變更、政府命令或法定傳染病等造成一個月以上無法履約，協商不成即可終止。</dd></dl><div class="scenario"><strong>實例：</strong>地震造成建物封閉檢查超過一個月，雙方談不成修復與租金安排，任一方可終止且互不賠償。</div><div class="action"><strong>應確認：</strong>終止時押金、預付租金、現場設備與修復中的房屋如何結算，原文沒有細寫。</div></div>
+        <div class="subclause"><h3>12(2)　不是有人聲請破產就自動解約</h3><dl class="analysis"><dt>白話效果</dt><dd>還要達到「致有不能履行本契約」；單純聲請但仍正常付款，不一定足夠。</dd></dl></div>
+        <div class="subclause"><h3>12(3)　終止不消滅既有賠償</h3><dl class="analysis"><dt>白話效果</dt><dd> fault-based終止後，欠租、修復費、違約損失仍可請求；但12(1)已特別寫互不賠償，應優先適用。</dd></dl></div>
+      </section>
+
+      <section id="article-13" class="section-card searchable" data-risk="high">
+        <div class="section-head"><div><h2>第13條　續約選擇權</h2><p>不是蝦皮單方面決定就一定續租，但初始五年沒有任何租金調整才是房東真正的成本。</p></div><span class="pill risk-high">高風險</span></div>
+        <details class="original"><summary>查看合約原文</summary><div class="original-text"><ol><li>蝦皮有一次續租3年權利；除租金及調幅外，其他條件相同；租金參考當時市場。</li><li>期滿6個月前通知，期滿2個月前簽新約；未通知或重要條件談不攏視為不續租，並排除民法第451條。</li></ol></div></details>
+        <div class="subclause"><h3>13(1)　更像優先協商，不是真正單方續租</h3><dl class="analysis"><dt>白話效果</dt><dd>續約租金仍要雙方談；談不成就不續租，所以房東不是被迫接受原租金再租3年。</dd></dl><div class="action"><strong>談判準備：</strong>期滿前一年蒐集同路段、同面積、同用途實際成交租金，不只看網路開價。</div></div>
+        <div class="subclause"><h3>13-初始五年　完全沒有調租</h3><dl class="analysis"><dt>白話效果</dt><dd>2026年至2031年間租金總額固定26,169元；房屋稅、管理費、修繕與物價上漲都不能自動反映。</dd></dl><div class="scenario"><strong>實例：</strong>2029年附近相似店面租金已漲到30,000元，你仍只能收原約租金。</div><div class="action"><strong>應修改：</strong>每滿2年調高3%～5%，或依消費者物價指數並設定最低調幅。</div></div>
+        <div class="subclause"><h3>13(2)　期滿後不默示續租</h3><dl class="analysis"><dt>白話效果</dt><dd>沒有簽新約原則上應搬；房東即使一時未反對，也約定不適用民法第451條的不定期更新。</dd></dl><div class="action"><strong>仍應做：</strong>期滿前書面確認搬遷日；期滿後不要在新條件未談妥時繼續收款，以免又產生新的默示契約爭議。</div></div>
+      </section>
+
+      <section id="article-14" class="section-card searchable" data-risk="high">
+        <div class="section-head"><div><h2>第14條　爭議處理</h2><p>房屋在台南、房東也在台南，第一審卻指定臺北地方法院。</p></div><span class="pill risk-high">高風險</span></div>
+        <details class="original"><summary>查看合約原文</summary><div class="original-text"><ol><li>契約以中華民國法律為準據法。</li><li>契約爭議涉訟，以臺灣臺北地方法院為第一審管轄法院。</li></ol></div></details>
+        <div class="subclause"><h3>14(1)　適用臺灣法律</h3><dl class="analysis"><dt>白話效果</dt><dd>承租人雖是外商分公司，契約仍依臺灣民法、民事訴訟法及相關法規處理。</dd></dl></div>
+        <div class="subclause"><h3>14(2)　臺北合意管轄</h3><dl class="analysis"><dt>實務成本</dt><dd>房東可能要到臺北委任律師、出庭或處理程序；房屋鑑定仍在台南，往返成本增加。</dd><dt>可能救濟</dt><dd>因一方為法人／商人、另一方為自然人，且屬預擬同類契約條款，顯失公平時可在本案言詞辯論前聲請移送，但是否准許由法院決定。</dd></dl><div class="action"><strong>應修改：</strong>「以租賃標的所在地之臺灣臺南地方法院為第一審管轄法院」。</div></div>
+      </section>
+
+      <section id="article-15" class="section-card searchable" data-risk="high">
+        <div class="section-head"><div><h2>第15條　其他</h2><p>生效日、保密、債權轉讓、附件與繼受人，看似例行文字，實際會影響售屋、融資和證據。</p></div><span class="pill risk-high">高風險</span></div>
+        <details class="original"><summary>查看合約原文</summary><div class="original-text"><ol><li>契約自簽約日起生效。</li><li>除法規、主管機關或司法要求外，雙方及受僱人永久負保密責任。</li><li>未經他方書面同意，不得轉讓契約、權利或義務，也不得設定質權。</li><li>附件為契約一部分，權利義務對繼受人有效。</li><li>未盡事項依法令、習慣、平等互惠與誠信原則處理。</li><li>正本一式兩份，雙方各一份。</li></ol></div></details>
+        <div class="subclause"><h3>15(1)　簽約日期必須填</h3><dl class="analysis"><dt>白話效果</dt><dd>租期起日與契約生效日可能不同；空白會讓催告、點交及既有行為的法律基礎不清楚。</dd></dl><div class="action"><strong>應做：</strong>填實際簽署日，不倒填；若雙方希望效力追溯至6月25日，應明文寫「自某日起適用」。</div></div>
+        <div class="subclause"><h3>15(2)　保密例外太窄</h3><dl class="analysis"><dt>白話效果</dt><dd>文字上沒有明確允許提供給律師、會計師、銀行、潛在買方或房仲。</dd></dl><div class="scenario"><strong>實例：</strong>售屋時買方必須審閱租約，但房東又負保密義務，與第8條出售需求形成緊張。</div><div class="action"><strong>應修改：</strong>允許在保密前提下向專業顧問、金融機構、保險公司、潛在受讓人與其顧問揭露。</div></div>
+        <div class="subclause"><h3>15(3)　不能任意轉讓租金債權或義務</h3><dl class="analysis"><dt>白話效果</dt><dd>房東若要把租金債權讓與銀行、設定擔保或交由特定第三人承受，原則上需蝦皮同意。</dd><dt>例外關係</dt><dd>第5條轉租及第8條所有權讓與有特別規定，應優先適用。</dd></dl></div>
+        <div class="subclause"><h3>15(4)　附件缺一份都可能改變結果</h3><dl class="analysis"><dt>最重要附件</dt><dd>附件五租賃範圍圖、附件七租金分配表、附件八押金領收書、附件四權狀／謄本、附件九房屋稅資料。</dd></dl><div class="action"><strong>簽署方式：</strong>每一附件標註頁數、版本日期並雙方騎縫章；不要只在主約最後一頁蓋章。</div></div>
+        <div class="subclause"><h3>15(5)～15(6)　未約定事項與正本</h3><dl class="analysis"><dt>白話效果</dt><dd>合約沒寫的才回到法律與誠信原則；不能期待「公平解決」會自動補上你想要的恢復原狀、保險或檢查權。</dd></dl><div class="action"><strong>應做：</strong>所有談判承諾放進書面增補協議；口頭說「公司一般都會處理」不足以取代條款。</div></div>
+      </section>
+
+      <section id="missing" class="section-card searchable" data-risk="critical">
+        <div class="section-head"><div><h2>合約沒有寫，但房東實務上應補的事項</h2><p>這些缺口不屬單一條款，卻常在營業後或退租時成為真正糾紛。</p></div><span class="pill risk-critical">極高風險</span></div>
+        <div class="table-wrap"><table><thead><tr><th>缺少內容</th><th>如果不補，可能發生什麼</th><th>建議</th></tr></thead><tbody>
+          <tr><td>房東定期檢查權</td><td>你可能無法確認結構、水電、違法施工或非租賃區占用。</td><td>提前3～5日通知可進場檢查；緊急事故可立即進入。</td></tr>
+          <tr><td>公共意外與火災保險</td><td>顧客受傷、物流事故、火災時先向所有權人求償。</td><td>蝦皮投保公共意外、承租人責任與營業保險，提供保單並將房東列附加被保險人。</td></tr>
+          <tr><td>營運損害補償</td><td>噪音、違停、顧客、員工、物流商造成第三人損害，責任切割不明。</td><td>明訂營運相關請求、罰鍰與律師費由蝦皮負責，使房東免責。</td></tr>
+          <tr><td>裝修圖與竣工圖</td><td>施工位置、管線與負載不清，修繕時無法追原因。</td><td>施工前審圖、完工交竣工圖、電路圖及許可文件。</td></tr>
+          <tr><td>恢復原狀清單</td><td>只清空動產，房東承擔拆除與修復。</td><td>按點交照片恢復，並列出招牌、隔間、配線、油漆、地板、孔洞。</td></tr>
+          <tr><td>一般通知條款</td><td>不知道Email、LINE、存證信函何時算送達，影響催告及終止。</td><td>指定雙方Email、地址、聯絡人與視為送達規則。</td></tr>
+          <tr><td>遲延付款利息／費用</td><td>合約提到遲延利息，但未清楚約定利率或行政成本。</td><td>明訂合法範圍內的遲延利息、匯費及催收費。</td></tr>
+          <tr><td>公證與逕受強制執行</td><td>欠租或到期不搬仍可能先打官司。</td><td>公證並列租金、違約金、期滿返還房屋與押金返還。</td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section id="amendments" class="section-card searchable" data-risk="critical">
+        <div class="section-head"><div><h2>建議優先修改文字</h2><p>以下是談判用草案，正式簽署前仍應由熟悉臺灣商業租賃的律師依謄本與現況調整。</p></div><span class="pill risk-critical">優先處理</span></div>
+        <div class="subclause"><h3>一、營運行為與第三人檢舉責任</h3><div class="draft">因承租人、其受僱人、合作廠商、物流業者、次承租人或顧客之營運、裝卸、停車、通行、包裹堆置、廢棄物或其他行為所生之噪音、交通、管理規約、鄰里陳情、行政裁罰、第三人請求、改善或遷店費用，均由承租人自行負責，並應使出租人免受損害，不屬第五條第二項出租人應負責之情形。
+
+出租人僅就簽約前已存在、未據實揭露且可歸責出租人之所有權、出租權或建物合法性瑕疵，負第五條第二項責任。出租人賠償以承租人實際發生、有合法憑證且屬直接必要之損失為限，不包含所失利益或其他間接損害。</div></div>
+        <div class="subclause"><h3>二、提前退租違約金</h3><div class="draft">承租人無本契約所定無責終止事由而提前終止者，除應於三個月前書面通知外，於租金起算日起未滿二年終止者，應支付六個月租金；滿二年未滿四年者，支付三個月租金；滿四年者，支付二個月租金。承租人另應返還出租人尚未攤提完畢之免租期利益、出租人出資之改善費及其他經雙方書面確認之招商成本。</div></div>
+        <div class="subclause"><h3>三、裝修與退租恢復</h3><div class="draft">承租人施工前應提出設計圖、施工圖、水電圖、招牌固定方式、施工廠商及保險資料，經出租人書面同意後始得施工。未經出租人書面同意，不得變更結構、外牆、防水層、主要管線或於樑柱鑽孔。
+
+租約終止或期滿前三十日，出租人得書面選擇保留全部或部分裝修，或要求承租人拆除並恢復至點交照片及點交清冊所示原狀。承租人未完成前，不視為完成返還。</div></div>
+        <div class="subclause"><h3>四、押金與最後結算</h3><div class="draft">押金全額入帳為點交房屋、交付鑰匙及承租人進場施工之先決條件。租約終止或期滿後，出租人得於完成點交、稅籍與營業登記遷出、費用結清及損害查驗後三十日內結算押金；尚未出帳之水電、管理費或合理修復預估金額，出租人得暫予保留，於金額確定後返還餘額。</div></div>
+        <div class="subclause"><h3>五、法院與公證</h3><div class="draft">因本契約所生爭議，以租賃標的所在地之臺灣臺南地方法院為第一審管轄法院。雙方同意辦理本契約公證，並就租金、違約金、租期屆滿或合法終止後返還房屋，以及押金返還等事項，於法律容許範圍內約定逕受強制執行。</div></div>
+      </section>
+
+      <section id="sources" class="section-card searchable" data-risk="low">
+        <div class="section-head"><div><h2>法規與官方資料</h2><p>外部連結供核對法律背景；合約內容以雙方正式簽署版本為準。</p></div><span class="pill risk-low">參考</span></div>
+        <ul class="source-list">
+          <li><a href="https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=B0000001" target="_blank" rel="noopener">法務部全國法規資料庫｜民法</a></li>
+          <li><a href="https://law.moj.gov.tw/LawClass/LawSingle.aspx?flno=425&amp;pcode=B0000001" target="_blank" rel="noopener">民法第425條｜所有權讓與與租約繼續存在</a></li>
+          <li><a href="https://law.moj.gov.tw/LawClass/LawSingle.aspx?flno=451&amp;pcode=B0000001" target="_blank" rel="noopener">民法第451條｜租期屆滿後默示更新</a></li>
+          <li><a href="https://law.moj.gov.tw/LawClass/LawSingle.aspx?flno=24&amp;pcode=B0010001" target="_blank" rel="noopener">民事訴訟法第24條｜合意管轄</a></li>
+          <li><a href="https://law.moj.gov.tw/LawClass/LawSingle.aspx?flno=28&amp;pcode=B0010001" target="_blank" rel="noopener">民事訴訟法第28條｜定型化條款顯失公平的移送</a></li>
+          <li><a href="https://www.judicial.gov.tw/tw/cp-1654-2751-f6a88-1.html" target="_blank" rel="noopener">司法院｜如何辦理房屋租賃契約公證</a></li>
+          <li><a href="https://www.ntbt.gov.tw/singlehtml/41ae3594197f4f69b47753ce08188516?cntId=e36c31730bc44b44b286d46bd1182936" target="_blank" rel="noopener">財政部臺北國稅局｜租金扣繳及補充保費總額計算</a></li>
+          <li><a href="https://www.nhi.gov.tw/ch/cp-4516-74b0f-2613-1.html" target="_blank" rel="noopener">健保署｜補充保險費率及租金門檻</a></li>
+          <li><a href="https://www.tntb.gov.tw/showpage.php?lmenuid=4&amp;pagetype=0&amp;smenuid=39&amp;tmenuid=98" target="_blank" rel="noopener">臺南市政府財政稅務局｜房屋稅稅率說明</a></li>
+          <li><a href="https://www.tntb.gov.tw/news_view.php?fPrint=Y&amp;lang=tw&amp;lmenuid=4&amp;page=1&amp;qcategory=3&amp;qinfoid=10647&amp;qkeyword=&amp;qtype=1&amp;smenuid=37&amp;tmenuid=78" target="_blank" rel="noopener">臺南市政府財政稅務局｜一樓出租營業時地價稅按比例計算</a></li>
+        </ul>
+      </section>
+
+      <div id="emptyState" class="empty-state">沒有符合目前搜尋與風險篩選的條款。</div>
+      <footer>本文件為依使用者提供之契約製作的閱讀輔助資料。涉及簽署、增補協議、房屋用途合法性或訴訟時，請攜帶完整契約、謄本、使用執照及現場圖向臺灣律師確認。</footer>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      var search = document.getElementById('search');
+      var filters = Array.prototype.slice.call(document.querySelectorAll('.riskFilter'));
+      var sections = Array.prototype.slice.call(document.querySelectorAll('.searchable'));
+      var emptyState = document.getElementById('emptyState');
+      var expandButton = document.getElementById('expandAll');
+      var expanded = false;
+
+      function normalize(text) {
+        return (text || '').toLowerCase().replace(/\s+/g, ' ').trim();
+      }
+
+      function applyFilters() {
+        var q = normalize(search.value);
+        var active = filters.filter(function (f) { return f.checked; }).map(function (f) { return f.value; });
+        var count = 0;
+        sections.forEach(function (section) {
+          var matchesRisk = active.indexOf(section.getAttribute('data-risk')) !== -1;
+          var matchesText = !q || normalize(section.textContent).indexOf(q) !== -1;
+          section.hidden = !(matchesRisk && matchesText);
+          if (!section.hidden) count += 1;
+        });
+        emptyState.style.display = count ? 'none' : 'block';
+      }
+
+      search.addEventListener('input', applyFilters);
+      filters.forEach(function (f) { f.addEventListener('change', applyFilters); });
+      expandButton.addEventListener('click', function () {
+        expanded = !expanded;
+        document.querySelectorAll('details.original').forEach(function (d) { d.open = expanded; });
+        expandButton.textContent = expanded ? '收合原文' : '展開原文';
+      });
+      applyFilters();
+    }());
+  </script>
+</body>
+</html>
