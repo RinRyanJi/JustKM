@@ -7,24 +7,25 @@
   <title>蝦皮店到店租賃契約｜房東逐條實務解析</title>
   <style>
     :root {
-      --ink: #172033;
-      --muted: #667085;
-      --line: #d9e0e8;
+      /* Notion-inspired bright palette (from design-md/library/notion) */
+      --ink: #1a1a1a;
+      --muted: #787671;
+      --line: #e5e3df;
       --paper: #ffffff;
-      --canvas: #f3f6f9;
-      --navy: #17355c;
-      --navy-2: #244d7c;
-      --accent: #e85d31;
-      --accent-soft: #fff1eb;
-      --critical: #b42318;
-      --critical-bg: #fff0ee;
-      --high: #b54708;
-      --high-bg: #fff5e8;
-      --medium: #175cd3;
-      --medium-bg: #eef4ff;
-      --low: #027a48;
-      --low-bg: #ecfdf3;
-      --shadow: 0 12px 30px rgba(16, 24, 40, .08);
+      --canvas: #fafaf9;
+      --navy: #0a1530;
+      --navy-2: #1a2a52;
+      --accent: #5645d4;
+      --accent-soft: #e6e0f5;
+      --critical: #e03131;
+      --critical-bg: #fde0ec;
+      --high: #dd5b00;
+      --high-bg: #ffe8d4;
+      --medium: #0075de;
+      --medium-bg: #dcecfa;
+      --low: #1aae39;
+      --low-bg: #d9f3e1;
+      --shadow: 0 12px 30px rgba(16, 24, 40, .07);
       --radius: 16px;
     }
 
@@ -49,7 +50,7 @@
       gap: 12px;
       padding: 10px 18px;
       color: white;
-      background: rgba(23, 53, 92, .97);
+      background: rgba(10, 21, 48, .97);
       backdrop-filter: blur(10px);
       box-shadow: 0 2px 10px rgba(0,0,0,.12);
     }
@@ -107,7 +108,7 @@
       text-decoration: none;
       font-size: .9rem;
     }
-    .nav-list a:hover { color: var(--navy); background: #eef3f8; }
+    .nav-list a:hover { color: var(--accent); background: #efeafc; }
     .filter-box {
       margin-top: 16px;
       padding-top: 14px;
@@ -124,8 +125,8 @@
       border-radius: 24px;
       color: white;
       background:
-        radial-gradient(circle at 88% 14%, rgba(232,93,49,.75), transparent 25%),
-        linear-gradient(135deg, #102a4a, #244d7c 65%, #315f90);
+        radial-gradient(circle at 88% 14%, rgba(123,63,242,.55), transparent 26%),
+        linear-gradient(135deg, #0a1530, #1a2a52 62%, #24357a);
       box-shadow: var(--shadow);
     }
     .hero::after {
@@ -140,7 +141,7 @@
     }
     .eyebrow {
       margin: 0 0 12px;
-      color: #ffd8ca;
+      color: #d6b6f6;
       font-size: .88rem;
       font-weight: 800;
       letter-spacing: .09em;
@@ -166,7 +167,7 @@
       border-radius: 0 12px 12px 0;
       background: var(--accent-soft);
     }
-    .notice strong { color: #9a3412; }
+    .notice strong { color: #3a2a99; }
 
     .dashboard {
       display: grid;
@@ -338,6 +339,15 @@
       a::after { content: " (" attr(href) ")"; font-size: 8pt; word-break: break-all; }
       .nav-list a::after { content: ""; }
     }
+
+    /* strategy section helpers */
+    .section-card h3.stg { color: #243b59; font-size: 1.1rem; margin: 20px 0 8px; padding-top: 4px; }
+    .section-card ul.stg { margin: 6px 0 12px; padding-left: 22px; color: var(--ink); font-size: .94rem; }
+    .section-card ul.stg li { margin: 6px 0; }
+    .section-card ul.stg strong { color: var(--accent); }
+    .tag { display:inline-block; font-size:.72rem; font-weight:800; padding:2px 9px; border-radius:999px; margin-left:6px; vertical-align:middle; }
+    .tag.solo { background: var(--low-bg); color:#157a2b; }
+    .tag.talk { background: var(--medium-bg); color:#0059b3; }
   </style>
 </head>
 <body>
@@ -373,6 +383,7 @@
         <a href="#article-15">第15條　其他</a>
         <a href="#missing">合約未寫但應補事項</a>
         <a href="#amendments">優先修改條文</a>
+        <a href="#strategy">🎯 房東行動策略</a>
       </nav>
       <div class="filter-box">
         <strong>依風險篩選</strong>
@@ -653,6 +664,79 @@
 租約終止或期滿前三十日，出租人得書面選擇保留全部或部分裝修，或要求承租人拆除並恢復至點交照片及點交清冊所示原狀。承租人未完成前，不視為完成返還。</div></div>
         <div class="subclause"><h3>四、押金與最後結算</h3><div class="draft">押金全額入帳為點交房屋、交付鑰匙及承租人進場施工之先決條件。租約終止或期滿後，出租人得於完成點交、稅籍與營業登記遷出、費用結清及損害查驗後三十日內結算押金；尚未出帳之水電、管理費或合理修復預估金額，出租人得暫予保留，於金額確定後返還餘額。</div></div>
         <div class="subclause"><h3>五、法院與公證</h3><div class="draft">因本契約所生爭議，以租賃標的所在地之臺灣臺南地方法院為第一審管轄法院。雙方同意辦理本契約公證，並就租金、違約金、租期屆滿或合法終止後返還房屋，以及押金返還等事項，於法律容許範圍內約定逕受強制執行。</div></div>
+      </section>
+
+      <section id="strategy" class="section-card searchable" data-risk="high">
+        <div class="section-head">
+          <div>
+            <h2>🎯 房東行動策略（願意出租的前提）</h2>
+            <p>你其實傾向出租，所以策略不是「拒簽」，而是在<strong>願意成交</strong>的前提下把風險壓到你能承受。三道防線（協商 → 預防 → 事後補救）＋ 一個 Plan B（蝦皮就是不肯改約時）。</p>
+          </div>
+          <span class="pill risk-high">實戰策略</span>
+        </div>
+
+        <div class="notice">
+          <strong>整棟出租的額外風險：</strong>因為你是<strong>整棟</strong>而非只租店面，這份約把<strong>全棟五年</strong>都綁住，風險比單層更集中——樓上樓層你也不能自用、全棟合法性與消防、屋頂招牌/機電、全棟稅費與保險都得一併算進來（見下方 ⓿）。
+        </div>
+
+        <h3 class="stg">⓿ 整棟出租，先想清楚這幾件事</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>面向</th><th>整棟特有的風險</th><th>該做的事</th></tr></thead>
+          <tbody>
+            <tr><td>樓上樓層使用</td><td>全棟五年都不能自用；空置樓層維護、漏水、頂樓責任仍可能落你身上</td><td>先確認蝦皮實際使用範圍；空置樓層的維護、巡檢、費用責任寫清楚</td></tr>
+            <tr><td>使用執照 / 合法性</td><td>整棟改營業用，可能觸發更嚴的消防、公安、招牌與變更使用審查</td><td>簽前查全棟使用執照與用途；把「合法性以現況為準、既存瑕疵不擴大」談進去</td></tr>
+            <tr><td>稅費</td><td>全棟改營業用，房屋稅/地價稅級距可能整棟拉高（非只店面那層）</td><td>先向稅捐處確認增額，談進租金或由蝦皮吸收</td></tr>
+            <tr><td>結構 / 屋頂 / 外牆</td><td>全棟外牆、屋頂防水、頂樓加蓋（若有）合法性都在你名下</td><td>點交時逐層存證；頂加/違建先揭露，避免落入第 5(2) 無上限責任</td></tr>
+            <tr><td>保險</td><td>火險/公共意外要按<strong>整棟重建成本</strong>估，不是一層</td><td>自保足額建物火險＋要求蝦皮投保並列你為附加被保險人</td></tr>
+            <tr><td>次轉租 / 分層</td><td>蝦皮可能把樓上分租他人，衍生管理與責任問題</td><td>明訂是否允許次轉租、以及次承租人行為責任歸蝦皮</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 class="stg">① 協商策略（爭取改約，最理想）</h3>
+        <ul class="stg">
+          <li><strong>分清「必守」與「可讓」</strong>：把〈建議修改條文〉五項排序。<u>最該死守</u>：第 5(2) 無上限責任<strong>設封頂</strong>、提前退租<strong>違約金加碼＋返還免租/裝修攤提</strong>、退租<strong>恢復原狀</strong>、押金<strong>入帳為點交先決</strong>、<strong>台南管轄＋公證</strong>。<u>可讓</u>：免租期天數、通知細節。</li>
+          <li><strong>用「對等」邏輯談</strong>：蝦皮要你五年綁定，你就要對稱保障——它能低成本退場，你就要合理補償。</li>
+          <li><strong>認清你的籌碼</strong>：整棟＋地點稀缺＝你有議價力。別急著簽，手上保留其他承租選項（BATNA），談判才有底氣。</li>
+          <li><strong>形式要對</strong>：口頭同意無效，一切改動必須落在<strong>補充協議／附件</strong>、雙方簽章用印。</li>
+          <li><strong>簽前找律師</strong>：花小錢請熟悉商業租賃的律師依<strong>謄本＋現況</strong>改約，遠比事後打官司便宜。</li>
+        </ul>
+
+        <h3 class="stg">② 預防策略（很多你<span class="tag solo">單方可做</span>，不需蝦皮同意）</h3>
+        <ul class="stg">
+          <li><strong>自行完整點交存證</strong> <span class="tag solo">單方</span>：交屋前<strong>自己</strong>（別只靠蝦皮拍的）逐層錄影＋高解析照片＋第三方點交清冊＋日期戳。這是對抗第 7 條「清空現狀」最有力的武器。</li>
+          <li><strong>產權/合法性自查</strong> <span class="tag solo">單方</span>：先調謄本、使用執照，確認有無違建/共有/未保存登記——<strong>先揭露</strong>永遠優於事後被第 5(2) 咬。</li>
+          <li><strong>雙保險</strong>：要求蝦皮投保並列你為附加被保險人，<strong>同時自己也保</strong>足額建物火險 <span class="tag solo">單方</span>。</li>
+          <li><strong>辦公證＋逕受強制執行</strong> <span class="tag talk">需到場</span>：欠租或到期不搬可直接聲請執行，免先打官司。公證是「程序」不是「改條款」，蝦皮較可能接受。</li>
+          <li><strong>押金機制</strong>：堅持「押金全額入帳為點交與交鑰匙的先決條件」。</li>
+          <li><strong>財務緩衝</strong> <span class="tag solo">單方</span>：把「蝦皮可能第 X 年退場」納入現金流規劃，別把五年當保證收入。</li>
+        </ul>
+
+        <h3 class="stg">③ 事後補救（簽了、營運中或退租時出問題）</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>狀況</th><th>補救手段</th></tr></thead>
+          <tbody>
+            <tr><td>要主張違約 / 終止</td><td>一切通知走<strong>存證信函／Email 留證</strong>；第 10 條要求先書面催告、給改善期，照程序走才站得住。</td></tr>
+            <tr><td>蝦皮自行修繕請款、減租</td><td>要求提供<strong>估價單、發票、施工前通知</strong>；金額不合理可拒付並存證，主張須經你同意。</td></tr>
+            <tr><td>第三人檢舉 / 主張權利</td><td>立即蒐證釐清是否「簽約前既存且可歸責你」；以封頂條款抗辯，並<strong>通報保險</strong>。</td></tr>
+            <tr><td>退租結算</td><td>依點交影像<strong>逐項對照</strong>，主張恢復原狀或保留裝修；押金於查驗後合理期間內結算，保留合理修復預估。</td></tr>
+            <tr><td>蝦皮提前退場</td><td>依（若談成的）加碼違約金＋免租/裝修攤提返還請求；未談成也可依民法主張損害（力道較弱）。</td></tr>
+            <tr><td>對方欠租 / 不搬</td><td>有公證 → 直接聲請<strong>強制執行</strong>；若管轄仍在台北，先評估訴訟成本。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 class="stg">④ Plan B：蝦皮完全不肯加任何補充條款怎麼辦</h3>
+        <p style="color:var(--muted);font-size:.92rem;margin:2px 0 8px;">大企業用制式約、常常一字不改。這很正常——但你仍有「<strong>不需要對方同意</strong>」的自保：</p>
+        <ul class="stg">
+          <li><strong>把風險「定價」進去</strong>：條款不能改，就用價格補償——要求<strong>更高月租、更高押金</strong>（例如 3 個月）、或請蝦皮<strong>吸收全棟營業稅增額</strong>，作為你承擔風險的對價。</li>
+          <li><strong>換條件不換文字</strong>：談不動條款，至少爭取<strong>縮短租期</strong>或「首期屆滿可重議租金」。</li>
+          <li><strong>單方自保三件套</strong> <span class="tag solo">全部單方</span>：① 簽前律師審謄本＋合法性、② 自行完整點交存證、③ 自己投足額建物險——這三項<strong>完全不需蝦皮同意</strong>。</li>
+          <li><strong>公證力爭</strong> <span class="tag talk">需到場</span>：屬程序非改約，對方未必反對，能爭到就大幅降低事後求償成本。</li>
+          <li><strong>設好底線</strong>：把「最壞情況」（第 5(2) 無上限責任＋蝦皮提前退場＋退租復原自付）<strong>量化成金額</strong>。若這個下檔你承受不起、對方又一字不改——那就是該說不的訊號。<strong>願意出租 ≠ 必須用這份約成交。</strong></li>
+        </ul>
+
+        <div class="notice">
+          <strong>一句話收斂：</strong>先用 <strong>①協商</strong>爭取改約 → 改不動就用 <strong>④重新定價</strong>拿補償 → 無論如何都把 <strong>②預防</strong>與 <strong>③補救</strong>的單方措施做滿。願意出租是好起點，但「願意」不等於「照單全收」。本頁為實務情境分析，正式簽署前仍請由律師依謄本與現況把關。
+        </div>
       </section>
 
       <section id="sources" class="section-card searchable" data-risk="low">
