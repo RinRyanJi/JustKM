@@ -275,8 +275,8 @@
       autocomplete="off">
   </div>
 
-  <h2 class="section-title">📚 知識主題</h2>
-  <div class="grid" id="topics">
+  <h2 class="section-title">💹 投資與程式交易</h2>
+  <div class="grid" id="zone-invest">
 
     <a class="topic-card" data-tags="美股 投資 交易 教學 daytrading swingtrading 風險管理 稅務 vwap ema rsi" href="./invest/course.html">
       <div class="topic-icon">📈</div>
@@ -312,6 +312,11 @@
       <div class="topic-meta">78 端點 · 10 大類 · 費用方案 + 6 範例 · Vercel 風格</div>
       <div class="topic-desc">量化圈 F 開頭王者：30 年 EOD、15 年法說會逐字稿、SEC 文件、社群情緒、Insider、國會議員交易。60 req/min 免費，Pro $49.99/mo</div>
     </a>
+
+  </div>
+
+  <h2 class="section-title">🤖 AI · Agent · 學習</h2>
+  <div class="grid" id="zone-ai">
 
     <a class="topic-card" data-tags="網路基礎 入門 菜鳥 rest websocket http api 初學者 教學" href="./learn/network-basics.html">
       <div class="topic-icon">🌐</div>
@@ -418,12 +423,24 @@
       <div class="topic-desc">告別 stash 與反覆切分支：同時開多個分支的工作目錄、共用歷史。含心智模型、核心指令速查、實務場景、手把手範例、常見坑與 vs clone 對照。</div>
     </a>
 
+    <a class="topic-card" data-tags="herdr 終端 terminal multiplexer 多工器 tmux agent coding agent rust ratatui runtime 狀態 working blocked idle sidebar cli socket api 遠端 ssh 持久化 claude code codex" href="./learn/herdr.html">
+      <div class="topic-icon">🐑</div>
+      <div class="topic-name">Herdr：AI agent 專用終端多工器</div>
+      <div class="topic-meta">10 節 · tmux + agent 狀態感知 · Rust/Ratatui</div>
+      <div class="topic-desc">「the runtime your coding agents live on」：同一終端養多個 coding agent，側欄一眼看誰 working/blocked/idle，斷線續跑。含心智模型、CLI/Socket API、vs tmux 對照。</div>
+    </a>
+
     <a class="topic-card" data-tags="ai 程式開發 工作流 matt pocock skills tdd code review spec tickets grill implement 除錯 debug 架構 claude code 拆解 教學" href="./learn/matt-pocock-dev-workflow.html">
       <div class="topic-icon">🏭</div>
       <div class="topic-name">拆解 Matt Pocock 的 AI 程式開發流程</div>
       <div class="topic-meta">11 節 · grill→spec→tickets→implement(TDD)→review 生產線 · 含流程圖 + 手動版</div>
       <div class="topic-desc">把 AI 寫程式從一次性許願變成有紀律的生產線：釐清需求、寫規格、垂直切票、接縫 TDD、雙軸 Code Review、除錯鐵律、深模組設計。拆解 17 個工程 Skill 與 8 條可偷走的心法</div>
     </a>
+
+  </div>
+
+  <h2 class="section-title">🎨 設計</h2>
+  <div class="grid" id="zone-design">
 
     <a class="topic-card" data-tags="設計系統 design md stripe linear vercel apple 配色 樣式 設計 token figma 設計系統" href="./design-md/">
       <div class="topic-icon">🎨</div>
@@ -432,12 +449,22 @@
       <div class="topic-desc">收錄 Stripe、Linear、Vercel、Apple、Cursor 等 74 個頂級品牌的設計規格。可篩選、預覽色票、檢視 YAML 元件 token</div>
     </a>
 
+  </div>
+
+  <h2 class="section-title">✈️ 旅遊</h2>
+  <div class="grid" id="zone-travel">
+
     <a class="topic-card" data-tags="travel 旅遊 日本 沖繩 石垣島 西表島 竹富島 跳島 住宿 景點 飲食 交通 驗證 評論 Google Maps 行程" href="./travel/ishigaki-2026/index.html">
       <div class="topic-icon">🏝️</div>
       <div class="topic-name">八重山旅行知識庫：石垣島 × 西表島 × 竹富島</div>
       <div class="topic-meta">西表島 · 石垣島 · 竹富島完整目的地頁 · 最終行程獨立頁</div>
       <div class="topic-desc">依旅程抵達地點進入；每個島的活動、景點、餐廳、住宿、交通與注意事項集中在同一頁，官網、Maps、口碑與深入資料保留在各項目內。</div>
     </a>
+
+  </div>
+
+  <h2 class="section-title">⚖️ 法律與合約</h2>
+  <div class="grid" id="zone-legal">
 
     <a class="topic-card" data-tags="legal 法律 契約 租約 租賃 蝦皮 shopee 房東 店面 條款 審查 風險 台南 柳營 押金 修繕 解約 續約" href="./legal/shopee-lease-review.html">
       <div class="topic-icon">📑</div>
@@ -504,10 +531,12 @@
       c.style.display = match ? '' : 'none';
       if (match) visible++;
     });
-    // 兩個 grid 同時搜
-    ['topics', 'raw-materials'].forEach(id => {
-      const g = document.getElementById(id);
-      if (g) g.style.display = g.querySelectorAll('.topic-card:not([style*="display: none"])').length === 0 ? 'none' : '';
+    // 所有分區 grid 同時搜；整區無結果時連同標題一起隱藏
+    document.querySelectorAll('.grid').forEach(g => {
+      const anyVisible = [...g.querySelectorAll('.topic-card')].some(c => c.style.display !== 'none');
+      g.style.display = anyVisible ? '' : 'none';
+      const h = g.previousElementSibling;
+      if (h && h.classList.contains('section-title')) h.style.display = anyVisible ? '' : 'none';
     });
     empty.style.display = visible === 0 ? '' : 'none';
   });
