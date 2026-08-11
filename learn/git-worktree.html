@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Git Worktree 觀念教學與實務：一個 repo 多個工作目錄 · JustKM</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a; --bg-secondary: #131826; --bg-card: #1a2138; --bg-code: #0f1424;
+      --border: #2a3454; --text-primary: #e8ecf4; --text-secondary: #9aa3b8; --text-muted: #6b7390;
+      --accent: #4f9eff; --accent-green: #00d68f; --accent-orange: #ff9f43; --accent-red: #ff4d6d; --accent-purple: #a855f7;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--bg-primary); color: var(--text-primary); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; }
+    .container { max-width: 980px; margin: 0 auto; }
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 16px rgba(0,0,0,0.4); backdrop-filter: blur(8px); }
+    .font-adjuster button { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--text-muted); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--accent); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+    .hero { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; padding: 36px 32px; margin-bottom: 28px; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg,#00d68f,#4f9eff,#a855f7); }
+    .hero h1 { font-size: 1.6875rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .hero .sub { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 3px 10px; font-size: 0.6875rem; color: var(--text-secondary); margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: var(--accent); border-color: var(--accent); }
+    .badge.green { color: var(--accent-green); border-color: var(--accent-green); }
+    .badge.orange { color: var(--accent-orange); border-color: var(--accent-orange); }
+    .toc { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 32px; }
+    .toc-title { font-size: 0.8125rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 6px; }
+    .toc a { color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 6px; transition: all 0.15s; }
+    .toc a:hover { color: var(--accent); background: var(--bg-card); }
+    section { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; scroll-margin-top: 20px; }
+    section h2 { font-size: 1.375rem; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+    section h2 .num { color: var(--accent); font-size: 0.875rem; font-weight: 800; background: var(--bg-card); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border); }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--accent); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--text-secondary); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--text-secondary); font-size: 0.875rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--text-secondary); font-size: 0.875rem; }
+    section li { margin-bottom: 4px; }
+    section strong { color: var(--text-primary); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.8125rem; }
+    th { text-align: left; background: var(--bg-card); color: var(--text-primary); padding: 9px 12px; border: 1px solid var(--border); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+    tr:hover td { background: rgba(79, 158, 255, 0.04); }
+    pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: #e8ecf4; }
+    .cm { color: var(--text-muted); }
+    .kw { color: var(--accent-green); }
+    p code, li code, td code { background: var(--bg-code); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--accent-orange); }
+    .callout { border-left: 3px solid var(--accent); background: var(--bg-card); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0 16px; font-size: 0.84375rem; color: var(--text-secondary); }
+    .callout.warn { border-left-color: var(--accent-orange); }
+    .callout.danger { border-left-color: var(--accent-red); }
+    .callout.tip { border-left-color: var(--accent-green); }
+    .callout.info { border-left-color: var(--accent-purple); }
+    .callout strong { color: var(--text-primary); }
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--accent); text-decoration: none; font-size: 0.875rem; padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-secondary); }
+    .back-home:hover { border-color: var(--accent); }
+    .footer { text-align: center; color: var(--text-muted); font-size: 0.75rem; margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); }
+    .diagram { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; font-family: 'SF Mono', Menlo, monospace; font-size: 0.78125rem; color: var(--text-secondary); white-space: pre; overflow-x: auto; line-height: 1.5; }
+    .diagram .arrow { color: var(--accent); }
+    .diagram .label { color: var(--accent-green); }
+    .diagram .warn { color: var(--accent-orange); }
+    .diagram .purple { color: var(--accent-purple); }
+    .related { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin: 16px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--accent); text-decoration: none; font-size: 0.875rem; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-secondary); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .related .rel-title { color: var(--text-primary); font-weight: 700; }
+    .related .rel-sub { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-family: monospace; font-weight: 700; }
+    .pill-yes { background: rgba(0, 214, 143, 0.15); color: var(--accent-green); }
+    .pill-no  { background: rgba(255, 77, 109, 0.15); color: var(--accent-red); }
+    @media (max-width: 600px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../index.html">← 回到 JustKM 首頁</a>
+
+  <div class="hero">
+    <h1>🌳 Git Worktree：一個 repo，同時開多個工作目錄</h1>
+    <p class="sub">告別 <code>git stash</code> 與反覆切分支之苦 · 觀念教學 + 核心指令 + 實務場景 + 優缺點</p>
+    <div>
+      <span class="badge green">Git 基礎</span>
+      <span class="badge blue">平行開發</span>
+      <span class="badge orange">含指令速查 + 手把手</span>
+      <span class="badge">附優缺點對照</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#pain">① 它解決什麼痛點</a>
+      <a href="#model">② 心智模型</a>
+      <a href="#commands">③ 核心指令速查</a>
+      <a href="#howitworks">④ 運作原理：共用什麼</a>
+      <a href="#usecases">⑤ 實務場景</a>
+      <a href="#walkthrough">⑥ 手把手完整範例</a>
+      <a href="#proscons">⑦ 優點 / 缺點</a>
+      <a href="#pitfalls">⑧ 常見坑 + 最佳實踐</a>
+      <a href="#vs">⑨ vs clone / 切分支</a>
+      <a href="#sources">⑩ 延伸與來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>Git worktree 讓「同一個 repo」同時 checkout 多個分支到不同資料夾</strong>——每個資料夾各自有獨立的工作目錄與暫存區，但<strong>共用同一份 <code>.git</code> 物件庫</strong>。於是你可以在 A 資料夾開發功能、B 資料夾修 hotfix、C 資料夾跑測試，<strong>互不干擾、不用 stash、不用重新 clone</strong>。</p>
+    <div class="callout info">
+      <strong>📌 名稱澄清：</strong>它是 <strong>Git 內建功能</strong>（<code>git worktree</code>，Git 2.5+），<strong>不是 GitHub 專屬</strong>的東西。任何用 Git 的專案、任何託管平台（GitHub/GitLab/自架）都能用。
+    </div>
+  </section>
+
+  <!-- ① -->
+  <section id="pain">
+    <h2><span class="num">①</span> 它解決什麼痛點</h2>
+    <p>沒有 worktree 時，一個 clone 只能同時待在<strong>一個分支</strong>。要切去別的分支,常見的痛：</p>
+    <ul>
+      <li>手上功能改到一半 → 老闆要你緊急修 <code>main</code> 的 bug → 得先 <code>git stash</code> 或硬 commit 半成品,修完再切回來、再 <code>stash pop</code>。</li>
+      <li>切分支會<strong>改動整個工作目錄</strong> → IDE 重新索引、建置快取失效、<code>node_modules</code> 可能要重裝、開發伺服器要重啟。</li>
+      <li>想<strong>同時</strong>跑「A 分支的測試」又繼續「B 分支的開發」→ 一個目錄辦不到。</li>
+      <li>想並排<strong>比較兩個分支</strong>的實際檔案 → 只能一直切來切去。</li>
+    </ul>
+    <p>Worktree 把這些痛一次解決：<strong>多開幾個工作目錄，各自停在不同分支,同時存在。</strong></p>
+  </section>
+
+  <!-- ② -->
+  <section id="model">
+    <h2><span class="num">②</span> 心智模型：一顆大腦，多雙手</h2>
+    <p>把 repo 想成:<strong>一份共用的「物件庫/歷史」(.git)</strong> + <strong>多個各自獨立的「工作檯」(worktree)</strong>。</p>
+    <div class="diagram">                 ┌─────────────────────────────────────────┐
+                 │   共用的 .git 物件庫（commits/branches/tags）  │
+                 └───────────────┬─────────────┬───────────────┘
+        <span class="label">主 worktree</span>                <span class="label">linked worktree</span>      <span class="label">linked worktree</span>
+   ┌───────────────────┐   ┌──────────────────┐   ┌──────────────────┐
+   │ myrepo/           │   │ myrepo-hotfix/   │   │ myrepo-review/   │
+   │ 分支: <span class="arrow">main</span>        │   │ 分支: <span class="arrow">hotfix/x</span>   │   │ 分支: <span class="arrow">pr-42</span>      │
+   │ 自己的檔案/index   │   │ 自己的檔案/index  │   │ 自己的檔案/index  │
+   └───────────────────┘   └──────────────────┘   └──────────────────┘
+      (原本的 clone)          git worktree add        git worktree add</div>
+    <ul>
+      <li><strong>主 worktree(main worktree)</strong>:你一開始 <code>git clone</code> 出來的那個目錄。</li>
+      <li><strong>連結 worktree(linked worktree)</strong>:之後用 <code>git worktree add</code> 加出來的,各自是一個獨立資料夾。</li>
+      <li>它們<strong>共享同一份歷史與物件</strong>,所以在任一邊 commit,其他邊 <code>git log</code> 都看得到。</li>
+    </ul>
+    <div class="callout warn">
+      <strong>⚠️ 一條鐵律：</strong><strong>同一個分支不能同時在兩個 worktree 被 checkout。</strong>Git 會擋下並提示「already checked out at …」——這是刻意設計,避免兩邊同時改同一分支而打架。(要並行同一分支,通常改用 detached HEAD 或另開分支。)
+    </div>
+  </section>
+
+  <!-- ③ -->
+  <section id="commands">
+    <h2><span class="num">③</span> 核心指令速查</h2>
+    <table>
+      <thead><tr><th>指令</th><th>做什麼</th></tr></thead>
+      <tbody>
+        <tr><td><code>git worktree add &lt;路徑&gt; &lt;分支&gt;</code></td><td>在指定路徑開一個 worktree,checkout 既有分支</td></tr>
+        <tr><td><code>git worktree add -b &lt;新分支&gt; &lt;路徑&gt; [起點]</code></td><td>建立新分支並同時開 worktree</td></tr>
+        <tr><td><code>git worktree add --detach &lt;路徑&gt; &lt;commit&gt;</code></td><td>以 detached HEAD 開(用來看某個 commit,不佔分支)</td></tr>
+        <tr><td><code>git worktree list</code></td><td>列出所有 worktree、各自路徑與目前分支(<code>--porcelain</code> 給機器讀)</td></tr>
+        <tr><td><code>git worktree remove &lt;路徑&gt;</code></td><td>安全移除一個 worktree(乾淨才允許,<code>--force</code> 強制)</td></tr>
+        <tr><td><code>git worktree prune</code></td><td>清掉已被手動刪除目錄後殘留的中繼資料</td></tr>
+        <tr><td><code>git worktree move &lt;來源&gt; &lt;目的&gt;</code></td><td>搬移一個 worktree 到新路徑</td></tr>
+        <tr><td><code>git worktree lock / unlock &lt;路徑&gt;</code></td><td>鎖定(避免被 prune,例如在外接硬碟上的 worktree)</td></tr>
+        <tr><td><code>git worktree repair</code></td><td>修復被搬動而失聯的 worktree 連結</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip">
+      <strong>💡 常用一行：</strong><code>git worktree add ../myrepo-hotfix main</code> —— 在旁邊開一個目錄、停在 <code>main</code>,馬上就能修 bug,原本的功能開發原地不動。
+    </div>
+  </section>
+
+  <!-- ④ -->
+  <section id="howitworks">
+    <h2><span class="num">④</span> 運作原理:什麼共用、什麼各自獨立</h2>
+    <p>這是理解 worktree 的關鍵——搞清楚「哪些是全 repo 一份」「哪些是每個 worktree 一份」。</p>
+    <table>
+      <thead><tr><th>共用（整個 repo 一份）</th><th>各自獨立（每個 worktree 一份）</th></tr></thead>
+      <tbody>
+        <tr><td>物件庫(所有 commit / blob / tree)</td><td>工作目錄裡的實際檔案</td></tr>
+        <tr><td>分支、tag、remote 設定</td><td><code>HEAD</code>(目前停在哪個分支)</td></tr>
+        <tr><td><code>config</code>(預設全域共用)</td><td><code>index</code>(暫存區 staging)</td></tr>
+        <tr><td>hooks、<code>stash</code>、packed-refs</td><td>建置產物 / <code>node_modules</code> / IDE 快取</td></tr>
+      </tbody>
+    </table>
+    <p>技術上,連結 worktree 的中繼資料放在主 repo 的 <code>.git/worktrees/&lt;名稱&gt;/</code>;而每個連結 worktree 目錄裡的 <code>.git</code> 其實是一個<strong>檔案</strong>(不是資料夾),裡頭寫著指回主 repo 的路徑。</p>
+    <div class="callout info">
+      <strong>📌 想要「每個 worktree 各自的設定」?</strong>開啟 <code>git config extensions.worktreeConfig true</code>,就能用 <code>git config --worktree &lt;key&gt; &lt;value&gt;</code> 設定只作用於當前 worktree 的設定(例如不同的 user.email 或 hooks 路徑)。
+    </div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="usecases">
+    <h2><span class="num">⑤</span> 實務場景:什麼時候該用</h2>
+    <div class="diagram"><span class="label">場景 1 · 開發中被插隊修 hotfix</span>
+  feature 目錄照舊改 ─┐
+                      ├─ 另開 <span class="arrow">../repo-hotfix</span> 停在 main → 修完 → push → 回來繼續
+  （完全不用 stash）  ┘
+
+<span class="label">場景 2 · 一邊跑長測試 / build，一邊繼續寫</span>
+  ../repo-test 跑 CI／壓測（吃滿 CPU 幾十分鐘）｜ 主目錄照樣開發，互不搶建置快取
+
+<span class="label">場景 3 · Review 別人的 PR</span>
+  git worktree add ../repo-pr42 origin/pr-42 → 在獨立目錄實際跑起來看，看完 remove
+
+<span class="label">場景 4 · 並排比較兩個分支</span>
+  A 目錄開 branch-A、B 目錄開 branch-B → 用 diff 工具或 IDE 直接兩邊對照</div>
+    <ul>
+      <li><strong>緊急 hotfix 插隊</strong>:功能開發原地凍結,旁邊開一個 <code>main</code> worktree 修 bug。</li>
+      <li><strong>長時間任務並行</strong>:一個 worktree 跑測試/建置/部署,另一個繼續開發,<strong>建置產物互不覆蓋</strong>。</li>
+      <li><strong>Code Review / 試跑 PR</strong>:把 PR 分支開在獨立目錄實際執行,不弄髒你手上的工作。</li>
+      <li><strong>並排比較分支</strong>:重構前後、兩個實作方案,兩個目錄直接對照。</li>
+      <li><strong>發佈用分支</strong>:例如把 <code>gh-pages</code> / <code>docs</code> 開成一個 worktree,建置輸出直接寫進去再 push。</li>
+      <li><strong>⭐ 平行 AI 編碼代理</strong>:讓多個 AI agent <strong>各自在一個 worktree</strong> 同時改不同分支,彼此隔離、不會互相踩檔(許多 agent 工具內建此隔離機制)。</li>
+    </ul>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="walkthrough">
+    <h2><span class="num">⑥</span> 手把手:一個完整範例</h2>
+    <p>情境:你正在 <code>feature/login</code> 開發,突然要緊急修 <code>main</code> 的 bug。</p>
+    <pre><code><span class="cm"># 你現在在主目錄 ~/proj，分支 feature/login，改到一半（不想 commit 半成品）</span>
+
+<span class="cm"># 1) 旁邊開一個 worktree，停在 main —— 原目錄完全不動</span>
+git worktree add ../proj-hotfix main
+
+<span class="cm"># 2) 進去修 bug（這是獨立資料夾、獨立 index）</span>
+cd ../proj-hotfix
+<span class="cm"># …改檔、測試…</span>
+git switch -c hotfix/crash        <span class="cm"># 開修復分支</span>
+git commit -am "Fix null crash on login"
+git push -u origin hotfix/crash
+
+<span class="cm"># 3) 回主目錄，你的 feature/login 還在原地，完全沒被打斷</span>
+cd ../proj                        <span class="cm"># 繼續寫功能</span>
+
+<span class="cm"># 4) 事後清理：確認乾淨後移除 hotfix worktree</span>
+git worktree remove ../proj-hotfix
+git worktree list                 <span class="cm"># 確認已移除</span></code></pre>
+    <div class="callout tip">
+      <strong>💡 建議的擺放慣例：</strong>把所有 worktree 放在<strong>主 repo 的「旁邊」</strong>(如 <code>../proj-hotfix</code>、<code>../proj-pr42</code>),或集中在一個 <code>../proj.worktrees/</code> 資料夾。<strong>不要把 worktree 開在主工作目錄「裡面」</strong>——會造成 gitignore 與工具混淆。
+    </div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="proscons">
+    <h2><span class="num">⑦</span> 優點 / 缺點</h2>
+    <h3>✅ 優點</h3>
+    <ul>
+      <li><strong>瞬間切換、零 stash</strong>:多分支同時存在,不必暫存半成品。</li>
+      <li><strong>省空間、省時間</strong>:共用物件庫,不像 <code>git clone</code> 要再抓一整份歷史。</li>
+      <li><strong>建置隔離</strong>:各 worktree 有獨立的建置產物/快取,不會互相清掉、不必反覆重建。</li>
+      <li><strong>真並行</strong>:長測試、部署、AI agent 各佔一個目錄,同時進行。</li>
+      <li><strong>單一 remote 設定</strong>:全部 worktree 共用同一組 remote 與認證,少一份維護。</li>
+    </ul>
+    <h3>⚠️ 缺點 / 代價</h3>
+    <ul>
+      <li><strong>每個 worktree 仍是一整份工作檔</strong>:大 repo 開很多個會佔不少<strong>磁碟</strong>(省的是歷史,不是原始碼)。</li>
+      <li><strong>依賴要各裝一份</strong>:<code>node_modules</code>、venv、build cache 每個 worktree 各自一份,得各自安裝。</li>
+      <li><strong>同分支不能重複 checkout</strong>:偶爾會被這條規則卡到。</li>
+      <li><strong>認知與清理成本</strong>:容易忘了自己開過哪些、忘記 <code>remove</code>/<code>prune</code>,目錄越積越亂。</li>
+      <li><strong>工具相容性</strong>:少數工具/IDE 假設「一個 repo 一個工作目錄」,對 worktree 支援不完美;submodule 場景也較複雜。</li>
+    </ul>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="pitfalls">
+    <h2><span class="num">⑧</span> 常見坑 + 最佳實踐</h2>
+    <table>
+      <thead><tr><th>坑</th><th>解法 / 最佳實踐</th></tr></thead>
+      <tbody>
+        <tr><td>用 <code>rm -rf</code> 直接刪 worktree 目錄</td><td>改用 <code>git worktree remove</code>;若已誤刪,跑 <code>git worktree prune</code> 清中繼資料</td></tr>
+        <tr><td>把 worktree 開在主目錄「裡面」</td><td>一律開在<strong>旁邊</strong>或集中資料夾,避免 gitignore/索引混亂</td></tr>
+        <tr><td>「already checked out」錯誤</td><td>該分支已在別的 worktree;改用別的分支,或 <code>--detach</code> 看 commit</td></tr>
+        <tr><td>忘記開過哪些 worktree</td><td>養成 <code>git worktree list</code> 的習慣;採一致命名(如 <code>proj-&lt;用途&gt;</code>)</td></tr>
+        <tr><td>依賴/環境變數各不同</td><td>每個 worktree 各自 <code>install</code>;搭配 direnv/mise 管環境;需要時開 <code>extensions.worktreeConfig</code></td></tr>
+        <tr><td>搬動目錄後連結壞掉</td><td><code>git worktree move</code> 來搬;若手動搬過,用 <code>git worktree repair</code> 修復</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip">
+      <strong>💡 清理節奏：</strong>任務結束就 <code>git worktree remove</code>,並定期 <code>git worktree prune</code>。把 worktree 當「用完即拋的臨時工作檯」,而不是長期並存的十個分身。
+    </div>
+  </section>
+
+  <!-- ⑨ -->
+  <section id="vs">
+    <h2><span class="num">⑨</span> 該用 worktree、還是 clone、還是切分支?</h2>
+    <table>
+      <thead><tr><th>需求</th><th>建議</th></tr></thead>
+      <tbody>
+        <tr><td>只是換到另一個分支工作,手上沒有未完成的改動</td><td><code>git switch</code> 切分支就好(最輕)</td></tr>
+        <tr><td>要<strong>同時</strong>存在多個分支的工作目錄、共用歷史</td><td><span class="pill pill-yes">git worktree</span></td></tr>
+        <tr><td>要完全獨立的環境(不同 remote/config/實驗性破壞)</td><td><code>git clone</code> 另一份(較重但最隔離)</td></tr>
+      </tbody>
+    </table>
+    <h4>worktree vs clone 快速對照</h4>
+    <table>
+      <thead><tr><th></th><th>git worktree</th><th>另做一份 git clone</th></tr></thead>
+      <tbody>
+        <tr><td>歷史/物件</td><td>共用一份(省空間)</td><td>各一份(重複)</td></tr>
+        <tr><td>建立速度</td><td>快(不用重抓)</td><td>慢(重新 clone/fetch)</td></tr>
+        <tr><td>commit 互通</td><td>立即共通(同一物件庫)</td><td>要 push/fetch 才同步</td></tr>
+        <tr><td>隔離程度</td><td>工作目錄隔離,設定共用</td><td>完全隔離</td></tr>
+        <tr><td>適合</td><td>並行分支、hotfix、review、平行 agent</td><td>完全獨立的環境/實驗</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ⑩ -->
+  <section id="sources">
+    <h2><span class="num">⑩</span> 延伸與來源</h2>
+    <h3>🔗 官方參考</h3>
+    <ul>
+      <li><a href="https://git-scm.com/docs/git-worktree" target="_blank" rel="noopener" style="color:var(--accent)">git-worktree 官方文件</a> —— 所有子指令與選項的權威說明</li>
+      <li><a href="https://git-scm.com/book/en/v2" target="_blank" rel="noopener" style="color:var(--accent)">Pro Git（免費書）</a> —— Git 觀念完整讀本</li>
+    </ul>
+    <h3>🔗 站內延伸</h3>
+    <div class="related">
+      <a href="./index.html"><div class="rel-title">🎓 AI 學習總目錄</div><div class="rel-sub">學習區入口</div></a>
+      <a href="./matt-pocock-dev-workflow.html"><div class="rel-title">🏭 Matt Pocock 的 AI 開發流程</div><div class="rel-sub">worktree 常搭配「子代理隔離」使用</div></a>
+      <a href="./oh-my-pi.html"><div class="rel-title">🥧 拆解 oh-my-pi（omp）</div><div class="rel-sub">內建工作區隔離（pi-iso），概念相通</div></a>
+      <a href="./network-basics.html"><div class="rel-title">🌐 網路小白入門</div><div class="rel-sub">同屬開發基礎</div></a>
+    </div>
+    <div class="callout info">
+      <strong>📌 一句話帶走：</strong>當你需要「<strong>同一個 repo、多個分支、同時進行</strong>」——hotfix 插隊、跑測試、review PR、或讓多個 AI agent 平行工作——<code>git worktree</code> 幾乎永遠比 stash 亂切、或重新 clone 更省事。用完記得 <code>remove</code>。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · Git Worktree 觀念教學與實務</p>
+    <p style="margin-top:4px;">整理自 git-scm 官方文件與實務經驗 · 建立於 2026-08-10 · 字級調整器在右上角</p>
+    <p style="margin-top:4px;"><a href="../index.html" style="color:var(--accent);text-decoration:none;">← 回到 JustKM 首頁</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
