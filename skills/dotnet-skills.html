@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>dotnet/skills 逐 skill 拆解 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h3 .repo { font-family: 'SF Mono', Menlo, monospace; font-size: 0.9rem; }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .meta-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+    .tag { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; border: 1px solid var(--hairline); background: var(--surface); color: var(--slate); }
+    .tag.lic { background: var(--tint-mint); color: #157a2b; border-color: transparent; }
+    .tag.type { background: var(--tint-lavender); color: var(--primary-deep); border-color: transparent; }
+    .tag.link a { color: var(--link); text-decoration: none; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.danger { border-left-color: var(--error); background: var(--tint-rose); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .steal { border-left: 3px solid var(--teal); background: var(--tint-mint); padding: 11px 15px; border-radius: 0 10px 10px 0; margin: 10px 0 4px; font-size: 0.84rem; color: var(--charcoal); }
+    .steal strong { color: #157a2b; }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 Skills 分析專區</a>
+
+  <div class="hero">
+    <h1>🟣 dotnet/skills 逐 skill 拆解</h1>
+    <p class="sub">.NET 團隊官方出品，讓 coding agent「真的會寫 C# / .NET」的技能組，遵循 agentskills.io 開放標準</p>
+    <div>
+      <span class="badge green">官方 · Microsoft .NET</span>
+      <span class="badge blue">MIT 授權</span>
+      <span class="badge orange">12 個核心 skill 逐一拆解</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#intro">① 這 repo 是什麼 / 適用工具</a>
+      <a href="#dotnet">② dotnet（核心 · LSP）</a>
+      <a href="#advanced">③ dotnet-advanced</a>
+      <a href="#data">④ dotnet-data（EF Core）</a>
+      <a href="#diag">⑤ dotnet-diag（診斷/效能）</a>
+      <a href="#msbuild">⑥ dotnet-msbuild</a>
+      <a href="#nuget">⑦ dotnet-nuget</a>
+      <a href="#upgrade">⑧ dotnet-upgrade（升級）</a>
+      <a href="#maui">⑨ dotnet-maui</a>
+      <a href="#ai">⑩ dotnet-ai（AI/ML）</a>
+      <a href="#aspnetcore">⑪ dotnet-aspnetcore</a>
+      <a href="#blazor">⑫ dotnet-blazor</a>
+      <a href="#test">⑬ dotnet-test（測試）</a>
+      <a href="#sources">↗ 相關與來源</a>
+    </div>
+  </nav>
+
+  <!-- ① -->
+  <section id="intro">
+    <h2><span class="num">①</span> 這 repo 是什麼 / 適用工具</h2>
+    <div class="meta-row"><span class="tag type">官方 · Microsoft .NET</span><span class="tag lic">MIT</span><span class="tag link"><a href="https://github.com/dotnet/skills" target="_blank" rel="noopener">github.com/dotnet/skills ↗</a></span></div>
+    <p><strong>定位：</strong><code>dotnet/skills</code> 是 .NET 團隊官方維護的「core skills 與 custom agents 集合」，目標是讓各家 coding agent 在寫 C# / .NET 時，能遵循官方認可的做法，而不是憑訓練記憶亂寫。整個 repo 對齊 <code>agentskills.io</code> 的 Agent Skills 開放標準——每個 skill 就是一份 <code>SKILL.md</code>（含 frontmatter 的 <code>name</code> / <code>description</code>）加上參考文件與腳本，靠漸進揭露（progressive disclosure）在對的時機被 agent 載入。</p>
+
+    <h4>結構：plugin → skills</h4>
+    <p>repo 以「plugin（外掛）」為單位組織，路徑為 <code>plugins/&lt;plugin&gt;/skills/&lt;skill&gt;/SKILL.md</code>。一個 plugin 可含多個 skill；例如 <code>dotnet-test</code> 底下就有 20 多個測試相關 skill。本頁挑出 12 個核心 plugin 逐一拆解。repo 中另有 <code>dotnet11</code>、<code>dotnet-template-engine</code>、<code>dotnet-test-migration</code>、<code>dotnet-experimental</code> 等 plugin，本頁未逐一展開（以官方 repo 為準）。</p>
+
+    <h4>適用工具</h4>
+    <table>
+      <thead><tr><th>工具</th><th>安裝方式（以官方 repo 為準）</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Copilot CLI</strong></td><td>註冊 marketplace 後安裝所需 plugin</td></tr>
+        <tr><td><strong>Claude Code</strong></td><td><code>/plugin marketplace add dotnet/skills</code> → <code>/plugin install &lt;plugin&gt;</code></td></tr>
+        <tr><td><strong>VS Code（預覽）</strong></td><td>於 settings.json 啟用、從 marketplace 搜尋（Copilot Chat）</td></tr>
+        <tr><td><strong>Cursor</strong></td><td>內建 plugin marketplace，或本地匯入 <code>~/.cursor/plugins/local/</code></td></tr>
+        <tr><td><strong>Codex CLI</strong></td><td>註冊 marketplace 後於 plugin browser 瀏覽</td></tr>
+      </tbody>
+    </table>
+    <div class="callout info">和 <code>anthropics/skills</code> 教「Skill 長什麼樣」不同，<code>dotnet/skills</code> 是<strong>把 .NET 官方的『正確做法』沉澱成一條條可觸發工作流</strong>——每個 skill 的 <code>description</code> 就是它的觸發條件。以下逐 skill 看它「何時被叫出來、實際做什麼、有什麼值得偷師」。</div>
+  </section>
+
+  <!-- ② dotnet -->
+  <section id="dotnet">
+    <h2><span class="num">②</span> dotnet（核心 · C# 語言伺服器）</h2>
+    <div class="meta-row"><span class="tag type">plugin</span><span class="tag">skills/setup-local-sdk</span></div>
+    <p><strong>① 用途：</strong>最基礎的 .NET plugin，提供「common .NET development skills」，並透過 .NET CLI 啟動一個 <strong>C# LSP（Language Server Protocol）伺服器</strong>，讓 agent 對 <code>.cs</code> 檔有真正的語意層理解（定義跳轉、診斷、型別資訊），而不是純文字比對。</p>
+    <p><strong>② 何時觸發：</strong>任何 C# / .NET 專案的日常開發都會用到；<code>setup-local-sdk</code> skill 在需要「初始化本地開發環境」時被叫出。前提是機器已裝 <strong>.NET 10 SDK</strong> 且 <code>dotnet</code> 在 PATH 上。</p>
+    <p><strong>③ 技術重點：</strong>把 Roslyn 系的語言伺服器接進 agent，等於把 IDE 級的程式碼智能餵給模型；<code>setup-local-sdk</code> 處理 SDK 版本、<code>global.json</code> 對齊等前置。</p>
+    <div class="steal"><strong>值得偷師：</strong>與其讓模型「猜」符號位置，不如接一顆 LSP 當 ground truth。任何語言的 agent 工作流都可套這招——先給語意層工具，再談生成。</div>
+  </section>
+
+  <!-- ③ dotnet-advanced -->
+  <section id="advanced">
+    <h2><span class="num">③</span> dotnet-advanced</h2>
+    <div class="meta-row"><span class="tag type">plugin</span><span class="tag">csharp-scripts</span><span class="tag">dotnet-pinvoke</span><span class="tag">nuget-trusted-publishing</span></div>
+    <p><strong>① 用途：</strong>針對「非標準、進階」場景的 .NET 技能，補足一般開發之外的深水區。</p>
+    <p><strong>② 何時觸發 / 涵蓋的 skill：</strong></p>
+    <ul>
+      <li><code>csharp-scripts</code>：撰寫/執行 C# 腳本情境（如 <code>dotnet run app.cs</code> 這類單檔腳本）。</li>
+      <li><code>dotnet-pinvoke</code>：需要 P/Invoke 與原生（native）函式庫互操作時。</li>
+      <li><code>nuget-trusted-publishing</code>：安全地發佈 NuGet 套件的可信發佈流程。</li>
+    </ul>
+    <p><strong>③ 技術重點：</strong>互操作邊界（marshalling、平台呼叫）、腳本化 C#、供應鏈安全的套件發佈——都是「標準教學少提、但正式專案會踩」的題目。</p>
+    <div class="steal"><strong>值得偷師：</strong>把「進階但低頻」的知識獨立成 plugin，平時不佔 context，需要時才載入——這正是漸進揭露的價值。</div>
+  </section>
+
+  <!-- ④ dotnet-data -->
+  <section id="data">
+    <h2><span class="num">④</span> dotnet-data（Entity Framework Core）</h2>
+    <div class="meta-row"><span class="tag type">plugin</span><span class="tag">optimizing-ef-core-queries</span><span class="tag">create-datadriven-aspnetcore</span></div>
+    <p><strong>① 用途：</strong>資料存取與 EF Core 的最佳實踐，核心是把「慢查詢」變快。</p>
+    <p><strong>② 何時觸發：</strong>EF Core 查詢太慢、產生過多 SQL、round-trip 過多，或要新建一個 data-driven 的 ASP.NET Core 專案時。</p>
+    <p><strong>③ 技術重點（<code>optimizing-ef-core-queries</code> 實際內容）：</strong>方法論是「先看產生的 SQL → 一次只套一個修法 → 再量測」，涵蓋：</p>
+    <ul>
+      <li><strong>N+1</strong>：用 <code>Select</code> 投影或 <code>Include</code> eager-loading 消除重複查詢，避免 lazy loading。</li>
+      <li><strong>Cartesian explosion</strong>：多個 collection <code>Include</code> 造成列爆炸時，用 <code>AsSplitQuery()</code> 拆成多次查詢避免父資料重複。</li>
+      <li><strong>投影（projection）</strong>：用 <code>Select</code> 在資料庫端 reshape/aggregate，少 materialize 整個 entity。</li>
+      <li><strong>compiled queries</strong>：熱路徑用 <code>EF.CompileQuery</code> / <code>EF.CompileAsyncQuery</code> 省掉每次 LINQ 轉譯開銷。</li>
+      <li>分頁效率、未建索引的過濾條件等。</li>
+    </ul>
+    <div class="steal"><strong>值得偷師：</strong>「量測 → 只改一處 → 再量測」的迭代紀律，避免一次塞一堆優化卻不知哪個有效——這是效能調校的正解，不限於 EF。</div>
+  </section>
+
+  <!-- ⑤ dotnet-diag -->
+  <section id="diag">
+    <h2><span class="num">⑤</span> dotnet-diag（診斷 · 效能 · 崩潰分析）</h2>
+    <div class="meta-row"><span class="tag type">plugin</span><span class="tag">analyzing-dotnet-performance</span><span class="tag">dotnet-trace-collect</span><span class="tag">dump-collect</span><span class="tag">microbenchmarking</span><span class="tag">…等 7 個</span></div>
+    <p><strong>① 用途：</strong>效能調查、除錯、事件/崩潰分析的一整套診斷技能。</p>
+    <p><strong>② 何時觸發 / 涵蓋的 skill：</strong><code>analyzing-dotnet-performance</code>（效能反模式掃描）、<code>dotnet-trace-collect</code>（收集 trace）、<code>dump-collect</code>（收集 dump）、<code>microbenchmarking</code>（微基準）、<code>clr-activation-debugging</code>（CLR 啟動除錯）、<code>android-tombstone-symbolication</code> 與 <code>apple-crash-symbolication</code>（行動端崩潰符號化）。</p>
+    <p><strong>③ 技術重點（<code>analyzing-dotnet-performance</code> 實際內容）：</strong>它掃描約 <strong>50 種 .NET 效能反模式</strong>，橫跨 async、記憶體、字串、集合、LINQ、regex、序列化、I/O。做法不是跑 runtime profiler，而是<strong>五步靜態分析</strong>：載入 reference（如 <code>critical-patterns.md</code>）→ 偵測程式碼訊號決定要查哪些類別 → 用 grep 配方做精確計數（例如搜 <code>.Substring(</code>、<code>RegexOptions.Compiled</code>）→ 依 Critical / Moderate / Info 分級 → 產出「熱路徑優先」的具體修法。</p>
+    <div class="steal"><strong>值得偷師：</strong>把資深工程師腦中的「反模式清單」變成 grep 可執行的偵測配方＋嚴重度分級，讓 agent 的效能審查可重現、有優先序，而不是每次憑感覺。</div>
+  </section>
+
+  <!-- ⑥ dotnet-msbuild -->
+  <section id="msbuild">
+    <h2><span class="num">⑥</span> dotnet-msbuild（建置系統診斷與最佳化）</h2>
+    <div class="meta-row"><span class="tag type">plugin</span><span class="tag">binlog-failure-analysis</span><span class="tag">build-parallelism</span><span class="tag">incremental-build</span><span class="tag">msbuild-antipatterns</span><span class="tag">…等 19 個</span></div>
+    <p><strong>① 用途：</strong>MSBuild 建置的診斷、加速與現代化——這是 .NET 專案「建不起來 / 建太慢」的主場。</p>
+    <p><strong>② 何時觸發 / 涵蓋的 skill（19 個，代表項）：</strong></p>
+    <ul>
+      <li><strong>診斷</strong>：<code>binlog-generation</code>／<code>binlog-failure-analysis</code>（產生並分析 binlog 找失敗根因）、<code>build-perf-baseline</code>／<code>build-perf-diagnostics</code>／<code>eval-performance</code>。</li>
+      <li><strong>加速</strong>：<code>build-parallelism</code>、<code>incremental-build</code>、<code>msbuild-server</code>。</li>
+      <li><strong>結構/衛生</strong>：<code>directory-build-organization</code>、<code>property-patterns</code>、<code>item-management</code>、<code>target-authoring</code>、<code>extension-points</code>、<code>resolve-project-references</code>、<code>check-bin-obj-clash</code>、<code>copy-to-output-directory</code>、<code>including-generated-files</code>。</li>
+      <li><strong>現代化</strong>：<code>msbuild-modernization</code>、<code>msbuild-antipatterns</code>。</li>
+    </ul>
+    <p><strong>③ 技術重點：</strong>把 MSBuild 這種「黑箱感很重」的建置系統拆成可觀測（binlog）＋可優化（平行/增量/server）＋可維護（Directory.Build.props 組織、target 撰寫）三層。</p>
+    <div class="steal"><strong>值得偷師：</strong>19 個細粒度 skill 各管一件小事——遇到建置問題時 agent 只載入最相關的 1～2 個，示範了「大主題拆小 skill」如何兼顧覆蓋率與 context 節省。</div>
+  </section>
+
+  <!-- ⑦ dotnet-nuget -->
+  <section id="nuget">
+    <h2><span class="num">⑦</span> dotnet-nuget（套件與依賴管理）</h2>
+    <div class="meta-row"><span class="tag type">plugin</span><span class="tag">convert-to-cpm</span></div>
+    <p><strong>① 用途：</strong>NuGet 套件與依賴的管理。</p>
+    <p><strong>② 何時觸發：</strong><code>convert-to-cpm</code>——當一個多專案 solution 的套件版本散落各 <code>.csproj</code>、難以統一時，把它轉成 <strong>Central Package Management（CPM）</strong>：用單一 <code>Directory.Packages.props</code> 集中管理版本。</p>
+    <p><strong>③ 技術重點：</strong>CPM 是官方推薦的依賴治理做法，能消除版本漂移、讓升級只改一處。（此 plugin 收錄 skill 較精簡，其餘套件相關進階題目見 <code>dotnet-advanced</code> 的 <code>nuget-trusted-publishing</code>；以官方 repo 為準。）</p>
+    <div class="steal"><strong>值得偷師：</strong>「版本集中化」是大型 monorepo 的關鍵治理動作，把它做成一鍵重構 skill，避免人手逐檔改漏。</div>
+  </section>
+
+  <!-- ⑧ dotnet-upgrade -->
+  <section id="upgrade">
+    <h2><span class="num">⑧</span> dotnet-upgrade（框架升級與相容性）</h2>
+    <div class="meta-row"><span class="tag type">plugin</span><span class="tag">migrate-dotnet9-to-dotnet10</span><span class="tag">migrate-dotnet10-to-dotnet11</span><span class="tag">migrate-nullable-references</span><span class="tag">dotnet-aot-compat</span><span class="tag">…等 6 個</span></div>
+    <p><strong>① 用途：</strong>把專案系統化升級到新版 .NET，並解掉沿路所有 breaking change。</p>
+    <p><strong>② 何時觸發 / 涵蓋的 skill：</strong>逐版升級（<code>migrate-dotnet8-to-dotnet9</code>、<code>migrate-dotnet9-to-dotnet10</code>、<code>migrate-dotnet10-to-dotnet11</code>）、啟用可空參考型別（<code>migrate-nullable-references</code>）、AOT 相容性（<code>dotnet-aot-compat</code>）、Thread.Abort 遷移（<code>thread-abort-migration</code>）。</p>
+    <p><strong>③ 技術重點（<code>migrate-dotnet9-to-dotnet10</code> 實際內容）：</strong>不靠 Upgrade Assistant，而是六步手動流程：<strong>評估專案</strong>（找出 build/test 指令、確認 SDK、判斷用到哪些技術面）→ <strong>改 TFM</strong>（<code>net9.0</code> → <code>net10.0</code>、套件升到 10.0.x、解 NU1510 等）→ <strong>修 build 錯誤與 source-incompatible 變更</strong>（C# 14 的 <code>field</code>/<code>extension</code> 關鍵字、SYSLIB 過時警告、ASP.NET Core／EF Core／密碼學 API 變動）→ <strong>處理行為變更</strong>（SIGTERM、BackgroundService 執行緒、SQLite DateTime offset 等）→ <strong>更新基礎設施</strong>（Dockerfile Debian→Ubuntu、CI 的 <code>global.json</code>）→ <strong>驗證</strong>（clean build、跑測試、必要時容器化、安全審查）。每一步都夾帶增量編譯檢查。</p>
+    <div class="steal"><strong>值得偷師：</strong>升級不是「改個版號」而是「評估→改→修編譯→修行為→修基建→驗證」的分層流程，且<strong>每步都建置驗證</strong>。這份 checklist 化的升級劇本，是把易漏的遷移知識固化下來的範本。</div>
+  </section>
+
+  <!-- ⑨ dotnet-maui -->
+  <section id="maui">
+    <h2><span class="num">⑨</span> dotnet-maui（跨平台 App）</h2>
+    <div class="meta-row"><span class="tag type">plugin</span><span class="tag">dotnet-maui-doctor</span><span class="tag">maui-shell-navigation</span><span class="tag">maui-data-binding</span><span class="tag">maui-collectionview</span><span class="tag">…等 8 個</span></div>
+    <p><strong>① 用途：</strong>.NET MAUI 跨平台（iOS / Android / Windows / macOS）App 開發與環境設定。</p>
+    <p><strong>② 何時觸發 / 涵蓋的 skill：</strong>環境健檢 <code>dotnet-maui-doctor</code>，以及 MAUI 常見主題：<code>maui-app-lifecycle</code>、<code>maui-shell-navigation</code>、<code>maui-data-binding</code>、<code>maui-collectionview</code>、<code>maui-dependency-injection</code>、<code>maui-safe-area</code>、<code>maui-theming</code>。</p>
+    <p><strong>③ 技術重點（<code>dotnet-maui-doctor</code> 實際內容）：</strong>跨 macOS/Windows/Linux 驗證整套 MAUI 環境——.NET SDK、workloads（<code>maui</code>/<code>android</code>/<code>ios</code>）、Microsoft OpenJDK、Android SDK、Xcode、Windows SDK——然後<strong>自動修復缺件並重驗，最後建一個測試專案確認端到端可用</strong>。關鍵設計是所有版本需求都<strong>從 NuGet API 動態查</strong>（讀 WorkloadDependencies.json），絕不寫死，隨工具鏈演進自動保持正確。</p>
+    <div class="steal"><strong>值得偷師：</strong>「環境需求動態查、不寫死」＋「修完再驗、建測試專案作煙霧測試」——這讓一個環境診斷工具不會隨版本更新就過期。</div>
+  </section>
+
+  <!-- ⑩ dotnet-ai -->
+  <section id="ai">
+    <h2><span class="num">⑩</span> dotnet-ai（AI / ML 技術選型）</h2>
+    <div class="meta-row"><span class="tag type">plugin</span><span class="tag">technology-selection</span></div>
+    <p><strong>① 用途：</strong>在 .NET 8+ 應用中「選對 AI/ML 技術並落地」——涵蓋從傳統 ML 到 LLM 編排再到本地推論的全光譜。</p>
+    <p><strong>② 何時觸發（<code>technology-selection</code> 的 description）：</strong>要在 .NET 專案加入 AI/ML 功能、需在 ML.NET、Microsoft.Extensions.AI、Microsoft Agent Framework、GitHub Copilot SDK、ONNX Runtime、OllamaSharp 之間做技術選型時。</p>
+    <p><strong>③ 技術重點：</strong></p>
+    <ul>
+      <li><strong>傳統 ML（ML.NET）</strong>：分類、迴歸、分群、異常偵測、推薦——結構化資料、可重現、確定性。</li>
+      <li><strong>LLM 整合</strong>：以 <code>Microsoft.Extensions.AI</code> 作 provider-agnostic 的 chat／embedding 抽象層；文本生成、摘要、推理。</li>
+      <li><strong>RAG / 向量檢索</strong>：<code>Microsoft.Extensions.VectorData.Abstractions</code> 搭配向量資料庫連接器（Azure AI Search、pgvector、Qdrant、Redis、Milvus、MongoDB、Pinecone、SQL 等）。</li>
+      <li><strong>Agentic / 本地推論</strong>：tool calling 多步推理、ONNX Runtime 自訂模型、OllamaSharp 本地模型。</li>
+    </ul>
+    <div class="callout tip"><strong>核心判準（原文）：</strong>「<strong>Do NOT use an LLM for tasks that ML.NET handles well</strong>（表格資料分類、迴歸、分群）——LLM 對這些任務更慢、更貴、且非確定性。」另外它明確標註 <strong>Semantic Kernel 已被新抽象層取代（deprecated）</strong>。</div>
+    <div class="steal"><strong>值得偷師：</strong>官方直接教你「什麼時候<em>不要</em>用 LLM」。一個好的 AI skill 的價值往往在於劃清邊界、給選型判準，而不是無腦推 LLM。</div>
+  </section>
+
+  <!-- ⑪ dotnet-aspnetcore -->
+  <section id="aspnetcore">
+    <h2><span class="num">⑪</span> dotnet-aspnetcore（Web API / 服務）</h2>
+    <div class="meta-row"><span class="tag type">plugin</span><span class="tag">dotnet-webapi</span><span class="tag">minimal-api-file-upload</span><span class="tag">configuring-opentelemetry-dotnet</span><span class="tag">convert-blazor-server-to-webapp</span></div>
+    <p><strong>① 用途：</strong>用 ASP.NET Core 建結構良好的 HTTP API 與服務。</p>
+    <p><strong>② 何時觸發 / 涵蓋的 skill：</strong><code>dotnet-webapi</code>（建 Web API 端點）、<code>minimal-api-file-upload</code>（minimal API 檔案上傳）、<code>configuring-opentelemetry-dotnet</code>（可觀測性/OpenTelemetry）、<code>convert-blazor-server-to-webapp</code>（Blazor Server 轉新 Web App 模型）。</p>
+    <p><strong>③ 技術重點（<code>dotnet-webapi</code> 實際內容）：</strong>強調正確的 HTTP 語意與可測試架構——</p>
+    <ul>
+      <li>controller-based 或 minimal API <strong>擇一，不混用</strong>。</li>
+      <li>DTO 用 <strong>immutable <code>sealed record</code></strong>＋XML 註解豐富 OpenAPI；不直接曝露 domain entity。</li>
+      <li>正確狀態碼（POST → 201、DELETE → 204、找不到 → 404）。</li>
+      <li>.NET 9+ 用<strong>內建 OpenAPI</strong>，拒用 Swashbuckle。</li>
+      <li>全域例外處理回傳 <strong>RFC 7807 Problem Details</strong>；service 層以 interface 注入以利測試。</li>
+      <li>時間用 <code>DateTimeOffset</code>、enum 以字串序列化（<code>JsonStringEnumConverter</code>）、每個端點都帶 <code>CancellationToken</code>；附 <code>.http</code> 檔手動測試。</li>
+    </ul>
+    <div class="steal"><strong>值得偷師：</strong>skill 明確寫出「不涵蓋什麼」（通用 C#、EF 優化、gRPC、SignalR 各有專屬 skill）——清楚的邊界讓觸發更精準，也避免和別的 skill 打架。</div>
+  </section>
+
+  <!-- ⑫ dotnet-blazor -->
+  <section id="blazor">
+    <h2><span class="num">⑫</span> dotnet-blazor（互動式 Web 元件）</h2>
+    <div class="meta-row"><span class="tag type">plugin</span><span class="tag">create-blazor-project</span><span class="tag">plan-ui-change</span><span class="tag">author-component</span><span class="tag">configure-auth</span><span class="tag">…等 9 個</span></div>
+    <p><strong>① 用途：</strong>Blazor 互動式 Web UI 的完整開發流程。</p>
+    <p><strong>② 何時觸發 / 涵蓋的 skill（9 個）：</strong>從專案起手 <code>create-blazor-project</code>、規劃 UI 變更 <code>plan-ui-change</code>、撰寫元件 <code>author-component</code>、蒐集使用者輸入 <code>collect-user-input</code>、元件協作 <code>coordinate-components</code>、取送資料 <code>fetch-and-send-data</code>、設定驗證 <code>configure-auth</code>、支援預渲染 <code>support-prerendering</code>、JS 互操作 <code>use-js-interop</code>。</p>
+    <p><strong>③ 技術重點：</strong>這組 skill 幾乎照著「真實開發一個 Blazor 功能的順序」排列——<strong>先 plan-ui-change 規劃，再 author-component 實作</strong>，涵蓋 render mode / 預渲染、元件間狀態協作、資料存取、驗證授權、與既有 JS 生態互通等 Blazor 特有的坑。</p>
+    <div class="steal"><strong>值得偷師：</strong>用「一條開發旅程」把 skill 排序（規劃→撰寫→接資料→加驗證→處理預渲染），agent 能照場景一步步取用，而不是丟一大坨參考文件。</div>
+  </section>
+
+  <!-- ⑬ dotnet-test -->
+  <section id="test">
+    <h2><span class="num">⑬</span> dotnet-test（測試執行與品質分析）</h2>
+    <div class="meta-row"><span class="tag type">plugin</span><span class="tag">run-tests</span><span class="tag">coverage-analysis</span><span class="tag">crap-score</span><span class="tag">test-gap-analysis</span><span class="tag">test-smell-detection</span><span class="tag">…等 22 個</span></div>
+    <p><strong>① 用途：</strong>不只是「跑測試」，而是一整套<strong>測試品質工程</strong>——執行、涵蓋率、測試異味、可測性、風險評分。</p>
+    <p><strong>② 何時觸發 / 涵蓋的 skill（22 個，分群）：</strong></p>
+    <ul>
+      <li><strong>執行/專案</strong>：<code>run-tests</code>、<code>scaffold-dotnet-test-project</code>、<code>writing-mstest-tests</code>、<code>filter-syntax</code>、<code>test-tagging</code>、<code>mtp-hot-reload</code>、<code>platform-detection</code>。</li>
+      <li><strong>涵蓋率/風險</strong>：<code>coverage-analysis</code>、<code>crap-score</code>、<code>find-untested-sources</code>、<code>test-gap-analysis</code>。</li>
+      <li><strong>品質/異味</strong>：<code>assertion-quality</code>、<code>grade-tests</code>、<code>test-anti-patterns</code>、<code>test-smell-detection</code>、<code>test-analysis-extensions</code>、<code>code-testing-extensions</code>、<code>code-testing-agent</code>。</li>
+      <li><strong>可測性重構</strong>：<code>testability-obstacle</code>、<code>detect-static-dependencies</code>、<code>generate-testability-wrappers</code>、<code>migrate-static-to-wrapper</code>。</li>
+    </ul>
+    <p><strong>③ 技術重點（<code>crap-score</code> 實際內容）：</strong>計算方法/類別/檔案的 <strong>CRAP（Change Risk Anti-Patterns）分數</strong>，公式 <code>CRAP(m) = comp(m)² × (1 − cov(m))³ + comp(m)</code>——複雜度平方、乘上未涵蓋率的立方，把「又複雜又沒測」的方法指數級標紅（&lt;5 良好、5–15 尚可、15–30 需補、&gt;30 緊急）。流程是 <code>dotnet test</code>（coverlet／MTP）收涵蓋率 → 數決策點算複雜度 → 從 Cobertura XML 抽每方法涵蓋率 → 計分排序。硬性規則：<strong>「Never estimate coverage」</strong>——收不到就回報失敗，絕不猜數字。</p>
+    <div class="steal"><strong>值得偷師：</strong>①把「該補哪裡的測試」變成可計算、可排序的單一風險指標（CRAP），讓 agent 有客觀優先序；②「拿不到真實數據就報錯、不編造」的紀律，正是可信賴 agent 的底線。</div>
+  </section>
+
+  <!-- sources -->
+  <section id="sources">
+    <h2><span class="num">↗</span> 相關與來源</h2>
+    <div class="related">
+      <a href="./skill-repos.html">
+        <div class="rel-title">📦 Skill 資源庫巡覽</div>
+        <div class="rel-sub">10 個值得追的 repo（含 dotnet/skills 概覽）</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">什麼是 Skill、6 維分析框架</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">🗂️ JustKM 首頁</div>
+        <div class="rel-sub">回到知識庫入口</div>
+      </a>
+      <a href="https://github.com/dotnet/skills" target="_blank" rel="noopener">
+        <div class="rel-title">🟣 dotnet/skills（GitHub）↗</div>
+        <div class="rel-sub">官方 repo，實際內容以此為準</div>
+      </a>
+    </div>
+    <div class="callout danger" style="margin-top:14px;">
+      <strong>安全提醒：</strong>Skill 會被 agent 當指令執行，還可能觸發建置、測試、SDK 安裝等實際動作。<strong>安裝任何 skill 前，先讀過對應的 <code>SKILL.md</code> 與其腳本</strong>，確認沒有非預期的檔案改動、網路存取或憑證外洩；官方 repo 亦有 <code>SECURITY.md</code>。
+    </div>
+    <div class="callout warn" style="margin-top:12px;">
+      本頁內容整理自 <code>dotnet/skills</code>（<code>main</code> 分支）撰寫時的公開 <code>README.md</code>、各 plugin 的 <code>skills/</code> 目錄與部分 <code>SKILL.md</code>。skill 清單、路徑、授權與安裝方式會持續更新，<strong>實際以官方 repo 最新內容為準</strong>；未逐一求證之處已標「(以官方 repo 為準)」。本頁刻意<strong>不列 star 數</strong>等熱度數據。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · Skills 分析專區 · <a href="./index.html">← 回到專區</a> · <a href="./skill-repos.html">Skill 資源庫巡覽</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
