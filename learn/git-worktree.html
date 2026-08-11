@@ -69,6 +69,9 @@
     .diagram .label { color: var(--accent-green); }
     .diagram .warn { color: var(--accent-orange); }
     .diagram .purple { color: var(--accent-purple); }
+    .svgwrap { background: var(--bg-code); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 10px 0 6px; overflow-x: auto; }
+    .svgwrap svg { display: block; width: 100%; height: auto; min-width: 480px; }
+    .svgcap { font-size: 0.72rem; color: var(--text-muted); text-align: center; margin: 6px 0 14px; }
     .related { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin: 16px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .related a { color: var(--accent); text-decoration: none; font-size: 0.875rem; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-secondary); transition: all 0.15s; display: block; }
     .related a:hover { border-color: var(--accent); transform: translateY(-1px); }
@@ -148,16 +151,49 @@
   <section id="model">
     <h2><span class="num">②</span> 心智模型：一顆大腦，多雙手</h2>
     <p>把 repo 想成:<strong>一份共用的「物件庫/歷史」(.git)</strong> + <strong>多個各自獨立的「工作檯」(worktree)</strong>。</p>
-    <div class="diagram">                 ┌─────────────────────────────────────────┐
-                 │   共用的 .git 物件庫（commits/branches/tags）  │
-                 └───────────────┬─────────────┬───────────────┘
-        <span class="label">主 worktree</span>                <span class="label">linked worktree</span>      <span class="label">linked worktree</span>
-   ┌───────────────────┐   ┌──────────────────┐   ┌──────────────────┐
-   │ myrepo/           │   │ myrepo-hotfix/   │   │ myrepo-review/   │
-   │ 分支: <span class="arrow">main</span>        │   │ 分支: <span class="arrow">hotfix/x</span>   │   │ 分支: <span class="arrow">pr-42</span>      │
-   │ 自己的檔案/index   │   │ 自己的檔案/index  │   │ 自己的檔案/index  │
-   └───────────────────┘   └──────────────────┘   └──────────────────┘
-      (原本的 clone)          git worktree add        git worktree add</div>
+    <div class="svgwrap">
+      <svg viewBox="0 0 820 300" role="img" aria-label="一份共用的 .git 物件庫連到三個獨立工作目錄">
+        <!-- shared object store -->
+        <rect x="150" y="24" width="520" height="52" rx="10" fill="#111a30" stroke="#4f9eff" stroke-width="1.5"/>
+        <text x="410" y="47" text-anchor="middle" font-size="14" font-weight="800" fill="#8fbaff">共用的 .git 物件庫</text>
+        <text x="410" y="65" text-anchor="middle" font-size="11" fill="#9aa3b8">commits · branches · tags · stash（整個 repo 一份）</text>
+        <!-- connectors -->
+        <g stroke="#2a3454" stroke-width="1.5" fill="none">
+          <path d="M410 76 L410 96 L150 96 L150 120"/>
+          <path d="M410 96 L410 120"/>
+          <path d="M410 96 L670 96 L670 120"/>
+        </g>
+        <!-- worktree boxes -->
+        <g font-family="inherit">
+          <!-- main -->
+          <rect x="30" y="122" width="240" height="128" rx="11" fill="#1a2138" stroke="#00d68f" stroke-width="1.5"/>
+          <text x="46" y="146" font-size="11" font-weight="700" fill="#00d68f">主 worktree（原本的 clone）</text>
+          <rect x="46" y="158" width="120" height="22" rx="6" fill="#0f1424" stroke="#2a3454"/>
+          <text x="54" y="173" font-size="11" fill="#e8ecf4">📁 myrepo/</text>
+          <text x="46" y="200" font-size="12" fill="#9aa3b8">分支：<tspan fill="#4f9eff" font-weight="700">main</tspan></text>
+          <text x="46" y="222" font-size="11" fill="#6b7390">自己的工作檔 · HEAD · index</text>
+          <text x="46" y="240" font-size="11" fill="#6b7390">自己的建置產物 / node_modules</text>
+          <!-- linked 1 -->
+          <rect x="290" y="122" width="240" height="128" rx="11" fill="#1a2138" stroke="#2a3454"/>
+          <text x="306" y="146" font-size="11" font-weight="700" fill="#9aa3b8">linked worktree</text>
+          <text x="470" y="146" font-size="9" fill="#6b7390" text-anchor="end">git worktree add</text>
+          <rect x="306" y="158" width="150" height="22" rx="6" fill="#0f1424" stroke="#2a3454"/>
+          <text x="314" y="173" font-size="11" fill="#e8ecf4">📁 myrepo-hotfix/</text>
+          <text x="306" y="200" font-size="12" fill="#9aa3b8">分支：<tspan fill="#ff9f43" font-weight="700">hotfix/x</tspan></text>
+          <text x="306" y="222" font-size="11" fill="#6b7390">自己的工作檔 · HEAD · index</text>
+          <!-- linked 2 -->
+          <rect x="550" y="122" width="240" height="128" rx="11" fill="#1a2138" stroke="#2a3454"/>
+          <text x="566" y="146" font-size="11" font-weight="700" fill="#9aa3b8">linked worktree</text>
+          <text x="730" y="146" font-size="9" fill="#6b7390" text-anchor="end">git worktree add</text>
+          <rect x="566" y="158" width="150" height="22" rx="6" fill="#0f1424" stroke="#2a3454"/>
+          <text x="574" y="173" font-size="11" fill="#e8ecf4">📁 myrepo-review/</text>
+          <text x="566" y="200" font-size="12" fill="#9aa3b8">分支：<tspan fill="#a855f7" font-weight="700">pr-42</tspan></text>
+          <text x="566" y="222" font-size="11" fill="#6b7390">自己的工作檔 · HEAD · index</text>
+        </g>
+        <text x="410" y="284" text-anchor="middle" font-size="11.5" fill="#6b7390">一顆大腦（.git）· 多雙手（各自獨立的工作目錄）</text>
+      </svg>
+    </div>
+    <div class="svgcap">圖 1 · 共用歷史、獨立工作檯：任一邊 commit，其他邊 git log 立即可見</div>
     <ul>
       <li><strong>主 worktree(main worktree)</strong>:你一開始 <code>git clone</code> 出來的那個目錄。</li>
       <li><strong>連結 worktree(linked worktree)</strong>:之後用 <code>git worktree add</code> 加出來的,各自是一個獨立資料夾。</li>
@@ -212,19 +248,34 @@
   <!-- ⑤ -->
   <section id="usecases">
     <h2><span class="num">⑤</span> 實務場景:什麼時候該用</h2>
-    <div class="diagram"><span class="label">場景 1 · 開發中被插隊修 hotfix</span>
-  feature 目錄照舊改 ─┐
-                      ├─ 另開 <span class="arrow">../repo-hotfix</span> 停在 main → 修完 → push → 回來繼續
-  （完全不用 stash）  ┘
-
-<span class="label">場景 2 · 一邊跑長測試 / build，一邊繼續寫</span>
-  ../repo-test 跑 CI／壓測（吃滿 CPU 幾十分鐘）｜ 主目錄照樣開發，互不搶建置快取
-
-<span class="label">場景 3 · Review 別人的 PR</span>
-  git worktree add ../repo-pr42 origin/pr-42 → 在獨立目錄實際跑起來看，看完 remove
-
-<span class="label">場景 4 · 並排比較兩個分支</span>
-  A 目錄開 branch-A、B 目錄開 branch-B → 用 diff 工具或 IDE 直接兩邊對照</div>
+    <div class="svgwrap">
+      <svg viewBox="0 0 820 250" role="img" aria-label="hotfix 插隊時兩個 worktree 並行的時間軸">
+        <text x="20" y="28" font-size="12" font-weight="800" fill="#e8ecf4">場景：開發到一半被插隊修 hotfix —— 兩個 worktree 並行，不用 stash</text>
+        <!-- lane labels -->
+        <text x="20" y="86" font-size="11.5" font-weight="700" fill="#00d68f">主 worktree</text>
+        <text x="20" y="100" font-size="10" fill="#6b7390">myrepo/ · feature</text>
+        <text x="20" y="176" font-size="11.5" font-weight="700" fill="#ff9f43">hotfix worktree</text>
+        <text x="20" y="190" font-size="10" fill="#6b7390">myrepo-hotfix/</text>
+        <!-- lane 1: feature continuous -->
+        <line x1="160" y1="80" x2="800" y2="80" stroke="#00d68f" stroke-width="3"/>
+        <circle cx="160" cy="80" r="4" fill="#00d68f"/><circle cx="800" cy="80" r="4" fill="#00d68f"/>
+        <rect x="150" y="52" width="150" height="20" rx="6" fill="#111a30" stroke="#2a3454"/><text x="160" y="66" font-size="10.5" fill="#9aa3b8">feature/login 改到一半</text>
+        <rect x="560" y="52" width="150" height="20" rx="6" fill="#111a30" stroke="#2a3454"/><text x="570" y="66" font-size="10.5" fill="#9aa3b8">回來，原地繼續</text>
+        <!-- lane 2: hotfix branch off then removed -->
+        <line x1="300" y1="170" x2="620" y2="170" stroke="#ff9f43" stroke-width="3"/>
+        <circle cx="300" cy="170" r="4" fill="#ff9f43"/><circle cx="620" cy="170" r="4" fill="#ff9f43"/>
+        <!-- connectors between lanes -->
+        <path d="M300 80 L300 170" stroke="#4f9eff" stroke-width="1.5" stroke-dasharray="4 4" fill="none"/>
+        <path d="M620 170 L620 80" stroke="#4f9eff" stroke-width="1.5" stroke-dasharray="4 4" fill="none"/>
+        <text x="308" y="128" font-size="10" fill="#4f9eff">worktree add main</text>
+        <text x="612" y="128" font-size="10" fill="#4f9eff" text-anchor="end">worktree remove</text>
+        <rect x="312" y="142" width="130" height="20" rx="6" fill="#111a30" stroke="#2a3454"/><text x="322" y="156" font-size="10.5" fill="#9aa3b8">修 bug · commit</text>
+        <rect x="452" y="142" width="120" height="20" rx="6" fill="#111a30" stroke="#2a3454"/><text x="462" y="156" font-size="10.5" fill="#9aa3b8">push · 修復完成</text>
+        <text x="410" y="228" text-anchor="middle" font-size="11" fill="#6b7390">主目錄的 feature 全程不受打斷；hotfix 在旁邊獨立完成後移除</text>
+      </svg>
+    </div>
+    <div class="svgcap">圖 2 · 兩條並行時間軸：功能開發（綠）不中斷，hotfix（橘）在獨立 worktree 中插隊完成</div>
+    <p>其餘常見場景：</p>
     <ul>
       <li><strong>緊急 hotfix 插隊</strong>:功能開發原地凍結,旁邊開一個 <code>main</code> worktree 修 bug。</li>
       <li><strong>長時間任務並行</strong>:一個 worktree 跑測試/建置/部署,另一個繼續開發,<strong>建置產物互不覆蓋</strong>。</li>
