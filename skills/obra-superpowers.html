@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>obra/superpowers 逐 skill 拆解 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h3 .repo { font-family: 'SF Mono', Menlo, monospace; font-size: 0.9rem; }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .meta-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+    .tag { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; border: 1px solid var(--hairline); background: var(--surface); color: var(--slate); }
+    .tag.lic { background: var(--tint-mint); color: #157a2b; border-color: transparent; }
+    .tag.type { background: var(--tint-lavender); color: var(--primary-deep); border-color: transparent; }
+    .tag.link a { color: var(--link); text-decoration: none; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.danger { border-left-color: var(--error); background: var(--tint-rose); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    /* skill 小塊 */
+    .skill { border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 18px; margin: 14px 0; background: #fdfdfc; }
+    .skill h4 { margin-top: 0; font-size: 1rem; color: var(--ink); font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .skill h4 code { font-family: 'SF Mono', Menlo, monospace; font-size: 0.85rem; background: var(--tint-lavender); border: none; color: var(--primary-deep); padding: 2px 8px; border-radius: 6px; }
+    .skill .facet { margin: 8px 0 0; font-size: 0.86rem; color: var(--charcoal); }
+    .skill .facet b { color: var(--primary-deep); font-weight: 700; margin-right: 4px; }
+    .skill .steal { border-left: 3px solid var(--green); background: var(--tint-mint); padding: 8px 12px; border-radius: 0 8px 8px 0; margin-top: 10px; font-size: 0.83rem; }
+    .skill .steal b { color: #157a2b; }
+    .lawline { font-family: 'SF Mono', Menlo, monospace; font-size: 0.78rem; background: var(--navy); color: #ffd9a0; padding: 8px 12px; border-radius: 8px; margin: 8px 0; display: block; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 Skills 分析專區</a>
+
+  <div class="hero">
+    <h1>⚡ obra/superpowers 逐 skill 拆解</h1>
+    <p class="sub">一套「可組合技能 + 軟體開發方法論」的框架，強調紀律化流程：先計畫、先驗證、再收尾 · 作者 Jesse Vincent</p>
+    <div>
+      <span class="badge green">MIT 授權</span>
+      <span class="badge blue">14 個 skill</span>
+      <span class="badge orange">測試 · 除錯 · 協作 · 元層</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#what">① 這個 repo 是什麼 / 怎麼安裝</a>
+      <a href="#testing">② 測試與除錯</a>
+      <a href="#flow">③ 協作與流程</a>
+      <a href="#meta">④ 元層（skill 的 skill）</a>
+      <a href="#steal">⑤ 整套值得偷師的地方</a>
+      <a href="#sources">↗ 相關與來源</a>
+    </div>
+  </nav>
+
+  <!-- ① -->
+  <section id="what">
+    <h2><span class="num">①</span> 這個 repo 是什麼 / 怎麼安裝</h2>
+    <div class="meta-row">
+      <span class="tag type">精選技能包 · Jesse Vincent</span>
+      <span class="tag lic">MIT</span>
+      <span class="tag link"><a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">GitHub ↗</a></span>
+    </div>
+    <p><strong>官方定位：</strong>README 開宗明義說它是「a complete software development methodology for your coding agents」——一套完整的、給 coding agent 用的軟體開發方法論，建立在一組<strong>可組合的 skill</strong> 加上「確保 agent 真的會去用這些 skill」的初始指示之上。</p>
+    <p>它的核心信念是：agent 不該一接到需求就衝去寫程式，而該<strong>先退一步，問你到底想達成什麼</strong>，再走「設計 → 規格審查 → 實作計畫 → subagent 驅動開發（含兩階段審查）」的紀律化流程。整個 repo 本質上是把一位資深工程師的自律，轉寫成 agent 會照著做的規則。</p>
+
+    <h4>skills/ 底下的 14 個 skill</h4>
+    <table>
+      <thead><tr><th>主題</th><th>skills</th></tr></thead>
+      <tbody>
+        <tr><td><strong>測試 / 除錯</strong></td><td><code>test-driven-development</code>、<code>systematic-debugging</code>、<code>verification-before-completion</code></td></tr>
+        <tr><td><strong>協作 / 流程</strong></td><td><code>brainstorming</code>、<code>writing-plans</code>、<code>executing-plans</code>、<code>subagent-driven-development</code>、<code>dispatching-parallel-agents</code>、<code>using-git-worktrees</code>、<code>requesting-code-review</code>、<code>receiving-code-review</code>、<code>finishing-a-development-branch</code></td></tr>
+        <tr><td><strong>元層</strong></td><td><code>writing-skills</code>、<code>using-superpowers</code></td></tr>
+      </tbody>
+    </table>
+
+    <h4>支援哪些 agent / 怎麼安裝</h4>
+    <p>repo 內含各家的 plugin 目錄（<code>.claude-plugin/</code>、<code>.codex-plugin/</code>、<code>.cursor-plugin/</code>、<code>.kimi-plugin/</code>、<code>.opencode/</code>、<code>.pi/extensions/</code> 等），對應多種終端 agent：</p>
+    <pre><code><span class="cm"># Claude Code（官方市集）</span>
+/plugin install superpowers@claude-plugins-official
+
+<span class="cm"># Claude Code（Superpowers 自家市集）</span>
+/plugin marketplace add obra/superpowers-marketplace
+/plugin install superpowers@superpowers-marketplace
+
+<span class="cm"># Gemini CLI</span>
+gemini extensions install https://github.com/obra/superpowers
+
+<span class="cm"># GitHub Copilot CLI</span>
+copilot plugin marketplace add obra/superpowers-marketplace
+copilot plugin install superpowers@superpowers-marketplace
+
+<span class="cm"># Pi</span>
+pi install git:github.com/obra/superpowers
+
+<span class="cm"># OpenCode：抓下列 INSTALL.md 依指示安裝</span>
+<span class="cm"># https://raw.githubusercontent.com/obra/superpowers/main/.opencode/INSTALL.md</span></code></pre>
+    <p>另外 <strong>Codex App / CLI</strong> 可在官方 plugin 市集搜尋 Superpowers 安裝，<strong>Cursor</strong> 用 <code>/add-plugin superpowers</code>，<strong>Kimi Code</strong> 走 <code>/plugins</code> 市集。實際指令請以官方 repo 為準。</p>
+    <div class="callout info">本頁每個 skill 的內容，皆取自各 <code>skills/&lt;name&gt;/SKILL.md</code> 原文（<code>main</code> 分支）。引號內文字為官方原句，其餘為整理。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="testing">
+    <h2><span class="num">②</span> 測試與除錯</h2>
+    <p>這三個 skill 是整套方法論的「品質地基」——它們共通的手法是把一句<strong>不可違反的鐵律</strong>放在最前面，逼 agent 在寫程式或宣稱完成之前先付出代價。</p>
+
+    <div class="skill">
+      <h4>🧪 <code>test-driven-development</code></h4>
+      <p class="facet"><b>①用途</b>把 TDD 變成 agent 的預設反射：任何 feature 或 bugfix，先寫會失敗的測試，再寫實作。</p>
+      <p class="facet"><b>②何時觸發</b>「Use when implementing any feature or bugfix, before writing implementation code」——新功能、修 bug、重構、改行為<strong>一律適用</strong>；例外（丟棄式原型、生成碼、設定檔）需人類夥伴同意。</p>
+      <p class="facet"><b>③做法重點</b>核心是那條鐵律與 RED-GREEN-REFACTOR 循環：</p>
+      <span class="lawline">THE IRON LAW：NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST</span>
+      <ul>
+        <li><strong>RED</strong>：寫一個最小、聚焦單一行為的失敗測試（少 mock、用真實程式）。</li>
+        <li><strong>Verify RED（強制）</strong>：跑測試，確認它是「fail 而非 error」，且失敗訊息如預期、是因為功能缺失而不是 typo。</li>
+        <li><strong>GREEN</strong>：寫「剛好讓測試過」的最簡程式，不多做。</li>
+        <li><strong>Verify GREEN（強制）</strong>：確認本測試過、其他測試也還過、輸出乾淨。</li>
+        <li><strong>REFACTOR</strong>：綠燈後才去除重複、改名、抽 helper，並維持測試常綠。</li>
+      </ul>
+      <div class="steal"><b>值得偷師：</b>「先看著測試失敗」這一步被列為 <em>強制</em>。事後補的測試「pass immediately, proving nothing」——一次就過的測試什麼都證明不了，這正是人類也常偷懶的地方。</div>
+    </div>
+
+    <div class="skill">
+      <h4>🔍 <code>systematic-debugging</code></h4>
+      <p class="facet"><b>①用途</b>遇到 bug、測試失敗、非預期行為時，強制先做根因調查，不准直接丟修法。</p>
+      <p class="facet"><b>②何時觸發</b>「Use when encountering bugs, test failures, or unexpected behavior before proposing fixes.」尤其在<strong>有時間壓力、快速修法看起來很明顯、已失敗數次、或其實不懂問題</strong>時更要用。</p>
+      <p class="facet"><b>③四階段根因分析</b></p>
+      <span class="lawline">NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST</span>
+      <ol>
+        <li><strong>Root Cause Investigation</strong>：完整讀錯誤訊息與 stack trace、穩定重現、檢視近期改動、在元件邊界蒐證、把壞值往回追到源頭。</li>
+        <li><strong>Pattern Analysis</strong>：找到能動的相似程式，逐點比對「能動 vs 壞掉」的所有差異，理解依賴與假設。</li>
+        <li><strong>Hypothesis and Testing</strong>：提出<strong>單一、具體</strong>的假設，用最小、隔離的改動驗證；失敗就換假設。</li>
+        <li><strong>Implementation</strong>：先寫失敗測試，只實作一個針對根因的修法，驗證不弄壞其他測試。</li>
+      </ol>
+      <div class="steal"><b>值得偷師：</b><strong>Three strikes rule</strong>——同一個 bug 修三次都失敗，該質疑的是架構本身，而不是繼續打補丁。這條把「越修越亂」的死路直接封住。</div>
+    </div>
+
+    <div class="skill">
+      <h4>✅ <code>verification-before-completion</code></h4>
+      <p class="facet"><b>①用途</b>禁止「沒有證據就宣稱完成」，把「Evidence before claims, always」變成收尾閘門。</p>
+      <p class="facet"><b>②何時觸發</b>在任何「成功 / 完成」宣稱之前、表達滿意之前、commit 或開 PR 之前、切換到下一個任務之前，都要先過驗證閘。</p>
+      <p class="facet"><b>③五步驗證閘</b></p>
+      <span class="lawline">NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE</span>
+      <ol>
+        <li><strong>Identify</strong>：找出能證明你這句話的那道指令。</li>
+        <li><strong>Run</strong>：完整、重新地跑一次（不能拿舊輸出充數）。</li>
+        <li><strong>Read</strong>：讀完整輸出與 exit code。</li>
+        <li><strong>Verify</strong>：確認輸出真的支持你的宣稱。</li>
+        <li><strong>Only then</strong>：才做出宣稱，並附上證據。</li>
+      </ol>
+      <div class="steal"><b>值得偷師：</b>它把「should / probably / seems」這類<strong>模糊避險詞</strong>、以及「Great! Done!」這種驗證前就先慶祝的語氣，都明列為紅旗。對 agent（和人）最有效的紀律，往往是先抓住語氣裡的破綻。</div>
+    </div>
+  </section>
+
+  <!-- ③ -->
+  <section id="flow">
+    <h2><span class="num">③</span> 協作與流程</h2>
+    <p>這一組把「從一個念頭到合併進主幹」的完整開發流程拆成可交接、可審查的步驟。它們串起來就是 superpowers 的主幹：<strong>brainstorming → writing-plans → executing-plans / subagent-driven-development → code review → finishing-a-development-branch</strong>。</p>
+
+    <div class="skill">
+      <h4>💡 <code>brainstorming</code></h4>
+      <p class="facet"><b>①用途</b>用蘇格拉底式對話，把模糊點子磨成「已核准的設計」後才動工。</p>
+      <p class="facet"><b>②何時觸發</b>任何創造性工作（新功能、新元件、加行為）開始<strong>之前</strong>。</p>
+      <p class="facet"><b>③流程重點</b>九步：探索專案脈絡 → 需要時才提供視覺輔助（mockup/圖）→ <strong>一次問一個</strong>釐清問題 → 提 2-3 個方案含取捨與建議 → 分段呈現設計、逐段徵求核准 → 把設計文件寫到 <code>docs/superpowers/specs/YYYY-MM-DD-&lt;topic&gt;-design.md</code> → 規格自我審查（找 placeholder／矛盾／模糊）→ 等使用者審核 → 只轉交給 <code>writing-plans</code>。</p>
+      <div class="steal"><b>值得偷師：</b>設有一道 <strong>Hard Gate</strong>——在拿到設計核准前，不准呼叫任何實作 skill、不准寫任何程式，「不論專案看起來多簡單」。因為「簡單」的專案最常藏著沒被檢查的假設。</div>
+    </div>
+
+    <div class="skill">
+      <h4>📝 <code>writing-plans</code></h4>
+      <p class="facet"><b>①用途</b>把規格轉成「假設工程師對這 codebase 零背景」也能照做的逐任務實作計畫。</p>
+      <p class="facet"><b>②何時觸發</b>手上已有規格/需求、要做多步驟工作、還沒開始寫程式時。</p>
+      <p class="facet"><b>③檢查點與結構</b>計畫要有 header（功能名＋一句目標、架構概述、技術棧、來自規格的精確全域限制）；每個任務含檔案路徑、介面（吃什麼／產出什麼）、<strong>bite-sized 步驟</strong>：寫測試 → 跑（失敗）→ 實作 → 跑（通過）→ commit，而且要放<strong>真實程式碼區塊而非虛擬碼</strong>。存到 <code>docs/superpowers/plans/YYYY-MM-DD-&lt;feature&gt;.md</code>。</p>
+      <div class="steal"><b>值得偷師：</b>硬性禁止 placeholder——不准出現「TBD」「add validation」「handle edge cases」這種佔位字；自我審查時要主動搜這些紅旗字並清掉。把「計畫」逼到可以直接執行的顆粒度。</div>
+    </div>
+
+    <div class="skill">
+      <h4>▶️ <code>executing-plans</code></h4>
+      <p class="facet"><b>①用途</b>在獨立 session 裡執行寫好的計畫，帶審查檢查點。</p>
+      <p class="facet"><b>②何時觸發</b>已有一份細到 bite-sized 的計畫、準備開跑時。</p>
+      <p class="facet"><b>③流程與停損點</b>先用 git worktree 開隔離工作區 → 讀完整計畫、批判性地找缺口並先跟夥伴確認 → 逐任務 in_progress → 照步驟做 → 跑驗證 → completed → 最後轉交 <code>finishing-a-development-branch</code>。<strong>遇到 blocker（缺依賴、測試失敗、指示不清）、計畫有重大缺口、或反覆驗證失敗就立即停</strong>。</p>
+      <div class="steal"><b>值得偷師：</b>「Never start implementation on main/master without explicit consent」——沒經明確同意，不在主幹上動工。以及「寧可問，不要用猜的硬闖障礙」。</div>
+    </div>
+
+    <div class="skill">
+      <h4>🤖 <code>subagent-driven-development</code></h4>
+      <p class="facet"><b>①用途</b>用「每個任務派一個全新 implementer subagent」的方式執行計畫，並做兩階段審查。</p>
+      <p class="facet"><b>②何時觸發</b>已有完整計畫、任務多為獨立、且要留在當前 session 內完成時。</p>
+      <p class="facet"><b>③兩階段審查 + fix loop</b>核心公式：「Fresh subagent per task + task review (spec + quality) + broad final review」。每個任務：記下 BASE commit → 派 implementer（給它任務簡報路徑與回報檔路徑，<strong>不貼 session 歷史</strong>）→ 產 review 包、派 task reviewer（用 diff 檔而非 console 輸出），reviewer 同時卡<strong>規格符合度</strong>與<strong>程式品質</strong>兩關 → 需要就進 fix loop（最多 5 輪，1-3 輪叫回原 implementer，4-5 輪換更強模型的新 implementer）。全部完成後，再用最強模型做<strong>整枝 final review</strong>。</p>
+      <div class="steal"><b>值得偷師：</b>兩點很聰明。其一「Never pause between tasks」——一路把計畫跑完，只在 BLOCKED 或真正卡住時才停，避免碎片化。其二用 <strong>ledger + git log</strong> 當復原地圖：即使 context 被壓縮，commit 還在 git 裡，信任帳本勝過信任記憶。並依任務難度選模型（機械任務用便宜模型，架構與 final review 用最強模型）。</div>
+    </div>
+
+    <div class="skill">
+      <h4>🧵 <code>dispatching-parallel-agents</code></h4>
+      <p class="facet"><b>①用途</b>面對 2 個以上「彼此獨立、無共享狀態」的任務時，並行派專門 subagent，保留自己的 context 做協調。</p>
+      <p class="facet"><b>②何時觸發</b>多個失敗散落在不同測試檔／子系統、每個問題能各自獨立理解、沒有共享狀態時；若失敗彼此相關則不要用。</p>
+      <p class="facet"><b>③做法重點</b>四步：辨識獨立領域 → 為每個 agent 寫聚焦任務（明確範圍、目標、限制、輸出格式）→ <strong>在單一回應裡發出所有 dispatch 呼叫＝並行執行</strong> → 讀摘要、確認無衝突、跑全套測試再整合。給 agent 的 prompt 要自足、含錯誤訊息與測試名，並明確限制如「Do NOT change production code」。</p>
+      <div class="steal"><b>值得偷師：</b>「Multiple dispatch calls in one response = parallel execution」——把並行的觸發方式講成一條可操作規則，而不是抽象概念；同時強調寧可具體（「Fix agent-tool-abort.test.ts」）也不要「Fix all the tests」這種空泛指令。</div>
+    </div>
+
+    <div class="skill">
+      <h4>🌲 <code>using-git-worktrees</code></h4>
+      <p class="facet"><b>①用途</b>為功能開發建立隔離工作區，避免改動污染當前分支。</p>
+      <p class="facet"><b>②何時觸發</b>要開始一段會改動程式的工作、需要乾淨隔離時（executing-plans / subagent-driven-development 的第 0 步都會叫它）。</p>
+      <p class="facet"><b>③流程重點</b>信念是「Detect existing isolation first. Use native tools. Fall back to git. Never fight the harness.」——先偵測是否已隔離（比對 <code>GIT_DIR</code> 與 <code>GIT_COMMON</code>、用 <code>--show-superproject-working-tree</code> 防 submodule）；優先用平台原生工具（如 EnterWorktree／<code>/worktree</code>），不得已才手動 <code>git worktree add</code>；建立前<strong>先確認目錄已被 git-ignore</strong>，預設放 <code>.worktrees/</code>；接著自動裝依賴、跑一次基準測試確認乾淨。</p>
+      <div class="steal"><b>值得偷師：</b>「Never fight the harness」——先偵測環境已經幫你做了什麼，而不是無腦硬跑 git 指令。這對「同一套流程要跑在很多不同 agent runtime 上」特別重要。</div>
+    </div>
+
+    <div class="skill">
+      <h4>📤 <code>requesting-code-review</code></h4>
+      <p class="facet"><b>①用途</b>在合併前派一個 code reviewer subagent 抓問題，信條是「Review early, review often」。</p>
+      <p class="facet"><b>②何時觸發</b>每個 subagent 任務完成後、大功能做完後、合併進主幹前<strong>必做</strong>；卡關、重構前、修完難纏 bug 後則建議做。</p>
+      <p class="facet"><b>③做法重點</b>取 <code>BASE_SHA</code> / <code>HEAD_SHA</code> → 用 <code>code-reviewer.md</code> 模板派通用 subagent，填入描述、預期功能、起訖 commit → 依嚴重度處理：Critical 立刻修、Important 前進前修、Minor 記錄待辦，並可用技術證據合理反駁。</p>
+      <div class="steal"><b>值得偷師：</b>理由講得很誠實：「reviewing the diff inline burns the context window you need to keep driving the work」——自己在主線讀 diff 會燒掉你要拿來推進工作的 context，所以外包給只拿到聚焦脈絡的 subagent。這是「context 就是預算」的具體管理法。</div>
+    </div>
+
+    <div class="skill">
+      <h4>📥 <code>receiving-code-review</code></h4>
+      <p class="facet"><b>①用途</b>收到 review 意見時，用技術嚴謹取代「表演式同意」。</p>
+      <p class="facet"><b>②何時觸發</b>收到 review 回饋、準備動手改之前，尤其當回饋看起來不清楚或技術上有疑慮時。</p>
+      <p class="facet"><b>③五步回應</b>READ（讀完不急著反應）→ UNDERSTAND（用自己的話複述，不懂就問）→ VERIFY（對照實際 codebase）→ EVALUATE（判斷在此脈絡是否技術正確）→ RESPOND（技術性接受，或有理有據地反駁）。<strong>一次改一項、逐項測試</strong>。</p>
+      <div class="steal"><b>值得偷師：</b>明文禁止「You're absolutely right!」「Great point!」這類討好語。對外部 reviewer 要「skeptical but verify」——若建議會弄壞功能、缺乏完整脈絡、違反 YAGNI 或牴觸既有架構決策，就該反駁。用程式行動證明你懂，而不是嘴上附和。</div>
+    </div>
+
+    <div class="skill">
+      <h4>🏁 <code>finishing-a-development-branch</code></h4>
+      <p class="facet"><b>①用途</b>實作完成、測試全綠後，決定如何把工作整合進 codebase。</p>
+      <p class="facet"><b>②何時觸發</b>實作完成、測試通過、要收尾整合時（executing-plans 與 subagent-driven-development 的終點）。</p>
+      <p class="facet"><b>③流程重點</b>「Verify tests → Detect environment → Present options → Execute choice → Clean up.」先跑全套測試，<strong>紅燈就停</strong>；偵測是一般 repo／具名 worktree／detached HEAD；確定 base branch（不確定就問）；提供選項（本地合併／推上去開 PR／保留分支）；本地合併後要在合併結果上再驗證測試；清理只刪 <code>.worktrees/</code> 或 <code>worktrees/</code> 底下的 worktree。</p>
+      <div class="steal"><b>值得偷師：</b>幾條保命規則——「只在使用者<strong>打出「discard」這個字</strong>時才刪工作」、未經授權不 force-push、合併結果測試失敗要先查清楚、保留 worktree 讓夥伴能對 PR 回饋繼續迭代。把「不可逆動作」全部上鎖。</div>
+    </div>
+  </section>
+
+  <!-- ④ -->
+  <section id="meta">
+    <h2><span class="num">④</span> 元層（skill 的 skill）</h2>
+    <p>這兩個 skill 決定「skill 系統本身怎麼運作」：一個教 agent <strong>何時該去用 skill</strong>，一個教你<strong>怎麼寫出真的有效的 skill</strong>。</p>
+
+    <div class="skill">
+      <h4>🧭 <code>using-superpowers</code></h4>
+      <p class="facet"><b>①用途</b>建立最上層工作流：任何行動之前（包含問釐清問題、探索檔案）先叫出相關 skill。</p>
+      <p class="facet"><b>②何時觸發</b>對話一開始就適用——「Invoke relevant or requested skills BEFORE any response or action — including clarifying questions」。進入 plan mode 前，若還沒 brainstorm 就先叫 <code>brainstorming</code>。</p>
+      <p class="facet"><b>③做法重點</b>核心是一句強制令：「If a skill applies to your task, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.」——就算你覺得只有 1% 機率相關也要用。派工有優先序：<strong>流程 skill 先跑</strong>（brainstorming、systematic-debugging），再跑實作 skill。並列出十二種「我在找藉口不用 skill」的合理化紅旗（例如「這很簡單」「這 skill 太重了」）。覆寫優先序：使用者明講的直接指令 &gt; skill &gt; 預設行為。</p>
+      <div class="steal"><b>值得偷師：</b>它把「agent 明明有工具卻不用」這個真實失敗模式當成頭號敵人，用「你沒有選擇」的絕對語氣加上一張合理化清單來堵——這正是所有 skill 集合最容易失效的地方。</div>
+    </div>
+
+    <div class="skill">
+      <h4>✍️ <code>writing-skills</code></h4>
+      <p class="facet"><b>①用途</b>建立、修改、驗證 skill；把「寫 skill」本身當成一種對流程文件做的 TDD。</p>
+      <p class="facet"><b>②何時觸發</b>「Use when creating new skills, editing existing skills, or verifying skills work before deployment」。判準：這技巧不直覺、會跨專案重用、適用面廣、別人也受益，才值得寫成 skill。</p>
+      <p class="facet"><b>③做法重點</b>同樣有鐵律：</p>
+      <span class="lawline">NO SKILL WITHOUT A FAILING TEST FIRST</span>
+      <ul>
+        <li><strong>RED</strong>：先讓 subagent 在<strong>沒有</strong>這個 skill、且有壓力的情境下跑，記錄真實的失敗行為與它們用的合理化說詞。</li>
+        <li><strong>GREEN</strong>：寫最小、只針對那些失敗的 skill，同情境再跑一次、驗證合規回來了。</li>
+        <li><strong>REFACTOR</strong>：找出測試中冒出的新合理化，逐一加上明確反制，重測到「bulletproof」。</li>
+      </ul>
+      <p class="facet">結構上，<code>description</code> 只能寫<strong>觸發條件</strong>（「Use when...」＋症狀關鍵字），<em>不可</em>摘要流程步驟——否則 agent 會照描述做而不去讀本文。常載入的 skill 控制在 200 字內，其餘 500 字內，重型參考另拆檔案。</p>
+      <div class="steal"><b>值得偷師：</b>「Skill Discovery Optimization」——把 description 當成搜尋觸發器來設計，塞進 agent 真的會搜的錯誤訊息、症狀（flaky、hanging）、同義詞、工具名；命名用動詞開頭（<code>condition-based-waiting</code> 而非 <code>async-test-helpers</code>）。等於把「怎麼讓 agent 找得到並用得對 skill」也工程化。</div>
+    </div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="steal">
+    <h2><span class="num">⑤</span> 整套值得偷師的地方</h2>
+    <p>把 14 個 skill 拉高一層看，superpowers 反覆用了幾招，值得抄進任何團隊（含人類）的工作流：</p>
+    <ul>
+      <li><strong>一句鐵律放最前面。</strong>TDD、debugging、verification、writing-skills 都用「NO … WITHOUT … FIRST」的全大寫鐵律當鉚釘，把最容易被跳過的那一步鎖死。</li>
+      <li><strong>先看它失敗。</strong>不論是測試（Verify RED）還是 skill（RED 基線），都要求先觀察沒有它時會怎麼壞——沒失敗過的東西不算驗證過。</li>
+      <li><strong>Hard Gate 與停損點。</strong>brainstorming 的設計核准閘、executing-plans 的 blocker 停損、finishing 的「只認 discard 這個字」，把不可逆動作全部上鎖。</li>
+      <li><strong>context 當預算管理。</strong>把 review、實作外包給拿到聚焦脈絡的 subagent，用 ledger + git log 當復原地圖，保護協調者自己的 context window。</li>
+      <li><strong>依難度選模型、能並行就並行。</strong>機械任務用便宜模型、架構與 final review 用最強模型；獨立任務在同一回應裡一次派出去。</li>
+      <li><strong>抓語氣裡的破綻。</strong>把「should/probably/seems」「You're absolutely right!」這些避險詞與討好語明列為紅旗——最有效的紀律常是先管住措辭。</li>
+    </ul>
+    <div class="callout tip">一句話總結：superpowers 不是「更多提示詞」，而是把資深工程師的<strong>自律與流程紀律</strong>，逐條寫成 agent 沒得商量的規則。</div>
+  </section>
+
+  <!-- sources -->
+  <section id="sources">
+    <h2><span class="num">↗</span> 相關與來源</h2>
+    <div class="related">
+      <a href="./skill-repos.html">
+        <div class="rel-title">📦 Skill 資源庫巡覽</div>
+        <div class="rel-sub">10 個值得追的 repo（含 superpowers）</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">什麼是 Skill、分析框架</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">🗂️ JustKM 首頁</div>
+        <div class="rel-sub">回到知識庫入口</div>
+      </a>
+      <a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">
+        <div class="rel-title">⚡ obra/superpowers ↗</div>
+        <div class="rel-sub">官方 repo（以此為準）</div>
+      </a>
+    </div>
+    <div class="callout danger" style="margin-top:14px;">
+      <strong>安全提醒：</strong>superpowers 的每個 skill 都會被 agent 當<strong>指令執行</strong>，且它預設就是「skill 適用時你沒有選擇、必須用」。安裝前務必<strong>親自讀過 <code>SKILL.md</code> 與 <code>hooks/</code>、<code>scripts/</code> 內的腳本</strong>，確認沒有非預期動作或外洩，再交給你的 agent。
+    </div>
+    <div class="callout warn" style="margin-top:10px;">
+      本頁內容整理自 <code>obra/superpowers</code> 各 <code>skills/&lt;name&gt;/SKILL.md</code> 原文（撰寫時 <code>main</code> 分支）。skill 清單、流程與安裝方式會更新，實際<strong>以官方 repo 最新內容為準</strong>；本頁刻意不列 star 等熱度數據。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · Skills 分析專區 · <a href="./index.html">← 回到專區</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

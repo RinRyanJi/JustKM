@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>addyosmani/agent-skills 逐 skill 拆解 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h3 .repo { font-family: 'SF Mono', Menlo, monospace; font-size: 0.9rem; }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .meta-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+    .tag { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; border: 1px solid var(--hairline); background: var(--surface); color: var(--slate); }
+    .tag.lic { background: var(--tint-mint); color: #157a2b; border-color: transparent; }
+    .tag.type { background: var(--tint-lavender); color: var(--primary-deep); border-color: transparent; }
+    .tag.link a { color: var(--link); text-decoration: none; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.danger { border-left-color: var(--error); background: var(--tint-rose); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    /* skill card blocks */
+    .skill { border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 18px; margin: 14px 0; background: #fdfdfc; }
+    .skill h4 { margin-top: 0; font-size: 0.98rem; color: var(--ink); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .skill h4 code { background: var(--tint-lavender); color: var(--primary-deep); border: none; font-size: 0.82rem; padding: 2px 8px; border-radius: 6px; font-weight: 700; }
+    .skill .lead { font-size: 0.88rem; color: var(--charcoal); margin: 6px 0 10px; }
+    .skill dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; align-items: baseline; }
+    .skill dt { font-size: 0.7rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; padding-top: 2px; }
+    .skill dd { font-size: 0.86rem; color: var(--slate); margin: 0; }
+    .skill dd.steal { color: var(--primary-deep); }
+    .skill dd.steal strong { color: var(--primary-deep); }
+    .skill.thin { background: var(--surface); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      .skill dl { grid-template-columns: 1fr; gap: 2px; } .skill dt { padding-top: 8px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 Skills 分析專區</a>
+
+  <div class="hero">
+    <h1>🧭 addyosmani/agent-skills 逐 skill 拆解</h1>
+    <p class="sub">把資深工程師的工作流編成 24 個生產級技能，串成六階段 Define → Plan → Build → Verify → Review → Ship + 一個 Meta 導航技能</p>
+    <div>
+      <span class="badge green">24 skills</span>
+      <span class="badge blue">六階段 + Meta</span>
+      <span class="badge orange">MIT License</span>
+      <span class="badge">Addy Osmani 等</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#about">① 這個 repo 是什麼 / 怎麼安裝</a>
+      <a href="#define">② Define 定義</a>
+      <a href="#plan">③ Plan 規劃</a>
+      <a href="#build">④ Build 建構</a>
+      <a href="#verify">⑤ Verify 驗證</a>
+      <a href="#review">⑥ Review 審查</a>
+      <a href="#ship">⑦ Ship 出貨</a>
+      <a href="#meta">⑧ Meta 導航</a>
+      <a href="#related">⑨ 相關與提醒</a>
+    </div>
+  </nav>
+
+  <!-- ① -->
+  <section id="about">
+    <h2><span class="num">①</span> 這個 repo 是什麼 / 怎麼安裝</h2>
+    <div class="meta-row">
+      <span class="tag type">精選技能包 · Addy Osmani 等</span>
+      <span class="tag lic">MIT License</span>
+      <span class="tag link"><a href="https://github.com/addyosmani/agent-skills" target="_blank" rel="noopener">GitHub ↗</a></span>
+    </div>
+    <p><strong>定位：</strong>把「資深工程師怎麼把一件事從想法做到上線」拆成 <strong>24 個可觸發的技能（skill）</strong>，每個 skill 是一份 <code>SKILL.md</code> ＋ 附帶資源，教 agent 在對的時機用對的做法。整個 repo 依軟體開發生命週期分成<strong>六階段</strong>，外加一個負責「把任務對應到正確技能」的 Meta 技能。</p>
+    <p>除了 24 個 skills，repo 還附 <code>agents/</code>（4 個專家人格）、<code>references/</code>（7 份補充檢查表）、<code>hooks/</code>（session 生命週期掛鉤）、以及對應開發生命週期的 <strong>8 個 slash command</strong>：<code>/spec</code>、<code>/plan</code>、<code>/build</code>、<code>/test</code>、<code>/review</code>、<code>/webperf</code>、<code>/code-simplify</code>、<code>/ship</code>。</p>
+    <h4>怎麼安裝</h4>
+    <pre><code><span class="cm"># 通用 CLI（推薦，跨多種 agent）</span>
+npx skills add addyosmani/agent-skills
+npx skills add addyosmani/agent-skills --list   <span class="cm"># 先列出全部 skill</span>
+
+<span class="cm"># Claude Code 市集</span>
+/plugin marketplace add addyosmani/agent-skills
+/plugin install agent-skills@addy-agent-skills
+
+<span class="cm"># 本地 / 開發</span>
+git clone https://github.com/addyosmani/agent-skills.git
+claude --plugin-dir /path/to/agent-skills</code></pre>
+    <p>另有 Cursor、Antigravity CLI、Gemini CLI、Windsurf、OpenCode、GitHub Copilot、Kiro IDE、Codex、Command Code 等原生整合設定。</p>
+    <div class="callout info">下面每個階段列出該階段的 skills，<strong>一個 skill 一個小塊</strong>：①一句話用途 ②何時觸發 ③做法／流程重點 ④值得偷師的一點。詳細內容取自各 skill 的 <code>SKILL.md</code> 原文；少數僅有 README 級描述者會標註<strong>（以官方 repo 為準）</strong>。</div>
+  </section>
+
+  <!-- ② Define -->
+  <section id="define">
+    <h2><span class="num">②</span> Define 定義 · 釐清要建什麼</h2>
+    <p>在寫任何一行程式前，先把「要做什麼、為誰做、成功長怎樣」講清楚。這一階段的三個 skill 都是在<strong>對抗「憑模糊假設就開工」</strong>。</p>
+
+    <div class="skill">
+      <h4><code>interview-me</code> 一次一題的需求訪談</h4>
+      <p class="lead">用「一次只問一個問題、而且每問都先附上自己的猜測」的方式，把使用者真正要的東西挖出來。</p>
+      <dl>
+        <dt>何時觸發</dt><dd>請求缺了關鍵資訊（誰受益／為何現在做／成功長怎樣／硬約束是什麼），或使用者說「interview me / 壓力測試我的想法」，或你發現自己正在替模糊處腦補。CI／自動迴圈等非互動情境<strong>不要用</strong>。</dd>
+        <dt>做法</dt><dd>每一題都先寫下「我猜你會這樣回答」，逼自己對信心誠實、把假設攤在檯面上；使用者反駁比從零回答更快。低於約 70% 信心要附一行「還沒解決什麼」。</dd>
+        <dt>做完的標準</dt><dd>能回答「我能預測使用者對接下來三個問題的反應嗎？」＝約 95% 信心。產出一份 <strong>Outcome / User / Why Now / Success / Constraint / Out of Scope</strong> 的確認意圖聲明，且要使用者<strong>明確說 yes</strong> 才往下走。</dd>
+        <dd class="steal"><strong>偷師：</strong>「每問附猜測」把訪談從盤問變成校對——連續幾輪信心都不升，代表「有根本的東西不見了」，該停下來重構問題而不是硬磨。</dd>
+      </dl>
+    </div>
+
+    <div class="skill">
+      <h4><code>spec-driven-development</code> 先寫規格再寫碼</h4>
+      <p class="lead">動工前先寫一份涵蓋六個面向的 PRD，把模糊需求改寫成可測試的成功條件。</p>
+      <dl>
+        <dt>何時觸發</dt><dd>開新專案／新功能、需求模糊或不完整、改動橫跨多檔多模組時。單行修正或無歧義的自足小改動則跳過。</dd>
+        <dt>做法</dt><dd>規格必含六塊：<strong>Objective</strong>（目的／使用者／成功定義）、<strong>Commands</strong>（可執行的 build/test/lint/dev 指令）、<strong>Project Structure</strong>、<strong>Code Style</strong>（用真實程式碼示範慣例）、<strong>Testing Strategy</strong>、<strong>Boundaries</strong>（一定要做／需批准／禁止）。</dd>
+        <dt>流程</dt><dd>四階段閘門，每階段需人類審核才前進：SPECIFY → PLAN → TASKS → IMPLEMENT。規格是活文件，決策或範圍一變就更新。</dd>
+        <dd class="steal"><strong>偷師：</strong>把「Boundaries」明確拆成「always / needs-approval / prohibited」三格——比一句「注意安全」更能約束 agent 不越界。</dd>
+      </dl>
+    </div>
+
+    <div class="skill thin">
+      <h4><code>idea-refine</code> 打磨粗略概念</h4>
+      <p class="lead">用結構化的發散／收斂思考，把還很粗的點子磨成能往下規劃的形狀。</p>
+      <dl>
+        <dt>何時觸發</dt><dd>概念還很模糊、需要先擴張選項再收斂到一個方向時。</dd>
+        <dt>做法重點</dt><dd>發散（盡量列可能性）＋ 收斂（依約束篩選）交替進行。<span style="color:var(--steel)">（細節以官方 repo 為準）</span></dd>
+        <dd class="steal"><strong>偷師：</strong>與 <code>interview-me</code> 互補——訪談挖「使用者要什麼」，idea-refine 擴張「有哪些做法」。</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ③ Plan -->
+  <section id="plan">
+    <h2><span class="num">③</span> Plan 規劃 · 拆成可驗證的小任務</h2>
+
+    <div class="skill">
+      <h4><code>planning-and-task-breakdown</code> 規劃與任務拆解</h4>
+      <p class="lead">把規格拆成「每個都能在一個專注 session 內做完並驗證」的小任務，每個都帶明確的驗收條件。</p>
+      <dl>
+        <dt>何時觸發</dt><dd>有規格待拆、任務「感覺太大或太模糊不知從何下手」、需要跨 agent／session 並行、實作順序不明時。單檔改動或規格已含明確任務則跳過。</dd>
+        <dt>做法</dt><dd>①唯讀規劃模式（先讀規格與 codebase 不寫碼）②畫依賴圖 ③<strong>垂直切片</strong>（依完整功能路徑組織，而非先全 DB 再全 API 再全 UI）④每個任務寫清楚描述／驗收條件／驗證步驟／依賴／受影響檔案／規模估計 ⑤排序並在階段間放驗證閘門。</dd>
+        <dt>規模</dt><dd>任務盡量維持 Small~Medium（1~5 檔），更大就再拆。</dd>
+        <dd class="steal"><strong>偷師：</strong>「垂直切片」＝以 註冊→登入→建任務 這種端到端路徑排任務，讓每完成一片就有可跑的東西，而不是三層各做一半。</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ④ Build -->
+  <section id="build">
+    <h2><span class="num">④</span> Build 建構 · 寫程式</h2>
+    <p>本階段 skill 最多，涵蓋「怎麼一片片穩穩實作、怎麼測、怎麼餵對上下文、怎麼設計介面、怎麼對自己的決定存疑」。</p>
+
+    <div class="skill">
+      <h4><code>incremental-implementation</code> 漸進式實作</h4>
+      <p class="lead">用薄薄的垂直切片交付端到端功能，每片都跑一輪「實作 → 測試 → 驗證 → 提交」，讓系統全程維持可運作。</p>
+      <dl>
+        <dt>何時觸發</dt><dd>任何多檔改動、需要拆任務的新功能、重構、或「很想在測試前一口氣寫超過約 100 行」時。單檔單函式的小改可跳過。</dd>
+        <dt>做法</dt><dd>切片策略：垂直切片／契約優先（前後端並行）／風險優先（先啃不確定的）。規則：簡單優先、範圍紀律（只碰任務需要的檔）、增量之間保持可編譯；每片都能獨立回退並用 repo 原生指令測過再前進。</dd>
+        <dd class="steal"><strong>偷師：</strong>把「約 100 行」當成一條生理警戒線——超過就代表你在測試前累積了太多沒驗證的風險。</dd>
+      </dl>
+    </div>
+
+    <div class="skill">
+      <h4><code>test-driven-development</code> 測試驅動開發</h4>
+      <p class="lead">先寫會失敗的測試，再寫剛好能通過的程式，最後重構——「一個立刻通過的測試什麼都證明不了」。</p>
+      <dl>
+        <dt>何時觸發</dt><dd>實作新邏輯、修 bug、改既有行為、處理邊界情況、任何有破壞風險的改動。純設定／文件／無行為影響的靜態內容則跳過。</dd>
+        <dt>做法</dt><dd><strong>RED → GREEN → REFACTOR</strong>。修 bug 走 Prove-It：先寫重現測試（失敗）→確認 bug 存在→修→驗證轉綠。測試金字塔投資比例：單元 ~80%／整合 ~15%／E2E ~5%。原則：先摸清這個 repo 怎麼測（別假設 <code>npm test</code>）、測狀態不測互動、測試裡 DAMP 勝過 DRY、優先用真實實作而非 mock、Arrange-Act-Assert。</dd>
+        <dd class="steal"><strong>偷師：</strong><em>Beyoncé Rule</em>「If you liked it, you should have put a test on it」——沒測試＝沒課責；且乾淨跑完後「再跑一次不改碼並不增加任何信心」。</dd>
+      </dl>
+    </div>
+
+    <div class="skill">
+      <h4><code>api-and-interface-design</code> API 與介面設計</h4>
+      <p class="lead">設計 REST／GraphQL／模組邊界／component props 時，讓「對的事好做、錯的事難做」。</p>
+      <dl>
+        <dt>何時觸發</dt><dd>設計新端點、劃團隊間模組邊界、定 component prop 介面、改動既有公開介面時。</dd>
+        <dt>做法</dt><dd>契約優先（先定介面規格再實作，「契約就是 spec」）→ 在系統邊界驗證輸入 → 一致的錯誤語意 → 優先加法式變更以保向後相容 → 可預測命名（REST 用複數名詞、欄位 camelCase）→ 依檢查表驗證再上線。</dd>
+        <dd class="steal"><strong>偷師：</strong><em>Hyrum's Law</em>——只要行為可被觀察，就一定有人依賴它，連沒寫進文件的怪癖都算隱性承諾；配合 <em>One-Version Rule</em>「擴充而非分叉」，別逼使用者在多版本間選。</dd>
+      </dl>
+    </div>
+
+    <div class="skill">
+      <h4><code>doubt-driven-development</code> 存疑驅動開發</h4>
+      <p class="lead">在重要決策定形前，召喚一個「偏向要推翻你、而不是認可你」的新上下文審查者——「有信心的答案不等於正確的答案」。</p>
+      <dl>
+        <dt>何時觸發</dt><dd>決策非瑣碎時：引入分支邏輯或跨模組邊界、斷言型別系統無法驗證的性質、帶不可逆後果（上線／資料遷移）、在陌生程式碼裡摸索。純機械操作（改名、格式化）不在範圍——「若你懷疑每個按鍵，你什麼都出不了貨」。</dd>
+        <dt>做法（五步）</dt><dd>CLAIM 精簡陳述決策與賭注 → EXTRACT 抽出最小可審單元（去掉你的推理）→ DOUBT 用對抗式提示喚新上下文審查者，<strong>只傳 ARTIFACT + CONTRACT，不傳 CLAIM</strong>（避免誘導同意）→ RECONCILE 依「誤讀契約 &gt; 可行動 &gt; 取捨 &gt; 雜訊」分類 → STOP 三輪後收手。</dd>
+        <dd class="steal"><strong>偷師：</strong>「審查時故意不告訴審查者你的結論」這招，直接治好 AI／人都會犯的「順著作者說法點頭」偏誤。</dd>
+      </dl>
+    </div>
+
+    <div class="skill thin">
+      <h4><code>context-engineering</code> 上下文工程</h4>
+      <p class="lead">在對的時間，把對的資訊餵給 agent。</p>
+      <dl>
+        <dt>做法重點</dt><dd>管理 agent 的上下文視窗——放進真正相關的檔案／文件／狀態，避免雜訊稀釋。<span style="color:var(--steel)">（細節以官方 repo 為準）</span></dd>
+        <dd class="steal"><strong>偷師：</strong>把「餵什麼進上下文」當成一個要主動設計的工程問題，而不是隨手貼。</dd>
+      </dl>
+    </div>
+
+    <div class="skill thin">
+      <h4><code>source-driven-development</code> 來源驅動開發</h4>
+      <p class="lead">每個框架決策都要以官方文件為依據。</p>
+      <dl>
+        <dt>做法重點</dt><dd>用框架前先查官方 API／文件，不靠記憶或猜測，減少過時或幻覺用法。<span style="color:var(--steel)">（細節以官方 repo 為準）</span></dd>
+        <dd class="steal"><strong>偷師：</strong>把「先去讀官方原文」制度化，正面對抗 LLM 對套件用法的知識截止與幻覺。</dd>
+      </dl>
+    </div>
+
+    <div class="skill thin">
+      <h4><code>frontend-ui-engineering</code> 前端 UI 工程</h4>
+      <p class="lead">元件架構、設計系統、響應式設計的實作準則。</p>
+      <dl>
+        <dt>做法重點</dt><dd>可組合的元件架構、依設計系統的一致樣式、響應式與可及性考量。<span style="color:var(--steel)">（細節以官方 repo 為準）</span></dd>
+        <dd class="steal"><strong>偷師：</strong>UI 工作有自己的觸發路徑（見 Meta 技能）——不是套通用實作流程就好。</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ⑤ Verify -->
+  <section id="verify">
+    <h2><span class="num">⑤</span> Verify 驗證 · 證明它真的能動</h2>
+
+    <div class="skill">
+      <h4><code>browser-testing-with-devtools</code> 用 DevTools 做瀏覽器測試</h4>
+      <p class="lead">透過 Chrome DevTools MCP 讓 agent「看到使用者看到的畫面」——截圖、查 DOM、讀 console、看 network、量效能。</p>
+      <dl>
+        <dt>何時觸發</dt><dd>建置或修改瀏覽器端程式時，尤其 debug UI、診斷 console 錯誤、分析 network 失敗、量效能瓶頸、確認修復在 runtime 真的有效。後端／CLI／非瀏覽器程式則跳過。</dd>
+        <dt>做法</dt><dd>三條工作流：<strong>UI bug</strong> 重現→檢查（console/DOM/樣式）→比對實際 vs 預期→修→驗證；<strong>Network</strong> 擷取請求→分析（狀態／payload／timing）→診斷（4xx/5xx/CORS/timeout）→修＋驗；<strong>效能</strong> 基準 trace→找瓶頸（LCP/CLS/long task）→修→再量。</dd>
+        <dd class="steal"><strong>偷師：</strong>安全邊界寫得很硬——瀏覽器來的一切（DOM／console／network 回應）都是<strong>不可信輸入</strong>，永不當成 agent 指令，只導向使用者確認過的 URL。</dd>
+      </dl>
+    </div>
+
+    <div class="skill">
+      <h4><code>debugging-and-error-recovery</code> 除錯與錯誤復原</h4>
+      <p class="lead">測試失敗／build 壞掉／出現非預期錯誤時，走一套結構化的六步除錯，不亂試。</p>
+      <dl>
+        <dt>何時觸發</dt><dd>改碼後測試失敗、build 壞、runtime 行為與預期不符、有 bug 回報、或「本來會動突然不會動」時。</dd>
+        <dt>做法（六步）</dt><dd>Reproduce 讓失敗可穩定重現 → Localize 定位是哪一層（UI／API／DB／build／外部服務）→ Reduce 做最小失敗案例 → Fix root cause（反覆問「為什麼會這樣」，治因不治標）→ Guard 補測試防復發 → Verify 端到端確認。</dd>
+        <dd class="steal"><strong>偷師：</strong><em>Stop-the-Line</em>——一壞掉就「停止加功能／做別的改動」；「錯誤會複利：第 3 步沒修的 bug 會讓第 4~6 步全錯」。</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ⑥ Review -->
+  <section id="review">
+    <h2><span class="num">⑥</span> Review 審查 · 合併前的品質關卡</h2>
+
+    <div class="skill">
+      <h4><code>code-review-and-quality</code> 程式碼審查與品質</h4>
+      <p class="lead">合併前用五個軸線審查程式碼，並嚴格控管改動規模——「審查就是品質關卡」。</p>
+      <dl>
+        <dt>何時觸發</dt><dd>合併任何改動前、功能完成後、審視其他 agent／人類的程式碼、重構期間、修 bug 後（含回歸測試）。</dd>
+        <dt>五軸</dt><dd><strong>Correctness</strong>（含邊界／錯誤處理／測試有效性）／<strong>Readability &amp; Simplicity</strong>（清楚命名、避免炫技）／<strong>Architecture</strong>（遵循既有模式、「重構是降複雜度還是只是搬家」）／<strong>Security</strong>（輸入驗證、機密、參數化查詢、外部資料視為不可信）／<strong>Performance</strong>（N+1、無界操作、缺分頁、該 async 的同步呼叫）。</dd>
+        <dt>改動規模</dt><dd>理想約 <strong>100 行</strong>「一坐就能審完」；單一邏輯改動可到 300 行；超過 1000 行必須拆。並警告「小 diff 也可能把單檔推過約 1000 行的健康上限」。流程：懂脈絡→先看測試→對五軸審實作→依 Critical/Required/Optional/Nit/FYI 分級→驗證測試＋build＋手動確認。</dd>
+        <dd class="steal"><strong>偷師：</strong>把 findings 分成五級 severity，並「拒絕把清理延後」——審查當下就是唯一的品質關卡。</dd>
+      </dl>
+    </div>
+
+    <div class="skill">
+      <h4><code>code-simplification</code> 程式碼簡化</h4>
+      <p class="lead">讓程式「更好讀、好懂、好改、好 debug」——簡化的目標不是更少的行數。</p>
+      <dl>
+        <dt>何時觸發</dt><dd>程式能動但比該有的更難讀維護、功能過測但覺得過度複雜、審查時被標可讀性、要合併跨檔重複邏輯時。已乾淨的碼、你看不懂的碼、效能關鍵段、拋棄式實作則<strong>不要動</strong>。</dd>
+        <dt>做法</dt><dd>①Understand 先用 Chesterton's Fence 弄懂它為何存在（誰呼叫它／它呼叫誰／邊界情況）②Identify 掃結構複雜、爛命名、冗餘 ③一次一改、每改必測 ④驗證測試過、行為不變、diff 乾淨。</dd>
+        <dd class="steal"><strong>偷師：</strong><em>Rule of 500</em>——重構觸及超過 500 行就別手改，改投資 codemod／sed／AST 轉換,手動大規模改既易錯又難審。</dd>
+      </dl>
+    </div>
+
+    <div class="skill">
+      <h4><code>security-and-hardening</code> 安全與加固</h4>
+      <p class="lead">威脅建模、漏洞預防、安全設計——「若你講不出一個功能的信任邊界，你還沒準備好保護它」。</p>
+      <dl>
+        <dt>何時觸發</dt><dd>任何接受使用者輸入的功能、認證／授權邏輯、敏感資料處理、外部 API 整合、檔案上傳或 webhook。</dd>
+        <dt>做法</dt><dd>先威脅建模（畫信任邊界、辨識資產、做 STRIDE）再實作。涵蓋 OWASP Top 10；認證用 bcrypt（salt rounds ≥12）、session cookie 設 httpOnly/secure/sameSite、「永遠檢查授權而不只認證」；機密走環境變數，「一旦被 commit 過就要輪換」；邊界做 schema 驗證＋參數化查詢＋輸出編碼。LLM 安全：模型輸出視為不可信、防 prompt injection、機密不進上下文、限制 agent 權限。</dd>
+        <dd class="steal"><strong>偷師：</strong>「commit 過的密鑰刪掉不夠、一定要輪換」——把 git 歷史當成已洩漏來處理。</dd>
+      </dl>
+    </div>
+
+    <div class="skill">
+      <h4><code>performance-optimization</code> 效能優化</h4>
+      <p class="lead">先量再改——「沒有測量的效能工作就是猜，而猜會導致沒改到重點的過早優化」。</p>
+      <dl>
+        <dt>何時觸發</dt><dd>規格有效能需求、使用者回報慢或監控發現問題、Core Web Vitals 低於門檻、懷疑退化、要建高流量或大資料量功能時。無證據就別過早優化。</dd>
+        <dt>做法（五步）</dt><dd>Measure 用合成測試＋真實使用者資料建基準 → Identify 靠 profiling 找真正瓶頸 → Fix 對症下藥 → Verify 再量、確認改善超過自然變異 → Guard 加監控防退化。</dd>
+        <dt>目標</dt><dd>Core Web Vitals：LCP ≤2.5s、INP ≤200ms、CLS ≤0.1 為佳。</dd>
+        <dd class="steal"><strong>偷師：</strong>「改善要超過自然變異」才算數——避免把量測雜訊誤讀成優化成效。</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ⑦ Ship -->
+  <section id="ship">
+    <h2><span class="num">⑦</span> Ship 出貨 · 有信心地部署</h2>
+
+    <div class="skill">
+      <h4><code>git-workflow-and-versioning</code> Git 工作流與版本管理</h4>
+      <p class="lead">用紀律化的版本控制當作大規模安全改動的地基——觸發條件是「永遠，每個改動都走 git」。</p>
+      <dl>
+        <dt>做法</dt><dd><strong>Trunk-based</strong>：<code>main</code> 永遠可部署，功能分支短命（1~3 天），「分支每多活一天就多累積一分合併風險」。<strong>Atomic commits</strong>：一 commit 一件邏輯事，當作 save point 可即時回退。<strong>Conventional Commits</strong>：<code>feat/fix/refactor/test</code>，訊息解釋 why 而非只有 what。<strong>SemVer</strong>：<code>MAJOR.MINOR.PATCH</code> 由不可變 git tag 推導。</dd>
+        <dt>流程</dt><dd>save-point 迴圈：實作→測試→成功就 commit／失敗就回退調查。改動抓約 100 行，更大就拆多個 commit。發版前產一份「依使用者影響分組、非原始 commit」的 changelog。</dd>
+        <dd class="steal"><strong>偷師：</strong>把 commit 當「已知良好狀態的存檔點」，讓下一步一壞就能秒退回上一個綠燈。</dd>
+      </dl>
+    </div>
+
+    <div class="skill">
+      <h4><code>ci-cd-and-automation</code> CI/CD 與自動化</h4>
+      <p class="lead">把品質檢查往上游搬、用更小更頻繁的發布降低風險。</p>
+      <dl>
+        <dt>做法</dt><dd><strong>Shift Left</strong>：「lint 抓到的 bug 花幾分鐘，production 才抓到花幾小時」——靜態分析先於測試、測試先於 staging、staging 先於 production。<strong>Faster is Safer</strong>：「3 個改動的部署比 30 個的好 debug」。Pipeline 依序跑 lint／type／單元／build／整合／E2E／安全稽核／bundle size，失敗透過 branch protection 擋合併。<strong>Feature flags</strong> 讓部署與發布解耦（先 ship 不 enable，再金絲雀漸放）。CI 失敗回饋給開發 agent 形成修復迴圈。</dd>
+        <dd class="steal"><strong>偷師：</strong>「Faster is Safer」反直覺但關鍵——把批次做小，是降風險而非增風險。</dd>
+      </dl>
+    </div>
+
+    <div class="skill thin">
+      <h4><code>shipping-and-launch</code> 出貨與發布</h4>
+      <p class="lead">上線前檢查清單、feature flag 生命週期、分階段 rollout。</p>
+      <dl>
+        <dt>做法重點</dt><dd>pre-launch checklist、staged rollout、flag 的建立→放量→清理生命週期。<span style="color:var(--steel)">（細節以官方 repo 為準）</span></dd>
+        <dd class="steal"><strong>偷師：</strong>把「flag 用完要清掉」納入流程，避免旗標長年殘留變技術債。</dd>
+      </dl>
+    </div>
+
+    <div class="skill thin">
+      <h4><code>observability-and-instrumentation</code> 可觀測性與埋點</h4>
+      <p class="lead">結構化日誌、RED metrics、OpenTelemetry tracing。</p>
+      <dl>
+        <dt>做法重點</dt><dd>用結構化 logging、RED（Rate/Errors/Duration）指標、分散式 tracing 讓系統行為可被觀察。<span style="color:var(--steel)">（細節以官方 repo 為準）</span></dd>
+        <dd class="steal"><strong>偷師：</strong>RED 三指標是服務健康度最精簡的一組儀表。</dd>
+      </dl>
+    </div>
+
+    <div class="skill thin">
+      <h4><code>documentation-and-adrs</code> 文件與架構決策紀錄</h4>
+      <p class="lead">Architecture Decision Records、API 文件。</p>
+      <dl>
+        <dt>做法重點</dt><dd>用 ADR 把「為什麼這樣決定」記下來、維護 API 文件。<span style="color:var(--steel)">（細節以官方 repo 為準）</span></dd>
+        <dd class="steal"><strong>偷師：</strong>ADR 記的是決策的 why 與當時取捨，未來的人不必重新踩坑。</dd>
+      </dl>
+    </div>
+
+    <div class="skill thin">
+      <h4><code>deprecation-and-migration</code> 汰除與遷移</h4>
+      <p class="lead">以「程式碼是負債」的心態處理汰除與遷移。</p>
+      <dl>
+        <dt>做法重點</dt><dd>Code-as-liability——主動規劃汰除路徑與相容遷移，而非讓舊碼無限累積。<span style="color:var(--steel)">（細節以官方 repo 為準）</span></dd>
+        <dd class="steal"><strong>偷師：</strong>把「刪碼／下線」當成一等公民工作，而不是永遠拖著的雜務。</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ⑧ Meta -->
+  <section id="meta">
+    <h2><span class="num">⑧</span> Meta 導航 · 該用哪個技能</h2>
+
+    <div class="skill">
+      <h4><code>using-agent-skills</code> 把任務對應到正確技能</h4>
+      <p class="lead">不是某種工作流，而是一棵決策樹：任務一來，先判斷開發階段，再路由到對應的專門技能。</p>
+      <dl>
+        <dt>何時觸發</dt><dd>session 開始時，或「需要判斷當前任務該用哪個 skill」時。</dd>
+        <dt>路由邏輯</dt><dd>不確定→<code>interview-me</code>；發想→<code>idea-refine</code>；需求→<code>spec-driven-development</code>；規劃→<code>planning-and-task-breakdown</code>；實作→再細分（UI 走 <code>frontend-ui-engineering</code>、API 走 <code>api-and-interface-design</code>、壞掉走 <code>debugging-and-error-recovery</code>）；測試→<code>test-driven-development</code>；審查／維護→各品質技能；部署→<code>shipping-and-launch</code>。</dd>
+        <dd class="steal"><strong>偷師：</strong>它對「怎麼做」刻意不規定（交給專門技能），只<strong>強勢規定「何時該用哪個」</strong>——一個乾淨的分工設計。</dd>
+      </dl>
+    </div>
+
+    <table>
+      <thead><tr><th>階段</th><th>本頁涵蓋的 skills</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Define</strong></td><td><code>interview-me</code> · <code>idea-refine</code> · <code>spec-driven-development</code></td></tr>
+        <tr><td><strong>Plan</strong></td><td><code>planning-and-task-breakdown</code></td></tr>
+        <tr><td><strong>Build</strong></td><td><code>incremental-implementation</code> · <code>test-driven-development</code> · <code>context-engineering</code> · <code>source-driven-development</code> · <code>doubt-driven-development</code> · <code>frontend-ui-engineering</code> · <code>api-and-interface-design</code></td></tr>
+        <tr><td><strong>Verify</strong></td><td><code>browser-testing-with-devtools</code> · <code>debugging-and-error-recovery</code></td></tr>
+        <tr><td><strong>Review</strong></td><td><code>code-review-and-quality</code> · <code>code-simplification</code> · <code>security-and-hardening</code> · <code>performance-optimization</code></td></tr>
+        <tr><td><strong>Ship</strong></td><td><code>git-workflow-and-versioning</code> · <code>ci-cd-and-automation</code> · <code>deprecation-and-migration</code> · <code>documentation-and-adrs</code> · <code>observability-and-instrumentation</code> · <code>shipping-and-launch</code></td></tr>
+        <tr><td><strong>Meta</strong></td><td><code>using-agent-skills</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ⑨ related -->
+  <section id="related">
+    <h2><span class="num">↗</span> 相關與提醒</h2>
+    <div class="related">
+      <a href="./skill-repos.html">
+        <div class="rel-title">📦 Skill 資源庫巡覽</div>
+        <div class="rel-sub">10 個值得追的 repo，含本 repo 的定位</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">什麼是 Skill、分析框架</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">🗂️ JustKM 首頁</div>
+        <div class="rel-sub">回到知識庫入口</div>
+      </a>
+      <a href="https://github.com/addyosmani/agent-skills" target="_blank" rel="noopener">
+        <div class="rel-title">🔗 官方 GitHub Repo</div>
+        <div class="rel-sub">addyosmani/agent-skills（最新內容為準）</div>
+      </a>
+    </div>
+    <div class="callout danger">
+      <strong>安全提醒：</strong>Skill 會被 agent 當指令執行。<strong>安裝任何第三方 skill 前，務必先讀過該 skill 的 <code>SKILL.md</code> 與其附帶腳本／hooks</strong>，確認沒有非預期的動作、外洩或危險指令。本頁內容整理自撰寫時各 <code>SKILL.md</code> 原文，實際做法與清單以官方 repo 最新版本為準。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · Skills 分析專區 · <a href="./index.html">← 回到專區</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

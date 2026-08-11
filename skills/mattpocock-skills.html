@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>mattpocock/skills 逐 skill 拆解 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h3 .repo { font-family: 'SF Mono', Menlo, monospace; font-size: 0.9rem; }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .meta-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+    .tag { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; border: 1px solid var(--hairline); background: var(--surface); color: var(--slate); }
+    .tag.lic { background: var(--tint-mint); color: #157a2b; border-color: transparent; }
+    .tag.type { background: var(--tint-lavender); color: var(--primary-deep); border-color: transparent; }
+    .tag.user { background: var(--tint-sky); color: #0056a3; border-color: transparent; }
+    .tag.model { background: var(--tint-peach); color: #b34700; border-color: transparent; }
+    .tag.link a { color: var(--link); text-decoration: none; }
+
+    .skill-block { border: 1px solid var(--hairline-soft); border-radius: 12px; padding: 16px 18px; margin: 14px 0; background: #fcfcfb; }
+    .skill-block h3 { margin-top: 0; }
+    .skill-block .field { font-size: 0.86rem; color: var(--charcoal); margin-bottom: 7px; }
+    .skill-block .field:last-child { margin-bottom: 0; }
+    .skill-block .flabel { font-weight: 700; color: var(--primary-deep); }
+    .skill-block .steal { background: var(--tint-mint); border-radius: 8px; padding: 8px 12px; margin-top: 8px; }
+    .skill-block .steal .flabel { color: #157a2b; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.danger { border-left-color: var(--error); background: var(--tint-rose); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 Skills 分析專區</a>
+
+  <div class="hero">
+    <h1>🧰 mattpocock/skills 逐 skill 拆解</h1>
+    <p class="sub">給真工程師的 skills，不是做秀——對治 AI agent 四大失敗模式：對齊、冗長、品質、架構退化</p>
+    <div>
+      <span class="badge">作者 Matt Pocock</span>
+      <span class="badge green">授權 MIT</span>
+      <span class="badge blue">Engineering 13</span>
+      <span class="badge orange">Productivity 7</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#about">① 這 repo 是什麼 / 怎麼安裝</a>
+      <a href="#eng">② Engineering 工程類（13）</a>
+      <a href="#prod">③ Productivity 生產力類（7）</a>
+      <a href="#sources">④ 相關與來源</a>
+    </div>
+  </nav>
+
+  <!-- ① -->
+  <section id="about">
+    <h2><span class="num">①</span> 這個 repo 是什麼 / 怎麼安裝</h2>
+    <p><strong>定位：</strong>Matt Pocock（TypeScript 教學者、Total TypeScript 作者）維護的 agent skills 集合，副標「skills for real engineers」。核心主張是<strong>小而可組合的 skill</strong>，而非硬套的大框架——把多年工程經驗編成一條條能被 agent 觸發的工作流，專門對治 AI agent 的四大失敗模式：<strong>對齊（做錯需求）、冗長（廢話與過度輸出）、品質（測試與審查草率）、架構退化（模組越改越淺）</strong>。</p>
+    <h4>怎麼安裝</h4>
+    <pre><code><span class="cm"># Claude Code（外掛市集）</span>
+claude plugins install mattpocock-skills
+<span class="cm"># 或在 session 內</span>
+/plugin install mattpocock-skills
+
+<span class="cm"># 其他 agent / 想動手改的人</span>
+npx skills@latest add mattpocock/skills</code></pre>
+    <p>裝好後，<strong>每個 repo 跑一次</strong> <code>/setup-matt-pocock-skills</code>，設定 issue tracker、triage 標籤與文件存放位置。許多 skill 會共用專案根目錄的 <code>CONTEXT.md</code>（領域詞彙表 / glossary）與 ADR。</p>
+    <h4>兩種觸發方式</h4>
+    <table>
+      <thead><tr><th>觸發方式</th><th>意思</th><th>典型例子</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag user">使用者觸發</span></td><td>需你主動用斜線指令叫出（<code>disable-model-invocation</code>），模型不會自作主張</td><td><code>grill-with-docs</code>、<code>implement</code>、<code>handoff</code></td></tr>
+        <tr><td><span class="tag model">模型觸發</span></td><td>模型讀 description 判斷情境後自動援引，也可手動叫</td><td><code>tdd</code>、<code>diagnosing-bugs</code>、<code>code-review</code></td></tr>
+      </tbody>
+    </table>
+    <div class="callout info">下面每個 skill 標的觸發方式，以其 <code>SKILL.md</code> frontmatter 為準；repo 內容會更新，實際以官方 repo 為準。</div>
+  </section>
+
+  <!-- ② Engineering -->
+  <section id="eng">
+    <h2><span class="num">②</span> Engineering 工程類（13）</h2>
+    <p>從「需求對齊」到「規格 → 票 → 實作 → 審查 → 除錯」的完整開發環，多數環節都把 <code>grilling</code>（逼問）與 <code>domain-modeling</code>（詞彙）當底層原件重複使用。</p>
+
+    <div class="skill-block">
+      <h3><span class="repo">grill-with-docs</span></h3>
+      <div class="meta-row"><span class="tag user">使用者觸發</span><span class="tag type">對齊 / 建領域模型</span></div>
+      <div class="field"><span class="flabel">用途：</span>用一場「毫不留情的訪談」把計畫或設計逼到清楚，同時邊談邊產出文件（ADR 與詞彙表）。</div>
+      <div class="field"><span class="flabel">做法重點：</span>本質是組合技——跑一場 <code>/grilling</code> 逼問，過程中掛 <code>/domain-modeling</code> 即時把談定的詞彙寫進 <code>CONTEXT.md</code>，值得記錄的決策生成 ADR。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>把「澄清需求」和「留下文件」綁成同一動作——澄清完，glossary 與 ADR 也順手長出來，不用事後補寫。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">to-spec</span></h3>
+      <div class="meta-row"><span class="tag user">使用者觸發</span><span class="tag type">對齊 / 規格</span></div>
+      <div class="field"><span class="flabel">用途：</span>把當前對話直接轉成正式規格並發到 issue tracker，不再另開訪談。</div>
+      <div class="field"><span class="flabel">做法重點：</span>先探索 codebase 現況、套用 glossary 詞彙並尊重既有 ADR；定義測試 seam（盡量少、理想只有一個）並與使用者確認；產出含問題陳述、解法、<em>大量 user story</em>（As [actor], I want…, so that…）、實作決策、測試策略、範疇邊界的結構化規格，發布時貼上 <code>ready-for-agent</code> 標籤。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>規格避免寫死檔案路徑、改用散文描述——讓 spec 不因重構失效；並用「測試 seam 最小化」逼出乾淨的模組邊界。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">to-tickets</span></h3>
+      <div class="meta-row"><span class="tag user">使用者觸發</span><span class="tag type">對齊 / 拆票</span></div>
+      <div class="field"><span class="flabel">用途：</span>把計畫、規格或對話拆成帶明確阻塞依賴的<strong>曳光彈（tracer-bullet）票</strong>，發到 tracker。</div>
+      <div class="field"><span class="flabel">做法重點：</span>每張票是<strong>垂直切片</strong>（穿過 schema／API／UI／測試各層、能獨立完成），大小控制在一個 context window；寬幅重構用 expand-contract（先加新形態、分批遷移、再刪舊形態）保持 CI 常綠；每張票明確宣告它被哪些票阻塞。輸出可為本地 <code>.scratch/&lt;feature&gt;/issues/</code> markdown，或原生 tracker issue。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>「垂直切片 + 阻塞邊」讓每張票都能被 agent 單獨抓來做完並驗證，避免橫向分層造成的半成品堆積。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">wayfinder</span></h3>
+      <div class="meta-row"><span class="tag user">使用者觸發</span><span class="tag type">對齊 / 大型規劃</span></div>
+      <div class="field"><span class="flabel">用途：</span>把跨多個 agent session 的大型規劃，做成 tracker 上的一張<strong>決策地圖</strong>，一次解一個決策票直到路徑清楚。</div>
+      <div class="field"><span class="flabel">做法重點：</span>先用 <code>/grilling</code>+<code>/domain-modeling</code> 定義「終點」；廣度優先繪出決策邊界，建 <code>wayfinder:map</code> 地圖 issue（含 Destination、Notes、未明處放「Not yet specified」＝戰爭迷霧）；子決策做成帶阻塞關係的 child issue；research 型票可平行派子 agent。原則是<strong>只產決策、不做交付</strong>，一 session 一票（research 除外）。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>「戰爭迷霧」隱喻——只把已經夠銳利、能精確陳述的問題升成票，模糊的懷疑先留在迷霧裡，避免過早過度規劃。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">implement</span></h3>
+      <div class="meta-row"><span class="tag user">使用者觸發</span><span class="tag type">品質 / 實作</span></div>
+      <div class="field"><span class="flabel">用途：</span>依規格或一組票把工作實作出來。</div>
+      <div class="field"><span class="flabel">做法重點：</span>在雙方談定的整合點用 <code>/tdd</code> 開發；過程中頻繁跑型別檢查、常跑個別測試檔、完成時跑一次完整測試套件；實作完用 <code>/code-review</code> 審查；最後 commit 到當前分支。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>把「實作」定義成一條含 TDD、頻繁型檢、收尾審查的<strong>流水線</strong>，而不是「把 code 寫出來」而已——品質關卡內建在流程裡。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">tdd</span></h3>
+      <div class="meta-row"><span class="tag model">模型觸發</span><span class="tag type">品質 / 測試</span></div>
+      <div class="field"><span class="flabel">用途：</span>紅→綠→重構的測試先行開發；使用者想 test-first 建功能／修 bug、提到 red-green-refactor 或想要整合測試時援引。</div>
+      <div class="field"><span class="flabel">做法重點：</span>好測試「透過公開介面驗證行為、而非實作細節」，讀起來像規格、能撐過重構；寫任何測試前先寫下並與使用者確認<strong>要測的 seam</strong>；一次一個測試配一段實作的垂直切片；重構留到 code review 而非實作環。避開實作耦合、套套邏輯（tautological）、橫向切片三大反模式。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>「先寫下 seam 並確認」這一步——把測試邊界外顯成可討論的契約，是避免測試脆弱化的關鍵閘門。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">code-review</span></h3>
+      <div class="meta-row"><span class="tag model">模型觸發</span><span class="tag type">品質 / 審查</span></div>
+      <div class="field"><span class="flabel">用途：</span>沿兩條獨立軸線審查變更——Standards（是否合 repo 慣例）與 Spec（是否忠實實作需求），用平行子 agent 避免 context 污染。</div>
+      <div class="field"><span class="flabel">做法重點：</span>先定 fixed point（commit／branch／main），用 <code>git diff &lt;point&gt;...HEAD</code> 三點比對取 diff，壞 ref 或空 diff 立刻 fail fast；依序尋找 spec（commit 內的 issue 引用 → 使用者給的路徑 → docs/specs/.scratch）；標準面除了 repo 文件，還墊一層 Fowler《重構》第 3 章的 code smell 基線；兩個子 agent 各限 400 字回報，最後分 <code>## Standards</code>／<code>## Spec</code> 呈現、不跨軸排序。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>把審查拆成兩條互不干擾的軸、各用獨立子 agent——避免「一邊看規範一邊看需求」時的注意力污染，且輸出限字數逼出重點。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">diagnosing-bugs</span></h3>
+      <div class="meta-row"><span class="tag model">模型觸發</span><span class="tag type">品質 / 除錯</span></div>
+      <div class="field"><span class="flabel">用途：</span>難纏 bug 與效能回歸的診斷迴圈；使用者說「diagnose／debug this」或回報壞掉／噴錯／很慢時援引。</div>
+      <div class="field"><span class="flabel">做法重點：</span>六階段——①先建立能對這個 bug 變紅的<strong>緊密 pass/fail 訊號</strong>（一個可跑、確定性、快、agent 能跑的指令）；②重現並最小化（逐一砍輸入與設定）；③提出 3–5 個可證偽假設；④對每個預測下探針（優先 debugger，再打帶唯一 tag 的 log）；⑤<strong>先在正確 seam 寫回歸測試再修</strong>；⑥清理探針、寫根因進 commit，並反思架構能否從源頭預防。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>「先做出能穩定變紅的訊號，再談原因」——把除錯從猜測變成有回饋迴圈的科學流程；假設必須可證偽。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">domain-modeling</span></h3>
+      <div class="meta-row"><span class="tag model">模型觸發</span><span class="tag type">對齊 / 詞彙</span></div>
+      <div class="field"><span class="flabel">用途：</span>建立並打磨專案的領域模型 / ubiquitous language；使用者想釘死術語、記錄架構決策，或別的 skill 需要維護詞彙時援引。</div>
+      <div class="field"><span class="flabel">做法重點：</span>用詞與 <code>CONTEXT.md</code> 衝突時當場點出；把模糊／過載的詞收斂成精準的正典詞（如 Customer vs. User）；用具體邊界情境壓力測試；拿文件對照真實 code 找矛盾；即時把談定的詞寫回 <code>CONTEXT.md</code>（純詞彙表、不放實作細節）；ADR 只在「難逆轉 + 沒背景會意外 + 真有取捨」三條件都成立時才建。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>把 glossary 當「純詞彙表」單一真相來源、與規格／決策分家；ADR 有明確的三條件門檻，避免文件通膨。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">improve-codebase-architecture</span></h3>
+      <div class="meta-row"><span class="tag user">使用者觸發</span><span class="tag type">架構退化</span></div>
+      <div class="field"><span class="flabel">用途：</span>找出並處理架構摩擦，專門挖「deepening opportunities」——把淺模組重構成更深、更好測的模組。</div>
+      <div class="field"><span class="flabel">做法重點：</span>三階段——①探索：不全掃，若沒指定範圍就看近期 commit 找常改的熱點，讀 glossary 與 ADR，子 agent 列出摩擦點（概念要在許多小模組間跳、介面複雜度逼近實作、只為可測而抽出的純函式反而藏 bug、耦合外洩、難測區）；用「刪除測試」判斷淺模組。②產出自帶的 HTML 報告（寫到 <code>$TMPDIR</code>，每張卡含 Files／Problem／Solution／Benefits／前後 Mermaid 圖／推薦強度）。③選定後進 <code>/grilling</code> 迴圈定案、<code>/domain-modeling</code> 更新詞彙。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>「deletion test」——問「拿掉這個淺模組，複雜度會集中還是只是搬家？」是判斷該不該重構的鋒利啟發式；並用視覺化 HTML 報告承載建議。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">triage</span></h3>
+      <div class="meta-row"><span class="tag user">使用者觸發</span><span class="tag type">流程 / 議題分流</span></div>
+      <div class="field"><span class="flabel">用途：</span>用一台狀態機把 issue 與外部 PR 分流、逐步精煉。</div>
+      <div class="field"><span class="flabel">做法重點：</span>類別二選一（<code>bug</code>／<code>enhancement</code>），狀態六選一（<code>needs-triage</code>／<code>needs-info</code>／<code>ready-for-agent</code>／<code>ready-for-human</code>／<code>wontfix</code>）；發現流程按最舊優先分三桶呈現，外部 PR 標 <code>[PR]</code>、內部協作者 PR 排除；分流單一議題時先蒐證、推薦類別與狀態並說明理由、驗證主張（重現 bug／確認 PR diff）、必要時逼問、再落地。<strong>所有 triage 留言須以「This was generated by AI during triage.」開頭。</strong></div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>把「分流」形式化成明確的類別×狀態狀態機，並強制 AI 留言標示來源——治理與透明度內建在流程。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">research</span></h3>
+      <div class="meta-row"><span class="tag model">模型觸發</span><span class="tag type">對齊 / 調查</span></div>
+      <div class="field"><span class="flabel">用途：</span>針對問題查高信任的一手來源，把發現寫成 repo 內的 Markdown；使用者想研究主題、蒐集文件／API 事實，或把讀資料的活外包給背景 agent 時援引。</div>
+      <div class="field"><span class="flabel">做法重點：</span>開背景 agent 邊查邊讓你繼續工作；<strong>以一手來源為準</strong>（官方文件、原始碼、規格、first-party API，而非二手詮釋）；每個主張都追回擁有它的權威來源；結果寫成單一 Markdown 檔、每個主張附引用；依 repo 既有慣例存放。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>「每個主張都要追回一手來源並附引用」——把研究輸出變成可稽核的東西，對抗 LLM 的自信幻覺。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">prototype</span></h3>
+      <div class="meta-row"><span class="tag model">模型觸發</span><span class="tag type">對齊 / 探索</span></div>
+      <div class="field"><span class="flabel">用途：</span>做<strong>用完即丟</strong>的原型回答設計問題；使用者想確認狀態模型／邏輯對不對，或探索 UI 該長怎樣時援引。</div>
+      <div class="field"><span class="flabel">做法重點：</span>先辨識底層問題——邏輯驗證 → 產可分享的 HTML，附自由操作按鈕與引導走查，用邊界情境壓測狀態機；UI 探索 → 在同一路由生成數個視覺方案，用 URL 參數與浮動控制列切換。共通原則：明確標為原型、就近放、狀態留記憶體、跳過測試與抽象、每個動作後顯示完整狀態、最後 commit 到丟棄分支並把定案整合回 main。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>「disposable by design」——原型刻意不寫測試、不做抽象，用最低摩擦換取設計問題的快速答案，並明訂用完即刪的紀律。</div>
+    </div>
+  </section>
+
+  <!-- ③ Productivity -->
+  <section id="prod">
+    <h2><span class="num">③</span> Productivity 生產力類（7）</h2>
+    <p>不綁特定 codebase 的通用工作流：逼問、交接、教學、問卷、再溝通，以及兩個被別的 skill 重複援用的底層原件。</p>
+
+    <div class="skill-block">
+      <h3><span class="repo">grilling</span></h3>
+      <div class="meta-row"><span class="tag model">模型觸發</span><span class="tag type">底層原件</span></div>
+      <div class="field"><span class="flabel">用途：</span>用毫不留情的提問壓力測試使用者的思考；是 <code>grill-me</code>、<code>grill-with-docs</code>、<code>wayfinder</code> 等多個 skill 背後共用的<strong>逼問原件</strong>。</div>
+      <div class="field"><span class="flabel">做法重點：</span>把訪談組成一棵<strong>決策樹</strong>，分編號回合進行——①找出前置已定、可立刻問的「frontier」；②一次問完該層所有問題（附編號與建議答案）；③等使用者回答；④重算 frontier（答案解鎖下游問題）；⑤frontier 清空才算完。原則：派子 agent 查環境事實、絕不問使用者可查到的東西；決策歸使用者、事實由 agent 發掘；達成共識前不行動。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>「決策樹 + frontier」把訪談變成有終止條件的演算法；並嚴格切分「使用者做決策 / agent 查事實」，不拿可查的問題浪費人。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">grill-me</span></h3>
+      <div class="meta-row"><span class="tag user">使用者觸發</span><span class="tag type">對齊 / 逼問</span></div>
+      <div class="field"><span class="flabel">用途：</span>一場毫不留情的訪談，把計畫或設計打磨到所有設計分支都解掉。</div>
+      <div class="field"><span class="flabel">做法重點：</span>本質就是叫出一場 <code>/grilling</code> session（薄封裝，把逼問原件暴露成使用者可直接觸發的入口）。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>把可重用的原件（grilling）再包一層極薄的使用者入口——同一能力，模型自動用一個名字、人手動用另一個名字。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">handoff</span></h3>
+      <div class="meta-row"><span class="tag user">使用者觸發</span><span class="tag type">冗長 / 交接</span></div>
+      <div class="field"><span class="flabel">用途：</span>把當前對話壓縮成交接文件，讓另一個 agent 接手。</div>
+      <div class="field"><span class="flabel">做法重點：</span>總結本 session 讓新 agent 讀懂脈絡；存到 OS 暫存目錄（不進工作區）；<strong>用路徑／URL 引用既有 spec、plan、ADR、issue、commit、diff，而非複製內容</strong>；加一段「建議 skill」告訴接手者下一步該叫哪些 skill；交出前遮蔽 API key、密碼、PII；若使用者說明了下一 session 的重點就照那個結構寫。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>交接靠「引用而非複製」壓縮 context，還內建一段「建議接手者用哪些 skill」——把 agent 之間的接力做成標準協定。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">teach</span></h3>
+      <div class="meta-row"><span class="tag user">使用者觸發</span><span class="tag type">學習</span></div>
+      <div class="field"><span class="flabel">用途：</span>在一個工作區內教使用者一個新技能或概念，跨多次 session 有狀態。</div>
+      <div class="field"><span class="flabel">做法重點：</span>工作區含 <code>MISSION.md</code>（把教學錨定在真實目標）、<code>RESOURCES.md</code>（精選一手來源）、<code>learning-records/</code>、<code>lessons/*.html</code>、<code>reference/*.html</code>、<code>NOTES.md</code>；用「合意困難」（提取練習、間隔、交錯）優先儲存強度而非流暢感；每課瞄準最近發展區、短且能快速完成、給一個具體小勝並附一手引用；知識一律來自可信外部資源、不靠模型內建記憶；目標不清時先問使用者的底層動機。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>把認知科學（desirable difficulty、spacing、ZPD）落成檔案結構與短課設計；並堅持「知識來自外部一手來源、非 parametric knowledge」。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">to-questionnaire</span></h3>
+      <div class="meta-row"><span class="tag user">使用者觸發</span><span class="tag type">對齊 / 決策</span></div>
+      <div class="field"><span class="flabel">用途：</span>把你答不了的決策，轉成給別人（決策者）填的問卷。</div>
+      <div class="field"><span class="flabel">做法重點：</span>三步——①一次對話定收件人的角色、專業、與你的關係（校準語氣與背景量）；②一次對話定你自己解不了的具體決策或事實；③產出依重要性排序、主題分組的問卷，存 <code>to-questionnaire-&lt;slug&gt;.md</code>，含目的、背景、作答指引、每組單一主題＋簡短理由、結尾兜底問題。核心原則「Grill the send, not the subject」——訪談的是<strong>發送者</strong>（誰收、要什麼），問卷本身才問實質問題。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>「逼問發送者而非主題」的區分——先搞清楚要問誰、要什麼，再讓文件去問實質，避免把問卷寫成自問自答。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">wait-what</span></h3>
+      <div class="meta-row"><span class="tag user">使用者觸發</span><span class="tag type">冗長 / 再溝通</span></div>
+      <div class="field"><span class="flabel">用途：</span>「停，剛那則訊息沒 land」——把上一則沒說清楚的訊息重新表述一次。</div>
+      <div class="field"><span class="flabel">做法重點：</span>暫停並要脈絡；改用 <strong>ASD-STE100 Simplified Technical English</strong>（航空業的受控技術英語）重講；引用 <code>CONTEXT.md</code> 的 ubiquitous language 定義；重點是 re-pitch 而非硬往下走，先確保雙方理解一致。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>借用「受控自然語言（STE）」這種工業級標準來對治溝通歧義——不是叫模型「講清楚點」，而是給它一套明確的語言規範。</div>
+    </div>
+
+    <div class="skill-block">
+      <h3><span class="repo">writing-for-agents</span></h3>
+      <div class="meta-row"><span class="tag model">模型觸發</span><span class="tag type">底層原件 / meta</span></div>
+      <div class="field"><span class="flabel">用途：</span>寫給 agent 讀的文件；建立或編輯 skill、改 <code>AGENTS.md</code> 或 <code>CLAUDE.md</code> 時援引。這是整個 repo 的<strong>寫作方法論</strong>。</div>
+      <div class="field"><span class="flabel">做法重點：</span>幾條核心——<strong>context pointer</strong> 靠措辭而非目標觸發，前置引導詞、一分支一觸發；辨明「兩種負擔」（context load 每回合花 token vs. cognitive load 人要記哪些文件何時看）；資訊三層（in-file steps／in-file reference／disclosed reference）＋漸進揭露；每個步驟要有<strong>完成準則</strong>（清晰＋帶要求）；用「leading words」（既有概念）錨定行為，且<strong>否定句無效</strong>（「Don't do X」反而激活 X，要講正向目標）；剪枝：單一真相來源、只快取昂貴查詢、每行都測是否有用、獵殺 no-op。</div>
+      <div class="field steal"><span class="flabel">值得偷師：</span>「否定句會激活它否定的東西，改講正向目標」與「每個步驟要有可判定的完成準則」——是寫 prompt／skill／CLAUDE.md 立刻能用的鐵律。</div>
+    </div>
+
+    <div class="callout tip">補充：repo 內工程類另有 <code>ask-matt</code>（依情境路由到對的 skill）、<code>setup-matt-pocock-skills</code>（初始設定）、<code>codebase-design</code>、<code>resolving-merge-conflicts</code>、<code>wizard</code> 等；本頁聚焦題目指定的 20 個核心 skill，其餘以官方 repo 為準。</div>
+  </section>
+
+  <!-- ④ sources -->
+  <section id="sources">
+    <h2><span class="num">④</span> 相關與來源</h2>
+    <div class="related">
+      <a href="./skill-repos.html">
+        <div class="rel-title">📦 Skill 資源庫巡覽</div>
+        <div class="rel-sub">10 個值得追的 repo，含本 repo 概覽</div>
+      </a>
+      <a href="../learn/matt-pocock-skills.html">
+        <div class="rel-title">🧰 Matt Pocock Skills 拆解（learn）</div>
+        <div class="rel-sub">本站對這套工作流的另一角度</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">什麼是 Skill、分析框架</div>
+      </a>
+      <a href="https://github.com/mattpocock/skills">
+        <div class="rel-title">↗ mattpocock/skills（GitHub）</div>
+        <div class="rel-sub">原始 repo · 授權 MIT · 一切以此為準</div>
+      </a>
+    </div>
+    <div class="callout danger" style="margin-top:14px;">
+      <strong>安全提醒：</strong>Skill 會被 agent 當<strong>指令</strong>執行。安裝任何第三方 skill 前，先讀過每個 <code>SKILL.md</code> 與其呼叫的腳本，確認沒有非預期的檔案動作、外部請求或資料外洩。本頁內容整理自撰寫時的公開 <code>SKILL.md</code>，repo 會更新，skill 清單、觸發方式與流程<strong>一律以官方 repo 最新內容為準</strong>；本頁刻意不列 star 等熱度數據。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · Skills 分析專區 · <a href="./index.html">← 回到專區</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

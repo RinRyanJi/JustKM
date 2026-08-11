@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>anthropics/skills 逐 skill 拆解 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h3 .repo { font-family: 'SF Mono', Menlo, monospace; font-size: 0.9rem; }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .meta-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+    .tag { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; border: 1px solid var(--hairline); background: var(--surface); color: var(--slate); }
+    .tag.lic { background: var(--tint-mint); color: #157a2b; border-color: transparent; }
+    .tag.type { background: var(--tint-lavender); color: var(--primary-deep); border-color: transparent; }
+    .tag.link a { color: var(--link); text-decoration: none; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.danger { border-left-color: var(--error); background: var(--tint-rose); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .skill-card { border: 1px solid var(--hairline); border-radius: 12px; padding: 18px 20px; margin: 14px 0; background: var(--surface); }
+    .skill-card h4 { margin-top: 0; }
+    .skill-card .sk-name { font-family: 'SF Mono', Menlo, monospace; font-size: 1rem; font-weight: 700; color: var(--primary-deep); margin-bottom: 2px; }
+    .skill-card .sk-role { font-size: 0.75rem; color: var(--stone); margin-bottom: 10px; }
+    .skill-card dl { margin: 0; }
+    .skill-card dt { font-size: 0.72rem; font-weight: 700; color: var(--steel); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 9px; }
+    .skill-card dd { margin: 2px 0 0; font-size: 0.86rem; color: var(--charcoal); }
+    .skill-card dd.steal { color: var(--primary-deep); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 Skills 分析專區</a>
+
+  <div class="hero">
+    <h1>🧩 anthropics/skills 逐 skill 拆解</h1>
+    <p class="sub">Anthropic 官方 Agent Skills 示範庫 · <code style="color:#cbd5ec">agentskills.io</code> 標準參考 · 含 spec 規範與 template 範本</p>
+    <div>
+      <span class="badge green">Document 4 個</span>
+      <span class="badge blue">創意與設計 5 個</span>
+      <span class="badge orange">開發與技術 5 個</span>
+      <span class="badge">企業與溝通 3 個</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#what">① 這 repo 是什麼 / 怎麼用</a>
+      <a href="#skeleton">② Skill 的最小骨架</a>
+      <a href="#document">③ Document Skills（4）</a>
+      <a href="#creative">④ 創意與設計（5）</a>
+      <a href="#dev">⑤ 開發與技術（5）</a>
+      <a href="#enterprise">⑥ 企業與溝通（3）</a>
+      <a href="#sources">↗ 相關與來源</a>
+    </div>
+  </nav>
+
+  <!-- ① -->
+  <section id="what">
+    <h2><span class="num">①</span> 這 repo 是什麼 / 怎麼用</h2>
+    <div class="meta-row">
+      <span class="tag type">官方 · Anthropic</span>
+      <span class="tag lic">多數 Apache 2.0</span>
+      <span class="tag lic" style="background:var(--tint-peach);color:#b04a00;">document skills：source-available</span>
+      <span class="tag link"><a href="https://github.com/anthropics/skills" target="_blank" rel="noopener">GitHub ↗</a></span>
+    </div>
+    <p><strong>定位：</strong>Anthropic 官方的 Agent Skills 示範庫。Skill 是一個「資料夾」——裝著指令、腳本與資源，讓 Claude <strong>按需載入</strong>、在特定任務上表現更好、而且做法可重複。這個 repo 同時是 <code>agentskills.io</code> 開放標準的參考實作，附 <code>spec/</code> 規範與 <code>template/</code> 範本。</p>
+    <p><strong>授權：</strong>多數 example skills 為 <strong>Apache 2.0</strong>（開源）；四個 document skills（<code>docx/pdf/pptx/xlsx</code>）為 <strong>source-available</strong>（可看原始碼、非開源）。官方也註明這些 skill 供示範／教育用途，正式產品中的實作可能不同。</p>
+
+    <h4>倉庫結構</h4>
+    <table>
+      <thead><tr><th>目錄</th><th>內容</th></tr></thead>
+      <tbody>
+        <tr><td><code>skills/</code></td><td>17 個示範 skill，涵蓋文件、創意設計、開發技術、企業溝通四類</td></tr>
+        <tr><td><code>spec/</code></td><td><code>agent-skills-spec.md</code>：Agent Skills 規範（SKILL.md 格式、frontmatter 欄位、漸進揭露）</td></tr>
+        <tr><td><code>template/</code></td><td><code>SKILL.md</code> 最小範本，複製即可開新 skill</td></tr>
+        <tr><td><code>.claude-plugin/</code></td><td>把 repo 當作 Claude Code 外掛市集發佈的設定</td></tr>
+      </tbody>
+    </table>
+
+    <h4>三種用法</h4>
+    <pre><code><span class="cm"># A. Claude Code：把 repo 當市集加進來，再裝技能組</span>
+/plugin marketplace add anthropics/skills
+/plugin install document-skills@anthropic-agent-skills
+/plugin install example-skills@anthropic-agent-skills
+
+<span class="cm"># B. Claude.ai：付費方案可在介面直接「上傳自訂 Skill」</span>
+
+<span class="cm"># C. Claude API：透過 Skills API 使用內建或上傳自訂 Skill</span></code></pre>
+    <div class="callout danger"><strong>安全提醒：</strong>Skill 會被 agent 當<strong>指令</strong>執行、且常帶可跑的腳本。安裝任何 skill 前先讀過 <code>SKILL.md</code> 與其腳本，確認沒有非預期動作。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="skeleton">
+    <h2><span class="num">②</span> Skill 的最小骨架</h2>
+    <p>一個 skill 最少只需要一個資料夾 + 一個 <code>SKILL.md</code>。<code>template/SKILL.md</code> 的內容幾乎就是最小示範：</p>
+    <pre><code><span class="cm">---</span>
+<span class="kw">name</span>: template-skill
+<span class="kw">description</span>: Replace with description of the skill and when Claude should use it.
+<span class="cm">---</span>
+
+<span class="cm"># Insert instructions below</span></code></pre>
+    <h4>兩個必填欄位</h4>
+    <ul>
+      <li><code>name</code>：唯一識別名（小寫、連字號分隔）。</li>
+      <li><code>description</code>：說清楚「這 skill 做什麼」以及「Claude 何時該用它」——這行是<strong>觸發判斷</strong>的關鍵，描述得愈精準、模型愈能在對的時機叫它。</li>
+    </ul>
+    <p>正文（frontmatter 底下）就是給 Claude 的指令、範例與規則。需要更多內容時，把大檔案放進 <code>scripts/</code>、<code>references/</code>、<code>assets/</code> 等子資料夾，由正文按需指路——這就是<strong>漸進揭露（progressive disclosure）</strong>：SKILL.md 保持精簡（skill-creator 建議 500 行內），龐大資源分開擺、用到才讀。</p>
+    <div class="callout info"><strong>值得偷師：</strong>好的 skill 不是把所有東西塞進一頁，而是「一頁精要 + 需要才展開的附件」。描述欄位寫得像<strong>觸發條件表</strong>（做 X／提到 Y 檔案時用），而不是空泛介紹。詳細欄位規則以 <code>spec/agent-skills-spec.md</code> 官方 repo 為準。</div>
+  </section>
+
+  <!-- ③ Document -->
+  <section id="document">
+    <h2><span class="num">③</span> Document Skills（4）</h2>
+    <p>把 Office / PDF 檔當成<strong>可程式化操作的物件</strong>：多數 Office 檔其實是 XML 的 zip 包，這批 skill 教 Claude 用對的函式庫建立、編輯、讀取，並在交付前驗證。這四個是 <strong>source-available</strong>。JustKM 本站的 docx/pdf/pptx/xlsx 就是這一脈。</p>
+
+    <div class="skill-card">
+      <div class="sk-name">docx</div>
+      <div class="sk-role">Word 文件（.docx / .dotx）</div>
+      <dl>
+        <dt>用途</dt><dd>建立、讀取、編輯、操作 Word 文件與範本——報告、信件、含目錄／頁碼／浮水印的正式文件。</dd>
+        <dt>觸發時機</dt><dd>使用者提到 Word doc、.docx/.dotx，或要產出有格式的專業文件。</dd>
+        <dt>做法重點</dt><dd>依任務分流：<strong>建立</strong>用 <code>docx</code>（npm）寫 Node.js 腳本；<strong>編輯</strong>解壓改 <code>word/document.xml</code> 再壓回；<strong>讀取</strong>用 <code>pandoc</code> 轉 Markdown。渲染驗證用 LibreOffice。</dd>
+        <dt class="steal">值得偷師</dt><dd class="steal">大量記錄 XML 格式「地雷」（頁面尺寸、表格寬度、目錄需要正確 heading 層級），把踩過的坑寫成規則，讓輸出穩定。</dd>
+      </dl>
+    </div>
+
+    <div class="skill-card">
+      <div class="sk-name">pdf</div>
+      <div class="sk-role">PDF 全生命週期</div>
+      <dl>
+        <dt>用途</dt><dd>抽取文字／表格、合併／拆分／旋轉、加浮水印、建立新 PDF、填表單、加解密、抽圖、掃描檔 OCR。</dd>
+        <dt>觸發時機</dt><dd>任何牽涉 .pdf 檔或要產出 PDF 的需求。</dd>
+        <dt>做法重點</dt><dd>依操作挑對的函式庫：<code>pypdf</code>（結構操作：合併/拆分/旋轉/加密）、<code>pdfplumber</code>（保留版面抽文字與表格）、<code>reportlab</code>（產生 PDF）、<code>pytesseract/pdf2image</code>（OCR）。</dd>
+        <dt class="steal">值得偷師</dt><dd class="steal">「一個任務、一個最合適工具」的分工思維——不強求單一函式庫全包，而是把每種操作對應到最擅長的工具。</dd>
+      </dl>
+    </div>
+
+    <div class="skill-card">
+      <div class="sk-name">pptx</div>
+      <div class="sk-role">PowerPoint 簡報（.pptx / .potx）</div>
+      <dl>
+        <dt>用途</dt><dd>建立投影片、編輯既有簡報、抽取內容、驗證輸出。把 .pptx 當 XML 的 zip 包做精準控制。</dd>
+        <dt>觸發時機</dt><dd>提到「deck / slides / 簡報」或牽涉 .pptx/.potx 檔——無論之後要拿內容做什麼。</dd>
+        <dt>做法重點</dt><dd><strong>建立</strong>用 <code>pptxgenjs</code>；<strong>編輯</strong>解壓改 XML 再壓回；<strong>讀取</strong>用 <code>markitdown</code> 或 <code>scripts/thumbnail.py</code> 看版面。附 schema／關聯／content-type 驗證套件。</dd>
+        <dt class="steal">值得偷師</dt><dd class="steal">明講 <code>python-pptx</code> 的限制（不擅長複製投影片、保留格式），誠實標注工具邊界，避免踩雷。</dd>
+      </dl>
+    </div>
+
+    <div class="skill-card">
+      <div class="sk-name">xlsx</div>
+      <div class="sk-role">試算表（.xlsx / .csv 等）</div>
+      <dl>
+        <dt>用途</dt><dd>開啟／讀取／編輯試算表、加欄位、算公式、格式化、製圖、清理雜亂表格、格式互轉——交付物就是試算表本身。</dd>
+        <dt>觸發時機</dt><dd>試算表是主要輸入或輸出時；使用者用檔名／路徑點名某個試算表要動它。</dd>
+        <dt>做法重點</dt><dd>有公式用 <code>openpyxl</code>；大量資料用 <code>pandas</code>；快速檢視用 <code>markitdown</code>。動過公式後<strong>強制</strong>跑 <code>recalc.py</code> 確認能正常計算。</dd>
+        <dt class="steal">值得偷師</dt><dd class="steal">硬性品質關卡：用公式而非硬寫死值、零公式錯誤、交付前一定驗算。把「驗證」寫進流程而非靠自覺。</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ④ Creative -->
+  <section id="creative">
+    <h2><span class="num">④</span> Example：創意與設計（5）</h2>
+    <p>這批示範「怎麼把美感與創意變成可觸發的工作流」，共同套路：<strong>先立設計哲學／宣言，再落地成作品</strong>，並刻意避開 AI 生成的樣板味。</p>
+
+    <div class="skill-card">
+      <div class="sk-name">algorithmic-art</div>
+      <div class="sk-role">生成式演算法藝術</div>
+      <dl>
+        <dt>用途</dt><dd>用 p5.js 產生生成式藝術，帶種子隨機與互動參數，做原創而非臨摹既有藝術家。</dd>
+        <dt>觸發時機</dt><dd>要生成／演算法藝術、流場、粒子系統、噪聲驅動、可調參的互動視覺。</dd>
+        <dt>做法重點</dt><dd>兩階段：先寫 4–6 段「演算法哲學」宣言，再用 p5.js 實作成自足 HTML artifact——含種子導覽（上一個/下一個/隨機/跳號）、參數滑桿、重生按鈕。種子相同就能重現。</dd>
+        <dt class="steal">值得偷師</dt><dd class="steal">「過程重於成品」——美感從演算法執行中湧現，每次運行都不同卻保持一致性。概念種子藏在參數裡而非明說。</dd>
+      </dl>
+    </div>
+
+    <div class="skill-card">
+      <div class="sk-name">canvas-design</div>
+      <div class="sk-role">博物館級靜態視覺（PDF/PNG）</div>
+      <dl>
+        <dt>用途</dt><dd>產生海報、藝術品等原創靜態視覺，視覺優先於文字。</dd>
+        <dt>觸發時機</dt><dd>使用者要海報、artwork、design 等需要原創創意表達的靜態作品。</dd>
+        <dt>做法重點</dt><dd>命名一個「美學運動」（4–6 段宣言）→ 推導主題 DNA 藏進作品 → 以極簡整合文字渲染，追求「像花了無數小時」的職人級成品。所有元素須在畫布邊界內、留白得當、禁止重疊。</dd>
+        <dt class="steal">值得偷師</dt><dd class="steal">把「品質標準」寫死成規則（博物館級、禁卡通感、禁抄襲、耐看回味），用明確的反例框住輸出下限。</dd>
+      </dl>
+    </div>
+
+    <div class="skill-card">
+      <div class="sk-name">frontend-design</div>
+      <div class="sk-role">有記憶點的前端視覺方向</div>
+      <dl>
+        <dt>用途</dt><dd>建新 UI 或重塑既有介面時，給出獨特而刻意的視覺方向：色彩、字體搭配、版面、招牌元素。</dd>
+        <dt>觸發時機</dt><dd>設計網頁介面、想要「難忘」而非「通用」的成品。</dd>
+        <dt>做法重點</dt><dd>兩趟：先寫精簡設計計畫（4–6 個命名色值、字體選擇、版面概念、一個招牌元素），再對著 brief 自我批判是否夠貼「這個專案」。原則：「hero 就是論點」、用結構與字體承載意義而非裝飾、動效只用在關鍵處。</dd>
+        <dt class="steal">值得偷師</dt><dd class="steal">點名三種 AI 設計陳腔（奶油色+襯線、暗底+螢光色、報紙分欄）要刻意避開；「大膽只花在一個地方」。</dd>
+      </dl>
+    </div>
+
+    <div class="skill-card">
+      <div class="sk-name">theme-factory</div>
+      <div class="sk-role">artifact 主題套用工具</div>
+      <dl>
+        <dt>用途</dt><dd>替投影片、文件、報告、HTML 頁面套一致的字體與配色主題。</dd>
+        <dt>觸發時機</dt><dd>需要對各類 artifact 施加一致視覺風格時。</dd>
+        <dt>做法重點</dt><dd>展示主題陳列 → 詢問偏好 → 取得明確確認 → 全篇套用色與字。內建十套主題（Ocean Depths、Sunset Boulevard、Midnight Galaxy…），各附 hex 與字體配對；不合用可生成自訂主題。</dd>
+        <dt class="steal">值得偷師</dt><dd class="steal">「先展示、要確認、再套用」的互動節奏——把主觀的美感選擇交還使用者拍板，而非替他決定。</dd>
+      </dl>
+    </div>
+
+    <div class="skill-card">
+      <div class="sk-name">slack-gif-creator</div>
+      <div class="sk-role">Slack 動畫 GIF</div>
+      <dl>
+        <dt>用途</dt><dd>做符合 Slack 規格的動畫 GIF（emoji 128×128、訊息 480×480）。</dd>
+        <dt>觸發時機</dt><dd>「幫我做一個 X 在做 Y 的 Slack GIF」這類請求。</dd>
+        <dt>做法重點</dt><dd>三件組：PIL 逐幀繪圖（ImageDraw 基本圖形）＋ GIFBuilder 組幀並壓到 Slack 檔案限制 ＋ 動畫概念庫（彈跳/脈動/旋轉/淡入/爆發，配緩動函式）。提供減色／降 FPS／縮尺寸的瘦身策略。</dd>
+        <dt class="steal">值得偷師</dt><dd class="steal">把「平台硬限制」（尺寸、檔案大小）當成一級約束寫進工具，並附可執行的驗證，而非事後才發現超標。</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ⑤ Dev -->
+  <section id="dev">
+    <h2><span class="num">⑤</span> Example：開發與技術（5）</h2>
+    <p>把「工程最佳實踐」變成 agent 能照做的流程——從蓋 MCP server、測試網頁，到做 Claude.ai artifact，再到 skill 本身怎麼做。</p>
+
+    <div class="skill-card">
+      <div class="sk-name">mcp-builder</div>
+      <div class="sk-role">蓋高品質 MCP server</div>
+      <dl>
+        <dt>用途</dt><dd>用 Python（FastMCP）或 TypeScript（MCP SDK）建 MCP server，讓 LLM 透過設計良好的工具存取外部服務。</dd>
+        <dt>觸發時機</dt><dd>要接外部 API／服務、設計給 LLM 用的工具、或替 MCP server 建評估框架時。</dd>
+        <dt>做法重點</dt><dd>四階段：研究規劃 → 實作（專案結構、核心設施、工具）→ 審查測試（MCP Inspector）→ 評估（寫測試題驗證 LLM 真能完成任務）。</dd>
+        <dt class="steal">值得偷師</dt><dd class="steal">成敗以「LLM 能否完成任務」衡量，而非端點覆蓋率；工具名要動作導向、錯誤訊息要能引導 agent 自救。</dd>
+      </dl>
+    </div>
+
+    <div class="skill-card">
+      <div class="sk-name">webapp-testing</div>
+      <div class="sk-role">用 Playwright 測本地網頁</div>
+      <dl>
+        <dt>用途</dt><dd>互動與測試本地 web app：驗證前端功能、除錯 UI、擷取截圖、看瀏覽器日誌。</dd>
+        <dt>觸發時機</dt><dd>要驗證前端行為、debug UI、擷取應用狀態時。</dd>
+        <dt>做法重點</dt><dd>決策樹：靜態 HTML 直接測，動態則先起 server 再檢視互動。核心是「先偵察再動作」——截圖、從 DOM 找選擇器、再自動操作；動態頁等 <code>networkidle</code> 再檢視。</dd>
+        <dt class="steal">值得偷師</dt><dd class="steal">把 helper 腳本當黑盒：先跑 <code>--help</code> 而非讀原始碼，刻意<strong>節省 context</strong>——這是給 agent 用的省 token 設計哲學。</dd>
+      </dl>
+    </div>
+
+    <div class="skill-card">
+      <div class="sk-name">web-artifacts-builder</div>
+      <div class="sk-role">複雜 claude.ai HTML artifact</div>
+      <dl>
+        <dt>用途</dt><dd>用現代前端技術做多組件、需要狀態管理／路由／元件庫的 claude.ai artifact。</dd>
+        <dt>觸發時機</dt><dd>複雜互動應用——不是單檔簡單 HTML。</dd>
+        <dt>做法重點</dt><dd>腳本初始化 React + TypeScript 專案 → 用 Vite / Tailwind / shadcn/ui 開發 → 打包成單一自足 HTML。內建 40+ shadcn/ui 元件與全套 Radix 依賴，自動把 JS/CSS/資產內聯。</dd>
+        <dt class="steal">值得偷師</dt><dd class="steal">明列要避開的「AI slop」設計（過度置中、紫色漸層、一律圓角）——把反模式寫進技能，主動防呆。</dd>
+      </dl>
+    </div>
+
+    <div class="skill-card">
+      <div class="sk-name">claude-api</div>
+      <div class="sk-role">Claude API / Anthropic SDK 參考</div>
+      <dl>
+        <dt>用途</dt><dd>建 Claude 驅動的應用：model ID、定價、參數、串流、tool use、MCP、agents、快取、token 計數的完整參考。</dd>
+        <dt>觸發時機</dt><dd>提到 Claude/Anthropic、或做 LLM 形狀的任務（agent/RAG/摘要…）卻沒指定供應商時；用別家（OpenAI/Gemini…）則跳過。</dd>
+        <dt>做法重點</dt><dd>先掃專案有無非 Anthropic 標記 → 偵測語言（Python/TS/Java/Go…）→ 讀對應文件 → 一律用官方 SDK 而非裸 HTTP。</dd>
+        <dt class="steal">值得偷師</dt><dd class="steal">description 就是一張精細的「觸發／略過條件表」，示範怎麼寫觸發規則避免誤觸或漏觸。（版本與 model ID 以官方 repo 為準）</dd>
+      </dl>
+    </div>
+
+    <div class="skill-card">
+      <div class="sk-name">skill-creator</div>
+      <div class="sk-role">做 / 改 / 評測 skill 的元技能</div>
+      <dl>
+        <dt>用途</dt><dd>從零建 skill、改進既有 skill、跑 eval 量測表現、優化 description 讓觸發更準。</dd>
+        <dt>觸發時機</dt><dd>要建、改、量測 skill，或改善 skill 被 Claude 叫用的準確度時。</dd>
+        <dt>做法重點</dt><dd>捕捉意圖 → 寫草稿 → 用子 agent 並行跑「有 skill / 無 skill」對照 → 產生量化斷言、評分、彙整統計 → 依回饋迭代 → 優化 description。</dd>
+        <dt class="steal">值得偷師</dt><dd class="steal">漸進揭露（SKILL.md 500 行內）、「解釋為什麼」而非死規則、從回饋<strong>泛化</strong>不過擬合測試例、並行跑 baseline 省迭代時間。</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ⑥ Enterprise -->
+  <section id="enterprise">
+    <h2><span class="num">⑥</span> Example：企業與溝通（3）</h2>
+    <p>把「公司的品牌與寫作規範」變成可重複套用的工作流——讓輸出符合組織既定的風格與格式。</p>
+
+    <div class="skill-card">
+      <div class="sk-name">brand-guidelines</div>
+      <div class="sk-role">套用 Anthropic 品牌識別</div>
+      <dl>
+        <dt>用途</dt><dd>把 Anthropic 官方品牌色與字體套到任何適合的 artifact 上。</dd>
+        <dt>觸發時機</dt><dd>需要品牌風格、設計一致性、企業美感時。</dd>
+        <dt>做法重點</dt><dd>系統化：色盤（深 #141413、淺 #faf9f5、灰階、橘/藍/綠三色強調）＋字體（標題 Poppins、內文 Lora，備援 Arial/Georgia）＋依字級自動分派字體、以強調色上圖形。</dd>
+        <dt class="steal">值得偷師</dt><dd class="steal">不需安裝字體、用系統預設＋備援機制，確保跨環境都能可靠呈現——把「可攜性」設計進規範。</dd>
+      </dl>
+    </div>
+
+    <div class="skill-card">
+      <div class="sk-name">internal-comms</div>
+      <div class="sk-role">內部溝通寫作</div>
+      <dl>
+        <dt>用途</dt><dd>寫各類內部溝通：團隊更新、電子報、FAQ、事故報告、主管備忘。</dd>
+        <dt>觸發時機</dt><dd>要寫 3P 更新、公司電子報、狀態報告、專案／主管更新、incident report 等內部文件時。</dd>
+        <dt>做法重點</dt><dd>三步：從請求分類溝通類型 → 取對應的 examples 指南文件 → 套用該格式的語氣、結構與內容規則。</dd>
+        <dt class="steal">值得偷師</dt><dd class="steal">每種文體各有專屬指南檔（典型漸進揭露）；遇到不符標準分類的請求會<strong>反問澄清</strong>而非亂猜格式。</dd>
+      </dl>
+    </div>
+
+    <div class="skill-card">
+      <div class="sk-name">doc-coauthoring</div>
+      <div class="sk-role">結構化共筆文件</div>
+      <dl>
+        <dt>用途</dt><dd>引導使用者以結構化流程共同撰寫文件（PRD、design doc、decision doc、RFC）。</dd>
+        <dt>觸發時機</dt><dd>提到寫 doc／draft proposal、或指名某種文件類型、或有實質結構化寫作專案時。</dd>
+        <dt>做法重點</dt><dd>三階段：蒐集脈絡（Claude 反問補洞）→ 逐段精修（腦力激盪、取捨、成稿）→ 讀者測試（用全新 Claude instance 抓盲點）。編輯用外科式替換而非整篇重印。</dd>
+        <dt class="steal">值得偷師</dt><dd class="steal">「讀者測試」用另一個乾淨 instance 檢查作者看不見的假設與歧義；從最不確定的章節先寫。</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- sources -->
+  <section id="sources">
+    <h2><span class="num">↗</span> 相關與來源</h2>
+    <div class="callout tip"><strong>與本站的關係：</strong>JustKM 本站用到的 <code>docx</code> / <code>pdf</code> / <code>pptx</code> / <code>xlsx</code> 就是<strong>這一脈</strong>的 document skills——同一套「把檔案當可程式化物件、選對函式庫、交付前驗證」的做法。想懂它們的骨架與哲學，這頁是第一站。</div>
+    <div class="related">
+      <a href="./skill-repos.html">
+        <div class="rel-title">📦 Skill 資源庫巡覽</div>
+        <div class="rel-sub">10 個值得追的 skill repo（含本 repo 概覽）</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">什麼是 Skill、6 維分析框架</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">🗂️ JustKM 首頁</div>
+        <div class="rel-sub">回到知識庫入口</div>
+      </a>
+      <a href="https://github.com/anthropics/skills" target="_blank" rel="noopener">
+        <div class="rel-title">↗ anthropics/skills</div>
+        <div class="rel-sub">官方 repo（實際內容以此為準）</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁內容整理自各 skill 的 <code>SKILL.md</code>、<code>template/</code>、<code>spec/</code> 與 repo README（撰寫時，main 分支）。<code>spec</code> 詳細欄位規則的原始頁面於撰寫時無法取得，相關細節以官方 repo 為準。skill 清單、授權與安裝方式會更新，實際以 GitHub 最新內容為準；star 數等熱度數據刻意未列。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · Skills 分析專區 · <a href="./index.html">← 回到專區</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
