@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>如何有效使用 Skill 清單與市集 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h3 .repo { font-family: 'SF Mono', Menlo, monospace; font-size: 0.9rem; }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .meta-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+    .tag { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; border: 1px solid var(--hairline); background: var(--surface); color: var(--slate); }
+    .tag.type { background: var(--tint-lavender); color: var(--primary-deep); border-color: transparent; }
+    .tag.link a { color: var(--link); text-decoration: none; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.danger { border-left-color: var(--error); background: var(--tint-rose); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 Skills 分析專區</a>
+
+  <div class="hero">
+    <h1>🧭 如何有效使用 Skill 清單與市集</h1>
+    <p class="sub">當一份清單有上千條 skill——不是逐條讀，而是「搜尋 → 評估 → 安全採用」。三個索引 × 一套採用流程</p>
+    <div>
+      <span class="badge blue">github/awesome-copilot</span>
+      <span class="badge green">VoltAgent</span>
+      <span class="badge orange">skillmatic-ai</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#why">① 為什麼清單要「用」不是「讀」</a>
+      <a href="#copilot">② github/awesome-copilot</a>
+      <a href="#voltagent">③ VoltAgent/awesome-agent-skills</a>
+      <a href="#skillmatic">④ skillmatic-ai/awesome-agent-skills</a>
+      <a href="#evaluate">⑤ 採用一個 skill 的 5 步</a>
+      <a href="#install">⑥ 安裝速查與安全</a>
+    </div>
+  </nav>
+
+  <!-- ① -->
+  <section id="why">
+    <h2><span class="num">①</span> 為什麼清單要「用」不是「讀」</h2>
+    <p>這三個 repo 跟前面的技能包不同——它們是<strong>索引與市集</strong>，動輒收錄上千條 skill。逐條讀不但讀不完，也沒必要。正確用法是把它當<strong>搜尋工具</strong>：</p>
+    <ol>
+      <li><strong>從任務出發</strong>：先有「我現在要做 X」，再去清單裡搜 X 相關的 skill。</li>
+      <li><strong>用分類縮小範圍</strong>：先鎖定類別（測試、雲、前端…），再看該類的少數幾個。</li>
+      <li><strong>評估再採用</strong>：找到候選後，用第 ⑤ 節的 5 步驗證，別看到就裝。</li>
+    </ol>
+    <div class="callout tip"><strong>心法：</strong>清單的價值不在「有多少」，而在「<strong>你要的時候找得到、且能判斷該不該用</strong>」。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="copilot">
+    <h2><span class="num">②</span> github/awesome-copilot</h2>
+    <div class="meta-row"><span class="tag type">官方 · GitHub 社群市集</span><span class="tag link"><a href="https://github.com/github/awesome-copilot" target="_blank" rel="noopener">GitHub ↗</a></span></div>
+    <p><strong>是什麼：</strong>GitHub 官方維護的 Copilot 客製化<strong>市集</strong>，不只 skills，還有 agents、instructions、plugins、cookbook。</p>
+    <h4>怎麼用</h4>
+    <ul>
+      <li><strong>先看 Learning Hub</strong>：它有 agents / skills / instructions / hooks / MCP 的入門導覽，先搞懂五種資源差異。</li>
+      <li><strong>找 plugin 一次裝一組</strong>：plugin 是「針對某工作流打包好的 agents + skills」，比單裝 skill 更省事。</li>
+      <li><strong>用 <code>llms.txt</code></strong>：repo 提供機器可讀的結構化清單，適合讓 agent 自己去解析、挑選。</li>
+      <li><strong>安裝</strong>：<code>copilot plugin install &lt;name&gt;@awesome-copilot</code>（marketplace 多半已預先註冊）。</li>
+    </ul>
+    <div class="callout danger"><strong>務必：</strong>官方明講內容來自第三方開發者，<strong>安裝前先檢視 agent 與其文件</strong>。</div>
+  </section>
+
+  <!-- ③ -->
+  <section id="voltagent">
+    <h2><span class="num">③</span> VoltAgent/awesome-agent-skills</h2>
+    <div class="meta-row"><span class="tag type">社群 · skill 大目錄</span><span class="tag link"><a href="https://github.com/VoltAgent/awesome-agent-skills" target="_blank" rel="noopener">GitHub ↗</a></span></div>
+    <p><strong>是什麼：</strong>收錄 <strong>1,497+ 個 agent skill</strong> 的大目錄，主打「<strong>真實工程團隊在用的</strong>，不是大量 AI 生成湊數」。當你「想找有沒有現成的 skill」時來這裡搜。</p>
+    <h4>怎麼用</h4>
+    <ul>
+      <li><strong>先鎖類別</strong>：測試自動化（Playwright/Cypress/Selenium/Jest…）、雲平台（Azure/Cloudflare/Netlify/Vercel）、AI/ML（Hugging Face/Replicate/fal.ai/Gemini）、前端（Next.js/React Native/Angular/WordPress）、安全（Trail of Bits）、行銷（Corey Haines）。</li>
+      <li><strong>優先看官方出品的條目</strong>：貢獻者含 Anthropic、Google、Vercel、Stripe、Microsoft——這些通常最可靠。</li>
+      <li><strong>把它當「還有沒有更好的」的對照</strong>：手上已有某 skill，來這裡看同類有沒有更成熟的選擇。</li>
+    </ul>
+    <div class="callout"><strong>定位：</strong>這是三者中<strong>「skill 本身」最全的目錄</strong>——要找可直接用的技能，先來這。</div>
+  </section>
+
+  <!-- ④ -->
+  <section id="skillmatic">
+    <h2><span class="num">④</span> skillmatic-ai/awesome-agent-skills</h2>
+    <div class="meta-row"><span class="tag type">社群 · 學習與生態索引</span><span class="tag link"><a href="https://github.com/skillmatic-ai/awesome-agent-skills" target="_blank" rel="noopener">GitHub ↗</a></span></div>
+    <p><strong>是什麼：</strong>偏「<strong>學習地圖與生態索引</strong>」的清單，不只列 skill，還列教材、平台、市集與研究。當你想「<strong>搞懂 Skill 生態、找教材或別的市集</strong>」時來這裡。</p>
+    <h4>四大區塊怎麼用</h4>
+    <table>
+      <thead><tr><th>區塊</th><th>你什麼時候看</th></tr></thead>
+      <tbody>
+        <tr><td><strong>基礎概念</strong>(文章/影片/課程)</td><td>剛入門、想建立 Skill 心智模型</td></tr>
+        <tr><td><strong>現有技能使用</strong>(平台/技能庫/市集目錄)</td><td>想找更多市集：SkillsMP、agentskill.sh、Skillstore</td></tr>
+        <tr><td><strong>構建與整合</strong>(指南/工具/框架)</td><td>要自己做或整合 skill 時</td></tr>
+        <tr><td><strong>基準與研究</strong>(評估框架/論文)</td><td>想量化 skill 好壞、追前沿</td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><strong>定位：</strong>三者中最偏<strong>「元資訊」</strong>——不是找某個 skill，而是了解整個生態與找到其他入口。授權 CC0（公有領域）。</div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="evaluate">
+    <h2><span class="num">⑤</span> 從清單採用一個 skill 的 5 步</h2>
+    <p>在清單裡找到候選後，套用 Skills 專區的 6 維框架，濃縮成可執行的 5 步：</p>
+    <ol>
+      <li><strong>看觸發</strong>：讀它的 <code>description</code>——是否精準對應你的任務？會不會誤觸其他情境？</li>
+      <li><strong>讀原始碼</strong>：打開 <code>SKILL.md</code> 與它<strong>附帶的腳本</strong>，確認做法合理、沒有非預期或危險動作。</li>
+      <li><strong>看維護</strong>：最近有更新嗎？issue/PR 有人理嗎？官方或知名團隊出品優先。</li>
+      <li><strong>小範圍試</strong>：先在一個非關鍵專案或分支試跑，看輸出是否如預期、會不會與現有 skill 打架。</li>
+      <li><strong>再納入</strong>：確認 OK 才正式裝進日常工作流，並記錄「它負責什麼、什麼時候用」。</li>
+    </ol>
+    <div class="callout info">想更完整的判準，見 <a href="./index.html">Skills 分析專區</a> 的「分析任何 Skill 的 6 維度」與「好 Skill vs 反模式」。</div>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="install">
+    <h2><span class="num">⑥</span> 安裝速查與安全</h2>
+    <pre><code><span class="cm"># 通用 CLI（跨多種 agent）</span>
+npx skills add &lt;owner&gt;/&lt;repo&gt;
+
+<span class="cm"># Claude Code 市集</span>
+/plugin marketplace add &lt;owner&gt;/&lt;repo&gt;
+/plugin install &lt;plugin-name&gt;
+
+<span class="cm"># GitHub Copilot</span>
+copilot plugin install &lt;name&gt;@awesome-copilot</code></pre>
+    <div class="callout danger"><strong>安全鐵則：</strong>Skill 會被 agent 當<strong>指令執行</strong>，等於把一段別人寫的自動化放進你的環境。<strong>安裝任何第三方 skill 前，先讀過 <code>SKILL.md</code> 與其腳本</strong>，確認沒有讀取機密、外連上傳、刪改檔案等非預期動作。來源不明、無維護、description 含糊的，寧可不裝。</div>
+  </section>
+
+  <!-- sources -->
+  <section id="sources">
+    <h2><span class="num">↗</span> 相關與來源</h2>
+    <div class="related">
+      <a href="./skill-repos.html">
+        <div class="rel-title">📦 Skill 資源庫巡覽（10 repo）</div>
+        <div class="rel-sub">官方 × 精選技能包 × Awesome 清單</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">6 維分析框架、好 Skill vs 反模式</div>
+      </a>
+      <a href="../learn/herdr.html">
+        <div class="rel-title">🐑 Herdr：agent 終端 runtime</div>
+        <div class="rel-sub">跑這些 skill 的執行環境</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">🗂️ JustKM 首頁</div>
+        <div class="rel-sub">回到知識庫入口</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁整理自各 repo 公開資料(撰寫時)。清單內容與市集連結會更新，實際以各 GitHub repo 最新內容為準；未列 star 數。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · Skills 分析專區 · <a href="./index.html">← 回到專區</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
