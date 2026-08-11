@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>蝦皮租約 · 一頁決策摘要 · JustKM</title>
+  <style>
+    :root{
+      --ink:#1a1a1a; --charcoal:#37352f; --slate:#5d5b54; --steel:#787671; --stone:#a4a097;
+      --line:#e5e3df; --canvas:#ffffff; --page:#fafaf9; --surface:#f6f5f4;
+      --primary:#5645d4; --primary-deep:#3a2a99; --navy:#0a1530; --navy-2:#1a2a52; --link:#0075de;
+      --orange:#dd5b00; --green:#1aae39; --error:#e03131;
+      --t-lav:#e6e0f5; --t-mint:#d9f3e1; --t-peach:#ffe8d4; --t-rose:#fde0ec; --t-sky:#dcecfa; --t-yellow:#fef7d6;
+      --font-scale:1;
+    }
+    html{font-size:calc(16px * var(--font-scale));}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:"Inter",-apple-system,"PingFang TC","Microsoft JhengHei","Segoe UI",sans-serif;background:var(--page);color:var(--charcoal);line-height:1.6;padding:26px 18px 60px;-webkit-font-smoothing:antialiased;}
+    .wrap{max-width:1000px;margin:0 auto;}
+    .topnav{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+    .topnav a{color:var(--primary);text-decoration:none;font-size:.82rem;padding:6px 13px;border:1px solid var(--line);border-radius:8px;background:var(--canvas);}
+    .topnav a:hover{border-color:var(--primary);}
+    .topnav button{margin-left:auto;font:inherit;font-size:.82rem;padding:6px 13px;border:1px solid var(--line);border-radius:8px;background:var(--canvas);color:var(--charcoal);cursor:pointer;}
+
+    .hd{background:var(--navy);border-radius:16px;padding:24px 26px;color:#fff;position:relative;overflow:hidden;margin-bottom:16px;}
+    .hd::after{content:"§";position:absolute;right:22px;bottom:-46px;font:700 150px Georgia,serif;color:rgba(255,255,255,.06);}
+    .hd .eb{font-size:.72rem;font-weight:800;letter-spacing:.14em;color:#d6b6f6;text-transform:uppercase;}
+    .hd h1{font-size:1.5rem;font-weight:800;margin:6px 0 6px;letter-spacing:-.3px;}
+    .hd p{font-size:.86rem;color:#c3ccdd;max-width:760px;}
+    .hd .meta{margin-top:12px;display:flex;gap:7px;flex-wrap:wrap;}
+    .hd .chip{font-size:.7rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:3px 10px;color:#e7ebf3;}
+
+    .verdict{border:1px solid var(--line);border-left:5px solid var(--error);background:var(--t-rose);border-radius:0 12px 12px 0;padding:14px 18px;margin-bottom:16px;font-size:.92rem;}
+    .verdict strong{color:var(--ink);}
+
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .card{background:var(--canvas);border:1px solid var(--line);border-radius:13px;padding:16px 18px;}
+    .card.full{grid-column:1 / -1;}
+    .card h2{font-size:.96rem;font-weight:800;color:var(--ink);margin-bottom:9px;display:flex;align-items:center;gap:7px;}
+    .card h2 .n{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:var(--primary);color:#fff;font-size:.72rem;font-weight:800;}
+    ul{list-style:none;}
+    li{font-size:.83rem;color:var(--charcoal);margin:6px 0;padding-left:16px;position:relative;}
+    li::before{content:"";position:absolute;left:2px;top:9px;width:5px;height:5px;border-radius:50%;background:var(--primary);}
+    li.red::before{background:var(--error);} li.green::before{background:var(--green);} li.amber::before{background:var(--orange);}
+    strong{color:var(--ink);}
+    .tag{display:inline-block;font-size:.66rem;font-weight:800;padding:1px 7px;border-radius:999px;margin-left:4px;vertical-align:middle;}
+    .tag.go{background:var(--t-mint);color:#157a2b;} .tag.solo{background:var(--t-sky);color:#0059b3;} .tag.stop{background:var(--t-rose);color:#b02454;}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;}
+    .lbl{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--steel);margin:2px 0 4px;}
+    .warnbox{border-left:4px solid var(--orange);background:var(--t-peach);border-radius:0 10px 10px 0;padding:10px 13px;font-size:.82rem;margin-top:8px;}
+    .closing{background:var(--t-lav);border:1px solid #d8cff2;border-radius:13px;padding:15px 18px;margin-top:16px;font-size:.9rem;}
+    .closing strong{color:var(--primary-deep);}
+    .foot{text-align:center;color:var(--stone);font-size:.72rem;margin-top:22px;}
+    .foot a{color:var(--primary);text-decoration:none;}
+
+    @media(max-width:720px){ .grid,.two{grid-template-columns:1fr;} }
+    @media print{
+      @page{size:A4;margin:12mm;}
+      body{background:#fff;padding:0;font-size:10pt;}
+      .topnav{display:none;}
+      .hd{color:#000;background:#fff;border:1px solid #999;border-radius:0;}
+      .hd::after,.hd .eb{color:#666;} .hd h1{color:#000;} .hd p{color:#333;} .hd .chip{color:#000;border-color:#999;}
+      .card,.verdict,.closing,.warnbox{break-inside:avoid;box-shadow:none;}
+      a{color:#000;}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topnav">
+    <a href="../index.html">← JustKM</a>
+    <a href="./shopee-lease-review.html">看完整逐條分析 →</a>
+    <button onclick="window.print()">列印／存 PDF</button>
+  </div>
+
+  <div class="hd">
+    <div class="eb">房東視角 · 一頁決策摘要</div>
+    <h1>蝦皮店到店租賃契約 · 該不該簽？怎麼簽？</h1>
+    <p>把整份逐條分析濃縮成一頁：核心判斷、成交前提、地雷、談判底線、單方自保、出售與稅、周邊價值。用來快速拍板。</p>
+    <div class="meta"><span class="chip">台南柳營 · 整棟</span><span class="chip">5 年制式租約</span><span class="chip">分析 2026-08-10</span></div>
+  </div>
+
+  <div class="verdict">
+    <strong>核心判斷：</strong>這<strong>不是</strong>「穩收五年租金」的約，而是「<strong>你綁五年、蝦皮低成本可退</strong>」。但它作為<strong>錨點</strong>能帶動你隔壁那棟與既成商圈。<u>值不值，取決於你能否把下面三顆地雷拆掉</u>——拆得掉，這是划算的商圈財；拆不掉又承受不起最壞情況，就該說不或重新定價。
+  </div>
+
+  <div class="grid">
+
+    <div class="card">
+      <h2><span class="n">1</span> 成交前提（三個必達，否則亮紅燈）</h2>
+      <ul>
+        <li class="green"><strong>第 5(2) 無上限責任封頂</strong> <span class="tag go">必達</span>——不封頂＝你為檢舉/合法性負無限責任。</li>
+        <li class="green"><strong>合法性查清＋營運檢舉裁罰歸蝦皮</strong> <span class="tag go">必達</span>——非商業區做商業使用的曝險由蝦皮扛。</li>
+        <li class="green"><strong>提前退租違約金加碼＋返還免租/裝修攤提</strong> <span class="tag go">必達</span>——否則收益不穩、售價被打折。</li>
+        <li class="red">三項對方一字不改，且你扛不起最壞情況 → <strong>不簽 / 重新定價</strong> <span class="tag stop">紅燈</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">2</span> 三顆地雷（最傷房東）</h2>
+      <ul>
+        <li class="red"><strong>第 5(2)</strong>：保證無第三人主張/檢舉，損失<strong>無上限</strong>。（極高）</li>
+        <li class="red"><strong>第 9</strong>：蝦皮可用<strong>1 個月租金</strong>任意退場。（極高）</li>
+        <li class="red"><strong>第 7</strong>：退租只需「<strong>清空現狀</strong>」，非恢復原狀。（極高）</li>
+        <li class="amber">另注意：5 年不調租、第 14 條管轄指定台北。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">3</span> 談判：必守 vs 可讓</h2>
+      <div class="two">
+        <div>
+          <div class="lbl">必守（5）</div>
+          <ul>
+            <li>5(2) 責任封頂</li>
+            <li>退租違約金加碼</li>
+            <li>退租恢復原狀</li>
+            <li>押金＝點交先決</li>
+            <li>台南管轄＋公證</li>
+          </ul>
+        </div>
+        <div>
+          <div class="lbl">可讓（2）</div>
+          <ul>
+            <li>免租期天數</li>
+            <li>通知/細節文字</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">4</span> 單方自保三件套 <span class="tag solo">不需蝦皮同意</span></h2>
+      <ul>
+        <li class="green">簽前<strong>律師審謄本＋分區/使用執照合法性</strong>。</li>
+        <li class="green"><strong>自行</strong>完整點交（逐層錄影＋照片＋清冊＋日期戳）。</li>
+        <li class="green">自己投<strong>足額建物火險</strong>（再要求蝦皮投保並列你為附加被保險人）。</li>
+      </ul>
+      <div class="warnbox">若蝦皮完全不改約：把風險<strong>定價</strong>進更高租金/押金，或縮短租期；上面三件套照做。</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">5</span> 你的真實目標：出售 + 稅</h2>
+      <ul>
+        <li><strong>帶租約賣給收租投資人</strong>最順；蝦皮品牌＝賣點。</li>
+        <li class="green">先修不利條款＝<strong>直接墊高售價</strong>；備<strong>盡調包＋estoppel 租賃現況確認書</strong>。</li>
+      </ul>
+      <div class="warnbox"><strong>⚠️ 房地合一稅：</strong>持有 <strong>≤2 年賣 = 45%</strong>、2–5 年 35%。「一年後賣」在最高級距——<strong>考慮撐過 2 年</strong>並先找地政士試算實拿。</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">6</span> 周邊 / 隔壁那棟（B）</h2>
+      <ul>
+        <li class="green">用 A（蝦皮錨點）<strong>墊高 B</strong> 與整個商圈——外部性由你自己收割。</li>
+        <li class="amber">同一個「非商業區卻超旺」＝<strong>金礦也是 5(2) 地雷</strong>；先查 A、B 合法性。</li>
+        <li>趁<strong>蝦皮在約、商圈熱</strong>的窗口，讓 B 兌現溢價（重新招租或出售）。</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="closing">
+    <strong>一句話決策：</strong>先用<strong>協商</strong>拆三顆地雷（5(2) 封頂／退場加碼／恢復原狀）→ 拆不動就<strong>重新定價</strong>補償或說不 → 無論如何做滿<strong>單方自保三件套</strong>；把它當「錨點資產」趁窗口讓<strong>隔壁那棟兌現溢價</strong>；若鎖定脫手，<strong>先算房地合一稅、優先撐過 2 年</strong>。
+    <div style="color:var(--steel);font-size:.78rem;margin-top:8px;">本頁為實務情境與策略摘要，非稅務或法律意見；分區與使用執照請向地政／建管確認，契約與稅務請由專業人士把關。完整逐條分析見「看完整逐條分析」。</div>
+  </div>
+
+  <div class="foot">JustKM · 蝦皮租約一頁決策摘要 · <a href="./shopee-lease-review.html">完整版</a> · <a href="../index.html">回首頁</a></div>
+
+</div>
+</body>
+</html>
