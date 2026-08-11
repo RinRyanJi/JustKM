@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Skill 資源庫巡覽：10 個值得追的 repo · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h3 .repo { font-family: 'SF Mono', Menlo, monospace; font-size: 0.9rem; }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .meta-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+    .tag { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; border: 1px solid var(--hairline); background: var(--surface); color: var(--slate); }
+    .tag.lic { background: var(--tint-mint); color: #157a2b; border-color: transparent; }
+    .tag.type { background: var(--tint-lavender); color: var(--primary-deep); border-color: transparent; }
+    .tag.link a { color: var(--link); text-decoration: none; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.danger { border-left-color: var(--error); background: var(--tint-rose); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 Skills 分析專區</a>
+
+  <div class="hero">
+    <h1>📦 Skill 資源庫巡覽：10 個值得追的 repo</h1>
+    <p class="sub">官方廠商 × 個人精選技能包 × Awesome 清單 · 每個 repo 的 skills 一次看懂</p>
+    <div>
+      <span class="badge green">官方 4 家</span>
+      <span class="badge blue">精選技能包 4 個</span>
+      <span class="badge orange">Awesome 清單 2 份</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#how">① 怎麼看這 10 個 repo</a>
+      <a href="#anthropic">② anthropics/skills</a>
+      <a href="#google">③ google/skills</a>
+      <a href="#dotnet">④ dotnet/skills</a>
+      <a href="#copilot">⑤ github/awesome-copilot</a>
+      <a href="#addy">⑥ addyosmani/agent-skills</a>
+      <a href="#superpowers">⑦ obra/superpowers</a>
+      <a href="#matt">⑧ mattpocock/skills</a>
+      <a href="#commandcode">⑨ CommandCodeAI/agent-skills</a>
+      <a href="#awesome">⑩ 兩份 Awesome 清單</a>
+      <a href="#install">⑪ 怎麼安裝與選用</a>
+    </div>
+  </nav>
+
+  <!-- ① -->
+  <section id="how">
+    <h2><span class="num">①</span> 怎麼看這 10 個 repo</h2>
+    <p>這 10 個 repo 可分成三種角色，需求不同就看不同類：</p>
+    <table>
+      <thead><tr><th>類型</th><th>repo</th><th>你什麼時候看它</th></tr></thead>
+      <tbody>
+        <tr><td><strong>官方廠商出品</strong></td><td>anthropics · google · dotnet · github/awesome-copilot</td><td>要那家<strong>平台/語言</strong>的權威做法時</td></tr>
+        <tr><td><strong>個人/團隊精選技能包</strong></td><td>addyosmani · obra/superpowers · mattpocock · CommandCodeAI</td><td>要一整套<strong>可直接裝來用的工程工作流</strong>時</td></tr>
+        <tr><td><strong>Awesome 精選清單</strong></td><td>VoltAgent · skillmatic-ai</td><td>要<strong>找還有哪些 skill / 資源</strong>的索引時</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn"><strong>關於數字：</strong>各 repo 的 star 數在自動摘要中常失真，本頁<strong>刻意不列 star 數</strong>；熱度請以 GitHub 現況為準。安裝第三方 skill 前，<strong>務必先看過內容再裝</strong>。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="anthropic">
+    <h2><span class="num">②</span> anthropics/skills</h2>
+    <div class="meta-row"><span class="tag type">官方 · Anthropic</span><span class="tag lic">Apache 2.0（文件類為 source-available）</span><span class="tag link"><a href="https://github.com/anthropics/skills" target="_blank" rel="noopener">GitHub ↗</a></span></div>
+    <p><strong>定位：</strong>Anthropic 官方的 Agent Skills 示範庫——教你怎麼替 Claude 建立與使用 Skill，也是 <code>agentskills.io</code> 開放標準的參考實作。附 <code>spec/</code> 規範與 <code>template/</code> 範本。</p>
+    <h4>收錄的 skills</h4>
+    <ul>
+      <li><strong>📄 Document Skills</strong>：<code>docx</code>、<code>pdf</code>、<code>pptx</code>、<code>xlsx</code>（source-available，作參考）</li>
+      <li><strong>🎯 Example Skills</strong>：創意與設計、開發與技術、企業與溝通三大類示範</li>
+    </ul>
+    <p><strong>怎麼用：</strong><code>/plugin marketplace add anthropics/skills</code> → 安裝 <code>document-skills</code> / <code>example-skills</code>；也可在 Claude.ai 上傳自訂 Skill、或走 Skills API。</p>
+    <div class="callout info">這是「想懂 Skill 到底長怎樣」的<strong>第一站</strong>——JustKM 本站用到的 <code>docx/pdf/pptx/xlsx</code> 就是這一脈。</div>
+  </section>
+
+  <!-- ③ -->
+  <section id="google">
+    <h2><span class="num">③</span> google/skills</h2>
+    <div class="meta-row"><span class="tag type">官方 · Google</span><span class="tag lic">Apache 2.0</span><span class="tag link"><a href="https://github.com/google/skills" target="_blank" rel="noopener">GitHub ↗</a></span></div>
+    <p><strong>定位：</strong>Google 官方、聚焦 <strong>Google Cloud 與 Google 產品</strong>的 skill 集合（開發中）。幾乎是把「怎麼正確操作 GCP」做成一條條可觸發的工作流。</p>
+    <h4>主要分類</h4>
+    <ul>
+      <li><strong>基礎設施（最大宗）</strong>：GKE 叢集建立/升級/工作負載、儲存、網路、安全、自動擴展、TPU 監控、Cloud Storage、負載平衡</li>
+      <li><strong>AI/ML</strong>：Agent Platform（部署/微調/RAG 引擎/提示管理）、Gemini API、BigQuery AI/ML、模型註冊與評估</li>
+      <li><strong>資料庫</strong>：AlloyDB、BigQuery、Bigtable、Cloud SQL、Spanner、資料譜系</li>
+      <li><strong>管理/治理</strong>：Cloud Monitoring/Logging、成本分析、SLO 告警、Well-Architected（成本/營運/效能/可靠/安全/永續）</li>
+      <li><strong>其他</strong>：gcloud CLI、Cloud Run / Firebase、Google Ads、Google Analytics</li>
+    </ul>
+    <p><strong>怎麼用：</strong><code>npx skills add google/skills</code>，或透過 Claude/Codex 的 plugin marketplace。</p>
+  </section>
+
+  <!-- ④ -->
+  <section id="dotnet">
+    <h2><span class="num">④</span> dotnet/skills</h2>
+    <div class="meta-row"><span class="tag type">官方 · Microsoft .NET</span><span class="tag lic">MIT</span><span class="tag link"><a href="https://github.com/dotnet/skills" target="_blank" rel="noopener">GitHub ↗</a></span></div>
+    <p><strong>定位：</strong>.NET 團隊官方，讓 coding agent「<strong>會寫 C# / .NET</strong>」的技能組，遵循 <code>agentskills.io</code> 標準。</p>
+    <h4>收錄的 skills</h4>
+    <table>
+      <thead><tr><th>Skill</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td><code>dotnet</code> / <code>dotnet-advanced</code></td><td>C# 語言伺服器整合、高階與特殊場景任務</td></tr>
+        <tr><td><code>dotnet-data</code></td><td>Entity Framework 與資料存取</td></tr>
+        <tr><td><code>dotnet-diag</code></td><td>效能調查、除錯、事件分析</td></tr>
+        <tr><td><code>dotnet-msbuild</code> / <code>dotnet-nuget</code></td><td>建置診斷最佳化、套件與依賴管理</td></tr>
+        <tr><td><code>dotnet-upgrade</code></td><td>框架版本與相容性升級</td></tr>
+        <tr><td><code>dotnet-aspnetcore</code> / <code>dotnet-blazor</code> / <code>dotnet-maui</code></td><td>Web API、Blazor 元件、MAUI 跨平台</td></tr>
+        <tr><td><code>dotnet-ai</code></td><td>LLM 整合、RAG、ML.NET</td></tr>
+        <tr><td><code>dotnet-test</code></td><td>測試執行與涵蓋率分析</td></tr>
+      </tbody>
+    </table>
+    <p><strong>適用：</strong>Copilot CLI、Claude Code、VS Code（預覽）、Cursor、Codex CLI。</p>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="copilot">
+    <h2><span class="num">⑤</span> github/awesome-copilot</h2>
+    <div class="meta-row"><span class="tag type">官方 · GitHub 社群</span><span class="tag lic">MIT（內容來自第三方）</span><span class="tag link"><a href="https://github.com/github/awesome-copilot" target="_blank" rel="noopener">GitHub ↗</a></span></div>
+    <p><strong>定位：</strong>GitHub 官方維護的 Copilot 客製化<strong>市集</strong>——不只 skills，而是一整套增強 Copilot 的資源。</p>
+    <h4>收錄的內容類型</h4>
+    <table>
+      <thead><tr><th>類型</th><th>是什麼</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Agents</strong></td><td>整合 MCP server 的專用 Copilot 代理</td></tr>
+        <tr><td><strong>Instructions</strong></td><td>依檔案模式自動套用的編碼規範</td></tr>
+        <tr><td><strong>Skills</strong></td><td>自帶指令與資源的技能資料夾</td></tr>
+        <tr><td><strong>Plugins</strong></td><td>針對特定工作流打包的 agents + skills</td></tr>
+        <tr><td><strong>Cookbook</strong></td><td>操作 Copilot API 的即用食譜</td></tr>
+      </tbody>
+    </table>
+    <p><strong>怎麼用：</strong><code>copilot plugin install &lt;name&gt;@awesome-copilot</code>（marketplace 多半已預先註冊）。</p>
+    <div class="callout danger"><strong>注意：</strong>官方明講內容來自第三方開發者，<strong>安裝前請先檢視 agent 與其文件</strong>。</div>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="addy">
+    <h2><span class="num">⑥</span> addyosmani/agent-skills</h2>
+    <div class="meta-row"><span class="tag type">精選技能包 · Addy Osmani 等</span><span class="tag lic">MIT</span><span class="tag link"><a href="https://github.com/addyosmani/agent-skills" target="_blank" rel="noopener">GitHub ↗</a></span></div>
+    <p><strong>定位：</strong>把「資深工程師的工作流、品質關卡、最佳實踐」編成 <strong>24 個生產級技能</strong>，涵蓋完整開發生命週期六階段。支援 70+ 種 agent。</p>
+    <h4>六階段技能</h4>
+    <ul>
+      <li><strong>Define</strong>：<code>interview-me</code>（需求訪談到 95% 信心）、<code>idea-refine</code>、<code>spec-driven-development</code></li>
+      <li><strong>Plan</strong>：<code>planning-and-task-breakdown</code>（拆成可驗證小任務）</li>
+      <li><strong>Build</strong>：<code>incremental-implementation</code>、<code>test-driven-development</code>、<code>context-engineering</code>、<code>source-driven-development</code>、<code>doubt-driven-development</code>、<code>frontend-ui-engineering</code>、<code>api-and-interface-design</code></li>
+      <li><strong>Verify</strong>：<code>browser-testing-with-devtools</code>、<code>debugging-and-error-recovery</code></li>
+      <li><strong>Review</strong>：<code>code-review-and-quality</code>、<code>code-simplification</code>、<code>security-and-hardening</code>、<code>performance-optimization</code></li>
+      <li><strong>Ship</strong>：<code>git-workflow-and-versioning</code>、<code>ci-cd-and-automation</code>、<code>deprecation-and-migration</code>、<code>documentation-and-adrs</code>、<code>observability-and-instrumentation</code>、<code>shipping-and-launch</code></li>
+      <li><strong>Meta</strong>：<code>using-agent-skills</code>（把任務對應到正確技能）</li>
+    </ul>
+    <p><strong>怎麼用：</strong><code>npx skills add addyosmani/agent-skills</code>（Claude Code 可市集安裝；Cursor/Copilot/Gemini CLI 等各有設定法）。</p>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="superpowers">
+    <h2><span class="num">⑦</span> obra/superpowers</h2>
+    <div class="meta-row"><span class="tag type">精選技能包 · Jesse Vincent</span><span class="tag lic">MIT</span><span class="tag link"><a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">GitHub ↗</a></span></div>
+    <p><strong>定位：</strong>一套「可組合技能 + 軟體開發方法論」的框架，強調紀律化流程（先計畫、先驗證、再收尾）。</p>
+    <h4>代表技能</h4>
+    <ul>
+      <li><strong>測試/除錯</strong>：<code>test-driven-development</code>、<code>systematic-debugging</code>（四階段根因分析）、<code>verification-before-completion</code></li>
+      <li><strong>協作/流程</strong>：<code>brainstorming</code>（蘇格拉底式）、<code>writing-plans</code>、<code>executing-plans</code>、<code>dispatching-parallel-agents</code>、<code>requesting-code-review</code>、<code>receiving-code-review</code>、<code>using-git-worktrees</code>、<code>finishing-a-development-branch</code>、<code>subagent-driven-development</code></li>
+      <li><strong>元層</strong>：<code>writing-skills</code>、<code>using-superpowers</code></li>
+    </ul>
+    <p><strong>適用：</strong>Claude Code、Codex、Cursor、Gemini CLI、Copilot CLI、OpenCode、Pi 等。</p>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="matt">
+    <h2><span class="num">⑧</span> mattpocock/skills</h2>
+    <div class="meta-row"><span class="tag type">精選技能包 · Matt Pocock</span><span class="tag lic">MIT</span><span class="tag link"><a href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">GitHub ↗</a></span></div>
+    <p><strong>定位：</strong>「給真工程師的 skills，不是做秀」。針對 AI agent 四大失敗模式（對齊、冗長、品質、架構退化）給對應解法。</p>
+    <h4>Engineering</h4>
+    <ul>
+      <li><strong>使用者觸發</strong>：<code>grill-with-docs</code>（需求澄清＋建領域模型）、<code>to-spec</code>、<code>implement</code>、<code>improve-codebase-architecture</code>、<code>triage</code>、<code>to-tickets</code>、<code>wayfinder</code></li>
+      <li><strong>模型觸發</strong>：<code>tdd</code>、<code>diagnosing-bugs</code>、<code>code-review</code>、<code>domain-modeling</code>、<code>research</code>、<code>prototype</code></li>
+    </ul>
+    <h4>Productivity</h4>
+    <ul>
+      <li><code>grill-me</code>、<code>handoff</code>、<code>teach</code>、<code>to-questionnaire</code>、<code>wait-what</code>、<code>grilling</code>、<code>writing-for-agents</code></li>
+    </ul>
+    <p><strong>怎麼用：</strong><code>claude plugins install mattpocock-skills</code> 或 <code>npx skills add mattpocock/skills</code>，再跑 <code>/setup-matt-pocock-skills</code> 設定 issue tracker。</p>
+    <div class="callout tip">本站 learn 區已有 Matt Pocock 工作流的深入拆解，可搭配看 →（見頁尾相關連結）。</div>
+  </section>
+
+  <!-- ⑨ -->
+  <section id="commandcode">
+    <h2><span class="num">⑨</span> CommandCodeAI/agent-skills</h2>
+    <div class="meta-row"><span class="tag type">精選技能包 · CommandCodeAI</span><span class="tag lic">MIT</span><span class="tag link"><a href="https://github.com/CommandCodeAI/agent-skills" target="_blank" rel="noopener">GitHub ↗</a></span></div>
+    <p><strong>定位：</strong>40+ 個實用技能，橫跨九大類，範圍比純工程更廣（含設計、商務、內容）。為 Command Code 平台打造，但模組結構通用。</p>
+    <h4>九大分類（代表項目）</h4>
+    <ul>
+      <li><strong>軟體開發</strong>：<code>artifacts-builder</code>、<code>MCP Builder</code>、<code>Playwright</code>、<code>Code Review</code>、<code>Skill Creator</code>、<code>Git Worktrees</code>、<code>Writing Plans/Skills</code></li>
+      <li><strong>雲/AWS</strong>：AWS Agentic AI、CDK、Cost Ops、Serverless EDA</li>
+      <li><strong>Cloudflare</strong>：在 Cloudflare 上蓋 MCP Server / AI Agent</li>
+      <li><strong>內容/溝通</strong>：Content Research Writer、Internal Comms、Meeting Insights、NotebookLM</li>
+      <li><strong>視覺/媒體</strong>：Canvas Design、Image Enhancer、Theme Factory、YouTube Transcript</li>
+      <li><strong>商務營運</strong>：Brand Guidelines、Competitive Ads Extractor、Lead Research</li>
+      <li><strong>文件管理</strong>：<code>docx</code> / <code>pdf</code> / <code>pptx</code> / <code>xlsx</code></li>
+      <li><strong>資料/自動化</strong>：Developer Growth Analysis、File/Invoice Organizer</li>
+    </ul>
+  </section>
+
+  <!-- ⑩ -->
+  <section id="awesome">
+    <h2><span class="num">⑩</span> 兩份 Awesome 精選清單</h2>
+
+    <h3><span class="repo">VoltAgent/awesome-agent-skills</span></h3>
+    <div class="meta-row"><span class="tag type">Awesome 清單 · 社群</span><span class="tag link"><a href="https://github.com/VoltAgent/awesome-agent-skills" target="_blank" rel="noopener">GitHub ↗</a></span></div>
+    <p>收錄 <strong>1,497+ 個 agent skill</strong>，主打「<strong>真實工程團隊在用的</strong>，不是大量 AI 生成的湊數貨」。分類含：官方 Claude skills、測試自動化（Playwright/Cypress/Selenium/Jest 等 50+）、雲平台（Azure/Cloudflare/Netlify/Vercel）、AI/ML（Hugging Face/Replicate/fal.ai/Gemini）、前端（Next.js/React Native/Angular/WordPress）、安全（Trail of Bits）、行銷（Corey Haines）。貢獻者含 Anthropic、Google、Vercel、Stripe、Microsoft 等。</p>
+
+    <h3><span class="repo">skillmatic-ai/awesome-agent-skills</span></h3>
+    <div class="meta-row"><span class="tag type">Awesome 清單 · 社群</span><span class="tag lic">CC0-1.0</span><span class="tag link"><a href="https://github.com/skillmatic-ai/awesome-agent-skills" target="_blank" rel="noopener">GitHub ↗</a></span></div>
+    <p>比較偏「<strong>學習與生態索引</strong>」的清單，四大區塊：① 基礎概念（文章/影片/課程）、② 現有技能使用（支援平台、技能庫、市集目錄如 SkillsMP/agentskill.sh/Skillstore）、③ 構建與整合（開發指南、工具、框架）、④ 基準與研究（評估框架、論文）。強調 Skill＝模組化 <code>SKILL.md</code>、漸進揭露。</p>
+    <div class="callout"><strong>兩份差異：</strong>VoltAgent 偏「<strong>skill 本身的大目錄</strong>」（找可用的技能）；skillmatic-ai 偏「<strong>學習與資源地圖</strong>」（了解生態、找教材與市集）。</div>
+  </section>
+
+  <!-- ⑪ -->
+  <section id="install">
+    <h2><span class="num">⑪</span> 怎麼安裝與選用</h2>
+    <p>多數 repo 走兩條安裝路徑之一：</p>
+    <pre><code><span class="cm"># 通用 CLI（跨多種 agent）</span>
+npx skills add &lt;owner&gt;/&lt;repo&gt;
+
+<span class="cm"># Claude Code 市集</span>
+/plugin marketplace add &lt;owner&gt;/&lt;repo&gt;
+/plugin install &lt;plugin-name&gt;
+
+<span class="cm"># GitHub Copilot</span>
+copilot plugin install &lt;name&gt;@awesome-copilot</code></pre>
+    <h4>選用建議</h4>
+    <ul>
+      <li><strong>想懂 Skill 原理與範本</strong> → <code>anthropics/skills</code></li>
+      <li><strong>要一整套工程工作流</strong> → <code>addyosmani/agent-skills</code>（生命週期最完整）、<code>obra/superpowers</code>（方法論紀律）、<code>mattpocock/skills</code>（對齊/架構最實戰）</li>
+      <li><strong>綁特定平台</strong> → <code>google/skills</code>（GCP）、<code>dotnet/skills</code>（.NET）、<code>github/awesome-copilot</code>（Copilot）</li>
+      <li><strong>要廣度、找更多</strong> → 兩份 Awesome 清單</li>
+    </ul>
+    <div class="callout danger"><strong>安全提醒：</strong>Skill 會被 agent 當指令執行。<strong>安裝任何第三方 skill 前，先讀過 <code>SKILL.md</code> 與其腳本</strong>，確認沒有非預期的動作或外洩。</div>
+  </section>
+
+  <!-- sources -->
+  <section id="sources">
+    <h2><span class="num">↗</span> 相關與來源</h2>
+    <div class="related">
+      <a href="./index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">什麼是 Skill、6 維分析框架</div>
+      </a>
+      <a href="../learn/matt-pocock-skills.html">
+        <div class="rel-title">🧰 Matt Pocock Skills 拆解</div>
+        <div class="rel-sub">本站對 mattpocock/skills 的深入</div>
+      </a>
+      <a href="../learn/herdr.html">
+        <div class="rel-title">🐑 Herdr：agent 終端 runtime</div>
+        <div class="rel-sub">跑這些 skill 的執行環境</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">🗂️ JustKM 首頁</div>
+        <div class="rel-sub">回到知識庫入口</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁整理自各 repo 的公開 README（撰寫時）。skill 清單、授權與安裝方式會更新，實際以各 GitHub repo 最新內容為準；star 數等熱度數據刻意未列。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · Skills 分析專區 · <a href="./index.html">← 回到專區</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
