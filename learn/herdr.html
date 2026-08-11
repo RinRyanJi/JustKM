@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Herdr：AI coding agent 專用的終端多工器 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.danger { border-left-color: var(--error); background: var(--tint-rose); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .svgwrap { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px; margin: 10px 0 6px; overflow-x: auto; }
+    .svgwrap svg { display: block; width: 100%; height: auto; min-width: 480px; }
+    .svgcap { font-size: 0.72rem; color: var(--stone); text-align: center; margin: 6px 0 14px; }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-family: monospace; font-weight: 700; }
+    .pill-yes { background: var(--tint-mint); color: #157a2b; }
+    .pill-no  { background: var(--tint-rose); color: #b02454; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🐑 Herdr：AI coding agent 「住」的終端 runtime</h1>
+    <p class="sub">官方定位 <code style="color:#ffcf9e;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);padding:1px 5px;border-radius:4px;">the runtime your coding agents live on</code> · tmux 式多工器 + 內建「agent 狀態感知」</p>
+    <div>
+      <span class="badge green">Rust · Ratatui</span>
+      <span class="badge blue">Terminal Multiplexer</span>
+      <span class="badge orange">Agent-aware</span>
+      <span class="badge">Apache 2.0</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#pain">① 它解決什麼痛點</a>
+      <a href="#model">② 心智模型：tmux + 狀態感知</a>
+      <a href="#state">③ 核心：agent 狀態側欄</a>
+      <a href="#install">④ 安裝與快速開始</a>
+      <a href="#api">⑤ CLI 與 Socket API</a>
+      <a href="#agents">⑥ 支援哪些 agent</a>
+      <a href="#remote">⑦ 遠端與持久化</a>
+      <a href="#vs">⑧ vs tmux / Zellij</a>
+      <a href="#who">⑨ 適合誰、什麼場景</a>
+      <a href="#sources">⑩ 延伸與來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>Herdr 是一個「懂 AI agent」的終端多工器</strong>——它沿用 tmux 的 <strong>session / tab / pane（窗格）+ 持久化</strong>模型，但額外知道每個窗格裡跑的是不是 coding agent、現在是<strong>工作中(working)、閒置(idle) 還是卡住等你(blocked)</strong>，並在側欄一眼呈現。你可以在<strong>同一個終端</strong>同時養 Claude Code、Codex、Cursor 等十多個 agent，斷線也不會死。</p>
+    <div class="callout info">
+      <strong>📌 名字由來：</strong>Herd = 放牧、牧群。當你同時「養」一群 AI coding agent，Herdr 就是那個<strong>幫你牧群、盯著誰在忙誰卡住</strong>的牧羊人。單一 <strong>Rust</strong> 二進位檔、<strong>無 Electron</strong>，跑在你現有的終端裡（WezTerm / iTerm2 / Kitty…），不是取代終端。
+    </div>
+  </section>
+
+  <!-- ① -->
+  <section id="pain">
+    <h2><span class="num">①</span> 它解決什麼痛點</h2>
+    <p>當「一次跑多個 AI coding agent」變成日常，傳統 tmux／多開終端就露出三個痛：</p>
+    <ul>
+      <li><strong>不知道誰在等你</strong>：開了五個 agent，哪個跑完了、哪個卡在「要不要繼續 (y/n)」等你回答？得一個一個切過去看。</li>
+      <li><strong>會話容易死</strong>：機器重開、網路斷、終端關掉 → agent 半路陣亡，進度沒了，得從頭再來。</li>
+      <li><strong>agent 之間無法協作</strong>：想讓一個 agent 開新窗格、跑指令、讀另一個窗格的輸出 → 一般終端沒有給程式化的介面。</li>
+    </ul>
+    <p>Herdr 的答案：<strong>把「終端保活」＋「agent 狀態感知」＋「給 agent 用的程式化 API」三件事合在一個工具裡。</strong></p>
+    <div class="callout tip">
+      <strong>一句話差異：</strong>tmux 讓終端<strong>活著</strong>；Herdr 也讓它活著，但<strong>還知道哪個終端是 agent、它現在什麼狀態、以及怎麼「等」它。</strong>
+    </div>
+  </section>
+
+  <!-- ② -->
+  <section id="model">
+    <h2><span class="num">②</span> 心智模型：tmux 骨架 + 狀態感知層</h2>
+    <p>如果你用過 tmux／Zellij，觀念幾乎能直接搬過來：</p>
+    <table>
+      <thead><tr><th>層級</th><th>是什麼</th><th>Herdr 的加值</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Session</strong></td><td>一組工作的容器，斷線後仍存活、可重新接上</td><td>從<strong>任何終端 re-attach</strong>，agent 不中斷</td></tr>
+        <tr><td><strong>Tab / Window</strong></td><td>一個 session 裡的分頁</td><td>—</td></tr>
+        <tr><td><strong>Pane（窗格）</strong></td><td>實際跑指令／agent 的分割區</td><td>Herdr 會<strong>辨識窗格裡的 process 是不是 agent</strong>，並標出狀態</td></tr>
+        <tr><td><strong>側欄 Sidebar</strong></td><td>（tmux 沒有）</td><td>列出所有 agent 與其 <strong>working / idle / blocked</strong> 狀態</td></tr>
+      </tbody>
+    </table>
+    <p>操作是<strong>雙輸入</strong>：鍵盤走 <strong>tmux 風格</strong>的快捷鍵，同時也支援<strong>滑鼠</strong>點選、切換、調整窗格。技術上以 <strong>Rust + Ratatui</strong>（終端 UI 函式庫）打造。</p>
+  </section>
+
+  <!-- ③ -->
+  <section id="state">
+    <h2><span class="num">③</span> 核心賣點：agent 狀態一眼看穿</h2>
+    <p>這是 Herdr 跟一般多工器最大的不同。每個 agent 窗格會被標成三種狀態之一：</p>
+    <table>
+      <thead><tr><th>狀態</th><th>意義</th><th>你該做什麼</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill pill-yes">working</span></td><td>agent 正在跑（思考／改檔／跑測試）</td><td>放著，去看別的</td></tr>
+        <tr><td><span class="pill" style="background:var(--tint-yellow);color:#8a6d00;">blocked</span></td><td><strong>卡住在等你</strong>（要確認、要授權、要輸入）</td><td><strong>優先處理</strong>——這就是瓶頸</td></tr>
+        <tr><td><span class="pill pill-no">idle</span></td><td>做完了或閒置</td><td>驗收成果、派下一個任務</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <strong>為什麼這很關鍵：</strong>同時養多個 agent 時，真正的瓶頸不是「算力」，而是<strong>「你不知道哪個在等你」</strong>。把 blocked 的 agent 標出來，等於把你的注意力<strong>導到唯一需要人介入的地方</strong>——這正是多 agent 工作流能不能規模化的關鍵。
+    </div>
+  </section>
+
+  <!-- ④ -->
+  <section id="install">
+    <h2><span class="num">④</span> 安裝與快速開始</h2>
+    <p>單一二進位檔，安裝很輕：</p>
+    <pre><code><span class="cm"># 官方安裝腳本</span>
+curl -fsSL https://herdr.dev/install.sh | sh
+
+<span class="cm"># 或用 Homebrew</span>
+brew install herdr
+
+<span class="cm"># 啟動（在你現有的終端裡）</span>
+herdr</code></pre>
+    <p>啟動後就進入 Herdr 的 TUI：開分頁、切窗格、在窗格裡跑你的 agent（例如直接 <code>claude</code> 或 <code>codex</code>），側欄就會開始顯示它們的狀態。</p>
+    <div class="callout warn">
+      <strong>提醒：</strong>本頁整理自公開資料，<strong>指令與功能以官方 <a href="https://github.com/herdrdev/herdr" target="_blank" rel="noopener" style="color:var(--orange);">GitHub</a> / herdr.dev 最新說明為準</strong>；專案仍在快速演進，版本間細節可能變動。
+    </div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="api">
+    <h2><span class="num">⑤</span> CLI 與 Socket API：給 agent 用的「手」</h2>
+    <p>Herdr 不只給人操作，也提供<strong>程式化介面</strong>讓 agent 自己驅動終端。這是「agent-native」的核心：</p>
+    <ul>
+      <li><strong>生成窗格</strong>：agent 可以自己開新 pane 去跑子任務（例如另起一個測試 runner）。</li>
+      <li><strong>送指令、讀輸出</strong>：以程式方式在窗格裡執行命令並讀回結果，不必靠人複製貼上。</li>
+      <li><strong>agent 之間通訊</strong>：透過 CLI／Socket API 協調，讓「主 agent 指揮子 agent」這類多 agent 編排成為可能。</li>
+      <li><strong>等待與同步</strong>：因為 Herdr 知道每個窗格的狀態，就能「等某個 agent 做完再繼續」。</li>
+    </ul>
+    <div class="callout info">
+      <strong>觀念連結：</strong>這其實是把「多 agent 編排（orchestration）」下沉到<strong>終端層</strong>——你不需要另建一套排程框架，終端本身就變成 agent 的執行與協調環境。
+    </div>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="agents">
+    <h2><span class="num">⑥</span> 支援哪些 agent</h2>
+    <p>Herdr 對「agent」是<strong>工具中立</strong>的——只要在窗格裡跑，它就試著辨識與追蹤。公開資料提到可搭配的包含：</p>
+    <ul>
+      <li><strong>Claude Code</strong>、<strong>Codex</strong>、<strong>GitHub Copilot CLI</strong>、<strong>Cursor Agent</strong></li>
+      <li><strong>OpenCode</strong>、<strong>Grok</strong>，以及其他共 <strong>15+ 種</strong> agent／CLI 工具</li>
+    </ul>
+    <p>也就是說，你可以在同一個 Herdr session 裡<strong>混用不同家的 agent</strong>，各跑各的任務，用同一個側欄統一盯狀態。</p>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="remote">
+    <h2><span class="num">⑦</span> 遠端與持久化</h2>
+    <table>
+      <thead><tr><th>能力</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><strong>持久化 session</strong></td><td>以背景服務常駐；機器重開／網路斷／終端關掉，agent 工作<strong>不中斷</strong>，可從任何終端重新接上（延續 tmux 的 detach/attach 精神）</td></tr>
+        <tr><td><strong>遠端 <code>--remote</code></strong></td><td>透過 SSH 連遠端主機跑 session，並<strong>把本機設定帶過去（forward local config）</strong>，遠端也有一致的環境</td></tr>
+        <tr><td><strong>外掛系統</strong></td><td>可擴充窗格與工作流，讓團隊把自家流程包成 plugin</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip">
+      <strong>典型用途：</strong>把長時間跑的 agent 丟到<strong>遠端伺服器</strong>的 Herdr session，關掉筆電、回家再從手機終端接上——agent 還在原地跑。
+    </div>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="vs">
+    <h2><span class="num">⑧</span> vs tmux / Zellij：差在哪</h2>
+    <table>
+      <thead><tr><th>面向</th><th>tmux / Zellij</th><th>Herdr</th></tr></thead>
+      <tbody>
+        <tr><td>窗格 / 分頁 / session</td><td><span class="pill pill-yes">有</span></td><td><span class="pill pill-yes">有</span>（沿用同一套模型）</td></tr>
+        <tr><td>斷線保活 detach/attach</td><td><span class="pill pill-yes">有</span></td><td><span class="pill pill-yes">有</span></td></tr>
+        <tr><td>知道窗格裡是不是 agent</td><td><span class="pill pill-no">無</span></td><td><span class="pill pill-yes">有</span></td></tr>
+        <tr><td>agent 狀態側欄 (working/blocked/idle)</td><td><span class="pill pill-no">無</span></td><td><span class="pill pill-yes">有</span></td></tr>
+        <tr><td>給 agent 的程式化 CLI / Socket API</td><td><span class="pill pill-no">弱</span></td><td><span class="pill pill-yes">內建</span></td></tr>
+        <tr><td>滑鼠 + 鍵盤雙輸入</td><td>部分</td><td><span class="pill pill-yes">原生</span></td></tr>
+        <tr><td>技術</td><td>C（tmux）／Rust（Zellij）</td><td>Rust + Ratatui，單一二進位</td></tr>
+      </tbody>
+    </table>
+    <p>簡言之：<strong>Herdr ≈ 「為 AI agent 世代重寫的 tmux」</strong>。骨架你熟悉，差別是它把「agent 現在什麼狀態、怎麼協調」變成一等公民。</p>
+  </section>
+
+  <!-- ⑨ -->
+  <section id="who">
+    <h2><span class="num">⑨</span> 適合誰、什麼場景</h2>
+    <ul>
+      <li><strong>同時跑多個 coding agent 的人</strong>：一眼看出哪個 blocked，把注意力花在刀口上。</li>
+      <li><strong>做多 agent 編排 / 自動化</strong>：需要 agent 能自己開窗格、跑指令、互相協調的程式化介面。</li>
+      <li><strong>遠端 / 長任務工作流</strong>：agent 跑幾小時，要能斷線續跑、換裝置接回。</li>
+      <li><strong>已經是 tmux 重度使用者</strong>：學習成本低，快捷鍵觀念可沿用。</li>
+    </ul>
+    <div class="callout">
+      <strong>什麼時候不必用：</strong>只跑<strong>單一</strong> agent、也不需要遠端保活時，直接在終端跑就好；Herdr 的價值在「<strong>多</strong>、<strong>久</strong>、<strong>要協調</strong>」這三種情境才會放大。
+    </div>
+  </section>
+
+  <!-- ⑩ -->
+  <section id="sources">
+    <h2><span class="num">⑩</span> 延伸與來源</h2>
+    <ul>
+      <li><a href="https://github.com/herdrdev/herdr" target="_blank" rel="noopener">GitHub · herdrdev/herdr</a>（官方 repo，Apache 2.0）</li>
+      <li>官網 <code>herdr.dev</code>（文件、安裝、<code>/compare</code> 對照 tmux/Zellij/cmux/Warp）</li>
+      <li>Better Stack Community：Herdr – Terminal Multiplexer with Built-in AI Agent State Awareness</li>
+      <li>Terminal Trove：herdr – a tmux-like and agent-aware terminal multiplexer</li>
+    </ul>
+    <div class="related">
+      <a href="./git-worktree.html">
+        <div class="rel-title">🌳 Git Worktree 觀念與實務</div>
+        <div class="rel-sub">同時開多個工作目錄——多 agent 平行開發的好搭檔</div>
+      </a>
+      <a href="./ai-context-compression.html">
+        <div class="rel-title">🗜️ AI 上下文壓縮</div>
+        <div class="rel-sub">讓 agent 在有限 context 下跑得更久更穩</div>
+      </a>
+      <a href="./oh-my-pi.html">
+        <div class="rel-title">🥧 oh-my-pi 深入</div>
+        <div class="rel-sub">另一個打磨 AI 執行環境的工具</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">回到 learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁為第三方整理的概念介紹，非官方文件；star 數、版本與功能會變動，實際請以官方 GitHub / herdr.dev 為準。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
