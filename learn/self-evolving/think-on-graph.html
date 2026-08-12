@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>在知識圖上思考（Think-on-Graph, ToG）怎麼實現 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../self-evolving-agents.html">← 回到 自我演化 Agent 綜述導讀</a>
+
+  <div class="hero">
+    <h1>🕸️ 在知識圖上思考（Think-on-Graph, ToG）</h1>
+    <p class="sub">把 LLM 當成 agent，在知識圖譜上一步步走 entity–relation 路徑做 beam search 式探索 · 論文「怎麼實現」逐段拆解</p>
+    <div>
+      <span class="badge blue">結構化推理</span>
+      <span class="badge green">LLM ⊗ KG · 訓練免調</span>
+      <span class="badge orange">Sun et al. 2023 · ICLR 2024</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話</a>
+      <a href="#problem">① 想解決什麼</a>
+      <a href="#idea">② 核心想法</a>
+      <a href="#how">③ 怎麼實現</a>
+      <a href="#details">④ 關鍵細節</a>
+      <a href="#results">⑤ 效果與限制</a>
+      <a href="#map">⑥ 自我演化地圖位置</a>
+      <a href="#sources">⑦ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話</h2>
+    <div class="callout info">
+      <strong>Think-on-Graph（ToG）</strong>把大型語言模型當成一個<strong>會在知識圖譜上走路的 agent</strong>：從問題裡的實體出發，讓 LLM 反覆地「挑一條該走的關係 → 走到下一批實體 → 判斷手上的證據夠不夠回答」，用 <strong>beam search</strong> 同時保留幾條最有希望的推理路徑，直到湊齊足以作答的知識鏈。整個過程<strong>不用微調</strong>，且每一步走過的三元組都<strong>可追溯、可被專家更正</strong>。
+    </div>
+    <p>它屬於「結構化推理」——把 LLM 的思考從一段黑箱文字，展開成一條條顯式、可檢查的圖上路徑。</p>
+  </section>
+
+  <!-- ① -->
+  <section id="problem">
+    <h2><span class="num">①</span> 想解決什麼</h2>
+    <p>純 LLM 在需要<strong>深度、精確、可負責</strong>的推理時有幾個結構性毛病，論文正是衝著這些來的：</p>
+    <ul>
+      <li><strong>幻覺（hallucination）</strong>：模型會自信地編造不存在的事實，尤其在多跳、需要串接冷門知識的問題上。</li>
+      <li><strong>知識過時／私有知識缺席</strong>：參數裡的知識凍結在訓練截止點，也裝不下企業私有或即時更新的事實。</li>
+      <li><strong>不可追溯、不可更正</strong>：答案從權重裡「浮現」，說不清憑什麼，錯了也沒有一個明確的地方去修。</li>
+      <li><strong>推理深度不足</strong>：把知識全丟進 prompt 的做法（見下節）常常「知道片段、串不起長鏈」。</li>
+    </ul>
+    <div class="callout">
+      <strong>切入點：</strong>用外部<strong>知識圖譜（KG）</strong>來補。KG 是結構化、可更新、可回溯的事實網（實體＋關係＋實體）。難點在於——<strong>怎麼讓 LLM 真正「在圖上推理」，而不只是把圖當一次性檢索的背景資料？</strong>
+    </div>
+  </section>
+
+  <!-- ② -->
+  <section id="idea">
+    <h2><span class="num">②</span> 核心想法</h2>
+    <p>論文提出一種新的 LLM–KG 整合範式，作者寫作 <strong>「LLM ⊗ KG」（緊耦合）</strong>，並用它對比先前的做法：</p>
+
+    <h3>兩種耦合：Think-<em>with</em>-Graph vs Think-<em>on</em>-Graph</h3>
+    <table>
+      <thead><tr><th></th><th>先前做法（鬆耦合 · Think-with-Graph）</th><th>ToG（緊耦合 · Think-on-Graph）</th></tr></thead>
+      <tbody>
+        <tr><td><strong>KG 角色</strong></td><td>一次性檢索到的<strong>背景資料</strong>，塞進 prompt 給 LLM 讀</td><td>LLM 反覆<strong>走訪</strong>的推理場地，逐步展開</td></tr>
+        <tr><td><strong>LLM 角色</strong></td><td>被動讀者：讀完手上這批就作答</td><td><strong>主動的 agent</strong>：自己決定下一步往哪走</td></tr>
+        <tr><td><strong>推理形態</strong></td><td>單輪、淺</td><td>多輪迭代、能走多跳深鏈</td></tr>
+        <tr><td><strong>可追溯性</strong></td><td>弱</td><td>強——路徑即證據鏈</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip"><strong>關鍵一句：</strong>ToG 讓 <strong>LLM 當 agent，在 KG 上做 beam search</strong>——同時維持幾條（beam width 條）最有希望的 entity–relation 路徑，一步步向外探，直到某條路徑上的證據足以回答問題。LLM 負責「判斷力」（哪條關係值得走、資訊夠不夠了），KG 負責「事實」。兩者<strong>緊耦合</strong>：LLM 每一步的判斷都直接驅動下一步在圖上的移動。</div>
+  </section>
+
+  <!-- ③ -->
+  <section id="how">
+    <h2><span class="num">③</span> 怎麼實現（迭代主迴圈）</h2>
+    <p>ToG 是一個 <strong>初始化 → (探索 Explore → 推理 Reason) 迴圈</strong> 的過程。設定兩個上限：<strong>beam width W</strong>（同時保留幾條路徑）與<strong>最大深度 D</strong>（最多走幾跳）。論文預設 <code>W = 3</code>、<code>D = 3</code>。</p>
+
+    <h3>Step 0 · 初始化（Initialization）</h3>
+    <p>用 LLM 從問題中<strong>抽出主題實體（topic entities）</strong>，作為 beam search 的起點；每條路徑目前就是一個起始實體。</p>
+
+    <h3>Step 1 · 探索 Explore — 用 LLM 挑要走的 relation / entity</h3>
+    <p>這是 ToG 的心臟。每一跳，對每一條當前路徑的尾端實體，做「先關係、後實體」的兩段擴展＋剪枝：</p>
+    <ol>
+      <li><strong>關係搜尋（Relation Search）</strong>：從 KG 取出該實體所連的所有候選關係（出邊與入邊）。</li>
+      <li><strong>關係剪枝（Relation Prune）</strong>：把候選關係連同問題交給 LLM 打分，<strong>選出最相關的前若干條</strong>——這一步決定「往哪個方向想」。</li>
+      <li><strong>實體搜尋（Entity Search）</strong>：沿被選中的關係走一跳，取出對應的一批尾端實體。</li>
+      <li><strong>實體剪枝（Entity Prune）</strong>：再用 LLM 對這些實體評分，跨所有路徑<strong>只保留全域前 W 條</strong>最有希望的路徑進入下一輪（beam search 的收束）。</li>
+    </ol>
+    <div class="callout"><strong>為什麼要剪枝：</strong>KG 上一個實體可能連著上百個關係、上千個實體，若全展開會爆炸。剪枝＝用 LLM 的語義判斷把搜尋空間壓回 W 條，讓「深」變得可負擔。這也是它像 beam search、而非窮舉 BFS 的原因。</div>
+
+    <h3>Step 2 · 推理 Reason — 判斷資訊是否足夠</h3>
+    <p>每擴展一跳後，把當前保留的<strong>路徑（三元組鏈）</strong>連同問題交給 LLM，問一個判斷題：</p>
+    <ul>
+      <li><strong>夠了 →</strong> 直接根據這些路徑生成最終答案，並附上作為依據的推理路徑（可追溯）。</li>
+      <li><strong>還不夠 →</strong> 回到 Step 1 再走一跳，繼續加深。</li>
+      <li><strong>走到深度上限 D 仍不夠 →</strong> 退回用 LLM 自身知識作答（fallback），避免卡死。</li>
+    </ul>
+
+    <h3>整體虛擬碼</h3>
+    <pre><code><span class="cm"># ToG 主迴圈（示意，以原論文為準）</span>
+paths = LLM_extract_topic_entities(question)   <span class="cm"># Step 0 初始化</span>
+for depth in range(D_max):                     <span class="cm"># 最多走 D 跳</span>
+    <span class="cm"># --- Explore：先關係、後實體，各自剪枝 ---</span>
+    rels   = KG_relation_search(paths)
+    rels   = LLM_relation_prune(question, rels)      <span class="cm"># LLM 挑方向</span>
+    ents   = KG_entity_search(paths, rels)
+    paths  = LLM_entity_prune(question, ents, W)     <span class="cm"># 保留全域前 W 條</span>
+    <span class="cm"># --- Reason：夠了就答，不夠再走 ---</span>
+    if LLM_is_sufficient(question, paths):
+        return LLM_answer(question, paths)           <span class="cm"># 附推理路徑</span>
+return LLM_answer_with_inner_knowledge(question)     <span class="cm"># 超過深度的 fallback</span></code></pre>
+
+    <h3>變體 · ToG-R（relation-based ToG）</h3>
+    <p>論文另給一個更省的版本：<strong>ToG-R 只沿「關係鏈」走</strong>，每輪做關係搜尋、關係剪枝、實體搜尋，但<strong>省去用 LLM 對實體逐一剪枝</strong>，最後才根據所有候選路徑一次推理。好處是<strong>更省 token、更快</strong>，也降低對中間實體標註品質的依賴。</p>
+    <div class="callout tip"><strong>緊耦合的體現：</strong>注意每一步「往哪走（關係剪枝）」「保留誰（實體剪枝）」「停不停（充分性判斷）」全由 LLM 即時決定，而每個決定又立刻改變下一步在 KG 上的位置——LLM 與 KG 在迴圈裡互相驅動，這正是 ToG 稱為「緊耦合」的意思。</div>
+  </section>
+
+  <!-- ④ -->
+  <section id="details">
+    <h2><span class="num">④</span> 關鍵細節</h2>
+
+    <h3>Beam width 與深度</h3>
+    <ul>
+      <li><strong>Beam width W</strong>：同時保留的路徑數，預設 <code>W = 3</code>。W 越大覆蓋越廣、越不易漏掉正確路徑，但每輪要送給 LLM 評分的候選更多，成本上升。</li>
+      <li><strong>最大深度 D</strong>：最多走幾跳，預設 <code>D = 3</code>，對應多數多跳問答需要的跳數；到頂仍不足則 fallback。</li>
+    </ul>
+
+    <h3>路徑剪枝（pruning）怎麼做</h3>
+    <ul>
+      <li><strong>誰來剪：</strong>由 <strong>LLM 依「與問題的相關性」打分</strong>來剪（也可用輕量打分模型替代，屬工程選項）。</li>
+      <li><strong>怎麼收束：</strong>關係層先篩方向，實體層再<strong>跨所有 beam 做全域排序，取前 W</strong>——這一步把發散的搜尋重新收斂回固定寬度，是 beam search 的核心動作。</li>
+      <li><strong>ToG-R 的省法：</strong>跳過實體剪枝，用關係鏈近似，換取更低成本。</li>
+    </ul>
+
+    <h3>與（向量檢索式）RAG 的差異</h3>
+    <table>
+      <thead><tr><th></th><th>傳統向量 RAG</th><th>Think-on-Graph</th></tr></thead>
+      <tbody>
+        <tr><td><strong>知識來源</strong></td><td>非結構化文本切塊 + 向量庫</td><td>結構化知識圖譜（三元組）</td></tr>
+        <tr><td><strong>檢索方式</strong></td><td>一次語義相似度召回 top-k 片段</td><td>多輪、在圖上顯式走 entity–relation 路徑</td></tr>
+        <tr><td><strong>多跳能力</strong></td><td>弱：片段間關係要 LLM 自己腦補</td><td>強：關係就是圖上的邊，逐跳串起</td></tr>
+        <tr><td><strong>可解釋 / 可更正</strong></td><td>只知召回了哪些段落</td><td>路徑＝證據鏈；改 KG 即改答案</td></tr>
+        <tr><td><strong>知識更新</strong></td><td>重嵌入文本</td><td>直接編輯圖上的三元組</td></tr>
+      </tbody>
+    </table>
+    <p>一句話：<strong>RAG 像「找幾段相關文章給模型讀」，ToG 像「帶著模型在事實網裡按線索一步步查案」。</strong></p>
+
+    <h3>訓練免調、即插即用</h3>
+    <p>ToG 完全<strong>不需要微調 LLM 或 KG</strong>，靠 prompt 驅動，可直接套在不同 LLM 上（論文以 GPT-4 / GPT-3.5 等為主）；換更強的底座模型，ToG 的表現也跟著提升。</p>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="results">
+    <h2><span class="num">⑤</span> 效果與限制</h2>
+    <h3>效果</h3>
+    <ul>
+      <li>在<strong>多個知識密集型推理資料集</strong>上做評測，<strong>ToG 在 9 個資料集中的 6 個達到當時 SOTA</strong>，且<strong>不需任何額外訓練</strong>。（涵蓋多跳 KBQA、開放領域問答、槽填充、事實查核等；具體資料集清單以原論文為準。）</li>
+      <li>在特定任務上，<strong>搭配 ToG 的較小模型可勝過直接推理的更大模型（如 GPT-4）</strong>——把推理外包給圖上的結構化搜尋，等於用「會查」補「不夠大」。</li>
+      <li><strong>可追溯 + 可更正</strong>：答案附帶推理路徑；發現錯誤時，專家可直接修 KG 的三元組來修正行為（knowledge correctability）。</li>
+    </ul>
+    <h3>限制</h3>
+    <ul>
+      <li><strong>依賴 KG 的覆蓋與品質</strong>：圖裡沒有、或有錯的事實，ToG 走不出來；冷門領域 KG 稀疏時受限。</li>
+      <li><strong>多輪 LLM 呼叫的成本與延遲</strong>：每跳的關係剪枝、實體剪枝、充分性判斷都要呼叫 LLM，比單輪 RAG 貴、慢（ToG-R 與後續 Fast ToG 等工作正是為此優化）。</li>
+      <li><strong>只吃結構化知識</strong>：純 KG 版本無法利用非結構化文件裡的細節——這正是 ToG 2.0 要補的洞。</li>
+    </ul>
+
+    <h3>延伸 · Think-on-Graph 2.0（ToG-2，2024）</h3>
+    <p>續作把 KG 與<strong>非結構化文件檢索</strong>做<strong>緊耦合的混合 RAG</strong>：用 KG 透過實體把文件串起來，做「知識引導的深度上下文檢索」；同時用文件當作實體的上下文，讓圖檢索更精準。兩者<strong>交替迭代</strong>（graph retrieval ⇄ context retrieval）逼近答案，一樣<strong>訓練免調、即插即用</strong>；論文報告以 GPT-3.5 在 7 個知識密集資料集的 6 個取得整體 SOTA，並能把 LLaMA-2-13B 這類小模型提升到接近 GPT-3.5 直接推理的水準。（細節以 arXiv 2407.10805、ICLR 2025 原文為準。）</p>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="map">
+    <h2><span class="num">⑥</span> 在「自我演化」地圖上的位置</h2>
+    <p>依本站綜述的三大維度分類，ToG 落在最內圈：</p>
+    <pre><code>模型中心演化（Model-Centric）
+   └─ 推理時演化（Inference-Based，不改參數，靠「怎麼想」）
+        └─ 結構化推理（把思考展開成樹／圖／搜尋）
+             └─ ★ Think-on-Graph</code></pre>
+    <p>ToG 不動任何參數，純靠<strong>推理時</strong>把 LLM 的思考<strong>結構化成 KG 上的 beam search</strong> 來變強——與 Tree of Thoughts、Language Agent Tree Search、Stream of Search 同屬「結構化推理」一族。差別在於 ToG 的搜尋空間是一張<strong>外部事實圖譜</strong>，因此同時借到了「環境中心演化」的味道（外部知識），但其自我提升的機制核心仍是<strong>推理時的思考結構</strong>，故歸在模型中心。</p>
+    <div class="callout info"><strong>回到地圖：</strong>詳見 <a href="../self-evolving-agents.html#model">② 模型中心演化 → 推理時 → 結構化推理</a>。ToG 就列在那張「推理時演化」表的「結構化推理」一列。</div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="sources">
+    <h2><span class="num">⑦</span> 來源</h2>
+    <ul>
+      <li><strong>Think-on-Graph（原論文）</strong>：Sun, Xu, Tang, Wang, Lin, Gong, Ni, Shum, Guo，<em>Think-on-Graph: Deep and Responsible Reasoning of Large Language Model on Knowledge Graph</em>，arXiv:2307.07697（2023 年 7 月）；發表於 <strong>ICLR 2024</strong>。<a href="https://arxiv.org/abs/2307.07697" target="_blank" rel="noopener">arXiv 摘要頁</a>（本次撰稿時 arXiv 於環境內無法直連，內容經 ICLR / Microsoft Research / 公開檢索交叉查證）。</li>
+      <li><a href="https://www.microsoft.com/en-us/research/publication/think-on-graph-deep-and-responsible-reasoning-of-large-language-model-on-knowledge-graph/" target="_blank" rel="noopener">Microsoft Research · Think-on-Graph 出版頁</a>（作者、摘要、9 資料集中 6 項 SOTA、訓練免調等）。</li>
+      <li><a href="https://openreview.net/forum?id=nnVO1PvbTv" target="_blank" rel="noopener">OpenReview · ICLR 2024 論文頁</a>。</li>
+      <li><strong>Think-on-Graph 2.0</strong>：Ma et al.，<em>Think-on-Graph 2.0: Deep and Faithful LLM Reasoning with Knowledge-guided Retrieval Augmented Generation</em>，arXiv:2407.10805（2024）；<strong>ICLR 2025</strong>。<a href="https://openreview.net/forum?id=oFBu7qaZpS" target="_blank" rel="noopener">OpenReview 頁</a>。</li>
+    </ul>
+    <div class="related">
+      <a href="../self-evolving-agents.html">
+        <div class="rel-title">🧬 自我演化 Agent 綜述導讀</div>
+        <div class="rel-sub">ToG 所屬的三大維度總地圖</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+      <a href="../../skills/index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">agent 靠累積可複用能力變強</div>
+      </a>
+      <a href="../self-evolving-agents.html#model">
+        <div class="rel-title">② 模型中心演化</div>
+        <div class="rel-sub">推理時 → 結構化推理，ToG 的座標</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁為原論文「怎麼實現」的中文導讀。撰稿環境無法直連 arXiv，方法細節（beam width W=3、深度 D=3、探索／剪枝／推理三段、ToG-R 變體、資料集與成績）以 ICLR 版與 Microsoft Research 出版頁交叉查證整理；<strong>確切數字、完整資料集清單與圖表以原論文為準</strong>。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="../self-evolving-agents.html">← 回到 自我演化 Agent</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

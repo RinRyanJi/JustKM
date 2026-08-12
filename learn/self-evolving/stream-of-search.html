@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Stream of Search（SoS）搜尋流：怎麼實現 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../self-evolving-agents.html">← 回到 自我演化 Agent 綜述導讀</a>
+
+  <div class="hero">
+    <h1>🔎 Stream of Search（SoS）搜尋流</h1>
+    <p class="sub">論文《Stream of Search: Learning to Search in Language》怎麼實現 · 把整段「搜尋過程」序列化成語言，讓模型學會搜尋——而不只是背最佳解</p>
+    <div>
+      <span class="badge green">論文導讀</span>
+      <span class="badge blue">Gandhi et al. 2024</span>
+      <span class="badge orange">結構化推理 · 模型中心演化</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話</a>
+      <a href="#problem">① 想解決什麼</a>
+      <a href="#idea">② 核心想法</a>
+      <a href="#how">③ 怎麼實現 🔥</a>
+      <a href="#details">④ 關鍵細節</a>
+      <a href="#results">⑤ 效果與限制</a>
+      <a href="#map">⑥ 自我演化地圖位置</a>
+      <a href="#sources">⑦ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話</h2>
+    <div class="callout info">
+      <strong>Stream of Search：</strong>不要只餵模型「正確答案的最短路徑」，而是把<strong>整段搜尋過程——包含試錯、走進死路、回溯、剪枝——攤平成一串 token 的「搜尋流」</strong>，讓語言模型直接在這種資料上學。學到的模型會<strong>把「怎麼搜尋」內化成自己的能力</strong>，甚至能超越當初產生訓練資料的搜尋啟發式（heuristic）。
+    </div>
+    <p>論文以 <strong>Countdown</strong>（一個湊數字的算術遊戲）為試驗場，從零訓練一個 250M 參數的小語言模型，證明「讓模型看見搜尋的全過程」比「只給最佳解」更能學會推理與自我修正。</p>
+  </section>
+
+  <!-- ① -->
+  <section id="problem">
+    <h2><span class="num">①</span> 想解決什麼</h2>
+    <p>一般語言模型在推理任務上被訓練成<strong>只預測「最佳解路徑」</strong>——資料集裡都是漂亮、直達答案的正確步驟。問題是：</p>
+    <ul>
+      <li><strong>沒學到「怎麼搜尋」。</strong>真正解難題需要探索多條路、發現此路不通、退回去換一條。這些「搜尋的動作」在最佳路徑資料裡通通被抹掉了。</li>
+      <li><strong>沒學到犯錯與回溯。</strong>模型從沒看過「錯了怎麼辦」，於是一旦第一步走偏就無法自我修正，只能一路錯到底。</li>
+      <li><strong>受限於示範者。</strong>只模仿最佳路徑，等於把上限鎖死在「產生這些路徑的求解器」身上，很難超越它。</li>
+    </ul>
+    <div class="callout warn"><strong>核心痛點：</strong>「最佳解路徑」是<strong>搜尋的結果</strong>，不是<strong>搜尋的過程</strong>。只教結果，模型永遠學不會遇到沒看過的難題時該如何自己去找答案。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="idea">
+    <h2><span class="num">②</span> 核心想法</h2>
+    <p>既然缺的是「過程」，那就<strong>把整個搜尋過程本身當成訓練資料</strong>。SoS 的關鍵一步是：把一次搜尋（探索哪些狀態、算了什麼、哪裡失敗、從哪裡回溯、剪掉哪些分支）<strong>序列化（flatten）成一條連續的語言字串</strong>——這條字串就叫「搜尋流（stream of search）」。</p>
+    <p>作者把各種搜尋操作用一套<strong>統一的語言（unified language）</strong>表達，涵蓋：</p>
+    <ul>
+      <li><strong>探索（exploration）</strong>：嘗試一個中間狀態 / 一次運算。</li>
+      <li><strong>回溯（backtracking）</strong>：此路不通，退回上一個可行的分叉點。</li>
+      <li><strong>剪枝（pruning）</strong>：判斷某分支沒希望，直接放棄。</li>
+      <li>以及狀態評估、目標比對等其他步驟。</li>
+    </ul>
+    <div class="callout tip"><strong>直覺：</strong>與其給學生看「標準解答」，不如給他看一位老手<strong>解題時的完整草稿紙</strong>——包含畫錯的、劃掉的、重來的。看多了草稿，學生自己也學會了「卡住時該怎麼想」。這就是把搜尋「語言化」的意義：搜尋不再是外掛的演算法，而變成模型 next-token 預測能力的一部分。</div>
+  </section>
+
+  <!-- ③ -->
+  <section id="how">
+    <h2><span class="num">③</span> 怎麼實現 🔥</h2>
+    <p>整條 pipeline 分三步：<strong>用符號搜尋造資料 → 序列化成 token 流 → 訓練語言模型</strong>；之後再用自我改進方法（APA / STaR）讓它超越示範者。</p>
+
+    <h3>第 1 步 · 用符號搜尋產生「含錯誤與回溯」的軌跡</h3>
+    <ul>
+      <li>用<strong>符號式（symbolic）搜尋演算法</strong>去實際解 Countdown 題目，過程中自然會探索、失敗、回溯——把這整段記錄下來，就是天然的「搜尋過程」資料。</li>
+      <li>具體用了 <strong>BFS（廣度優先）與 DFS（深度優先）</strong>兩種搜尋策略，各自再<strong>由兩個啟發式函數（heuristic）引導</strong>，產生多樣化的搜尋軌跡當訓練集。</li>
+      <li>刻意保留「不完美」：這些軌跡包含走錯、死路、回頭——正是最佳路徑資料所欠缺、而 SoS 想要的東西。</li>
+    </ul>
+
+    <h3>第 2 步 · 序列化為統一的 token 流</h3>
+    <ul>
+      <li>把每條搜尋軌跡按時間順序<strong>攤平成一條字串</strong>：目前狀態、嘗試的運算、結果、與目標的比對、以及「回溯 / 剪枝」等操作，全部用前述<strong>統一語言</strong>寫成連續 token。</li>
+      <li>這樣一來，「搜尋」被完全轉譯成<strong>語言模型熟悉的序列預測問題</strong>——模型只要學會預測下一個 token，就等於在學會下一步該探索、還是該回溯。</li>
+    </ul>
+    <pre><code><span class="cm"># 「搜尋流」的示意（非逐字，結構以原論文為準）</span>
+目標: 24  可用數字: [3, 5, 7, 11]
+嘗試: 5 + 7 = 12   → 剩 [3, 11, 12]   離目標尚遠
+嘗試: 3 * 11 = 33  → 剩 [12, 33]      超過，剪枝此分支
+<span class="cm"># ← 回溯到分叉點</span>
+回溯 → 剩 [3, 5, 7, 11]
+嘗試: 11 - 7 = 4   → 剩 [3, 4, 5]
+嘗試: 4 + 5 = 9    ...
+...
+找到: (11 - 5) * (7 - 3) = 24  ✓</code></pre>
+
+    <h3>第 3 步 · 在搜尋流上訓練語言模型</h3>
+    <ul>
+      <li><strong>從零訓練（from scratch）一個 GPT-Neo 架構、250M 參數的模型</strong>，context length 4096 token（要夠長才裝得下一整段搜尋過程）。</li>
+      <li>訓練目標就是標準的語言模型預測——但因為資料是「搜尋流」而非「最佳路徑」，模型學到的是<strong>整套搜尋策略，而非單一答案</strong>。</li>
+    </ul>
+
+    <h3>第 4 步 · 用自我改進讓它超越示範者（APA / STaR）</h3>
+    <p>預訓練後的 SoS 模型還能<strong>再自我提升</strong>：讓模型自己去解題、留下成功的搜尋流當新資料，用策略改進方法微調。論文用了兩種：</p>
+    <ul>
+      <li><strong>APA（Advantage-Induced Policy Alignment）</strong>：一種以優勢函數引導的策略對齊 / RL 式微調。</li>
+      <li><strong>STaR（Self-Taught Reasoner）</strong>：讓模型產生自己的推理軌跡，篩出能得到正確答案的，再拿去微調——反覆迭代自我教學。</li>
+    </ul>
+    <div class="callout info"><strong>為什麼能超越 heuristic？</strong>示範者（BFS/DFS + heuristic）只是<strong>起點</strong>。一旦模型把搜尋能力內化，就能靠自我改進去解<strong>連任何一個原始 heuristic 求解器都解不出</strong>的題目——這正是「自我演化」的雛形。</div>
+  </section>
+
+  <!-- ④ -->
+  <section id="details">
+    <h2><span class="num">④</span> 關鍵細節</h2>
+
+    <h3>Countdown 任務</h3>
+    <ul>
+      <li><strong>玩法：</strong>給定一組輸入數字（論文設定為 <strong>4 個</strong>）與一個目標數，用四則運算把數字組合起來湊出目標。</li>
+      <li><strong>限制：</strong>運算結果限定為<strong>非負整數</strong>（例如減法只在「大減小」時允許），確保搜尋空間乾淨、可驗證。</li>
+      <li><strong>為何選它：</strong>搜尋空間夠大、需要真正的探索與回溯，又能<strong>自動、明確地驗證對錯</strong>——是研究「搜尋能力」的理想沙盒。</li>
+    </ul>
+
+    <h3>學到「內化的搜尋策略」</h3>
+    <ul>
+      <li>模型不是死背某條路徑，而是學會<strong>在遇到新題目時動態地探索、評估、回溯</strong>——搜尋成為模型內部能力，而非外部演算法。</li>
+      <li>因為訓練資料混合了 BFS/DFS 與不同 heuristic，模型等於<strong>吸收了多種搜尋策略的綜合</strong>，而不侷限於單一策略。</li>
+    </ul>
+
+    <h3>能超越產生資料的 heuristic</h3>
+    <ul>
+      <li>只模仿最佳路徑的模型，上限被示範者鎖死；SoS 因為學的是「過程」，經 APA/STaR 自我改進後<strong>能解出原始 heuristic 解不了的題</strong>。</li>
+      <li>這說明「看見搜尋全貌 + 自我改進」的組合，可以把模型能力推到<strong>超過它的老師</strong>。</li>
+    </ul>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="results">
+    <h2><span class="num">⑤</span> 效果與限制</h2>
+    <h3>主要結果</h3>
+    <table>
+      <thead><tr><th>比較</th><th>結果</th></tr></thead>
+      <tbody>
+        <tr><td><strong>SoS 預訓練 vs. 只學最佳路徑</strong></td><td>搜尋準確率<strong>提升約 25%</strong>（看見搜尋過程 &gt; 只看最佳解）</td></tr>
+        <tr><td><strong>SoS + APA / STaR 自我改進</strong></td><td>解出<strong>36% 先前無解的題目</strong>，其中包含<strong>任何一個 heuristic 求解器都解不出</strong>的題目</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><strong>兩個數字的意義：</strong>25% 證明「過程 &gt; 結果」這個核心假設；36% 證明模型<strong>真的超越了示範者</strong>，具備自我演化的潛力。</div>
+
+    <h3>限制（以原論文為準）</h3>
+    <ul>
+      <li><strong>單一、可驗證的領域：</strong>實驗集中在 Countdown 這類規則明確、對錯可自動驗證的任務；能否無痛遷移到開放式、難以驗證的真實推理任務，仍待驗證。</li>
+      <li><strong>小模型、從零訓練：</strong>用的是 250M 的小模型專門在此任務上訓練，與大型通用 LLM 的行為未必等價。</li>
+      <li><strong>依賴符號求解器造資料：</strong>需要能寫出符號搜尋 + heuristic 來產生軌跡，換到沒有現成求解器的領域時，資料生成本身就是挑戰。</li>
+      <li><strong>context 長度成本：</strong>把整段搜尋攤平成 token 會很長（4096），較複雜的問題可能超出可行的序列長度。</li>
+    </ul>
+    <div class="callout warn"><strong>提醒：</strong>本頁為中文導讀。arXiv 於本環境無法直接存取，數字（25% / 36%）、Countdown 設定與 BFS/DFS + 雙 heuristic、GPT-Neo 250M / 4096 等細節取自論文摘要與公開整理；<strong>確切數值、實作細節與限制一律以原論文（arXiv:2404.03683）為準</strong>。</div>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="map">
+    <h2><span class="num">⑥</span> 在「自我演化」地圖上的位置</h2>
+    <p>回到本站的自我演化 Agent 綜述地圖，Stream of Search 落在<strong>模型中心演化（Model-Centric）</strong>這一支：</p>
+    <ul>
+      <li><strong>模型中心 → 推理時 → 結構化推理。</strong>SoS 與 Tree of Thoughts、Language Agent Tree Search 同屬「把思考展開成樹 / 圖 / 搜尋」的結構化推理路線——差別在 SoS 把搜尋<strong>語言化並寫進權重</strong>，讓搜尋成為模型內生能力，而非推理時外掛的演算法。</li>
+      <li><strong>也橫跨到訓練時演化。</strong>第 4 步的 APA / STaR 把它連向「離線合成自演化」——模型自己造搜尋資料、自我微調、超越示範者，正是自我演化的核心迴圈。</li>
+    </ul>
+    <div class="callout info">在綜述表格中，<strong>Stream of Search</strong> 就被列在<a href="../self-evolving-agents.html#model">② 模型中心演化 → 推理時 → 結構化推理</a>那一格。它是「讓模型本身變強」這條路上，關於<strong>如何學會搜尋</strong>的代表性一步。</div>
+
+    <div class="related">
+      <a href="../self-evolving-agents.html#model">
+        <div class="rel-title">🧬 自我演化 Agent 綜述導讀</div>
+        <div class="rel-sub">回到 ② 模型中心演化 · 結構化推理</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+      <a href="../../skills/index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">技能累積：agent 變強的另一條路</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="sources">
+    <h2><span class="num">⑦</span> 來源</h2>
+    <ul>
+      <li>原論文：<em>Stream of Search (SoS): Learning to Search in Language</em>，Kanishk Gandhi, Denise Lee, Gabriel Grand, Muxin Liu, Winson Cheng, Archit Sharma, Noah D. Goodman（2024；Oral at COLM 2024）。</li>
+      <li>arXiv：<a href="https://arxiv.org/abs/2404.03683" target="_blank" rel="noopener">arXiv:2404.03683</a>（本環境無法直接抓取，內容以此原文為準）。</li>
+      <li>OpenReview：<a href="https://openreview.net/forum?id=2cop2jmQVL" target="_blank" rel="noopener">COLM 2024 · Stream of Search</a>。</li>
+    </ul>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁為論文的中文導讀，聚焦「怎麼實現」。因網路限制未能直接讀取 arXiv 全文，關鍵數字與設定取自論文摘要及公開整理；<strong>所有數值、方法細節與限制，請以原論文原文為準</strong>。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="../self-evolving-agents.html">← 回到 自我演化 Agent 綜述導讀</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

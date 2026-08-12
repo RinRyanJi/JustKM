@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>語言代理樹搜尋（LATS）怎麼實現 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../self-evolving-agents.html">← 回到 自我演化 Agent 綜述導讀</a>
+
+  <div class="hero">
+    <h1>🌳 語言代理樹搜尋（LATS）怎麼實現</h1>
+    <p class="sub">Language Agent Tree Search Unifies Reasoning, Acting, and Planning in Language Models · Zhou et al. 2023（ICML 2024）· 把「推理／行動／規劃」統一在一棵蒙地卡羅搜尋樹裡</p>
+    <div>
+      <span class="badge green">結構化推理</span>
+      <span class="badge blue">Monte Carlo Tree Search</span>
+      <span class="badge orange">推理時演化（不改參數）</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#problem">① 想解決什麼</a>
+      <a href="#idea">② 核心想法</a>
+      <a href="#how">③ 怎麼實現（MCTS 六步）</a>
+      <a href="#details">④ 關鍵細節與比較</a>
+      <a href="#results">⑤ 效果與限制</a>
+      <a href="#map">⑥ 自我演化地圖位置</a>
+      <a href="#sources">⑦ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <div class="callout info">
+      <strong>一句話：</strong>LATS 把 LLM 同時當成<strong>行動者、價值函數、與自我反思者</strong>，用<strong>蒙地卡羅樹搜尋（MCTS）</strong>去展開多條 ReAct 式的行動軌跡，靠環境回饋與自我反思選出最好的一條——用「多想幾步、能反悔」把 reasoning、acting、planning 統一在同一個框架。
+    </div>
+    <p>它屬於<strong>推理時（inference-time）</strong>的方法：<strong>不重新訓練模型、不改參數</strong>，純靠推理階段的搜尋與回饋就把成功率往上推。</p>
+  </section>
+
+  <!-- ① -->
+  <section id="problem">
+    <h2><span class="num">①</span> 想解決什麼</h2>
+    <p>在 LATS 之前，讓 LLM 當 agent 的主流做法大致分成三家，各有缺口：</p>
+    <table>
+      <thead><tr><th>路線</th><th>做法</th><th>缺什麼</th></tr></thead>
+      <tbody>
+        <tr><td><strong>ReAct（行動）</strong></td><td>交錯「思考→行動→觀察」，一步步往前走</td><td>一條路走到底，<strong>錯了難回頭</strong>，貪婪、無規劃</td></tr>
+        <tr><td><strong>Tree of Thoughts（規劃）</strong></td><td>把思考展開成樹、做搜尋</td><td>多半只在<strong>純推理</strong>裡想，<strong>不與外部環境互動</strong></td></tr>
+        <tr><td><strong>Reflexion（反思）</strong></td><td>失敗後寫下語言反饋，下次再試</td><td>反思有了，但<strong>沒有系統性的搜尋</strong>去善用它</td></tr>
+      </tbody>
+    </table>
+    <p>這三者其實是<strong>互補</strong>的能力：會走（acting）、會想（reasoning）、會規劃與回頭（planning）。LATS 的目標，就是把它們<strong>統一在一個框架</strong>裡——既能像 ReAct 那樣呼叫工具、觀察環境，又能像 ToT 那樣展開分支去比較，還能像 Reflexion 那樣從失敗中學。</p>
+    <div class="callout tip"><strong>核心痛點：</strong>單線推理 = 押寶一次；真實任務（多步 QA、寫程式、網頁購物）常常要試錯、要回頭。LATS 給 agent 一個「<strong>可以反悔、可以比較</strong>」的決策結構。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="idea">
+    <h2><span class="num">②</span> 核心想法</h2>
+    <p>LATS 借用<strong>基於模型的強化學習</strong>裡最經典的規劃演算法——<strong>蒙地卡羅樹搜尋（Monte Carlo Tree Search, MCTS）</strong>，AlphaGo 一系的做法——把它搬到語言代理上。</p>
+    <h3>把決策過程建成一棵搜尋樹</h3>
+    <ul>
+      <li><strong>節點（node）= 一個狀態</strong>：包含目前的任務輸入、<strong>過往的行動歷史、以及環境觀察</strong>（observation）。根節點是初始問題。</li>
+      <li><strong>邊（edge）= 一個動作</strong>：可以是一步推理，也可以是一個真正的行動（呼叫搜尋、執行程式、在網站上點選⋯⋯）。</li>
+      <li><strong>一條根到葉的路徑 = 一條完整軌跡</strong>：等同於一次 ReAct 式的「思考-行動-觀察」序列。</li>
+    </ul>
+    <p>與純推理的 ToT 最大的不同：LATS 的每一步行動都<strong>真的送進環境執行、拿回真實觀察</strong>（external feedback），而不是只在腦內模擬。這讓「規劃」有了現實的錨點。</p>
+    <h3>LLM 一人分飾三角</h3>
+    <ul>
+      <li><strong>Agent（行動者）</strong>：在每個節點生成候選的下一步（多個思考／行動）。</li>
+      <li><strong>Value function（價值函數）</strong>：用另一個 LLM prompt 去<strong>評分一條半成品軌跡</strong>離目標多近。</li>
+      <li><strong>Self-reflection（自我反思者）</strong>：當一條路失敗（或評分很低），生成語言化的反思，回饋進搜尋，避免重蹈覆轍。</li>
+    </ul>
+    <div class="callout info"><strong>直覺：</strong>ReAct 是「一路走到黑」，LATS 是「<strong>下棋</strong>」——每一步都展開幾個選項、給每個選項打分、往最有希望的分支深入，走不通就退回上一個岔路換條路，並把失敗的教訓寫進筆記。</div>
+  </section>
+
+  <!-- ③ -->
+  <section id="how">
+    <h2><span class="num">③</span> 怎麼實現（MCTS 六步循環）</h2>
+    <p>LATS 把標準 MCTS 的四步（選擇／擴展／評估／回傳）擴充成<strong>六步</strong>，額外加入 LLM 價值函數與自我反思。每一輪迭代都跑一遍這個循環，直到找到成功解或用完預算。</p>
+
+    <h3>① Selection（選擇）— 用 UCT 挑最值得探索的節點</h3>
+    <p>從根節點往下，反覆挑選一個子節點，直到抵達一個尚未完全展開的節點。挑選依據是 <strong>UCT（Upper Confidence bounds applied to Trees）</strong>，在「利用已知好分支」與「探索少走過的分支」之間取平衡：</p>
+    <pre><code>UCT(s) = Q(s) + w · sqrt( ln N(parent) / N(s) )
+
+<span class="cm"># Q(s)      : 節點 s 的平均價值（越高越該利用）</span>
+<span class="cm"># N(s)      : 節點 s 被造訪的次數（越少越該探索）</span>
+<span class="cm"># w         : 探索權重，調大 = 更愛冒險</span></code></pre>
+
+    <h3>② Expansion（擴展）— 讓 LLM 生成多個候選動作</h3>
+    <p>在選中的節點，呼叫 agent LLM <strong>取樣 n 個候選的下一步</strong>（<code>n_generate_sample</code> 個思考／行動），為每個候選建立一個新的子節點。這一步把「單線」變成「多分支」。</p>
+
+    <h3>③ Evaluation（評估）— LLM 價值函數打分</h3>
+    <p>對每個新節點，用<strong>評估者 LLM</strong>（<code>n_evaluate_sample</code> 次 prompt）判斷這條半成品軌跡<strong>離解答有多近</strong>，給一個純量分數。論文把節點價值取為兩者的<strong>加權平均</strong>：</p>
+    <ul>
+      <li><strong>評估者 LLM 的分數</strong>：直接讓 LLM 對「目前進展」評分。</li>
+      <li><strong>self-consistency 分數</strong>：多次取樣的一致性，作為信心的補強。</li>
+    </ul>
+    <div class="callout"><strong>為什麼需要它：</strong>MCTS 要有一個「這步好不好」的訊號才能搜尋。傳統 RL 靠訓練好的 value network；LATS <strong>直接用 LLM 當即時的、免訓練的價值函數</strong>——這是它「不改參數」的關鍵。</div>
+
+    <h3>④ Simulation（模擬）— 展開到終局拿真實回饋</h3>
+    <p>沿著目前最有希望的節點<strong>一路展開到終端狀態</strong>（給出答案、程式跑完、購物完成），並從<strong>環境</strong>取得結果訊號：測試案例是否通過、答案是否正確、任務獎勵多少。這一步把真實世界的成敗帶回搜尋樹。</p>
+
+    <h3>⑤ Backpropagation（回傳）— 把結果沿路更新回去</h3>
+    <p>把終端拿到的回饋，沿著剛才走過的路徑<strong>往上回傳</strong>，更新每個節點的 <code>Q(s)</code> 與造訪次數 <code>N(s)</code>。成功的路徑抬高沿途價值，失敗的壓低——下一輪 UCT 選擇就會偏向更有希望的區域。</p>
+
+    <h3>⑥ Reflection（反思）— 失敗時寫下語言化教訓 🔥</h3>
+    <p>這是 LATS 相對標準 MCTS 的<strong>關鍵創新</strong>：當一條軌跡失敗，呼叫 LLM 生成一段<strong>self-reflection</strong>（「哪裡錯了、下次該怎麼改」），把它當成額外的語意脈絡，注入後續節點的 prompt。<strong>數值回傳負責「往哪走」，語言反思負責「為什麼、怎麼改」</strong>，兩者疊加讓搜尋更有方向。</p>
+
+    <h4>整體虛擬碼</h4>
+    <pre><code><span class="cm"># LATS 主循環（示意）</span>
+root = State(task_input)
+while 未達成功 and 迭代次數 &lt; budget:
+    node = select(root)              <span class="cm"># ① UCT 往下挑</span>
+    children = expand(node, n=k)     <span class="cm"># ② LLM 取樣 k 個候選動作</span>
+    for c in children:
+        c.value = evaluate(c)        <span class="cm"># ③ LLM 價值 + self-consistency</span>
+    leaf = simulate(best(children))  <span class="cm"># ④ 展開到終局、跑環境</span>
+    reward = env_feedback(leaf)       <span class="cm"># 測試通過？答案對？任務獎勵？</span>
+    backpropagate(leaf, reward)       <span class="cm"># ⑤ 沿路更新 Q、N</span>
+    if reward 失敗:
+        node.context += reflect(leaf) <span class="cm"># ⑥ 語言化反思，注入後續 prompt</span>
+return 最佳終端軌跡</code></pre>
+    <div class="callout tip"><strong>可呼叫工具／環境：</strong>因為每個動作可以是「搜尋維基」「執行程式碼」「在購物網站點選」，LATS 天然支援<strong>工具使用與 agent 環境互動</strong>——搜尋樹的邊就是對外部世界的操作，觀察就是環境回傳。</div>
+  </section>
+
+  <!-- ④ -->
+  <section id="details">
+    <h2><span class="num">④</span> 關鍵細節：與 ToT／ReAct／Reflexion 的關係</h2>
+    <p>LATS 最好理解的方式，是把它看成<strong>三個既有方法的整合體</strong>：</p>
+    <table>
+      <thead><tr><th>來自</th><th>LATS 吸收了什麼</th></tr></thead>
+      <tbody>
+        <tr><td><strong>ReAct</strong></td><td>思考-行動-觀察的交錯格式，與<strong>環境互動、呼叫工具</strong>的能力——成為樹裡「邊 = 動作」的內容</td></tr>
+        <tr><td><strong>Tree of Thoughts</strong></td><td>把決策<strong>展開成樹、做搜尋</strong>的規劃結構——LATS 進一步升級為完整 MCTS 並接上真實環境</td></tr>
+        <tr><td><strong>Reflexion</strong></td><td>失敗後的<strong>語言化自我反思</strong>——被納入六步循環的第⑥步，與數值回傳互補</td></tr>
+      </tbody>
+    </table>
+    <div class="callout info"><strong>一句話定位：</strong>ToT 有樹但不碰環境；ReAct 碰環境但無樹（單線）；Reflexion 會反思但無搜尋。<strong>LATS = 樹搜尋 + 環境互動 + 自我反思</strong>，三合一。</div>
+    <h4>幾個實作要點</h4>
+    <ul>
+      <li><strong>價值 = 評估者分數 + self-consistency 的加權平均</strong>，比單一 LLM 打分更穩。</li>
+      <li>三個主要旋鈕：<code>n_generate_sample</code>（每節點展開幾個分支）、<code>n_evaluate_sample</code>（評估幾次）、<code>iterations</code>（最多跑幾輪搜尋）——都是<strong>拿算力換成功率</strong>的開關。</li>
+      <li>反思是<strong>語意記憶</strong>，回傳是<strong>數值記憶</strong>；兩種訊號都留在樹上供後續利用。</li>
+      <li>可搭配 GPT-3.5 / GPT-4 等現成模型，<strong>零額外訓練</strong>即可套用。</li>
+    </ul>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="results">
+    <h2><span class="num">⑤</span> 效果與限制</h2>
+    <h3>在三類任務上驗證</h3>
+    <table>
+      <thead><tr><th>任務</th><th>Benchmark</th><th>結果（以原論文為準）</th></tr></thead>
+      <tbody>
+        <tr><td><strong>程式生成</strong>（推理）</td><td>HumanEval</td><td>搭配 GPT-4 達到 <strong>92.7% pass@1</strong>，當時的 state-of-the-art</td></tr>
+        <tr><td><strong>問答</strong>（推理＋行動）</td><td>HotPotQA（多跳）</td><td>Exact Match 明顯優於 ReAct、Reflexion 等基線 <em>(以原論文為準)</em></td></tr>
+        <tr><td><strong>決策／網頁導航</strong></td><td>WebShop</td><td>GPT-3.5 下平均分約 <strong>75.9</strong>，逼近需微調的梯度式方法 <em>(以原論文為準)</em></td></tr>
+      </tbody>
+    </table>
+    <p>核心結論：<strong>同一套 LATS 框架</strong>在「純推理（寫程式）」「推理+行動（多跳 QA）」「序列決策（網購）」三種形態的任務上都能提升，證明它是一個<strong>通用</strong>的決策框架，而非為單一任務調校。</p>
+
+    <h3>限制</h3>
+    <div class="callout warn">
+      <strong>成本高</strong>是最主要的代價：MCTS 要展開多個分支、每個節點都要多次呼叫 LLM 去生成、評估、反思，<strong>API 呼叫數與延遲遠高於單線的 ReAct/CoT</strong>。搜尋越深越廣，成功率越高，帳單也越貴。
+    </div>
+    <ul>
+      <li><strong>算力／金錢／時間開銷大</strong>：一次任務可能是單線方法的數倍到數十倍呼叫。</li>
+      <li><strong>依賴 LLM 價值函數的品質</strong>：若評估者對「進展」判斷不準，搜尋會被帶偏。</li>
+      <li><strong>需要可查詢的環境回饋</strong>：能拿到測試結果／任務獎勵時最有效；回饋稀疏時優勢縮小。</li>
+      <li>因此實務上常<strong>限制搜尋預算</strong>（iterations、分支數）在成本與效果間取捨。</li>
+    </ul>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="map">
+    <h2><span class="num">⑥</span> 在「自我演化 Agent」地圖上的位置</h2>
+    <p>對照本站的<a href="../self-evolving-agents.html">自我演化 Agent 綜述</a>，LATS 座落在最內圈：</p>
+    <p><strong>模型中心演化（Model-Centric）→ 推理時演化（Inference-Based）→ 結構化推理（把思考展開成樹／圖／搜尋）</strong></p>
+    <div class="callout info">
+      它與 <strong>Tree of Thoughts、Think-on-Graph、Stream of Search</strong> 同屬「結構化推理」一格——<strong>不改參數</strong>，純靠「怎麼想／怎麼搜」把現成模型的能力壓榨出來。同時它把 <strong>Reflexion</strong>（序列自我修正）也一併吸收進搜尋循環，是推理時演化路線裡最具整合性的代表之一。
+    </div>
+    <p>➜ 回到地圖對應章節：<a href="../self-evolving-agents.html#model">② 模型中心演化 · 結構化推理</a></p>
+    <div class="related">
+      <a href="../self-evolving-agents.html">
+        <div class="rel-title">🧬 自我演化 Agent 綜述導讀</div>
+        <div class="rel-sub">LATS 所在的「結構化推理」全景地圖</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+      <a href="../../skills/index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">agent 靠累積可複用技能變強的另一條路</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="sources">
+    <h2><span class="num">⑦</span> 來源</h2>
+    <ul>
+      <li>論文：<em>Language Agent Tree Search Unifies Reasoning, Acting, and Planning in Language Models</em>，Andy Zhou, Kai Yan, Michal Shlapentokh-Rothman, Haohan Wang, Yu-Xiong Wang（2023；<strong>ICML 2024</strong>）。arXiv:2310.04406。</li>
+      <li>官方程式碼：<a href="https://github.com/lapisrocks/LanguageAgentTreeSearch" target="_blank" rel="noopener">GitHub · lapisrocks/LanguageAgentTreeSearch</a></li>
+      <li>專案頁：<a href="http://lapisrocks.github.io/LanguageAgentTreeSearch/" target="_blank" rel="noopener">lapisrocks.github.io/LanguageAgentTreeSearch</a></li>
+      <li>OpenReview（ICML 2024）：<a href="https://openreview.net/forum?id=6LNTSrJjBe" target="_blank" rel="noopener">openreview.net/forum?id=6LNTSrJjBe</a></li>
+    </ul>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁為論文的中文「怎麼實現」導讀。因網路環境限制，未能直接抓取 arXiv 原文全文，內容整理自論文摘要、官方 repo 與公開資料；<strong>具體數值（如 HotPotQA、WebShop 分數）與細節以原論文為準</strong>。arXiv 頁面（arxiv.org/abs/2310.04406）於製作時被出口代理封鎖，未能逐字核對。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="../self-evolving-agents.html">← 回到 自我演化 Agent</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
