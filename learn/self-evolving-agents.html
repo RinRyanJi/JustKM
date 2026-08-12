@@ -71,6 +71,8 @@
     th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
     td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
     tr:hover td { background: #fbfbfa; }
+    td a { color: var(--primary); font-weight: 600; text-decoration: none; border-bottom: 1px dotted var(--primary); }
+    td a:hover { background: var(--tint-lavender); }
 
     pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
     pre code { color: var(--charcoal); }
@@ -163,13 +165,14 @@
   <!-- ② -->
   <section id="model">
     <h2><span class="num">②</span> 模型中心演化（Model-Centric）</h2>
+    <div class="callout tip"><strong>🔗 逐篇拆解陸續上線：</strong>下表「代表工作」中<strong>有底線的</strong>可點入，看它<strong>到底怎麼實現</strong>（逐篇獨立頁；本節推理時 11 篇已完成，其餘章節持續增補）。</div>
     <h3>推理時演化（Inference-Based）— 不改參數，靠「怎麼想」</h3>
     <table>
       <thead><tr><th>手法</th><th>做法</th><th>代表工作</th></tr></thead>
       <tbody>
-        <tr><td><strong>平行取樣</strong></td><td>多路答案再彙整/投票</td><td>Self-Consistency、Large Language Monkeys、LLM-Blender</td></tr>
-        <tr><td><strong>序列自我修正</strong></td><td>產出→批判→修正的迭代</td><td>Self-Refine、Self-Debug、<strong>Reflexion</strong>、CRITIC</td></tr>
-        <tr><td><strong>結構化推理</strong></td><td>把思考展開成樹/圖/搜尋</td><td>Tree of Thoughts、Think-on-Graph、Language Agent Tree Search、Stream of Search</td></tr>
+        <tr><td><strong>平行取樣</strong></td><td>多路答案再彙整/投票</td><td><a href="self-evolving/self-consistency.html">Self-Consistency</a>、<a href="self-evolving/large-language-monkeys.html">Large Language Monkeys</a>、<a href="self-evolving/llm-blender.html">LLM-Blender</a></td></tr>
+        <tr><td><strong>序列自我修正</strong></td><td>產出→批判→修正的迭代</td><td><a href="self-evolving/self-refine.html">Self-Refine</a>、<a href="self-evolving/self-debug.html">Self-Debug</a>、<a href="self-evolving/reflexion.html">Reflexion</a>、<a href="self-evolving/critic.html">CRITIC</a></td></tr>
+        <tr><td><strong>結構化推理</strong></td><td>把思考展開成樹/圖/搜尋</td><td><a href="self-evolving/tree-of-thoughts.html">Tree of Thoughts</a>、<a href="self-evolving/think-on-graph.html">Think-on-Graph</a>、<a href="self-evolving/language-agent-tree-search.html">Language Agent Tree Search</a>、<a href="self-evolving/stream-of-search.html">Stream of Search</a></td></tr>
       </tbody>
     </table>
     <h3>訓練時演化（Training-Based）🔥 — 真的改參數</h3>
