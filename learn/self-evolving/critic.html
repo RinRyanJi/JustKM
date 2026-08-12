@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>CRITIC：工具互動式批判的自我修正 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../self-evolving-agents.html">← 回到 自我演化 Agent 綜述導讀</a>
+
+  <div class="hero">
+    <h1>🔧 CRITIC：工具互動式批判的自我修正</h1>
+    <p class="sub">CRITIC: Large Language Models Can Self-Correct with Tool-Interactive Critiquing · Gou et al., 2023（ICLR 2024）· arXiv 2305.11738</p>
+    <div>
+      <span class="badge green">序列自我修正</span>
+      <span class="badge blue">工具互動</span>
+      <span class="badge orange">Verify → Correct 迴圈</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話</a>
+      <a href="#problem">① 想解決什麼</a>
+      <a href="#idea">② 核心想法</a>
+      <a href="#how">③ 怎麼實現</a>
+      <a href="#detail">④ 關鍵細節</a>
+      <a href="#result">⑤ 效果與限制</a>
+      <a href="#map">⑥ 自我演化地圖位置</a>
+      <a href="#sources">⑦ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話</h2>
+    <div class="callout info">
+      <strong>一句話：</strong>與其讓大型語言模型「閉著眼睛自我反省」，不如讓它<strong>像人一樣去用工具查核</strong>——呼叫搜尋引擎、程式直譯器、毒性偵測 API 拿到<strong>客觀外部回饋</strong>，再據此修訂自己的答案。這就是 <strong>CRITIC</strong>（Self-Correcting with Tool-Interactive Critiquing）。
+    </div>
+    <p>CRITIC 不需要重新訓練、不需要額外標註資料，只靠<strong>少樣本 in-context prompting</strong>，就能在問答、數學、除毒三類任務上一致提升凍結模型（如 ChatGPT）的表現。它的核心主張很銳利：<strong>純靠模型內省的自我修正並不可靠，真正管用的是「有外部工具當裁判」的批判</strong>。</p>
+  </section>
+
+  <!-- ① -->
+  <section id="problem">
+    <h2><span class="num">①</span> 想解決什麼</h2>
+    <p>LLM 常常會<strong>幻覺捏造事實、寫出有錯的程式碼、產生冒犯性內容</strong>。一個直覺的修法是「讓模型自己檢查自己」——先產出答案，再叫它批判、然後修正。但這條路有個致命弱點：</p>
+    <div class="callout warn">
+      <strong>純靠模型自我批判並不可靠，而且容易「自我強化錯誤」。</strong>模型本來就不知道答案哪裡錯（否則第一次就不會錯），要它憑同一套內部知識當自己的裁判，往往只是把原本的偏誤重講一遍，甚至<strong>把原本正確的答案改壞</strong>。
+    </div>
+    <p>作者用實驗把這點講死：<strong>把外部搜尋工具拿掉後，問答任務的提升幾乎歸零、甚至反轉</strong>——模型「靠自己」對事實類任務的自我檢核能力，近乎無用。問題因此變成：<strong>要從哪裡取得模型「自己造不出來」的可靠回饋訊號？</strong></p>
+  </section>
+
+  <!-- ② -->
+  <section id="idea">
+    <h2><span class="num">②</span> 核心想法</h2>
+    <p>答案來自觀察人類怎麼做事：<strong>人不會純靠腦補來確認事情</strong>——查事實會用搜尋引擎、debug 會跑直譯器、拿不準用語會查工具。CRITIC 把這個習慣搬給 LLM：</p>
+    <div class="callout tip">
+      <strong>核心想法：</strong>讓 LLM 與<strong>外部工具</strong>（搜尋引擎、程式直譯器、專用 API）互動，用工具回傳的<strong>客觀證據</strong>去驗證自己的輸出，再據此修正。批判的價值在於<strong>「工具告訴模型一件它本來不知道的事」</strong>，而不是指望模型變成可靠的自我稽核者。
+    </div>
+    <p>可以把 CRITIC 寫成一個簡單的複合函數：</p>
+    <pre><code>output* = CRITIC(x)  =  correct( x , <span class="cm">verify(x)</span> )
+
+<span class="cm"># verify(x)：把候選輸出 x 丟給外部工具，取得客觀回饋（證據 / 錯誤訊息 / 分數）</span>
+<span class="cm"># correct(x, feedback)：模型讀回饋，改寫出更好的輸出</span>
+<span class="cm"># 再把 output* 當成新的 x，重複這個迴圈直到夠好或達上限</span></code></pre>
+    <p>關鍵不在於模型「更會反省」，而在於把批判<strong>接地（grounding）到一個模型無法偽造的外部訊號</strong>上。這使 CRITIC 與只靠模型自身回饋的 Self-Refine 等方法形成對比。</p>
+  </section>
+
+  <!-- ③ -->
+  <section id="how">
+    <h2><span class="num">③</span> 怎麼實現（Verify → Correct 迴圈）</h2>
+    <p>CRITIC 是一個<strong>推理時（inference-time）</strong>的流程，不改模型參數，全靠 few-shot 示範教模型如何呼叫工具、如何讀回饋。一輪迭代分三步：</p>
+
+    <h3>單輪三步驟</h3>
+    <ol>
+      <li><strong>① 產出初稿（Generate）</strong>：模型先用自己的內部知識，對輸入 <code>x</code> 產生一個候選答案 <code>ŷ</code>。</li>
+      <li><strong>② 工具互動式驗證（Verify / Critique）</strong>：模型<strong>主動生成對工具的呼叫</strong>（例如一段搜尋查詢、一段要執行的程式、一次 API 請求），拿回<strong>客觀回饋</strong>——檢索到的證據、直譯器的輸出或錯誤訊息、毒性分數等；再結合回饋寫出一段<strong>批判（critique）</strong>，指出哪裡可能有問題。</li>
+      <li><strong>③ 依回饋修正（Correct）</strong>：模型讀進批判與工具回饋，產出<strong>修訂後的答案</strong> <code>ŷ'</code>。</li>
+    </ol>
+
+    <h3>迭代直到收斂</h3>
+    <p>把修訂後的答案當作新的候選，<strong>重複「驗證 → 修正」</strong>。論文回報大約在<strong>三輪修正內</strong>就能取得有效提升；實務部署常在 1–2 輪批判就收斂。因為迴圈可能<strong>過度編輯或來回震盪</strong>，需要一個<strong>停止準則</strong>——固定迭代預算，或用工具回饋達到某個品質門檻就停。</p>
+
+    <pre><code><span class="cm"># CRITIC 的 Verify→Correct 迴圈（示意）</span>
+y = LLM.generate(x)                         <span class="cm"># ① 初稿</span>
+for step in range(MAX_ITERS):               <span class="cm"># 停止準則：迭代上限</span>
+    call     = LLM.propose_tool_call(x, y)  <span class="cm"># ② 模型自己決定怎麼查</span>
+    feedback = TOOL.run(call)               <span class="cm">#    搜尋/直譯器/API 的客觀回饋</span>
+    critique = LLM.critique(x, y, feedback)
+    if is_good_enough(critique, feedback):  <span class="cm"># 門檻式停止：已無問題就收工</span>
+        break
+    y = LLM.correct(x, y, critique, feedback) <span class="cm"># ③ 依回饋改寫</span>
+return y</code></pre>
+
+    <div class="callout info"><strong>類比：</strong>這正是「人拿著工具查核」的流程——寫完先跑一次程式看報錯、講完事實先 Google 一下、發文前先過一遍敏感詞偵測，然後才據此改稿。CRITIC 把這個<strong>「用工具核對再改」</strong>的動作變成模型可反覆執行的迴圈。</div>
+  </section>
+
+  <!-- ④ -->
+  <section id="detail">
+    <h2><span class="num">④</span> 關鍵細節</h2>
+
+    <h3>為何外部回饋勝過純內省</h3>
+    <p>CRITIC 最重要的實證是一個<strong>消融（ablation）</strong>：<strong>拿掉外部工具、只讓模型自我批判，問答的提升幾乎歸零甚至變負</strong>。原因是自我修正要成立，得先「知道自己錯了」——但對事實與計算類任務，模型的錯誤恰恰源於它<strong>不知道正確資訊</strong>，用同一套內部知識當裁判無法補上這個缺口。工具提供的是<strong>模型無法偽造、且獨立於模型信念</strong>的訊號，這才是提升的真正來源。</p>
+    <div class="callout"><strong>一句記憶點：</strong>CRITIC 之所以有效，是因為<strong>工具告訴模型一件它本來不知道的事</strong>，而不是模型突然變成可靠的自我稽核者。</div>
+
+    <h3>哪些工具對哪類任務</h3>
+    <table>
+      <thead><tr><th>任務類型</th><th>外部工具</th><th>工具提供的客觀回饋</th></tr></thead>
+      <tbody>
+        <tr><td><strong>自由形式問答</strong><br>（開放領域 QA、事實查核）</td><td>搜尋引擎 / 搜尋 API</td><td>檢索到的相關網頁與證據，用來核對事實宣稱是否成立</td></tr>
+        <tr><td><strong>數學程式合成</strong><br>（數理推理）</td><td>Python 程式直譯器</td><td>執行結果、例外/錯誤訊息，用來抓出計算與程式邏輯錯誤</td></tr>
+        <tr><td><strong>毒性降低</strong><br>（內容除毒）</td><td>毒性分類器 / 內容審核 API</td><td>毒性機率分數，指出哪段內容需要改寫得更無害</td></tr>
+      </tbody>
+    </table>
+    <p>三類任務都遵循同一個 <code>verify → correct</code> 骨架，差別只在<strong>換哪個工具當裁判、以及怎麼把工具回饋轉成批判</strong>。這種「換工具即換任務」的模組化，是 CRITIC 能一套框架跨多領域的原因。<span style="color:var(--steel)">（工具的具體版本以原論文為準）</span></p>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="result">
+    <h2><span class="num">⑤</span> 效果與限制</h2>
+
+    <h3>效果</h3>
+    <p>把 CRITIC 套在 <strong>ChatGPT</strong> 等凍結模型上，三類任務都一致提升：</p>
+    <table>
+      <thead><tr><th>任務</th><th>回報提升</th></tr></thead>
+      <tbody>
+        <tr><td>開放領域問答（3 個資料集平均）</td><td><strong>+7.7 F1</strong> 分數</td></tr>
+        <tr><td>數學推理（3 個基準平均）</td><td><strong>+7.0 個百分點</strong> 絕對增益</td></tr>
+        <tr><td>毒性降低</td><td>毒性機率<strong>下降約 79.2%</strong>（最顯著的單項結果）</td></tr>
+      </tbody>
+    </table>
+    <p>而且這一切<strong>不需訓練、不需標註</strong>，只靠 in-context 少樣本示範，屬於「開箱即用」的推理時增強。<span style="color:var(--steel)">（各項數字以原論文表格為準）</span></p>
+
+    <h3>限制</h3>
+    <ul>
+      <li><strong>強烈依賴工具品質。</strong>沒有可靠外部訊號時，模型可能認不出自己的錯，甚至<strong>把原本正確的答案改壞</strong>——效果的天花板由工具決定。</li>
+      <li><strong>需要停止準則。</strong>迴圈可能過度編輯或來回震盪，得靠迭代上限或品質門檻收斂。</li>
+      <li><strong>不是萬用。</strong>對「沒有好工具可查」的主觀 / 開放式任務，CRITIC 的優勢會收斂；它擅長的是<strong>有客觀可驗證答案</strong>的任務。</li>
+      <li><strong>成本與延遲。</strong>每一輪都要呼叫工具並多次推理，比單次生成貴。</li>
+    </ul>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="map">
+    <h2><span class="num">⑥</span> 在「自我演化地圖」的位置</h2>
+    <p>對照本站<a href="../self-evolving-agents.html">自我演化 Agent 綜述導讀</a>的三大維度，CRITIC 落在最內圈：</p>
+    <div class="callout"><strong>模型中心（②）→ 推理時演化 → 序列自我修正</strong><br>CRITIC 不改參數，靠「怎麼想」變強；具體是「產出 → 批判 → 修正」的<strong>序列自我修正</strong>路線，與 Self-Refine、Self-Debug、Reflexion 同列。它的獨特貢獻是把批判<strong>接地到外部工具</strong>，證明了序列自我修正要真正管用，往往需要外部訊號而非純內省。</div>
+    <p>順著地圖往外，CRITIC 也搭起通往<strong>環境中心演化（③）</strong>的橋：它所依賴的「搜尋、直譯器、API」正是「工具增強 / 環境回饋」的雛形——同一個直覺，後續被 ReAct、Voyager 等工作推廣成更完整的工具使用與環境互動。</p>
+    <p style="margin-top:14px;"><a class="back-home" href="../self-evolving-agents.html#model">→ 回到綜述：② 模型中心演化</a></p>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="sources">
+    <h2><span class="num">⑦</span> 來源</h2>
+    <ul>
+      <li><strong>原論文：</strong>Zhibin Gou, Zhihong Shao, Yeyun Gong, Yelong Shen, Yujiu Yang, Nan Duan, Weizhu Chen. <em>CRITIC: Large Language Models Can Self-Correct with Tool-Interactive Critiquing.</em> arXiv:2305.11738, 2023（ICLR 2024）。<span style="color:var(--steel)">（arXiv 於本次環境無法直接連線，內容以原論文為準）</span></li>
+      <li><a href="https://openreview.net/forum?id=Sx038qxjek" target="_blank" rel="noopener">OpenReview · CRITIC（ICLR 2024）</a></li>
+      <li><a href="https://www.semanticscholar.org/paper/bcdaf6c98ddbd6809cf6241aa77200d7394db163" target="_blank" rel="noopener">Semantic Scholar · CRITIC</a></li>
+      <li><a href="https://github.com/teacherpeterpan/self-correction-llm-papers" target="_blank" rel="noopener">GitHub · Self-Correction of LLMs with Automated Feedback（論文集）</a></li>
+    </ul>
+    <div class="related">
+      <a href="../self-evolving-agents.html">
+        <div class="rel-title">🧬 自我演化 Agent 綜述導讀</div>
+        <div class="rel-sub">CRITIC 在「模型中心 → 序列自我修正」的位置</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+      <a href="../../skills/index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">agent 靠累積可複用能力變強</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁為原論文的中文「怎麼實現」導讀。因本次環境無法直接連線 arXiv，部分數值與工具細節依公開摘要與二手資料整理，凡標「以原論文為準」者請以論文原文與官方數據為準。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="../self-evolving-agents.html">← 回到 自我演化 Agent 綜述導讀</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
