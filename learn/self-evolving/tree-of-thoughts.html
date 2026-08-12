@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Tree of Thoughts（思維樹）怎麼實現 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    /* 思維樹示意圖 */
+    .tot-diagram { border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface); padding: 20px; margin: 14px 0 18px; overflow-x: auto; }
+    .tot-diagram svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../self-evolving-agents.html">← 回到 自我演化 Agent 導讀</a>
+
+  <div class="hero">
+    <h1>🌳 Tree of Thoughts（思維樹, ToT）怎麼實現</h1>
+    <p class="sub">把「一條線的推理」展開成「一棵可分支、可評估、可回溯的樹」 · Yao et al., NeurIPS 2023</p>
+    <div>
+      <span class="badge blue">結構化推理</span>
+      <span class="badge green">推理時演化</span>
+      <span class="badge orange">Game of 24 / Creative Writing / Crosswords</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話</a>
+      <a href="#problem">① 想解決什麼</a>
+      <a href="#idea">② 核心想法</a>
+      <a href="#how">③ 怎麼實現（四要素）</a>
+      <a href="#details">④ 關鍵細節</a>
+      <a href="#results">⑤ 效果與限制</a>
+      <a href="#map">⑥ 自我演化地圖位置</a>
+      <a href="#sources">⑦ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話</h2>
+    <div class="callout info">
+      <strong>Tree of Thoughts＝把解題過程從「一條線的思考鏈」升級成「一棵樹」</strong>：每個節點是一個中間「想法（thought）」，模型可以在每一步<strong>展開多個候選、逐一評估好壞、用搜尋演算法（BFS/DFS）挑路走，走不通就回溯</strong>——像人下棋會前瞻幾步、試錯、換路一樣。
+    </div>
+  </section>
+
+  <!-- ① -->
+  <section id="problem">
+    <h2><span class="num">①</span> 想解決什麼</h2>
+    <p>標準的 LLM 生成（含 Chain-of-Thought, CoT）本質上是<strong>由左到右、一個 token 接一個 token 的單一線性鏈</strong>。這在需要「規劃、前瞻、探索」的問題上有三個先天缺陷：</p>
+    <ul>
+      <li><strong>無法探索多種可能</strong>：一步只走一條路，不會同時比較「這步有哪幾種下法」。</li>
+      <li><strong>無法回溯</strong>：一旦某步走錯，鏈條只能將錯就錯往下寫，沒有機制退回去換一條路。</li>
+      <li><strong>沒有全局評估</strong>：模型不會停下來問「我現在這個中間狀態，離解答是更近還是更遠？」缺乏對進度的前瞻判斷。</li>
+    </ul>
+    <div class="callout warn"><strong>直覺對比：</strong>CoT 像「一口氣把心算過程寫完」，錯了也停不下來；ToT 像「在草稿紙上試好幾種算法、劃掉走不通的、留下有希望的再往下算」。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="idea">
+    <h2><span class="num">②</span> 核心想法</h2>
+    <p>作者從人類問題解決的「雙系統」認知（快速直覺 vs. 深思熟慮的規劃）取靈感，把解題過程建模成一棵樹上的<strong>搜尋（search over a tree）</strong>：</p>
+    <ul>
+      <li><strong>節點＝一個「部分解 / 狀態」</strong>：包含原始輸入，加上到目前為止已產生的一串想法。</li>
+      <li><strong>「想法（thought）」＝一個連貫的語言單位</strong>：小到一行算式、一個字，大到一整段文字計畫——顆粒度由問題決定，要「夠小能被生成與評估、又夠大能有意義地推進」。</li>
+      <li><strong>分支＝在同一狀態下產生多個候選想法</strong>，形成樹的多條路。</li>
+      <li><strong>評估＝讓 LLM 自己當啟發式函數</strong>，判斷每個狀態有沒有希望，決定要展開哪些、剪掉哪些。</li>
+      <li><strong>回溯＝走不通就退回上一個還有希望的節點換路</strong>。</li>
+    </ul>
+
+    <div class="tot-diagram" role="img" aria-label="Chain of Thought 與 Tree of Thoughts 的結構對比示意圖">
+      <svg viewBox="0 0 620 240" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+        <!-- CoT 左側：單鏈 -->
+        <text x="90" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="#5d5b54">Chain of Thought（線性鏈）</text>
+        <circle cx="90" cy="55" r="16" fill="#dcecfa" stroke="#5645d4" stroke-width="1.5"/>
+        <circle cx="90" cy="110" r="16" fill="#dcecfa" stroke="#5645d4" stroke-width="1.5"/>
+        <circle cx="90" cy="165" r="16" fill="#dcecfa" stroke="#5645d4" stroke-width="1.5"/>
+        <circle cx="90" cy="210" r="16" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+        <line x1="90" y1="71" x2="90" y2="94" stroke="#a4a097" stroke-width="1.5"/>
+        <line x1="90" y1="126" x2="90" y2="149" stroke="#a4a097" stroke-width="1.5"/>
+        <line x1="90" y1="181" x2="90" y2="194" stroke="#a4a097" stroke-width="1.5"/>
+
+        <!-- 分隔線 -->
+        <line x1="200" y1="30" x2="200" y2="220" stroke="#e5e3df" stroke-width="1"/>
+
+        <!-- ToT 右側：樹 -->
+        <text x="410" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="#5d5b54">Tree of Thoughts（可分支 / 回溯）</text>
+        <!-- root -->
+        <circle cx="410" cy="55" r="16" fill="#dcecfa" stroke="#5645d4" stroke-width="1.5"/>
+        <!-- level 2 -->
+        <circle cx="320" cy="115" r="15" fill="#f0eeec" stroke="#a4a097" stroke-width="1.5"/>
+        <circle cx="410" cy="115" r="15" fill="#dcecfa" stroke="#5645d4" stroke-width="1.5"/>
+        <circle cx="500" cy="115" r="15" fill="#fde0ec" stroke="#e03131" stroke-width="1.5"/>
+        <line x1="398" y1="67" x2="332" y2="103" stroke="#a4a097" stroke-width="1.5"/>
+        <line x1="410" y1="71" x2="410" y2="100" stroke="#5645d4" stroke-width="1.5"/>
+        <line x1="422" y1="67" x2="488" y2="103" stroke="#a4a097" stroke-width="1.5"/>
+        <!-- level 3 -->
+        <circle cx="370" cy="180" r="15" fill="#f0eeec" stroke="#a4a097" stroke-width="1.5"/>
+        <circle cx="450" cy="180" r="15" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+        <line x1="405" y1="129" x2="378" y2="167" stroke="#a4a097" stroke-width="1.5"/>
+        <line x1="415" y1="129" x2="445" y2="167" stroke="#1aae39" stroke-width="1.5"/>
+        <!-- 標註 -->
+        <text x="500" y="150" text-anchor="middle" font-size="10" fill="#e03131">✗ 剪掉</text>
+        <text x="450" y="215" text-anchor="middle" font-size="10" fill="#1aae39">✓ 解答</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ③ -->
+  <section id="how">
+    <h2><span class="num">③</span> 怎麼實現（四要素）</h2>
+    <p>ToT 是一個<strong>純推理時（inference-time）框架，不改任何模型參數</strong>，只靠 prompt 與外層的搜尋控制流程。要把一個問題套進 ToT，需要回答四個設計問題：</p>
+
+    <table>
+      <thead><tr><th>要素</th><th>要回答的問題</th><th>做法</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1. 思維分解<br>Thought Decomposition</strong></td><td>一步「想法」該多大？共分幾步？</td><td>依問題設計想法的顆粒度（一行算式 / 一句計畫 / 一個字），把解題切成數個中間步驟。</td></tr>
+        <tr><td><strong>2. 想法生成器<br>Thought Generator</strong></td><td>在某狀態下如何產生 k 個候選？</td><td>兩種：<strong>propose</strong>（用一個 prompt 讓模型一次提數個下一步）或 <strong>sample</strong>（用同一個 CoT prompt 獨立取樣 k 次）。</td></tr>
+        <tr><td><strong>3. 狀態評估器<br>State Evaluator</strong></td><td>如何判斷一個狀態值不值得走下去？</td><td>兩種：<strong>value</strong>（讓 LLM 對單一狀態打分，如 sure/maybe/impossible）或 <strong>vote</strong>（讓 LLM 在多個狀態間投票選最好）。LLM 自己當啟發式函數。</td></tr>
+        <tr><td><strong>4. 搜尋演算法<br>Search Algorithm</strong></td><td>用什麼策略在樹上走？</td><td><strong>BFS</strong>（每層只保留最好的 b 個狀態往下擴）或 <strong>DFS</strong>（一路走到底，遇到「impossible」就剪枝並回溯）。</td></tr>
+      </tbody>
+    </table>
+
+    <h3>一輪的運作流程</h3>
+    <p>把四要素串起來，每一層的迴圈是：<strong>生成候選 → 評估 → 依搜尋策略挑選/剪枝 → 前進或回溯</strong>。以 BFS 為例的偽碼：</p>
+    <pre><code><span class="cm"># BFS 版 ToT（每層保留最好的 b 個狀態）</span>
+S = { 初始狀態 x }                      <span class="cm"># 樹根：只有輸入</span>
+for step in range(T):                   <span class="cm"># T = 思維分解的步數</span>
+    <span class="cm"># 1) 想法生成器：對每個狀態展開 k 個候選想法</span>
+    candidates = [ s + thought
+                   for s in S
+                   for thought in generate(s, k) ]
+    <span class="cm"># 2) 狀態評估器：LLM 當啟發式，給每個候選一個 value</span>
+    values = evaluate(candidates)       <span class="cm"># 例：sure / maybe / impossible</span>
+    <span class="cm"># 3) 搜尋：只留分數最高的 b 個，其餘剪掉</span>
+    S = top_b(candidates, values, b)
+return best(S)                          <span class="cm"># 從存活狀態輸出最終解</span></code></pre>
+    <p>DFS 版則是沿一條路徑一路往下，直到抵達解答或評估器判為 <code>impossible</code>；判為不可能時<strong>剪枝並回溯</strong>到上一個還是「maybe」的分岔點，換另一條路繼續。</p>
+
+    <div class="callout tip"><strong>關鍵解耦：</strong>ToT 把「怎麼想（生成）」和「往哪走（搜尋 + 評估）」拆開。生成交給 LLM 的語言能力，搜尋控制交給外層傳統演算法（BFS/DFS），評估則再借一次 LLM 當啟發式——三者用同一個底層模型、不同 prompt 完成。</div>
+  </section>
+
+  <!-- ④ -->
+  <section id="details">
+    <h2><span class="num">④</span> 關鍵細節（三個任務怎麼設計 prompt）</h2>
+    <p>論文用三個任務展示「四要素」如何依問題客製化。這是理解 ToT「怎麼實現」最具體的部分：</p>
+
+    <table>
+      <thead><tr><th>任務</th><th>思維分解</th><th>想法生成</th><th>狀態評估</th><th>搜尋</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Game of 24</strong><br>(用四個數字＋四則運算湊出 24)</td>
+          <td>3 步，每步用掉兩個數做一次運算</td>
+          <td><strong>propose</strong>：一個 prompt 列出當前數字所有可能的下一步運算</td>
+          <td><strong>value</strong>：讓 LLM 判斷剩下的數字「一定 / 也許 / 不可能」湊到 24（sure / maybe / impossible），每個狀態取樣 3 次</td>
+          <td><strong>BFS</strong>，b=1 或 b=5</td>
+        </tr>
+        <tr>
+          <td><strong>Creative Writing</strong><br>(給四個結尾句，寫連貫四段文)</td>
+          <td>2 步：先寫「寫作計畫」，再依計畫成文</td>
+          <td><strong>sample</strong>：獨立取樣數個不同的寫作計畫</td>
+          <td><strong>vote</strong>：讓 LLM 在多個計畫/成品間投票，選最連貫的一個</td>
+          <td><strong>BFS</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Mini Crosswords</strong><br>(5×5 填字)</td>
+          <td>逐字（word）填入，每步填一個橫/直的詞</td>
+          <td>對每個空位提候選詞</td>
+          <td><strong>value</strong>：LLM 判斷剩餘空位是否還可能被填（可行性），不可行就標記</td>
+          <td><strong>DFS + 回溯</strong>：填錯導致死局就退回換詞</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>Prompt 設計的兩個要點</h4>
+    <ul>
+      <li><strong>生成用「propose 還是 sample」看想法空間大小</strong>：想法空間有限、需要不重複（如 Game of 24 的運算、填字的候選詞）用 <strong>propose</strong> 一次列全；想法空間開放、要多樣性（如寫作計畫）用 <strong>sample</strong> 各自獨立產生。</li>
+      <li><strong>評估用「value 還是 vote」看好壞好不好單獨判斷</strong>：能對單一狀態給出「離目標多遠」的（Game of 24、填字）用 <strong>value</strong> 逐一打分；難以絕對評分、但相對好壞可比的（哪段文更連貫）用 <strong>vote</strong> 讓模型們互相比較。</li>
+    </ul>
+
+    <h4>搜尋的深度與廣度（成本旋鈕）</h4>
+    <ul>
+      <li><strong>深度</strong>由思維分解的步數 T 決定（24 是 3 步、寫作是 2 步）。</li>
+      <li><strong>廣度</strong>由分支數 k 與每層保留數 b 決定。b 越大探索越廣、命中率越高，但 LLM 呼叫次數（成本）也越高——這是 ToT 最主要的效能/成本旋鈕。</li>
+    </ul>
+    <div class="callout info"><strong>整體都靠現成 LLM＋prompt：</strong>生成、評估全部是對同一個 GPT-4 發 prompt，外層再用 Python 寫 BFS/DFS 控制流程串起來。不需要微調、不需要額外訓練啟發式模型。</div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="results">
+    <h2><span class="num">⑤</span> 效果與限制</h2>
+    <h3>效果（皆以 GPT-4 為底層模型）</h3>
+    <table>
+      <thead><tr><th>任務</th><th>指標</th><th>基線</th><th>ToT</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Game of 24</strong></td>
+          <td>成功率</td>
+          <td>IO 7.3%｜CoT 4.0%｜CoT-SC 9.0%</td>
+          <td><strong>b=1 為 45%；b=5 為 74%</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Creative Writing</strong></td>
+          <td>連貫性（GPT-4 打分 1–10）</td>
+          <td>IO 6.19｜CoT 6.93</td>
+          <td><strong>7.56</strong>；人類評比中偏好 ToT 41/100 次，偏好 CoT 僅 21 次</td>
+        </tr>
+        <tr>
+          <td><strong>Mini Crosswords</strong></td>
+          <td>字（word）層級成功率</td>
+          <td>IO / CoT 皆低於 16%</td>
+          <td><strong>60%</strong>；解出 4/20 局（若取 DFS 最佳狀態的 oracle 可達 7/20）</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><strong>最搶眼的數字：</strong>Game of 24 上，CoT 只有 4%，換成 ToT（b=5）直接跳到 74%——同一個 GPT-4，差別純粹來自「怎麼組織思考與搜尋」。</div>
+
+    <h3>限制</h3>
+    <ul>
+      <li><strong>成本高</strong>：一次解題要多次生成候選＋多次評估，LLM 呼叫量遠大於單次 CoT；b 越大越貴。對已能直接解決的簡單任務，這種搜尋是不必要的開銷。</li>
+      <li><strong>需要人工設計</strong>：思維分解的顆粒度、propose/sample、value/vote、BFS/DFS 都要針對任務手動配置，不是即插即用。</li>
+      <li><strong>評估器可能不準</strong>：LLM 當啟發式並非完美（填字任務 oracle 4/20→7/20 的落差，說明輸出啟發式仍有改進空間）。</li>
+      <li><strong>適用範圍</strong>：對很多現有任務 GPT-4 直接就能解、不需要刻意搜尋；ToT 的價值集中在需要規劃、前瞻與試錯的問題。</li>
+    </ul>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="map">
+    <h2><span class="num">⑥</span> 在「自我演化」地圖上的位置</h2>
+    <p>在本站的《<a href="../self-evolving-agents.html">自我演化 Agent 導讀</a>》地圖裡，Tree of Thoughts 落在最內圈：</p>
+    <ul>
+      <li><strong>模型中心演化（Model-Centric）</strong> → <strong>推理時演化（Inference-Based）</strong> → <strong>結構化推理（Structured Reasoning）</strong>。</li>
+    </ul>
+    <p>也就是說：ToT <strong>不改模型參數</strong>，純粹靠「改變模型怎麼想」——把線性思考鏈展開成可分支、可評估、可回溯的樹狀搜尋——就能讓同一個模型在需要規劃的任務上大幅變強。它與同格的 <strong>Self-Refine / Reflexion</strong>（序列自我修正）、<strong>Self-Consistency</strong>（平行取樣）是「推理時演化」的三種代表路線，而 ToT 是其中「結構化推理」這一支的奠基工作，後續的 <strong>Language Agent Tree Search、Graph of Thoughts、Stream of Search</strong> 都沿它擴展。</p>
+    <div class="callout"><strong>一句話定位：</strong>ToT 是「不動參數、只換思考結構」就能自我提升的最典型例子——回到地圖看它的鄰居：<a href="../self-evolving-agents.html#model">② 模型中心演化 · 推理時 · 結構化推理</a>。</div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="sources">
+    <h2><span class="num">⑦</span> 來源</h2>
+    <ul>
+      <li>原論文：<em>Tree of Thoughts: Deliberate Problem Solving with Large Language Models</em>，Shunyu Yao, Dian Yu, Jeffrey Zhao, Izhak Shafran, Thomas L. Griffiths, Yuan Cao, Karthik Narasimhan（NeurIPS 2023；arXiv:2305.10601）。</li>
+      <li>官方程式碼：<a href="https://github.com/princeton-nlp/tree-of-thought-llm" target="_blank" rel="noopener">GitHub · princeton-nlp/tree-of-thought-llm</a></li>
+      <li>NeurIPS 2023 收錄頁：<a href="https://papers.nips.cc/paper_files/paper/2023/hash/271db9922b8d1f4dd7aaef84ed5ac703-Abstract-Conference.html" target="_blank" rel="noopener">papers.nips.cc</a></li>
+    </ul>
+    <div class="callout warn">本頁的方法描述與數字取自原論文與官方程式碼庫；arXiv 站點在本次環境無法直接讀取，細節<strong>以原論文為準</strong>。四要素、prompt 策略（propose/sample、value/vote）與各任務數字已交叉查證，若與最新版論文有出入請以官方原文為準。</div>
+
+    <div class="related">
+      <a href="../self-evolving-agents.html">
+        <div class="rel-title">🧬 自我演化 Agent 導讀</div>
+        <div class="rel-sub">ToT 的上層地圖：模型中心 · 推理時 · 結構化推理</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+      <a href="../../skills/index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">agent 靠累積可複用技能變強的另一條路</div>
+      </a>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="../self-evolving-agents.html">← 回到 自我演化 Agent 導讀</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
