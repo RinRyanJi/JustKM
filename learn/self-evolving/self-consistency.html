@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>自我一致性（Self-Consistency）怎麼實現 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../self-evolving-agents.html">← 回到自我演化 Agent 綜述</a>
+
+  <div class="hero">
+    <h1>🗳️ 自我一致性（Self-Consistency）怎麼實現</h1>
+    <p class="sub">Self-Consistency Improves Chain of Thought Reasoning in Language Models · Wang et al., 2022 · 取樣多條推理路徑 → 對最終答案多數決</p>
+    <div>
+      <span class="badge green">推理時演化</span>
+      <span class="badge blue">平行取樣</span>
+      <span class="badge orange">Chain-of-Thought 增強</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#problem">① 它想解決什麼</a>
+      <a href="#idea">② 核心想法</a>
+      <a href="#how">③ 怎麼實現</a>
+      <a href="#details">④ 關鍵細節</a>
+      <a href="#results">⑤ 效果與限制</a>
+      <a href="#map">⑥ 在自我演化地圖上的位置</a>
+      <a href="#sources">⑦ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <div class="callout info">
+      <strong>一句話：</strong>與其讓模型「一條路想到底、選機率最高的那條」（貪婪解碼），不如<strong>讓它用取樣走出好幾條不同的推理路徑，再看這些路徑<u>最後的答案</u>誰票數最多</strong>，就選誰。同一道題若有很多條不同思路都指向同一個答案，那個答案更可能是對的。
+    </div>
+    <p>Self-Consistency 是一個<strong>替換掉 chain-of-thought（CoT）解碼步驟</strong>的簡單策略：不改模型、不需額外訓練、不需驗證器（verifier），只在推理時多跑幾遍再投票，就能把 CoT 的準確率明顯往上推。</p>
+  </section>
+
+  <!-- ① -->
+  <section id="problem">
+    <h2><span class="num">①</span> 它想解決什麼（CoT 貪婪解碼的侷限）</h2>
+    <p>Chain-of-Thought prompting 讓模型在給出答案前先寫出一串推理步驟，大幅改善了算術、常識、符號推理。但標準 CoT 的<strong>解碼方式是「貪婪解碼」（greedy decoding）</strong>：一路挑當下機率最高的 token，只生成<strong>單一一條</strong>推理鏈。</p>
+    <p>這帶來兩個問題：</p>
+    <ul>
+      <li><strong>一條路走到黑：</strong>只要這條唯一的推理鏈中間走錯一步，最終答案就錯，沒有任何補救。</li>
+      <li><strong>浪費了「多元思路」：</strong>對複雜問題，人類往往有<strong>好幾種不同的解法都能得到同一個正確答案</strong>。貪婪解碼只看到其中一種，丟掉了「多路殊途同歸」這個強而有力的正確性訊號。</li>
+    </ul>
+    <div class="callout warn"><strong>關鍵觀察：</strong>正確答案的推理路徑通常<strong>多樣且彼此一致地指向同一結果</strong>；錯誤答案則往往是零散、各走各的。既然如此，「哪個最終答案被最多條不同推理路徑支持」本身就是一個可用的信號——這正是 Self-Consistency 要利用的。
+    </div>
+  </section>
+
+  <!-- ② -->
+  <section id="idea">
+    <h2><span class="num">②</span> 核心想法（取樣多條推理路徑 → 對最終答案多數決）</h2>
+    <p>把 CoT 裡「生成單一鏈」的貪婪解碼，換成三步：</p>
+    <ol>
+      <li><strong>取樣多條推理路徑：</strong>用同一個 CoT prompt，改用<strong>帶隨機性的取樣</strong>（temperature / top-k / nucleus）從模型抽出 <code>N</code> 條<strong>不同</strong>的推理鏈。</li>
+      <li><strong>各自抽出最終答案：</strong>從每條鏈的結尾解析出它主張的最終答案。</li>
+      <li><strong>對答案做多數決（marginalize）：</strong>把不同推理路徑「加總」到它們共同的最終答案上，選<strong>票數最多</strong>的那個答案作為輸出。</li>
+    </ol>
+    <div class="callout tip"><strong>直覺：</strong>推理鏈只是「潛在變數」——我們真正在乎的是<strong>答案</strong>。把很多條鏈對答案做邊際化（marginalize over reasoning paths），等於問「在所有想得到的思路裡，最穩定浮現的結論是什麼」。</div>
+    <p>因為它替換的是 CoT 的「解碼」這一環，所以<strong>與 CoT prompt 完全相容、不需要訓練、不需要額外的模型或人工標註</strong>，是一個 self-contained、unsupervised 的策略。</p>
+  </section>
+
+  <!-- ③ -->
+  <section id="how">
+    <h2><span class="num">③</span> 怎麼實現</h2>
+    <h3>整體流程（三步）</h3>
+    <ol>
+      <li><strong>Prompt：</strong>沿用一組 few-shot 的 chain-of-thought 範例當 prompt（跟原本 CoT 一模一樣，不用改）。</li>
+      <li><strong>Sample N 條 reasoning path：</strong>對同一題，用<strong>取樣式解碼</strong>（temperature &gt; 0）獨立生成 <code>N</code> 條完整的「推理 + 答案」。</li>
+      <li><strong>抽最終答案 → majority vote：</strong>從每條路徑解析出最終答案，做多數決（可帶權重），輸出得票最高者。</li>
+    </ol>
+
+    <h3>虛擬碼</h3>
+    <pre><code><span class="cm"># Self-Consistency：替換 CoT 的貪婪解碼</span>
+<span class="cm"># 輸入：問題 q、few-shot CoT 範例 prompt、取樣數 N、溫度 T</span>
+
+def self_consistency(q, cot_prompt, N=40, T=0.7):
+    answers = []
+    for i in range(N):
+        <span class="cm"># 1) 用「取樣」而非貪婪，走出一條不同的推理路徑</span>
+        chain = LM.sample(cot_prompt + q, temperature=T, top_k=40)
+        <span class="cm"># 2) 從這條鏈的結尾解析出它主張的最終答案</span>
+        a = extract_final_answer(chain)   <span class="cm"># 例如抓 "The answer is X"</span>
+        if a is not None:
+            answers.append(a)
+    <span class="cm"># 3) 對「最終答案」做多數決（marginalize over reasoning paths）</span>
+    return majority_vote(answers)         <span class="cm"># 回傳票數最高的答案</span>
+
+def majority_vote(answers):
+    counts = {}
+    for a in answers:
+        counts[a] = counts.get(a, 0) + 1  <span class="cm"># 也可改成加權投票</span>
+    return max(counts, key=counts.get)
+</code></pre>
+    <div class="callout"><strong>唯一改動點：</strong>對照標準 CoT，只有「解碼」從 <code>greedy_decode()</code> 換成「<code>sample()</code> 跑 N 次 + <code>majority_vote()</code>」。prompt、模型、資料全都不動。</div>
+
+    <h4>投票的一般化形式</h4>
+    <p>最終答案的選法是對答案 <code>a</code> 取 <code>argmax</code> 其累計權重：<code>â = argmax_a Σ_i w_i · 1[answer(path_i) = a]</code>。最簡單、且論文發現已足夠好的設定是<strong>非加權多數決</strong>（每條路徑 <code>w_i = 1</code>）；也可嘗試用模型對該路徑的輸出機率做加權，但增益有限。</p>
+  </section>
+
+  <!-- ④ -->
+  <section id="details">
+    <h2><span class="num">④</span> 關鍵細節</h2>
+
+    <h3>為什麼要取樣（temperature &gt; 0）</h3>
+    <p>整個方法的前提是「拿到<strong>多條彼此不同</strong>的推理路徑」。若用貪婪解碼跑 N 次會得到 N 條一模一樣的鏈，投票沒有意義。因此必須用帶隨機性的解碼——論文採用 <strong>temperature 取樣搭配 top-k / nucleus (top-p)</strong>——來製造推理路徑的多樣性。溫度太低多樣性不足、太高又容易失真，需要取一個中間值（具體數值以原論文為準）。</p>
+
+    <h3>為什麼是「對答案 marginalize」，而不是選機率最高的鏈</h3>
+    <ul>
+      <li><strong>我們要的是答案，不是鏈：</strong>推理鏈是通往答案的「潛在路徑」。把很多條鏈對其最終答案做邊際化（加總票數），比「挑單一條看起來最順的鏈」更穩健。</li>
+      <li><strong>不同表述、同一答案該算同一票：</strong>兩條文字不同但都得到 <code>18</code> 的鏈，應該一起支持 <code>18</code>。因此投票是在<strong>解析後的最終答案</strong>上進行，而不是在鏈的文字上。</li>
+      <li><strong>不需要驗證器：</strong>不像「train 一個 verifier 幫每條鏈打分再挑最好」那類方法，Self-Consistency 完全<strong>不需要額外訓練或標註</strong>，投票本身就是選擇機制。</li>
+    </ul>
+
+    <h3>與 beam search 的差異</h3>
+    <table>
+      <thead><tr><th></th><th>Beam Search</th><th>Self-Consistency（取樣 + 投票）</th></tr></thead>
+      <tbody>
+        <tr><td><strong>目標</strong></td><td>找出<strong>單一條</strong>整體機率最高的序列</td><td>找出被<strong>最多條不同路徑</strong>支持的最終答案</td></tr>
+        <tr><td><strong>多樣性</strong></td><td>各 beam 常高度相似、彼此糾纏</td><td>取樣刻意製造<strong>多樣</strong>的獨立路徑</td></tr>
+        <tr><td><strong>選擇依據</strong></td><td>序列的生成機率</td><td>最終答案的<strong>票數（一致性）</strong></td></tr>
+        <tr><td><strong>結果</strong></td><td>高機率 ≠ 高正確率，仍是一條路走到黑</td><td>用「殊途同歸」當正確性信號，通常更準</td></tr>
+      </tbody>
+    </table>
+    <p>直觀說：beam search 想的是「哪句話講得最流暢／機率最高」，Self-Consistency 想的是「哪個結論最多獨立思路都同意」。後者才對應到「答對」這件事。</p>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="results">
+    <h2><span class="num">⑤</span> 效果與限制</h2>
+    <h3>增益（相對於標準 CoT 的絕對準確率提升）</h3>
+    <p>論文在多個算術與常識推理 benchmark 上，把 Self-Consistency 疊加在 CoT prompting 上，取得顯著且一致的增益：</p>
+    <table>
+      <thead><tr><th>Benchmark</th><th>相對 CoT 的絕對提升</th></tr></thead>
+      <tbody>
+        <tr><td><strong>GSM8K</strong>（小學數學應用題）</td><td><strong>+17.9%</strong></td></tr>
+        <tr><td><strong>SVAMP</strong>（算術）</td><td><strong>+11.0%</strong></td></tr>
+        <tr><td><strong>AQuA</strong>（代數選擇題）</td><td><strong>+12.2%</strong></td></tr>
+        <tr><td><strong>StrategyQA</strong>（多步常識）</td><td><strong>+6.4%</strong></td></tr>
+        <tr><td><strong>ARC-challenge</strong>（科學選擇題）</td><td><strong>+3.9%</strong></td></tr>
+      </tbody>
+    </table>
+    <p>這些增益在多個大型語言模型家族上都成立（論文以當時的大模型如 PaLM-540B、GPT-3、LaMDA、UL2 等驗證；具體對應的每項數字與模型組合以原論文為準）。準確率通常會隨取樣路徑數 <code>N</code> 增加而上升、之後趨於飽和。</p>
+
+    <h3>限制</h3>
+    <ul>
+      <li><strong>成本約為 N 倍：</strong>要生成並解析 <code>N</code> 條完整推理鏈，推理計算量與延遲大致是單次 CoT 的 <code>N</code> 倍，是典型的「用算力換準確率」。</li>
+      <li><strong>只適用有「明確、可比對答案」的任務：</strong>方法依賴「把不同鏈的最終答案聚合起來投票」，因此天生適合答案是<strong>固定值/選項</strong>（數字、選擇題）的任務。對開放式生成（長文、自由問答）沒有天然的「同一個答案」可投票，較難直接套用。</li>
+      <li><strong>需要能可靠解析最終答案：</strong>投票前得從每條鏈抽出答案，若答案格式雜亂，解析誤差會影響結果。</li>
+      <li><strong>沒有超越模型能力上限：</strong>它是把模型「本來就想得到、只是被貪婪解碼漏掉」的正確答案撈出來；若正確思路在取樣分布裡幾乎不出現，投票也救不回來。</li>
+    </ul>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="map">
+    <h2><span class="num">⑥</span> 在自我演化地圖上的位置</h2>
+    <p>在自我演化 Agent 的分類裡，Self-Consistency 落在<strong>模型中心（Model-Centric）→ 推理時演化（Inference-Based）→ 平行取樣（Parallel Sampling）</strong>這一格。</p>
+    <ul>
+      <li><strong>模型中心：</strong>它改進的是「模型怎麼想 / 怎麼解碼」，不動外部環境、記憶或工具。</li>
+      <li><strong>推理時、不改參數：</strong>純粹在 inference 階段運作，不需要訓練、不改權重——是「靠<strong>怎麼想</strong>變強」的代表，而非「靠改參數變強」。</li>
+      <li><strong>平行取樣路線：</strong>與「序列自我修正」（產出→批判→修正，如 Reflexion、Self-Refine）走的是不同路：Self-Consistency 是<strong>一次平行撒出很多條、再彙整投票</strong>，屬於平行取樣家族（與 Large Language Monkeys、LLM-Blender 同類）。</li>
+    </ul>
+    <div class="callout tip"><strong>回到綜述地圖：</strong>它正是綜述中「② 模型中心演化 → 推理時演化 → 平行取樣」表格裡列的第一個代表工作。詳見 <a href="../self-evolving-agents.html#model">② 模型中心演化（Model-Centric）</a>。</div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="sources">
+    <h2><span class="num">⑦</span> 來源</h2>
+    <ul>
+      <li>論文：<em>Self-Consistency Improves Chain of Thought Reasoning in Language Models</em>，Xuezhi Wang, Jason Wei, Dale Schuurmans, Quoc Le, Ed H. Chi, Sharan Narang, Aakanksha Chowdhery, Denny Zhou（Google Research），2022；後發表於 ICLR 2023。</li>
+      <li>arXiv：<a href="https://arxiv.org/abs/2203.11171" target="_blank" rel="noopener">arXiv:2203.11171</a>（本次撰寫時該站被本機 egress proxy 阻擋，數字經第三方檢索交叉核對，細節仍以原論文為準）。</li>
+    </ul>
+    <div class="related">
+      <a href="../self-evolving-agents.html">
+        <div class="rel-title">🧬 自我演化 Agent 綜述</div>
+        <div class="rel-sub">本頁的母綜述地圖（模型中心 → 平行取樣）</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+      <a href="../../skills/index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">agent 靠累積可複用技能變強</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁為論文「怎麼實現」的中文導讀；虛擬碼為說明用途的示意版本，非原論文原始碼。benchmark 數字經第三方來源交叉核對，準確定義、模型組合與完整結果請以原論文為準。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="../self-evolving-agents.html">← 回到自我演化 Agent 綜述</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

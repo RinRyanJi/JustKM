@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>LLM-Blender：成對排序 + 生成式融合 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../self-evolving-agents.html">← 回到 自我演化 Agent 導讀</a>
+
+  <div class="hero">
+    <h1>🎛️ LLM-Blender：集成多個 LLM，取眾長</h1>
+    <p class="sub">成對排序（PairRanker）＋ 生成式融合（GenFuser）· Jiang et al., ACL 2023 · 論文「怎麼實現」逐步拆解</p>
+    <div>
+      <span class="badge blue">Ensembling</span>
+      <span class="badge green">PairRanker + GenFuser</span>
+      <span class="badge orange">MixInstruct 基準</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話</a>
+      <a href="#why">① 想解決什麼</a>
+      <a href="#idea">② 核心想法</a>
+      <a href="#how">③ 怎麼實現</a>
+      <a href="#details">④ 關鍵細節</a>
+      <a href="#results">⑤ 效果與限制</a>
+      <a href="#map">⑥ 自我演化地圖位置</a>
+      <a href="#sources">⑦ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話</h2>
+    <div class="callout info">
+      <strong>一句話：</strong>與其押注在某一個「最強模型」，不如把<strong>多個 LLM 對同一題的答案都拿來</strong>，先用一個<strong>成對比較的排序器（PairRanker）</strong>選出最好的幾個，再用一個<strong>生成式融合器（GenFuser）</strong>把這幾個好答案「揉」成一個比任何單一模型都更好的最終答案。
+    </div>
+    <p>LLM-Blender 是一個<strong>推理時的集成（ensembling）框架</strong>：不重新訓練那些大模型，只在它們的輸出之上加兩個相對小的模型，就把「眾模型之長」聚成一個更穩、更好的回答。</p>
+  </section>
+
+  <!-- ① -->
+  <section id="why">
+    <h2><span class="num">①</span> 想解決什麼</h2>
+    <p>開源 LLM 越來越多，但它們<strong>各有所長、也各有所短</strong>：同一批問題裡，A 模型在某些題目表現最好、B 模型在另一些題目最好，<strong>沒有哪一個模型在所有題目上都是最優</strong>。論文的觀察是——最佳模型會<strong>隨題目而變（example-wise）</strong>。</p>
+    <ul>
+      <li><strong>選單一模型不划算：</strong>就算挑出「平均最強」的那個，它在很多具體題目上仍然輸給別人。</li>
+      <li><strong>簡單投票行不通：</strong>開放式生成（open-ended generation）的答案是自由文字，不像分類有固定選項可以多數決；兩個好答案措辭完全不同，無法直接「投票」。</li>
+      <li><strong>想同時做到兩件事：</strong>(1) 針對每一題挑出最好的候選；(2) 再把幾個好候選的優點<strong>合併</strong>成一個更完整的答案。</li>
+    </ul>
+    <div class="callout tip"><strong>目標：</strong>做一個能「<strong>逐題選優 + 融合成更好</strong>」的集成器，把 N 個現成 LLM 當成一組「顧問」，輸出一個超越任何單一顧問的答案。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="idea">
+    <h2><span class="num">②</span> 核心想法（兩階段）</h2>
+    <p>LLM-Blender 把「集成」拆成<strong>先排序、再融合</strong>兩個階段，各由一個專門模組負責：</p>
+    <table>
+      <thead><tr><th>階段</th><th>模組</th><th>做什麼</th><th>為什麼這樣設計</th></tr></thead>
+      <tbody>
+        <tr><td><strong>階段一<br>Rank</strong></td><td><strong>PairRanker</strong><br>（排序器）</td><td>把 N 個候選答案<strong>兩兩比較</strong>，判斷「哪個更好」，再聚合成排名</td><td>直接給單一答案打絕對分很難、也不穩；<strong>成對比較</strong>能放大候選之間的細微差異，判斷更可靠</td></tr>
+        <tr><td><strong>階段二<br>Fuse</strong></td><td><strong>GenFuser</strong><br>（融合器）</td><td>取排名<strong>最高的 top-K 個</strong>候選，連同原始問題一起，<strong>生成</strong>一個融合後的新答案</td><td>最好的答案可能不在任何單一候選裡，而是幾個候選<strong>各取優點</strong>組合出來的</td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><strong>關鍵直覺：</strong>「選最好的一個」有天花板——最好答案可能沒人單獨寫出來。所以先用 PairRanker <strong>篩掉爛的、留下好的</strong>，再讓 GenFuser 在這些好料上<strong>二次創作</strong>，突破單一模型的上限。</div>
+  </section>
+
+  <!-- ③ -->
+  <section id="how">
+    <h2><span class="num">③</span> 怎麼實現</h2>
+
+    <h3>整體資料流</h3>
+    <pre><code><span class="cm"># 給定一個指令 x，N 個 LLM 各產生一個候選答案</span>
+x  ──►  [LLM₁ … LLM_N]  ──►  候選 {y₁, y₂, …, y_N}
+
+<span class="cm"># 階段一：PairRanker 對候選兩兩比較，聚合出排名</span>
+{y₁…y_N}  ──►  PairRanker  ──►  排名（best → worst）
+
+<span class="cm"># 階段二：取 top-K（論文設 K=3），連同 x 一起餵給 GenFuser 生成融合答案</span>
+x + top-K 候選  ──►  GenFuser  ──►  最終融合答案 ŷ</code></pre>
+
+    <h3>PairRanker：怎麼「成對比較」排序候選</h3>
+    <p>PairRanker 的核心，是把「排序」轉成一連串「<strong>A 好還是 B 好</strong>」的二選一判斷：</p>
+    <ol>
+      <li><strong>輸入編碼：</strong>對一對候選 <code>(yᵢ, yⱼ)</code>，把<strong>原始指令 + 兩個候選一起</strong>拼成單一序列送進編碼器。論文用特殊前綴標記把三段區分開來——如 <code>&lt;|source|&gt;</code>（原始指令）、<code>&lt;|candidate1|&gt;</code>、<code>&lt;|candidate2|&gt;</code>。這讓模型能<strong>同時看到指令與兩個候選、做直接對照</strong>，而不是各自獨立打分。</li>
+      <li><strong>打分模型：</strong>骨幹是 <strong>DeBERTa-v3-Large</strong>（約 304M 參數）的交叉編碼器（cross-encoder）。它讀完 <code>(x, yᵢ, yⱼ)</code> 後輸出一個比較分數，表示在這一對中 <code>yᵢ</code> 相對 <code>yⱼ</code> 誰更好。</li>
+      <li><strong>對稱性處理：</strong>為避免「誰排前面」造成位置偏差，同一對通常會<strong>交換順序各跑一次</strong>，取兩次結果彙整，讓比較更對稱可靠。</li>
+      <li><strong>聚合成排名：</strong>N 個候選兩兩比較會得到一個比較結果矩陣，再把這些成對勝負<strong>聚合成一個總排名</strong>。實作提供兩種推理模式——<code>full</code>（做完整的成對比較矩陣，較準）與 <code>bubble</code>（類似冒泡排序，只做必要比較，較省算力）。</li>
+    </ol>
+    <div class="callout info"><strong>訓練訊號從哪來：</strong>訓練時用自動指標（如 BARTScore、BLEURT、BERTScore）對每個候選與參考答案算出品質分，據此得到「哪個候選比較好」的成對標籤，用來監督 PairRanker 學會人類/指標偏好的比較。</div>
+
+    <h3>GenFuser：怎麼把 top-K 融合成更好答案</h3>
+    <p>GenFuser 是一個<strong>序列到序列（seq2seq）的生成模型</strong>，把「融合」當成一個條件生成任務：</p>
+    <ol>
+      <li><strong>取材：</strong>拿 PairRanker 排名<strong>最高的 top-K 個候選</strong>（論文設 <strong>K=3</strong>）。只用最好的幾個，是為了避免把低品質候選的錯誤也一起帶進來。</li>
+      <li><strong>輸入拼接：</strong>把<strong>原始指令 + 這 K 個候選</strong>依序拼成一段輸入序列（同樣用特殊標記分隔各段），餵給生成器。</li>
+      <li><strong>生成融合：</strong>骨幹是 <strong>Flan-T5-XL</strong>（約 3B 參數）。它<strong>不是照抄</strong>某一個候選，而是綜合這幾個候選的優點、補其不足，<strong>生成一段全新的融合答案</strong>。</li>
+      <li><strong>訓練目標：</strong>以「指令 + top-K 候選」為輸入、以參考答案為目標，用標準的生成式（teacher forcing）目標微調 Flan-T5，讓它學會「怎麼把好料揉成更好的答案」。</li>
+    </ol>
+
+    <h3>訓練資料：MixInstruct 基準</h3>
+    <p>為了訓練與評測這套框架，作者建了一個新基準 <strong>MixInstruct</strong>——第一個大規模、由多個開源 LLM 對同一批指令生成回應的資料集：</p>
+    <table>
+      <thead><tr><th>項目</th><th>內容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>規模</strong></td><td>約 <strong>100k 訓練 / 5k 驗證 / 5k 測試</strong>；測試集中約 <strong>4,771 筆</strong>另用 ChatGPT 做成對比較評估</td></tr>
+        <tr><td><strong>指令來源</strong></td><td>整合四個指令資料集：<strong>Alpaca-GPT4、Dolly-15k、GPT4All-LAION、ShareGPT</strong></td></tr>
+        <tr><td><strong>候選來源</strong></td><td>用 <strong>11 個熱門開源 LLM</strong> 對每則指令各生成一個候選回應（具體清單以原論文為準）</td></tr>
+        <tr><td><strong>參考答案</strong></td><td>來自 ChatGPT / GPT-4 或人工標註</td></tr>
+        <tr><td><strong>成對標籤</strong></td><td>以自動指標與 ChatGPT 成對比較，產生候選之間的「誰更好」監督訊號</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn"><strong>(以原論文為準)：</strong>本頁對 11 個開源 LLM 的完整清單、各模組確切超參數與逐項數值，因抓取來源受限未能全部逐一查證；此處僅列已確認到的要點，細節請以論文原文與官方 repo 為準。</div>
+  </section>
+
+  <!-- ④ -->
+  <section id="details">
+    <h2><span class="num">④</span> 關鍵細節</h2>
+    <ul>
+      <li><strong>為什麼是「成對」而非「打絕對分」：</strong>要模型對單一長答案給穩定的絕對品質分很難；把問題化成「A vs B 哪個好」，能<strong>凸顯候選之間細微差異</strong>，判斷更穩健，這是 PairRanker 設計的核心。</li>
+      <li><strong>兩個小模型撬動一群大模型：</strong>PairRanker（304M）+ GenFuser（3B）相對於被集成的 LLM 都不大，卻能在它們之上榨出額外增益——這是<strong>推理時集成</strong>的性價比所在。</li>
+      <li><strong>Rank 與 Fuse 分工：</strong>PairRanker 負責「<strong>選</strong>」（判別式、比較式），GenFuser 負責「<strong>合</strong>」（生成式）。兩者職責清楚、可各自替換或單獨使用（可以只用 PairRanker 選最佳、不做融合）。</li>
+      <li><strong>full 與 bubble 兩種排序模式：</strong>在準確度與計算量之間權衡——<code>full</code> 做完整成對矩陣最準；<code>bubble</code> 只做必要比較，適合候選多、要省算力時。</li>
+      <li><strong>top-K=3：</strong>融合只取排名前三，兼顧「多樣素材」與「避免引入劣質候選的雜訊」。</li>
+      <li><strong>評測指標：</strong>同時用自動指標（<strong>BARTScore、BERTScore、BLEURT</strong>）與 <strong>ChatGPT/GPT-4 成對比較</strong>（GPT-Rank）交叉驗證。</li>
+    </ul>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="results">
+    <h2><span class="num">⑤</span> 效果與限制</h2>
+    <h3>效果</h3>
+    <ul>
+      <li>在 MixInstruct 上，<strong>LLM-Blender 顯著超越最佳的單一開源 LLM</strong>，也勝過基線的集成方法（依論文報告，跨 BARTScore/BERTScore/BLEURT 與 GPT 成對比較皆有提升）。</li>
+      <li><strong>PairRanker 選出的最佳候選</strong>本身就優於任何固定的單一模型；<strong>再經 GenFuser 融合</strong>後品質進一步提升，證明「選 + 合」兩階段各有貢獻。</li>
+      <li>展示了一條<strong>不改動大模型、只在輸出層做集成</strong>就能拉高整體表現的可行路線。</li>
+    </ul>
+    <h3>限制</h3>
+    <ul>
+      <li><strong>推理成本高：</strong>要先讓 N 個 LLM 各跑一遍產生候選，再跑成對比較與融合——延遲與算力成本是單一模型的數倍。</li>
+      <li><strong>成對比較是平方級：</strong><code>full</code> 模式的比較次數隨候選數平方成長；候選一多就得靠 <code>bubble</code> 之類的近似來省算力。</li>
+      <li><strong>受候選品質天花板約束：</strong>若所有候選都不好，GenFuser 也難無中生有；集成的收益取決於候選集是否<strong>互補</strong>。</li>
+      <li><strong>依賴訓練分佈：</strong>PairRanker / GenFuser 在 MixInstruct 上訓練，換到差異很大的領域或新模型組合時，泛化能力需再驗證。</li>
+      <li><strong>指標與標註偏差：</strong>訓練訊號部分來自自動指標與 ChatGPT 判斷，會繼承這些評判本身的偏好與偏差。</li>
+    </ul>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="map">
+    <h2><span class="num">⑥</span> 在「自我演化」地圖上的位置</h2>
+    <p>把 LLM-Blender 放回本站的自我演化地圖，它屬於最靠內圈的一類——<strong>模型中心（Model-Centric）→ 推理時演化（不改參數）→ 平行取樣／集成</strong>：</p>
+    <table>
+      <thead><tr><th>維度</th><th>歸屬</th></tr></thead>
+      <tbody>
+        <tr><td><strong>大維度</strong></td><td>模型中心演化（Model-Centric）</td></tr>
+        <tr><td><strong>子類</strong></td><td>推理時演化（Inference-Based）— 不改參數，靠「怎麼組織多路輸出」</td></tr>
+        <tr><td><strong>手法</strong></td><td>平行取樣 / 集成：多路答案再彙整（與 Self-Consistency、Large Language Monkeys 同一格）</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><strong>和鄰居的差別：</strong>Self-Consistency 是「<strong>同一個模型</strong>多次取樣後投票」；LLM-Blender 則是「<strong>不同模型各出一版</strong>，再<strong>比較＋生成式融合</strong>」——把「多路彙整」從「投票」升級成「排序後再創作」，因此能用在無固定答案的開放式生成上。它正是導讀中「模型中心 → 推理時 → 平行取樣／集成」那一格的代表工作之一，詳見 <a href="../self-evolving-agents.html#model">② 模型中心演化</a>。</div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="sources">
+    <h2><span class="num">⑦</span> 來源</h2>
+    <ul>
+      <li>論文：<em>LLM-Blender: Ensembling Large Language Models with Pairwise Ranking and Generative Fusion</em>（Dongfu Jiang, Xiang Ren, Bill Yuchen Lin，ACL 2023）· arXiv:2306.02561</li>
+      <li>官方程式碼與資料：<a href="https://github.com/yuchenlin/LLM-Blender" target="_blank" rel="noopener">GitHub · yuchenlin/LLM-Blender</a>（含 PairRanker / GenFuser 與 MixInstruct）</li>
+    </ul>
+    <div class="related">
+      <a href="../self-evolving-agents.html">
+        <div class="rel-title">🧬 自我演化 Agent 導讀</div>
+        <div class="rel-sub">LLM-Blender 所屬的大地圖</div>
+      </a>
+      <a href="../self-evolving-agents.html#model">
+        <div class="rel-title">② 模型中心演化</div>
+        <div class="rel-sub">推理時 → 平行取樣／集成那一格</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+      <a href="../../skills/index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">agent 變強的另一條路</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁為論文「怎麼實現」的中文導讀。因 arXiv／ACL Anthology 於本次環境被網路代理封鎖，內容以官方 GitHub repo 已確認的要點為主；部分逐項數值與 11 個開源 LLM 的完整清單標為「以原論文為準」，引用請以論文原文與官方 repo 為準。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="../self-evolving-agents.html">← 回到 自我演化 Agent 導讀</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

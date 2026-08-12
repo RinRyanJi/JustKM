@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>自我除錯 Self-Debug 論文怎麼實現 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    /* --- 局部：流程步驟卡（沿用主題色，無新變數） --- */
+    .flow { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 14px 0 18px; }
+    .flow .step { border: 1px solid var(--hairline); border-radius: 12px; padding: 14px 16px; background: var(--surface); }
+    .flow .step .k { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 7px; background: var(--primary); color: #fff; font-size: 0.75rem; font-weight: 800; margin-bottom: 8px; }
+    .flow .step .t { font-weight: 700; color: var(--ink); font-size: 0.9rem; margin-bottom: 4px; }
+    .flow .step .d { font-size: 0.8rem; color: var(--slate); }
+    @media (max-width: 640px) { .flow { grid-template-columns: 1fr; } }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../self-evolving-agents.html">← 回到 自我演化 Agent 綜述導讀</a>
+
+  <div class="hero">
+    <h1>🦆 自我除錯 Self-Debug：讓模型自己修自己寫的程式</h1>
+    <p class="sub">Teaching Large Language Models to Self-Debug · Chen, Lin, Schärli, Zhou（Google Research, 2023）· 重點在「怎麼實現」</p>
+    <div>
+      <span class="badge green">推理時自我修正</span>
+      <span class="badge blue">rubber duck debugging</span>
+      <span class="badge orange">Spider / TransCoder / MBPP</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話</a>
+      <a href="#problem">① 想解決什麼</a>
+      <a href="#idea">② 核心想法</a>
+      <a href="#how">③ 怎麼實現</a>
+      <a href="#detail">④ 關鍵細節</a>
+      <a href="#result">⑤ 效果與限制</a>
+      <a href="#map">⑥ 在自我演化地圖的位置</a>
+      <a href="#sources">⑦ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話</h2>
+    <div class="callout info">
+      <strong>Self-Debug＝讓大型語言模型像人一樣「除錯自己寫的程式」：</strong>先產生程式 → 執行拿到回饋（單元測試結果，或讓模型用自然語言解釋自己的程式碼）→ 依回饋修正，如此迴圈。全程<strong>不需人類指出對錯</strong>，也<strong>不需額外訓練</strong>，只靠 few-shot 提示。
+    </div>
+  </section>
+
+  <!-- ① -->
+  <section id="problem">
+    <h2><span class="num">①</span> 想解決什麼</h2>
+    <p>大型語言模型很會「一次生成」程式碼，但一次寫對的機率有限——生成的程式常常有 bug。傳統的補救辦法是<strong>大量取樣</strong>：一口氣生成幾十、上百份候選程式，再挑能通過測試的那份。這很燒算力，而且當<strong>沒有單元測試可篩</strong>（例如 text-to-SQL）時，根本無從挑起。</p>
+    <p>作者問的問題是：<strong>能不能讓模型不要「重寫很多次」，而是「看著自己剛寫的錯誤程式，把它修對」？</strong>就像人類工程師不會把有 bug 的程式整份丟掉重寫，而是坐下來 debug。</p>
+    <div class="callout warn"><strong>關鍵限制：</strong>作者刻意設定「<strong>沒有人類給的正確性標註、也沒有現成錯誤訊息</strong>」的情境——模型必須自己判斷哪裡錯了。這比「有 compiler 報錯就照著改」難得多。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="idea">
+    <h2><span class="num">②</span> 核心想法：橡皮鴨除錯（Rubber Duck Debugging）</h2>
+    <p>本論文的核心類比來自程式圈的老哏——<strong>橡皮鴨除錯法</strong>：工程師卡關時，對著桌上的橡皮鴨<strong>逐行解釋自己的程式在做什麼</strong>，解釋到一半往往就自己發現：「欸，這行跟題目要的不一樣」。不需要橡皮鴨回話，光是「把程式描述出來、跟題目對照」這個動作，就能逼出 bug。</p>
+    <p>Self-Debug 把這件事搬到 LLM 上：讓模型<strong>用自然語言解釋自己剛生成的程式碼</strong>、並<strong>檢視程式的執行結果</strong>，再據此判斷對錯與修正。模型同時扮演「寫程式的人」和「那隻聽解釋的鴨子」。</p>
+    <div class="callout tip"><strong>為什麼重要：</strong>先前研究普遍認為「模型自己產生的回饋」對程式生成幫助不大。本論文的貢獻之一，就是證明<strong>當沒有單元測試時，光靠模型自我解釋（code explanation）也能有效除錯</strong>。</div>
+  </section>
+
+  <!-- ③ -->
+  <section id="how">
+    <h2><span class="num">③</span> 怎麼實現：產生 → 回饋 → 修正 的迴圈</h2>
+    <p>Self-Debug 不改任何模型參數，全靠 <strong>few-shot 示範</strong>教會模型走一個閉環。一個「除錯回合（debugging turn）」由三步組成，然後重複，直到程式判定為正確、或達到最大回合數就停。</p>
+
+    <div class="flow">
+      <div class="step">
+        <span class="k">1</span>
+        <div class="t">生成 Generate</div>
+        <div class="d">模型依題目（自然語言 / 待翻譯的原始碼）先產生一份程式。</div>
+      </div>
+      <div class="step">
+        <span class="k">2</span>
+        <div class="t">執行＋回饋 Feedback</div>
+        <div class="d">執行程式，蒐集執行結果；再由模型生成一則「回饋訊息」判斷這份程式對不對、哪裡不對。</div>
+      </div>
+      <div class="step">
+        <span class="k">3</span>
+        <div class="t">修正 Refine</div>
+        <div class="d">把「原程式＋執行結果＋回饋訊息」餵回模型，請它產生修正後的新程式，回到第 2 步。</div>
+      </div>
+    </div>
+
+    <p>虛擬碼大致長這樣：</p>
+    <pre><code><span class="cm"># Self-Debug 迴圈（示意，非原始碼）</span>
+code = model.generate(problem)              <span class="cm"># 步驟 1：生成</span>
+for turn in range(max_turns):
+    result   = execute(code)                <span class="cm"># 執行，取得輸出 / 錯誤 / 測試結果</span>
+    feedback = model.explain_and_judge(      <span class="cm"># 步驟 2：模型自我解釋＋判斷</span>
+                   problem, code, result)
+    if feedback.says_correct:               <span class="cm"># 判定正確就停</span>
+        break
+    code = model.refine(                     <span class="cm"># 步驟 3：依回饋修正</span>
+               problem, code, result, feedback)
+return code</code></pre>
+
+    <h3>三種回饋（feedback）形式</h3>
+    <p>「怎麼實現」的核心變數，就是<strong>第 2 步的回饋要提供多少資訊</strong>。論文比較了三種由淺到深的回饋：</p>
+    <table>
+      <thead><tr><th>回饋形式</th><th>內容</th><th>適用情境</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Simple<br>簡單回饋</strong></td>
+          <td>最陽春：只給一句「這段程式對 / 錯」，不含任何細節；省略了自我解釋步驟。</td>
+          <td>做為對照基準，衡量「更豐富回饋」到底加了多少值。</td>
+        </tr>
+        <tr>
+          <td><strong>Unit Test (UT)<br>單元測試回饋</strong></td>
+          <td>當題目附有單元測試時，除了用執行檢查對錯，還把<strong>實際執行結果 / 測試失敗細節</strong>納入回饋，資訊最豐富。</td>
+          <td>MBPP、TransCoder 等<strong>有測試可跑</strong>的任務。</td>
+        </tr>
+        <tr>
+          <td><strong>Code Explanation (Expl)<br>程式解釋回饋</strong></td>
+          <td>讓模型<strong>逐行用自然語言解釋自己的程式</strong>（＝橡皮鴨），把解釋與（若有的）執行結果一起當回饋。</td>
+          <td><strong>沒有單元測試</strong>的任務（如 text-to-SQL），是本論文最關鍵的貢獻點。</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>此外，作者也探討了把<strong>執行軌跡（execution trace）</strong>納入回饋——讓模型像人一樣「模擬程式一步步執行」來理解語意。整體精神是：<strong>回饋越貼近人類 debug 的兩種行為（解釋程式、追蹤執行），修正越有效</strong>。</p>
+
+    <h3>三個任務怎麼取得回饋</h3>
+    <table>
+      <thead><tr><th>任務</th><th>要做什麼</th><th>回饋來源</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Spider</strong>（text-to-SQL）</td><td>自然語言問題 → SQL 查詢</td><td>沒有標準答案可比對、也沒單元測試 → 靠<strong>模型解釋 SQL（Expl）</strong>＋執行看回傳表格</td></tr>
+        <tr><td><strong>TransCoder</strong></td><td>C++ 程式 → Python 程式（翻譯）</td><td>有單元測試 → <strong>UT 回饋</strong>，執行看是否通過</td></tr>
+        <tr><td><strong>MBPP</strong></td><td>自然語言 → Python 程式</td><td>有單元測試 → <strong>UT 回饋</strong>（也可疊加解釋）</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ④ -->
+  <section id="detail">
+    <h2><span class="num">④</span> 關鍵細節</h2>
+    <ul>
+      <li><strong>不需訓練、不需人類回饋：</strong>整套方法只用 few-shot 提示，沒有微調模型參數，也不依賴人工標註對錯或現成的 compiler 錯誤訊息。</li>
+      <li><strong>重用失敗的預測：</strong>不像大量取樣「丟掉錯的、重抽新的」，Self-Debug <strong>把失敗程式留下來當作修正的起點</strong>，讓每一份生成都能被繼續改進。</li>
+      <li><strong>樣本效率大幅提升：</strong>因為會「修」而不是「重抽」，Self-Debug 能用少得多的生成次數，<strong>追平甚至超越生成 10 倍以上候選程式的基準做法</strong>。</li>
+      <li><strong>回饋豐富度是主要變因：</strong>從 Simple → Expl → UT，回饋帶的資訊越多，修正效果一般越好；但即使在最弱的「只有自我解釋、無測試」情境，仍能穩定加分。</li>
+      <li><strong>停止條件：</strong>迴圈在「回饋判定程式正確」或「達到最大除錯回合數」時結束。</li>
+    </ul>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="result">
+    <h2><span class="num">⑤</span> 效果與限制</h2>
+    <h3>效果</h3>
+    <table>
+      <thead><tr><th>Benchmark</th><th>提升幅度</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Spider</strong>（text-to-SQL，無單元測試）</td><td>基準 <strong>+2～3%</strong>；最難類別題目 <strong>+9%</strong></td><td>只靠 code explanation 回饋達成，證明「無測試也能自我除錯」</td></tr>
+        <tr><td><strong>TransCoder</strong>（C++→Python）</td><td>最高 <strong>+12%</strong></td><td>有單元測試，UT 回饋</td></tr>
+        <tr><td><strong>MBPP</strong>（text-to-Python）</td><td>最高 <strong>+12%</strong></td><td>有單元測試</td></tr>
+      </tbody>
+    </table>
+    <p>在多個程式生成 benchmark 上取得當時的 state-of-the-art；同時因為會重用失敗程式，<strong>樣本效率</strong>顯著優於大量取樣。</p>
+
+    <h3>限制（以原論文為準）</h3>
+    <ul>
+      <li><strong>需要能執行程式的環境：</strong>回饋很大程度依賴「跑得動程式、拿得到執行結果」；不可執行或副作用強的場景較難套用。</li>
+      <li><strong>自我解釋的天花板來自模型本身：</strong>解釋與判斷都由同一個模型產生，若模型對某類 bug 本來就理解不足，橡皮鴨也叫不醒它。</li>
+      <li><strong>回合與成本取捨：</strong>雖比大量取樣省，但多回合的執行＋生成仍有成本；提升幅度會隨任務、回饋形式而異。</li>
+      <li>本頁數據為公開摘要整理，<strong>精確數字與設定以原論文表格為準（以原論文為準）</strong>。</li>
+    </ul>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="map">
+    <h2><span class="num">⑥</span> 在自我演化地圖的位置</h2>
+    <p>回到 <a href="../self-evolving-agents.html">自我演化 Agent 綜述</a> 的三維地圖，Self-Debug 落在最內圈：</p>
+    <div class="callout info">
+      <strong>模型中心（Model-Centric）→ 推理時演化（Inference-Based）→ 序列自我修正（Sequential Self-Correction）</strong>
+    </div>
+    <p>它<strong>不改參數</strong>，純粹改變「模型怎麼想」：把「產出 → 批判 → 修正」做成一個推理時的迭代迴圈。在綜述的代表工作清單裡，它與 Self-Refine、Reflexion、CRITIC 並列於<strong>序列自我修正</strong>這一格——差別在 Self-Debug 特別聚焦<strong>程式領域</strong>，並用「執行結果＋橡皮鴨式自我解釋」作為回饋來源。</p>
+    <div class="related">
+      <a href="../self-evolving-agents.html#model">
+        <div class="rel-title">② 模型中心演化</div>
+        <div class="rel-sub">Self-Debug 所屬的維度：靠「怎麼想」變強</div>
+      </a>
+      <a href="../self-evolving-agents.html">
+        <div class="rel-title">🧬 自我演化 Agent 綜述導讀</div>
+        <div class="rel-sub">回到三大維度總地圖</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+      <a href="../../skills/index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">agent 靠累積技能變強的另一條路</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="sources">
+    <h2><span class="num">⑦</span> 來源</h2>
+    <ul>
+      <li>論文：<em>Teaching Large Language Models to Self-Debug</em>，Xinyun Chen, Maxwell Lin, Nathanael Schärli, Denny Zhou（Google Research，2023）。arXiv:2304.05128；後發表於 ICLR 2024。</li>
+      <li>arXiv 頁面：<a href="https://arxiv.org/abs/2304.05128" target="_blank" rel="noopener">https://arxiv.org/abs/2304.05128</a></li>
+      <li>ICLR 2024 論文：<a href="https://proceedings.iclr.cc/paper_files/paper/2024/file/2460396f2d0d421885997dd1612ac56b-Paper-Conference.pdf" target="_blank" rel="noopener">proceedings.iclr.cc（Paper-Conference.pdf）</a></li>
+      <li>OpenReview：<a href="https://openreview.net/forum?id=KuPixIqPiq" target="_blank" rel="noopener">openreview.net/forum?id=KuPixIqPiq</a></li>
+    </ul>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁為中文導讀，撰寫時 arXiv / Hugging Face 原文頁面於本環境被網路代理阻擋，內容依公開摘要與檢索片段整理、經交叉比對；<strong>精確數字、實驗設定與方法細節請以原論文為準（以原論文為準）</strong>。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="../self-evolving-agents.html">← 回到 自我演化 Agent 導讀</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
