@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
-  <title>自我演化 Agent（Self-Evolving Agents）綜述導讀 · JustKM</title>
+  <title>EvoAgentX：自動演化 LLM Agent 工作流的框架 · JustKM</title>
   <style>
     :root {
       --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
@@ -75,6 +75,7 @@
     pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
     pre code { color: var(--charcoal); }
     .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
     p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
 
     .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
@@ -111,194 +112,136 @@
   <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
 
   <div class="hero">
-    <h1>🧬 自我演化 Agent（Self-Evolving Agents）綜述導讀</h1>
-    <p class="sub">從「模型中心」到「環境驅動」的共同演化 · 廈門大學 XMUDeepLIT 綜述論文與 Awesome list 的中文地圖</p>
+    <h1>🔁 EvoAgentX：自動演化 LLM Agent 工作流的框架</h1>
+    <p class="sub">從一句目標，自動生成 → 評估 → 演化多代理工作流 · 把「自我演化 agent」的理論做成能 pip install 的工具</p>
     <div>
-      <span class="badge green">研究綜述</span>
-      <span class="badge blue">三大維度分類</span>
-      <span class="badge orange">論文 / Benchmark / 函式庫 / 應用</span>
+      <span class="badge green">Python · MIT</span>
+      <span class="badge blue">Agent Workflow 框架</span>
+      <span class="badge orange">4 種 Optimizer</span>
     </div>
   </div>
 
   <nav class="toc">
     <div class="toc-title">📑 目錄</div>
     <div class="toc-grid">
-      <a href="#what">⓪ 什麼是自我演化 Agent</a>
-      <a href="#taxonomy">① 三大維度總覽</a>
-      <a href="#model">② 模型中心演化</a>
-      <a href="#env">③ 環境中心演化</a>
-      <a href="#co">④ 模型-環境共同演化</a>
-      <a href="#bench">⑤ Benchmarks</a>
-      <a href="#libs">⑥ 開源函式庫</a>
-      <a href="#apps">⑦ 應用</a>
-      <a href="#sources">⑧ 來源與引用</a>
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#pain">① 它解決什麼痛點</a>
+      <a href="#features">② 核心能力</a>
+      <a href="#optimizers">③ 自我演化的核心：4 種 Optimizer</a>
+      <a href="#quickstart">④ 快速開始</a>
+      <a href="#integrations">⑤ 模型與工具整合</a>
+      <a href="#map">⑥ 在「自我演化」地圖上的位置</a>
+      <a href="#sources">⑦ 來源</a>
     </div>
   </nav>
 
   <!-- ⓪ -->
-  <section id="what">
-    <h2><span class="num">⓪</span> 什麼是自我演化 Agent</h2>
-    <p><strong>自我演化 Agent（Self-Evolving Agents）</strong>指的是一種範式轉變：讓 AI agent 系統能<strong>自主地持續改進自己</strong>，而不是訓練完就定型。改進的途徑分三條——<strong>改進模型本身、強化與環境的互動經驗、以及讓模型與環境同時共同演化</strong>。</p>
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>EvoAgentX 是一個開源框架，用來自動「構建 → 評估 → 演化」以 LLM 為核心的智能代理與工作流。</strong>你給一個目標，它能自動生成多代理工作流，內建評分機制打分，再用演化演算法<strong>迭代改進工作流結構與提示</strong>——讓 agent「不只會工作，還會學」。</p>
     <div class="callout info">
-      <strong>一句話：</strong>傳統模型是「訓練 → 凍結 → 部署」；自我演化 agent 是「<strong>部署後還會邊做邊變強</strong>」——靠推理時自我修正、累積經驗記憶、演化工具與架構，甚至自己造環境來練。
+      <strong>📌 一句話定位：</strong>把<a href="./self-evolving-agents.html">自我演化 Agent</a> 那套研究理論(反饋驅動的迭代優化)<strong>做成能直接 <code>pip install</code> 的工具</strong>。維護者 EvoAgentX 社群，授權 MIT，Python 3.11+。
     </div>
-    <p>本頁整理自廈門大學 <strong>XMUDeepLIT</strong> 實驗室的綜述論文《A Systematic Survey of Self-Evolving Agents: From Model-Centric to Environment-Driven Co-Evolution》(2026) 及其 Awesome list，把龐大的論文地圖濃縮成可導覽的中文結構。</p>
   </section>
 
   <!-- ① -->
-  <section id="taxonomy">
-    <h2><span class="num">①</span> 三大維度總覽</h2>
-    <table>
-      <thead><tr><th>維度</th><th>演化什麼</th><th>核心手法</th></tr></thead>
-      <tbody>
-        <tr><td><strong>② 模型中心<br>Model-Centric</strong></td><td>模型本身的推理與參數</td><td>推理時(平行取樣、序列自我修正、結構化推理)＋訓練時(離線合成、線上探索)</td></tr>
-        <tr><td><strong>③ 環境中心<br>Environment-Centric</strong></td><td>外部知識、經驗、架構</td><td>靜態知識演化、動態經驗演化、模組架構演化、拓撲演化</td></tr>
-        <tr><td><strong>④ 模型-環境共同演化<br>Co-Evolution</strong></td><td>兩者同時</td><td>多代理策略共演、環境訓練(課程/可擴展環境)</td></tr>
-      </tbody>
-    </table>
-    <div class="callout tip"><strong>怎麼讀這張地圖：</strong>由內而外——先看能不能<strong>把模型本身變強(②)</strong>；不夠就<strong>讓環境/經驗幫它變強(③)</strong>;最強的是<strong>兩邊一起長(④)</strong>，模型與它所處的環境互相把對方推上去。
-    </div>
+  <section id="pain">
+    <h2><span class="num">①</span> 它解決什麼痛點</h2>
+    <ul>
+      <li><strong>手刻工作流很脆</strong>：靜態的提示鏈、手動編排的多代理系統，改一個環節就要全盤重調。</li>
+      <li><strong>提示調校靠人試</strong>：prompt 好不好只能人肉反覆試，沒有系統化的優化迴圈。</li>
+      <li><strong>沒有回饋迴路</strong>：跑完就結束，agent 不會從結果變好。</li>
+    </ul>
+    <p>EvoAgentX 的答案：把「<strong>自動生成工作流 + 自動評估 + 自動演化</strong>」變成內建能力——類似軟體工程的持續測試與改進，只是對象是 agent 的<strong>工作流結構與提示</strong>。</p>
   </section>
 
   <!-- ② -->
-  <section id="model">
-    <h2><span class="num">②</span> 模型中心演化（Model-Centric）</h2>
-    <h3>推理時演化（Inference-Based）— 不改參數，靠「怎麼想」</h3>
+  <section id="features">
+    <h2><span class="num">②</span> 核心能力</h2>
     <table>
-      <thead><tr><th>手法</th><th>做法</th><th>代表工作</th></tr></thead>
+      <thead><tr><th>能力</th><th>說明</th></tr></thead>
       <tbody>
-        <tr><td><strong>平行取樣</strong></td><td>多路答案再彙整/投票</td><td>Self-Consistency、Large Language Monkeys、LLM-Blender</td></tr>
-        <tr><td><strong>序列自我修正</strong></td><td>產出→批判→修正的迭代</td><td>Self-Refine、Self-Debug、<strong>Reflexion</strong>、CRITIC</td></tr>
-        <tr><td><strong>結構化推理</strong></td><td>把思考展開成樹/圖/搜尋</td><td>Tree of Thoughts、Think-on-Graph、Language Agent Tree Search、Stream of Search</td></tr>
-      </tbody>
-    </table>
-    <h3>訓練時演化（Training-Based）🔥 — 真的改參數</h3>
-    <table>
-      <thead><tr><th>類型</th><th>做法</th><th>代表工作</th></tr></thead>
-      <tbody>
-        <tr><td><strong>離線合成自演化</strong></td><td>自己造資料再自我訓練</td><td>Self-Instruct、STaR、Self-Play Fine-Tuning、Beyond Human Data</td></tr>
-        <tr><td><strong>線上探索自演化</strong> 🔥</td><td>邊探索邊用 RL 自我對弈變強</td><td>Absolute Zero、R-Zero、SeRL、WebRL、TTCS(測試時課程合成)、Co-evolving Coder & Tester</td></tr>
+        <tr><td><strong>自動構建</strong></td><td>從單一提示生成結構化的多代理工作流</td></tr>
+        <tr><td><strong>內建評估</strong></td><td>自動替 agent 行為打分，作為演化的依據</td></tr>
+        <tr><td><strong>自我演化</strong></td><td>用演化演算法迭代改進工作流與提示</td></tr>
+        <tr><td><strong>豐富工具庫</strong></td><td>20+ 內建工具：Python 解譯器、搜尋、檔案系統、資料庫、瀏覽器自動化</td></tr>
+        <tr><td><strong>記憶模組</strong></td><td>短期與長期記憶支援</td></tr>
+        <tr><td><strong>人類迴圈(HITL)</strong></td><td>互動檢查點，關鍵步驟可人工介入</td></tr>
+        <tr><td><strong>即插即用模型</strong></td><td>OpenAI、Qwen、Claude、Deepseek 等</td></tr>
       </tbody>
     </table>
   </section>
 
   <!-- ③ -->
-  <section id="env">
-    <h2><span class="num">③</span> 環境中心演化（Environment-Centric）</h2>
-    <p>模型不動，靠<strong>外部的知識、經驗、記憶、工具與架構</strong>變強。這是與 agent 工程最相關的一塊。</p>
-
-    <h3>靜態知識演化 — 檢索與深度研究</h3>
-    <ul>
-      <li><strong>Agentic RAG</strong>：Self-RAG、Search-o1、Search-R1、MindSearch——讓檢索本身變成會推理、會批判的動作。</li>
-      <li><strong>深度研究(Deep Research)</strong>：WebVoyager、DeepResearcher、WebWeaver、Tongyi DeepResearch——多步搜尋+彙整成報告。</li>
-    </ul>
-
-    <h3>動態經驗演化 🔥 — 記憶與經驗累積(最貼近實務)</h3>
+  <section id="optimizers">
+    <h2><span class="num">③</span> 自我演化的核心：4 種 Optimizer</h2>
+    <p>EvoAgentX 的「演化」不是玄學，而是一組可選的<strong>優化器</strong>，各自用不同策略改進提示或工作流：</p>
     <table>
-      <thead><tr><th>子類</th><th>意義</th><th>代表工作</th></tr></thead>
+      <thead><tr><th>Optimizer</th><th>策略</th><th>適合</th></tr></thead>
       <tbody>
-        <tr><td><strong>離線經驗編纂</strong></td><td>把做過的事整理成可複用經驗</td><td>SkillWeaver、Agent KB、ARCMEMO、Procedural Memory</td></tr>
-        <tr><td><strong>線上經驗調適</strong></td><td>測試時即時調整記憶</td><td>Dynamic Cheatsheet、Memento、GEPA、Agentic Context Engineering</td></tr>
-        <tr><td><strong>終身經驗演化</strong> 🔥</td><td>跨任務長期累積</td><td>ReasoningBank、AgentEvolver、FLEX、Memgen、LatentEvolve</td></tr>
-        <tr><td><strong>技能增強演化</strong> 🔥</td><td>創建/評估/連結技能</td><td>AutoSkill、SkillRL、SkillNet、ARISE、SkillsBench</td></tr>
+        <tr><td><strong>TextGrad</strong></td><td>「文字梯度」——用 LLM 產生的自然語言回饋當梯度來改提示</td><td>單點提示的精修</td></tr>
+        <tr><td><strong>MIPRO</strong></td><td>模型無關的黑盒迭代優化(來自 DSPy 生態)</td><td>多階段提示 + 少量標註評估</td></tr>
+        <tr><td><strong>AFlow</strong></td><td>用蒙地卡羅樹搜尋(MCTS)做 RL 風格的工作流結構演化</td><td>整個工作流的結構搜尋</td></tr>
+        <tr><td><strong>EvoPrompt</strong></td><td>反饋驅動的動態提示演化</td><td>提示的持續演化</td></tr>
       </tbody>
     </table>
-
-    <h3>模組架構演化 — 記憶架構與工具</h3>
-    <ul>
-      <li><strong>互動協定/記憶架構</strong>：MemGPT、MemoryBank、A-Mem、<strong>Mem0</strong>、Memory-of-Thought、AgentFold——把記憶做成可管理的系統。</li>
-      <li><strong>工具增強</strong>：ReAct、WebGPT、PAL、<strong>Voyager</strong>、CRAFT、Gödel Agent、ALITA、EvoTest——會用工具、甚至自己造工具。</li>
-    </ul>
-
-    <h3>Agentic 拓撲演化 — 多代理結構自動設計</h3>
-    <ul>
-      <li><strong>離線架構搜尋</strong>：AFlow、AutoFlow、Agents as Optimizable Graphs、Automated Design of Agentic Systems。</li>
-      <li><strong>執行時動態調適</strong>：EvoAgent、AutoAgents、G-Designer、Adaptive Graph Pruning、REMA。</li>
-      <li><strong>結構化狀態演化</strong>：G-Memory、SEDM、Collaborative Memory(含存取控制)。</li>
-    </ul>
+    <div class="callout tip"><strong>怎麼選：</strong>要改<strong>單一提示</strong>→ TextGrad / EvoPrompt;要改<strong>多階段管線</strong>→ MIPRO;要動<strong>整個工作流的結構(誰接誰)</strong>→ AFlow。</div>
   </section>
 
   <!-- ④ -->
-  <section id="co">
-    <h2><span class="num">④</span> 模型-環境共同演化（Co-Evolution）🔥</h2>
-    <p>最強、也最難的一類：<strong>模型與環境同時演化，互相把對方推上去</strong>。</p>
-    <h3>多代理策略共演</h3>
-    <p>多個 agent 在互動中一起變強：Stronger-MAS、Group-Evolving Agents、CORAL、MapORL、MarFT、CoMAS(靠互動獎勵共演)。</p>
-    <h3>環境訓練 🔥 — 讓環境也跟著長</h3>
-    <ul>
-      <li><strong>自適應課程演化</strong>：GenEnv(難度對齊共演)、RLVE、「別只調 agent，也調環境」。</li>
-      <li><strong>可擴展環境演化</strong>：AgentGym、GEM、Reasoning Gym、AutoEnv、ScaleEnv、Endless Terminals——自動合成/擴展訓練環境。</li>
-    </ul>
-    <div class="callout"><strong>核心洞見：</strong>當任務越做越好、環境卻不變難，agent 就停滯。<strong>讓環境隨 agent 能力自動加難(課程)</strong>，才能持續逼出成長——這就是共同演化的精神。</div>
+  <section id="quickstart">
+    <h2><span class="num">④</span> 快速開始</h2>
+    <pre><code><span class="cm"># 安裝</span>
+pip install evoagentx</code></pre>
+    <pre><code><span class="cm"># 從一句目標自動生成多代理工作流</span>
+<span class="kw">from</span> evoagentx.workflow <span class="kw">import</span> WorkFlowGenerator
+<span class="kw">from</span> evoagentx.models <span class="kw">import</span> OpenAILLM
+
+llm = OpenAILLM(config=openai_config)
+workflow_graph = WorkFlowGenerator(llm=llm).generate_workflow(<span style="color:#c2410c;">"你的目標描述"</span>)
+<span class="cm"># 之後可再接評估與 optimizer(TextGrad / MIPRO / AFlow / EvoPrompt)迭代演化</span></code></pre>
+    <div class="callout warn"><strong>提醒：</strong>API 細節與參數以官方 <a href="https://github.com/EvoAgentX/EvoAgentX" target="_blank" rel="noopener">GitHub</a> / 文件最新版為準;此處僅示意最小流程。需要 Python 3.11+,依賴 LiteLLM、DSPy 等。</div>
   </section>
 
   <!-- ⑤ -->
-  <section id="bench">
-    <h2><span class="num">⑤</span> Benchmarks（怎麼評估）</h2>
-    <table>
-      <thead><tr><th>類別</th><th>代表 benchmark</th></tr></thead>
-      <tbody>
-        <tr><td><strong>通用知識</strong></td><td>MMLU / MMLU-Pro、HotpotQA、MuSiQue、BBH、LongBench、HLE</td></tr>
-        <tr><td><strong>科學推理</strong></td><td>GPQA、SuperGPQA、SciBench、ChemBench</td></tr>
-        <tr><td><strong>數學推理</strong></td><td>AIME、OlympiadBench、GSM8K、MATH、AMC</td></tr>
-        <tr><td><strong>程式生成</strong></td><td>LiveCodeBench、BigCodeBench、HumanEval、MBPP、CRUXEval</td></tr>
-        <tr><td><strong>網頁導航</strong></td><td>WebArena、WebShop、Mind2Web、WebVoyager、VisualWebArena</td></tr>
-        <tr><td><strong>統一框架 / 工具</strong></td><td>GAIA、AgentBench、AgentBoard、AgentGym、ToolLLM</td></tr>
-        <tr><td><strong>軟體工程 / OS</strong></td><td>SWE-bench、Terminal-Bench、OSWorld</td></tr>
-      </tbody>
-    </table>
+  <section id="integrations">
+    <h2><span class="num">⑤</span> 模型與工具整合</h2>
+    <ul>
+      <li><strong>模型</strong>：原生 OpenAI / Qwen;或透過 <strong>LiteLLM、SiliconFlow、OpenRouter</strong> 使用 Claude、Deepseek 等。</li>
+      <li><strong>工具</strong>：20+ 內建工具包——Python 解譯器、Google 搜尋、MongoDB、FAISS、瀏覽器自動化等;支援 <strong>MCP</strong> 與 Docker。</li>
+      <li><strong>生態</strong>：建於 <strong>LiteLLM + DSPy</strong> 之上,優化器與 DSPy 系(MIPRO)一脈相承。</li>
+    </ul>
   </section>
 
   <!-- ⑥ -->
-  <section id="libs">
-    <h2><span class="num">⑥</span> 開源函式庫</h2>
-    <table>
-      <thead><tr><th>分類</th><th>函式庫</th></tr></thead>
-      <tbody>
-        <tr><td><strong>Agent 編排</strong></td><td>LangGraph、LlamaIndex、AutoGen、MetaGPT、Aeon</td></tr>
-        <tr><td><strong>分散式訓練</strong></td><td>Megatron-LM、DeepSpeed(ZeRO)</td></tr>
-        <tr><td><strong>後訓練 / 對齊</strong></td><td>TRL、OpenRLHF、VeRL、slime</td></tr>
-        <tr><td><strong>高效微調</strong></td><td>LLaMA Factory、Unsloth</td></tr>
-        <tr><td><strong>推理 / 服務</strong></td><td>vLLM(PagedAttention)、SGLang(RadixAttention)</td></tr>
-      </tbody>
-    </table>
+  <section id="map">
+    <h2><span class="num">⑥</span> 在「自我演化」地圖上的位置</h2>
+    <p>對照 <a href="./self-evolving-agents.html">自我演化 Agent 綜述</a> 的三大維度,EvoAgentX 主要落在:</p>
+    <ul>
+      <li><strong>環境中心 · Agentic 拓撲演化</strong>：AFlow 這類「工作流結構自動搜尋」正是拓撲演化的代表(綜述裡 AFlow、EvoAgent 同屬此類)。</li>
+      <li><strong>模型中心 · 推理時演化</strong>：TextGrad / EvoPrompt 的提示自我修正,屬「不改參數、改怎麼想」。</li>
+    </ul>
+    <div class="callout"><strong>一句話:</strong>綜述頁講「有哪些演化路線」,EvoAgentX 是把其中<strong>「提示優化 + 工作流結構搜尋」這兩條做成可用框架</strong>的實作。想動手,從這裡開始。</div>
   </section>
 
   <!-- ⑦ -->
-  <section id="apps">
-    <h2><span class="num">⑦</span> 應用（自我演化落地在哪）</h2>
-    <h3>自動科學發現</h3>
-    <p>AI Scientist(自動寫論文)、<strong>AlphaProof</strong>(IMO 銀牌級數學)、ChemCrow、Coscientist、GNoME(發現 220 萬晶體)、A-Lab(71% 合成成功率)、CRESt。</p>
-    <h3>自主軟體工程</h3>
-    <p>SWE-agent、<strong>Claude Code</strong>(技能累積、資深級)、Devin、Cursor(人機共演)、Manus、OpenClaw。</p>
-    <h3>開放世界模擬</h3>
-    <p><strong>Voyager</strong>(Minecraft，探索-寫程式-儲存技能，15.3× 更快)、GITM、Cradle(GUI 控制)、Generative Agents(社會模擬)、Project Sid(湧現經濟)、SIMA、Genie(可互動世界模型)。</p>
-    <div class="callout tip"><strong>跟本站的連結：</strong>表中的 <strong>Claude Code</strong> 被列為「技能累積型」自我演化的軟體工程代表——這正呼應本站 <a href="../skills/index.html">Skills 專區</a> 的主題:agent 靠<strong>累積可複用技能</strong>變強。</div>
-  </section>
-
-  <!-- ⑧ -->
   <section id="sources">
-    <h2><span class="num">⑧</span> 來源與引用</h2>
+    <h2><span class="num">⑦</span> 來源</h2>
     <ul>
-      <li><a href="https://github.com/XMUDeepLIT/Awesome-Self-Evolving-Agents" target="_blank" rel="noopener">GitHub · XMUDeepLIT/Awesome-Self-Evolving-Agents</a>（持續更新中）</li>
-      <li>綜述論文：<em>A Systematic Survey of Self-Evolving Agents: From Model-Centric to Environment-Driven Co-Evolution</em>（Xiang, Yang et al., 2026）</li>
+      <li><a href="https://github.com/EvoAgentX/EvoAgentX" target="_blank" rel="noopener">GitHub · EvoAgentX/EvoAgentX</a>（MIT）</li>
     </ul>
     <div class="related">
-      <a href="./evoagentx.html">
-        <div class="rel-title">🔁 EvoAgentX 框架</div>
-        <div class="rel-sub">把這套理論做成能 pip install 的實作</div>
+      <a href="./self-evolving-agents.html">
+        <div class="rel-title">🧬 自我演化 Agent 綜述</div>
+        <div class="rel-sub">EvoAgentX 背後的研究地圖</div>
       </a>
       <a href="./ai-context-compression.html">
         <div class="rel-title">🗜️ AI 上下文壓縮</div>
-        <div class="rel-sub">外部化記憶——環境中心演化的一環</div>
+        <div class="rel-sub">記憶與經驗外部化</div>
       </a>
       <a href="../skills/index.html">
         <div class="rel-title">🧩 Skills 分析專區</div>
-        <div class="rel-sub">技能累積：agent 變強的一條路</div>
-      </a>
-      <a href="./oh-my-pi.html">
-        <div class="rel-title">🥧 oh-my-pi 深入</div>
-        <div class="rel-sub">跨 session 記憶的編碼 harness</div>
+        <div class="rel-sub">技能累積:另一條讓 agent 變強的路</div>
       </a>
       <a href="./index.html">
         <div class="rel-title">📚 AI 學習總目錄</div>
@@ -306,7 +249,7 @@
       </a>
     </div>
     <div class="callout warn" style="margin-top:14px;">
-      本頁為綜述的中文導讀與地圖，僅取代表性條目，非完整清單；論文分類、名稱與最新內容以官方 repo 與論文原文為準。授權未於 repo 明列，引用請依原論文。
+      本頁整理自 repo 公開資料(撰寫時),功能與 API 持續演進,實際以官方 GitHub / 文件為準;未列 star 數。
     </div>
   </section>
 
