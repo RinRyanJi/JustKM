@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>自我演化 Agent（Self-Evolving Agents）綜述導讀 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🧬 自我演化 Agent（Self-Evolving Agents）綜述導讀</h1>
+    <p class="sub">從「模型中心」到「環境驅動」的共同演化 · 廈門大學 XMUDeepLIT 綜述論文與 Awesome list 的中文地圖</p>
+    <div>
+      <span class="badge green">研究綜述</span>
+      <span class="badge blue">三大維度分類</span>
+      <span class="badge orange">論文 / Benchmark / 函式庫 / 應用</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#what">⓪ 什麼是自我演化 Agent</a>
+      <a href="#taxonomy">① 三大維度總覽</a>
+      <a href="#model">② 模型中心演化</a>
+      <a href="#env">③ 環境中心演化</a>
+      <a href="#co">④ 模型-環境共同演化</a>
+      <a href="#bench">⑤ Benchmarks</a>
+      <a href="#libs">⑥ 開源函式庫</a>
+      <a href="#apps">⑦ 應用</a>
+      <a href="#sources">⑧ 來源與引用</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="what">
+    <h2><span class="num">⓪</span> 什麼是自我演化 Agent</h2>
+    <p><strong>自我演化 Agent（Self-Evolving Agents）</strong>指的是一種範式轉變：讓 AI agent 系統能<strong>自主地持續改進自己</strong>，而不是訓練完就定型。改進的途徑分三條——<strong>改進模型本身、強化與環境的互動經驗、以及讓模型與環境同時共同演化</strong>。</p>
+    <div class="callout info">
+      <strong>一句話：</strong>傳統模型是「訓練 → 凍結 → 部署」；自我演化 agent 是「<strong>部署後還會邊做邊變強</strong>」——靠推理時自我修正、累積經驗記憶、演化工具與架構，甚至自己造環境來練。
+    </div>
+    <p>本頁整理自廈門大學 <strong>XMUDeepLIT</strong> 實驗室的綜述論文《A Systematic Survey of Self-Evolving Agents: From Model-Centric to Environment-Driven Co-Evolution》(2026) 及其 Awesome list，把龐大的論文地圖濃縮成可導覽的中文結構。</p>
+  </section>
+
+  <!-- ① -->
+  <section id="taxonomy">
+    <h2><span class="num">①</span> 三大維度總覽</h2>
+    <table>
+      <thead><tr><th>維度</th><th>演化什麼</th><th>核心手法</th></tr></thead>
+      <tbody>
+        <tr><td><strong>② 模型中心<br>Model-Centric</strong></td><td>模型本身的推理與參數</td><td>推理時(平行取樣、序列自我修正、結構化推理)＋訓練時(離線合成、線上探索)</td></tr>
+        <tr><td><strong>③ 環境中心<br>Environment-Centric</strong></td><td>外部知識、經驗、架構</td><td>靜態知識演化、動態經驗演化、模組架構演化、拓撲演化</td></tr>
+        <tr><td><strong>④ 模型-環境共同演化<br>Co-Evolution</strong></td><td>兩者同時</td><td>多代理策略共演、環境訓練(課程/可擴展環境)</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><strong>怎麼讀這張地圖：</strong>由內而外——先看能不能<strong>把模型本身變強(②)</strong>；不夠就<strong>讓環境/經驗幫它變強(③)</strong>;最強的是<strong>兩邊一起長(④)</strong>，模型與它所處的環境互相把對方推上去。
+    </div>
+  </section>
+
+  <!-- ② -->
+  <section id="model">
+    <h2><span class="num">②</span> 模型中心演化（Model-Centric）</h2>
+    <h3>推理時演化（Inference-Based）— 不改參數，靠「怎麼想」</h3>
+    <table>
+      <thead><tr><th>手法</th><th>做法</th><th>代表工作</th></tr></thead>
+      <tbody>
+        <tr><td><strong>平行取樣</strong></td><td>多路答案再彙整/投票</td><td>Self-Consistency、Large Language Monkeys、LLM-Blender</td></tr>
+        <tr><td><strong>序列自我修正</strong></td><td>產出→批判→修正的迭代</td><td>Self-Refine、Self-Debug、<strong>Reflexion</strong>、CRITIC</td></tr>
+        <tr><td><strong>結構化推理</strong></td><td>把思考展開成樹/圖/搜尋</td><td>Tree of Thoughts、Think-on-Graph、Language Agent Tree Search、Stream of Search</td></tr>
+      </tbody>
+    </table>
+    <h3>訓練時演化（Training-Based）🔥 — 真的改參數</h3>
+    <table>
+      <thead><tr><th>類型</th><th>做法</th><th>代表工作</th></tr></thead>
+      <tbody>
+        <tr><td><strong>離線合成自演化</strong></td><td>自己造資料再自我訓練</td><td>Self-Instruct、STaR、Self-Play Fine-Tuning、Beyond Human Data</td></tr>
+        <tr><td><strong>線上探索自演化</strong> 🔥</td><td>邊探索邊用 RL 自我對弈變強</td><td>Absolute Zero、R-Zero、SeRL、WebRL、TTCS(測試時課程合成)、Co-evolving Coder & Tester</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ③ -->
+  <section id="env">
+    <h2><span class="num">③</span> 環境中心演化（Environment-Centric）</h2>
+    <p>模型不動，靠<strong>外部的知識、經驗、記憶、工具與架構</strong>變強。這是與 agent 工程最相關的一塊。</p>
+
+    <h3>靜態知識演化 — 檢索與深度研究</h3>
+    <ul>
+      <li><strong>Agentic RAG</strong>：Self-RAG、Search-o1、Search-R1、MindSearch——讓檢索本身變成會推理、會批判的動作。</li>
+      <li><strong>深度研究(Deep Research)</strong>：WebVoyager、DeepResearcher、WebWeaver、Tongyi DeepResearch——多步搜尋+彙整成報告。</li>
+    </ul>
+
+    <h3>動態經驗演化 🔥 — 記憶與經驗累積(最貼近實務)</h3>
+    <table>
+      <thead><tr><th>子類</th><th>意義</th><th>代表工作</th></tr></thead>
+      <tbody>
+        <tr><td><strong>離線經驗編纂</strong></td><td>把做過的事整理成可複用經驗</td><td>SkillWeaver、Agent KB、ARCMEMO、Procedural Memory</td></tr>
+        <tr><td><strong>線上經驗調適</strong></td><td>測試時即時調整記憶</td><td>Dynamic Cheatsheet、Memento、GEPA、Agentic Context Engineering</td></tr>
+        <tr><td><strong>終身經驗演化</strong> 🔥</td><td>跨任務長期累積</td><td>ReasoningBank、AgentEvolver、FLEX、Memgen、LatentEvolve</td></tr>
+        <tr><td><strong>技能增強演化</strong> 🔥</td><td>創建/評估/連結技能</td><td>AutoSkill、SkillRL、SkillNet、ARISE、SkillsBench</td></tr>
+      </tbody>
+    </table>
+
+    <h3>模組架構演化 — 記憶架構與工具</h3>
+    <ul>
+      <li><strong>互動協定/記憶架構</strong>：MemGPT、MemoryBank、A-Mem、<strong>Mem0</strong>、Memory-of-Thought、AgentFold——把記憶做成可管理的系統。</li>
+      <li><strong>工具增強</strong>：ReAct、WebGPT、PAL、<strong>Voyager</strong>、CRAFT、Gödel Agent、ALITA、EvoTest——會用工具、甚至自己造工具。</li>
+    </ul>
+
+    <h3>Agentic 拓撲演化 — 多代理結構自動設計</h3>
+    <ul>
+      <li><strong>離線架構搜尋</strong>：AFlow、AutoFlow、Agents as Optimizable Graphs、Automated Design of Agentic Systems。</li>
+      <li><strong>執行時動態調適</strong>：EvoAgent、AutoAgents、G-Designer、Adaptive Graph Pruning、REMA。</li>
+      <li><strong>結構化狀態演化</strong>：G-Memory、SEDM、Collaborative Memory(含存取控制)。</li>
+    </ul>
+  </section>
+
+  <!-- ④ -->
+  <section id="co">
+    <h2><span class="num">④</span> 模型-環境共同演化（Co-Evolution）🔥</h2>
+    <p>最強、也最難的一類：<strong>模型與環境同時演化，互相把對方推上去</strong>。</p>
+    <h3>多代理策略共演</h3>
+    <p>多個 agent 在互動中一起變強：Stronger-MAS、Group-Evolving Agents、CORAL、MapORL、MarFT、CoMAS(靠互動獎勵共演)。</p>
+    <h3>環境訓練 🔥 — 讓環境也跟著長</h3>
+    <ul>
+      <li><strong>自適應課程演化</strong>：GenEnv(難度對齊共演)、RLVE、「別只調 agent，也調環境」。</li>
+      <li><strong>可擴展環境演化</strong>：AgentGym、GEM、Reasoning Gym、AutoEnv、ScaleEnv、Endless Terminals——自動合成/擴展訓練環境。</li>
+    </ul>
+    <div class="callout"><strong>核心洞見：</strong>當任務越做越好、環境卻不變難，agent 就停滯。<strong>讓環境隨 agent 能力自動加難(課程)</strong>，才能持續逼出成長——這就是共同演化的精神。</div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="bench">
+    <h2><span class="num">⑤</span> Benchmarks（怎麼評估）</h2>
+    <table>
+      <thead><tr><th>類別</th><th>代表 benchmark</th></tr></thead>
+      <tbody>
+        <tr><td><strong>通用知識</strong></td><td>MMLU / MMLU-Pro、HotpotQA、MuSiQue、BBH、LongBench、HLE</td></tr>
+        <tr><td><strong>科學推理</strong></td><td>GPQA、SuperGPQA、SciBench、ChemBench</td></tr>
+        <tr><td><strong>數學推理</strong></td><td>AIME、OlympiadBench、GSM8K、MATH、AMC</td></tr>
+        <tr><td><strong>程式生成</strong></td><td>LiveCodeBench、BigCodeBench、HumanEval、MBPP、CRUXEval</td></tr>
+        <tr><td><strong>網頁導航</strong></td><td>WebArena、WebShop、Mind2Web、WebVoyager、VisualWebArena</td></tr>
+        <tr><td><strong>統一框架 / 工具</strong></td><td>GAIA、AgentBench、AgentBoard、AgentGym、ToolLLM</td></tr>
+        <tr><td><strong>軟體工程 / OS</strong></td><td>SWE-bench、Terminal-Bench、OSWorld</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="libs">
+    <h2><span class="num">⑥</span> 開源函式庫</h2>
+    <table>
+      <thead><tr><th>分類</th><th>函式庫</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Agent 編排</strong></td><td>LangGraph、LlamaIndex、AutoGen、MetaGPT、Aeon</td></tr>
+        <tr><td><strong>分散式訓練</strong></td><td>Megatron-LM、DeepSpeed(ZeRO)</td></tr>
+        <tr><td><strong>後訓練 / 對齊</strong></td><td>TRL、OpenRLHF、VeRL、slime</td></tr>
+        <tr><td><strong>高效微調</strong></td><td>LLaMA Factory、Unsloth</td></tr>
+        <tr><td><strong>推理 / 服務</strong></td><td>vLLM(PagedAttention)、SGLang(RadixAttention)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="apps">
+    <h2><span class="num">⑦</span> 應用（自我演化落地在哪）</h2>
+    <h3>自動科學發現</h3>
+    <p>AI Scientist(自動寫論文)、<strong>AlphaProof</strong>(IMO 銀牌級數學)、ChemCrow、Coscientist、GNoME(發現 220 萬晶體)、A-Lab(71% 合成成功率)、CRESt。</p>
+    <h3>自主軟體工程</h3>
+    <p>SWE-agent、<strong>Claude Code</strong>(技能累積、資深級)、Devin、Cursor(人機共演)、Manus、OpenClaw。</p>
+    <h3>開放世界模擬</h3>
+    <p><strong>Voyager</strong>(Minecraft，探索-寫程式-儲存技能，15.3× 更快)、GITM、Cradle(GUI 控制)、Generative Agents(社會模擬)、Project Sid(湧現經濟)、SIMA、Genie(可互動世界模型)。</p>
+    <div class="callout tip"><strong>跟本站的連結：</strong>表中的 <strong>Claude Code</strong> 被列為「技能累積型」自我演化的軟體工程代表——這正呼應本站 <a href="../skills/index.html">Skills 專區</a> 的主題:agent 靠<strong>累積可複用技能</strong>變強。</div>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="sources">
+    <h2><span class="num">⑧</span> 來源與引用</h2>
+    <ul>
+      <li><a href="https://github.com/XMUDeepLIT/Awesome-Self-Evolving-Agents" target="_blank" rel="noopener">GitHub · XMUDeepLIT/Awesome-Self-Evolving-Agents</a>（持續更新中）</li>
+      <li>綜述論文：<em>A Systematic Survey of Self-Evolving Agents: From Model-Centric to Environment-Driven Co-Evolution</em>（Xiang, Yang et al., 2026）</li>
+    </ul>
+    <div class="related">
+      <a href="./ai-context-compression.html">
+        <div class="rel-title">🗜️ AI 上下文壓縮</div>
+        <div class="rel-sub">外部化記憶——環境中心演化的一環</div>
+      </a>
+      <a href="../skills/index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">技能累積：agent 變強的一條路</div>
+      </a>
+      <a href="./oh-my-pi.html">
+        <div class="rel-title">🥧 oh-my-pi 深入</div>
+        <div class="rel-sub">跨 session 記憶的編碼 harness</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁為綜述的中文導讀與地圖，僅取代表性條目，非完整清單；論文分類、名稱與最新內容以官方 repo 與論文原文為準。授權未於 repo 明列，引用請依原論文。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
