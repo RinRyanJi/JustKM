@@ -146,6 +146,7 @@
     <h2><span class="num">⓪</span> 一句話總結</h2>
     <p><strong>Prime Agent 是 PrimeIntellect 的開源「自我改進 RLM coding/research agent」,為長時間任務設計。</strong>它把 agent 拆成<strong>常駐 daemon + session worker + 模型面向的持久 IPython kernel</strong>三層,核心是兩個抽象:<strong>RLM</strong>(把上下文當變數、子代理當函式呼叫,全在一個持久 REPL 裡)與 <strong>Continual Harness</strong>(把提示/記憶/技能/子代理規格存成耐久狀態,用 <code>/refine</code> 小步演化)。</p>
     <div class="callout info"><strong>📌 關鍵事實:</strong>Prime Agent <strong>建構在 <code>pi</code>(earendil-works/pi)之上</strong>——repo 內的套件就是 <code>@earendil-works/pi-*</code>,再加上 PrimeIntellect 的 <code>prime-agent-runtime</code>(RLM 的 Python kernel shim)與長任務功能。與站內<a href="./oh-my-pi.html">oh-my-pi</a> 同屬 <code>pi</code> 家族。授權 MIT。</div>
+    <div class="callout tip"><strong>🔬 想要更深的細節?</strong>另開一頁 <a href="./prime-agent-internals.html"><strong>Prime Agent 內部細節</strong></a>——RLM loop 與唯一工具 ipython、子代理 <code>agent_message</code>(角色/模式/回執)、技能系統(Python-backed 超集/優先序/內建技能)、Continual Harness API、host bridge、壓縮(reserveTokens 16384、keepRecentTokens 20k)、長任務與 headless 模式,含 Python/CLI 範例。</div>
   </section>
 
   <!-- ① -->
@@ -306,6 +307,10 @@ npm run build        <span class="cm"># 依序 build tui→ai→agent→coding-a
       <li>底層:<a href="https://github.com/earendil-works/pi" target="_blank" rel="noopener">earendil-works/pi</a>;RLM 說明見官方 blog、Continual Harness 見其論文連結</li>
     </ul>
     <div class="related">
+      <a href="./prime-agent-internals.html">
+        <div class="rel-title">🔬 Prime Agent 內部細節</div>
+        <div class="rel-sub">RLM loop、agent_message、Harness API、壓縮、長任務</div>
+      </a>
       <a href="./oh-my-pi.html">
         <div class="rel-title">🥧 oh-my-pi 深入</div>
         <div class="rel-sub">同屬 pi 家族的編碼 harness</div>

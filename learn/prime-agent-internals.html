@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Prime Agent 內部細節：RLM loop · 子代理訊息 · Harness · 壓縮 · 長任務 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    .st { color: #c2410c; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .diagram { background: var(--navy); color: #cdd6ea; border-radius: 12px; padding: 18px 20px; margin: 12px 0 14px; overflow-x: auto;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.74rem; line-height: 1.55; white-space: pre; }
+    .diagram b { color: #ffcf9e; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./prime-agent.html">← 回到 Prime Agent 架構總覽</a>
+
+  <div class="hero">
+    <h1>🔬 Prime Agent 內部細節</h1>
+    <p class="sub">補充架構總覽的深入篇：RLM loop · 子代理訊息 · 技能系統 · Continual Harness API · 壓縮 · 長任務 · headless 模式</p>
+    <div>
+      <span class="badge green">依原始碼 + docs</span>
+      <span class="badge blue">含 Python/CLI 範例</span>
+      <span class="badge orange">MIT</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#loop">① RLM loop 與唯一工具</a>
+      <a href="#subagents">② 子代理與 agent_message</a>
+      <a href="#skills">③ 技能系統</a>
+      <a href="#harness">④ Continual Harness API</a>
+      <a href="#bridge">⑤ Host Bridge</a>
+      <a href="#compaction">⑥ 壓縮(Compaction)</a>
+      <a href="#longrunning">⑦ 長任務機制</a>
+      <a href="#headless">⑧ Headless 模式與 CLI</a>
+      <a href="#sources">⑨ 來源</a>
+    </div>
+  </nav>
+
+  <div class="callout info">本頁是 <a href="./prime-agent.html">Prime Agent 架構總覽</a> 的深入補充。先看總覽的三層架構(daemon/worker/kernel)與 RLM 橋接,再讀這裡的細節。範例取自官方 <code>docs/</code>,以官方 repo 最新為準。</div>
+
+  <!-- ① -->
+  <section id="loop">
+    <h2><span class="num">①</span> RLM loop 與「唯一內建工具:ipython」</h2>
+    <p>Prime Agent 的預設 RLM runtime <strong>只暴露一個模型工具:<code>ipython</code></strong>。讀寫檔案、跑專案指令、轉換結果、呼叫技能、委派工作,全都從這個<strong>持久 kernel</strong> 開始,而不是各自獨立的內建工具呼叫。</p>
+    <div class="diagram">Task + working context
+   │
+   ▼
+Parent model ──IPython call──▶ <b>持久 IPython kernel</b> ⟷ 檔案/資料/shell
+   ▲                               │  ⟷ Python-backed skills
+   │                               └─ rlm(...) ─▶ 子代理(專注的子任務)
+   └─ answer / next turn ◀── admission handle / agent messages</div>
+    <h4>Python 狀態跨 turn、跨壓縮存活</h4>
+    <p>變數、import、函式、解析結果、任務 handle 在後續 turn 仍在:</p>
+    <pre><code><span class="kw">from</span> pathlib <span class="kw">import</span> Path
+config_files = list(Path(<span class="st">"."</span>).rglob(<span class="st">"*.toml"</span>))
+large_files = [p <span class="kw">for</span> p <span class="kw">in</span> config_files <span class="kw">if</span> p.stat().st_size > <span class="st">10_000</span>]</code></pre>
+    <p>用 <code>%%bash</code> cell 跑專案自己的指令(每個 <code>%%bash</code> 是暫時子 shell,而 Python 狀態與 <code>%cd</code> 會保留):</p>
+    <pre><code><span class="cm">%%bash</span>
+npm run check</code></pre>
+    <div class="callout tip"><strong>設計含義:</strong>父代理讓 Python 持有「工作狀態」,自己的 context 保持精簡;需要時才把片段餵給子代理。這是它能長時間、跨壓縮工作的基礎。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="subagents">
+    <h2><span class="num">②</span> 子代理與 <code>agent_message</code></h2>
+    <p>kernel 內預載可呼叫的 <code>rlm</code>。spawn 一個子代理是直接呼叫,<strong>任務被接受後立即回 handle,不等答案</strong>:</p>
+    <pre><code>handle = <span class="kw">await</span> rlm(<span class="st">"Review the auth flow for security issues"</span>, name=<span class="st">"auth-reviewer"</span>)
+print(handle.rlm_child_id, handle.name, handle.session_dir, handle.model)</code></pre>
+    <p>子代理是 TS host 建的正常 <code>AgentSession</code>,有獨立 context 與 session 目錄,<strong>繼承父的模型、provider、skills、tools、retry 政策</strong>(除非指定別的模型)。要平行就分開 spawn、然後結束這一 turn,不要 await:</p>
+    <pre><code>api = <span class="kw">await</span> rlm(<span class="st">"Review the public API"</span>, name=<span class="st">"api-reviewer"</span>)
+tests = <span class="kw">await</span> rlm(<span class="st">"Review the test coverage"</span>, name=<span class="st">"test-reviewer"</span>)</code></pre>
+    <h4>結果只透過 <code>agent_message</code> 或檔案回來</h4>
+    <pre><code><span class="cm"># 子代理回覆父代理</span>
+<span class="kw">await</span> agent_message.send(message, receiver_role=<span class="st">"parent"</span>)
+
+<span class="cm"># 父代理對某個保留的子代理追問</span>
+<span class="kw">await</span> agent_message.send(<span class="st">"Check the new regression test."</span>,
+    receiver_role=<span class="st">"child"</span>, receiver_name=api.name)</code></pre>
+    <h4>投遞角色與模式</h4>
+    <table>
+      <thead><tr><th>維度</th><th>選項</th></tr></thead>
+      <tbody>
+        <tr><td><strong>receiver_role</strong></td><td><code>parent</code> / <code>child</code> / <code>sibling</code>(家族名冊內)</td></tr>
+        <tr><td><strong>mode</strong></td><td><code>auto</code>(忙就 steer、閒就即送)、<code>steer</code>(強行插入正在做的工作)、<code>follow_up</code>(等對方做完再送)</td></tr>
+        <tr><td><strong>receipt</strong></td><td><code>delivered</code>(進了 idle 對象的 context)或 <code>queued</code>(接受待送)</td></tr>
+      </tbody>
+    </table>
+    <p><code>agent_message.send("all", msg)</code> 只在家族名冊內廣播;daemon 推導寄件者身分並強制訊息大小、速率、待送佇列上限。</p>
+    <h4>子代理 registry(跨壓縮/重啟存活)</h4>
+    <pre><code>children = <span class="kw">await</span> rlm.list_subagents()
+<span class="kw">await</span> rlm.delete_subagent(children[<span class="st">0</span>])  <span class="cm"># context 不再需要時才刪</span></code></pre>
+    <p>子代理用量歸屬到父 session(但在 context-tree 報告裡可區分)。預設遞迴深度只允許 root 建子代理;調高深度才能讓後代再遞迴。</p>
+  </section>
+
+  <!-- ③ -->
+  <section id="skills">
+    <h2><span class="num">③</span> 技能系統(Markdown + Python-backed 超集)</h2>
+    <p>Prime Agent 實作 <a href="https://agentskills.io/specification" target="_blank" rel="noopener">Agent Skills 標準</a>(違規會警告但寬容),並擴充 <strong>Python-backed skills</strong>——把 Python 套件裝進持久 kernel,以 import 名稱暴露。</p>
+    <pre><code><span class="cm"># 名為 release-audit 的 Python-backed skill,模型可直接呼叫</span>
+report = <span class="kw">await</span> release_audit(repository=<span class="st">"."</span>, target_version=<span class="st">"0.4.0"</span>)</code></pre>
+    <div class="callout"><strong>關鍵機制:啟動時只放「skill metadata」進 prompt。</strong>任務吻合時才載入完整 <code>SKILL.md</code>,再檢視並呼叫其 Python API——這就是漸進揭露的實作。Python-backed 是 instruction-only skill 的<strong>超集</strong>:可給指引、腳本、參考、依賴、typed callable、可選 shell 指令,甚至自己呼叫 <code>rlm(...)</code> 遞迴。</div>
+    <h4>載入位置與優先序(高→低)</h4>
+    <ol>
+      <li>CLI <code>--skill &lt;path&gt;</code>(可重複,即使 <code>--no-skills</code> 也載)</li>
+      <li>Settings 的 <code>skills</code> 陣列</li>
+      <li>Package:<code>skills/</code> 目錄或 <code>package.json</code> 的 <code>pi.skills</code></li>
+      <li>Project:<code>.prime/agent/skills/</code>、<code>.agents/skills/</code>(cwd 及祖先目錄到 git root)</li>
+      <li>Global:<code>~/.prime/agent/skills/</code>、<code>~/.agents/skills/</code></li>
+      <li>Built-in:隨套件出貨(最低優先,可被同名覆蓋)</li>
+    </ol>
+    <h4>內建技能</h4>
+    <table>
+      <thead><tr><th>Skill</th><th>作用</th></tr></thead>
+      <tbody>
+        <tr><td><code>prime-intellect</code></td><td>透過 prime CLI 操作 PI 產品:verifiers 環境、Environments Hub、評估、Hosted Training / prime-rl、sandboxes、Prime Inference、GPU compute、儲存(參考文件按需從 <code>references/</code> 載入)</td></tr>
+        <tr><td><code>skill-creator</code></td><td>教 agent 建技能:markdown 版面、frontmatter 規則、放置與優先序、完整 Python-backed 契約(套件版面、<code>run()</code> 慣例、可選 CLI、kernel venv 行為)</td></tr>
+        <tr><td><code>websearch</code></td><td>Python-backed Google 搜尋(用 Serper API,金鑰存 <code>auth.json</code>、每次呼叫讀取)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ④ -->
+  <section id="harness">
+    <h2><span class="num">④</span> Continual Harness API(<code>harness.py</code>)</h2>
+    <p>Harness 把耐久狀態存成 <code>~/.prime/agent/harness/harness_state.json</code>(預設 <strong>local scope</strong>,可 <code>global</code>)。狀態模型刻意很小,只記四種 kind + refinement 事件:</p>
+    <pre><code>HarnessKind = <span class="st">"prompt"</span> | <span class="st">"memory"</span> | <span class="st">"skill"</span> | <span class="st">"subagent"</span></code></pre>
+    <h4>核心操作(<code>HarnessState</code> 類別方法)</h4>
+    <table>
+      <thead><tr><th>方法</th><th>作用</th></tr></thead>
+      <tbody>
+        <tr><td><code>create_memory / create_prompt_note / create_skill / create_subagent</code></td><td>新增各類項目</td></tr>
+        <tr><td><code>update_* / delete_* / get / list</code></td><td>更新、刪除、查詢</td></tr>
+        <tr><td><code>upsert</code></td><td>存在則更新、否則建立</td></tr>
+        <tr><td><code>record_refinement</code></td><td>記錄一次精煉事件(供歷史與 rollback)</td></tr>
+        <tr><td><code>plan_refinement</code></td><td>規劃要做的精煉</td></tr>
+        <tr><td><code>overview(max_entries_per_kind=20)</code></td><td>產生 harness 現況概覽(注入 context 用)</td></tr>
+      </tbody>
+    </table>
+    <h4><code>/refine</code> 的紀律</h4>
+    <ul>
+      <li>檢視當前 trajectory,做<strong>小步、有證據</strong>的更新;</li>
+      <li>更新的是「補充狀態」(prompt note / memory / skill 描述 / subagent 規格),<strong>永不改動不可變的 base system prompt</strong>;</li>
+      <li>有 refinement 歷史與快照 → 可 <strong>rollback</strong>;</li>
+      <li>local scope 只影響當前 session;<code>global=True</code> 才寫全域,存在 disk mtime 同步機制避免覆蓋。</li>
+    </ul>
+    <div class="callout tip"><strong>對照研究:</strong>這正是<a href="./self-evolving-agents.html">自我演化綜述</a>「環境中心 · 動態經驗/技能增強演化」的工程化落地——把「經驗」變成可審閱、可回溯的耐久資產,而非改權重。</div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="bridge">
+    <h2><span class="num">⑤</span> Host Bridge(<code>rlm.host_request</code>)</h2>
+    <p>凡是「權威狀態該在 kernel 之外」的能力,Python 技能都透過 <strong>typed host request</strong> 交給 TS host。例如 <code>goal</code>、<code>agent_message</code>、<code>rlm_heartbeat</code>、<code>compact</code> 這些內建技能都呼叫:</p>
+    <pre><code>rlm.host_request(<span class="st">"goal.get"</span>, ...)</code></pre>
+    <p>TS host 驗證請求並擁有狀態轉移。這讓<strong>憑證、provider 執行、逐字稿寫入、worker 路由、排程</strong>都留在 kernel 外,同時仍給模型一個「一切用程式呼叫」的介面。所有這類請求走 Jupyter comm target <code>host.request</code>,由 <code>KernelManager</code> typed-dispatch 給父 <code>AgentSession</code>。</p>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="compaction">
+    <h2><span class="num">⑥</span> 壓縮(Compaction &amp; Branch Summarization)</h2>
+    <p>兩種摘要機制,共用同一套結構化摘要格式,並累計追蹤檔案操作:</p>
+    <table>
+      <thead><tr><th>機制</th><th>觸發</th><th>目的</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Compaction</strong></td><td>context 超過門檻,或 <code>/compact</code></td><td>摘要舊訊息、釋出 context</td></tr>
+        <tr><td><strong>Branch summarization</strong></td><td><code>/tree</code> 導覽</td><td>切換分支時保留 context</td></tr>
+      </tbody>
+    </table>
+    <h4>何時觸發(自動)</h4>
+    <pre><code>contextTokens > contextWindow - reserveTokens   <span class="cm"># reserveTokens 預設 16384</span></code></pre>
+    <h4>怎麼做(五步)</h4>
+    <ol>
+      <li><strong>找切點:</strong>從最新訊息往回累加 token,直到達 <code>keepRecentTokens</code>(預設 20k);</li>
+      <li><strong>取出訊息:</strong>從上個保留邊界(或 session 起點)到切點;</li>
+      <li><strong>生成摘要:</strong>用結構化格式呼叫 LLM,若有前次摘要則作為迭代 context 帶入;</li>
+      <li><strong>附加 entry:</strong>存 <code>CompactionEntry</code>(含摘要與 <code>firstKeptEntryId</code>);</li>
+      <li><strong>重載:</strong>session 用「摘要 + 從 <code>firstKeptEntryId</code> 起的訊息」重新載入。</li>
+    </ol>
+    <div class="callout"><strong>關鍵:</strong>壓縮的是「對話訊息」,而 <strong>IPython kernel 的 Python 狀態不受影響</strong>——變數、handle 都還在。<code>/compact focus on the auth refactor</code> 可加指示聚焦摘要。設定在 <code>~/.prime/agent/settings.json</code> 或專案的 <code>.prime/agent/settings.json</code>。</div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="longrunning">
+    <h2><span class="num">⑦</span> 長任務機制</h2>
+    <p>daemon-backed worker + 持久狀態,共用同一個 session/worker runtime,支撐這些「跨 turn、跨終端」的能力:</p>
+    <table>
+      <thead><tr><th>機制</th><th>作用</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Goals</strong> <code>/goal</code></td><td>把目標與進度保持 active,直到完成/暫停/清除</td></tr>
+        <tr><td><strong>Heartbeats</strong> <code>/heartbeat</code>、<code>rlm_heartbeat</code></td><td>週期性重新進入 session</td></tr>
+        <tr><td><strong>Schedules</strong> <code>prime-agent schedule</code></td><td>一次性或 cron 排程;job 存各 session 的 <code>scheduled-jobs.json</code>(不共用全域 cron)</td></tr>
+        <tr><td><strong>Autonomous</strong> <code>/autonomous</code></td><td>在設定的 turn/token/time 預算內持續,可跑使用者定義的 quality gate</td></tr>
+        <tr><td><strong>Agent 通訊</strong></td><td>active session 與保留子代理互相發現、傳訊、互相 steer</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn"><strong>重要語意:</strong>quality gate 通過只代表<strong>該 gate 檢查的東西</strong>過了;autonomous <strong>達到上限不代表任務成功</strong>。heartbeat/排程/goal/autonomous/別的 agent 觸發的 prompt,走的是與使用者 prompt <strong>完全相同</strong>的執行與持久化路徑。</div>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="headless">
+    <h2><span class="num">⑧</span> Headless 模式與 CLI</h2>
+    <p>同一個 worker runtime 支援互動與非互動 client:</p>
+    <table>
+      <thead><tr><th>模式</th><th>行為</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Print / piped stdin</strong></td><td>one-shot,完成即移除 worker(不封存)</td></tr>
+        <tr><td><strong>JSON</strong></td><td>one-shot 結構化輸出</td></tr>
+        <tr><td><strong>RPC</strong></td><td>LF 分隔的 JSONL framing,收 prompt 到 EOF</td></tr>
+        <tr><td><strong>ACP</strong></td><td>Agent Client Protocol 整合(<code>@agentclientprotocol/sdk</code>)</td></tr>
+        <tr><td><strong><code>--no-session</code></strong></td><td>互動但用記憶體內 session</td></tr>
+        <tr><td><strong>SDK</strong></td><td>直接呼叫 print/RPC 走 in-process,可傳不可序列化的 extension factory</td></tr>
+      </tbody>
+    </table>
+    <h4>常用 CLI</h4>
+    <pre><code>prime-agent list / agents            <span class="cm"># 列出/開啟 agents view</span>
+prime-agent attach &lt;agent&gt;            <span class="cm"># 重新接上</span>
+prime-agent rename &lt;agent&gt; &lt;name&gt;     <span class="cm"># 命名</span>
+prime-agent send &lt;agent&gt; "..."        <span class="cm"># agent 間傳訊</span>
+prime-agent schedule ...              <span class="cm"># 排程</span>
+prime-agent --resume &lt;path|id&gt;        <span class="cm"># 恢復已存 session</span>
+prime-agent status / doctor --fix     <span class="cm"># 背景服務狀態/修復</span>
+prime-agent shutdown [--force]        <span class="cm"># 全停</span></code></pre>
+    <div class="callout info">daemon 協定變更有嚴格相容性規範(capability 協商、<code>DAEMON_PROTOCOL_VERSION</code> 版本化),確保新舊 client/daemon 互通、可局部降級。</div>
+  </section>
+
+  <!-- ⑨ -->
+  <section id="sources">
+    <h2><span class="num">⑨</span> 來源</h2>
+    <ul>
+      <li><a href="https://github.com/PrimeIntellect-ai/prime-agent" target="_blank" rel="noopener">GitHub · PrimeIntellect-ai/prime-agent</a> 的 <code>packages/coding-agent/docs/</code>(rlm.md、rlm-runtime.md、daemon.md、long-running-agents.md、skills.md、compaction.md)與 <code>prime-agent-runtime/src/rlm/</code></li>
+    </ul>
+    <div class="related">
+      <a href="./prime-agent.html">
+        <div class="rel-title">🔷 Prime Agent 架構總覽</div>
+        <div class="rel-sub">三層架構、RLM 橋接、daemon</div>
+      </a>
+      <a href="./self-evolving-agents.html">
+        <div class="rel-title">🧬 自我演化 Agent 綜述</div>
+        <div class="rel-sub">Harness/RLM 對應的研究地圖</div>
+      </a>
+      <a href="../skills/index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">Agent Skills 標準與分析框架</div>
+      </a>
+      <a href="./oh-my-pi.html">
+        <div class="rel-title">🥧 oh-my-pi</div>
+        <div class="rel-sub">同屬 pi 家族的編碼 harness</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁依撰寫時 clone 的原始碼與官方 docs 整理;檔案路徑、旗標、預設值可能隨版本變動,實際以官方 repo 最新內容為準。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./prime-agent.html">← Prime Agent 架構總覽</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
