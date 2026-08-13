@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Prime Agent：packages/ai 統一 provider 抽象 + session JSONL 格式 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+    .toc .grp { grid-column: 1 / -1; font-size: 0.68rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; padding: 2px 10px; }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    .divider { font-size: 0.72rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--stone); text-align: center; margin: 30px 0 14px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    .st { color: #c2410c; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .diagram { background: var(--navy); color: #cdd6ea; border-radius: 12px; padding: 18px 20px; margin: 12px 0 14px; overflow-x: auto;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.74rem; line-height: 1.55; white-space: pre; }
+    .diagram b { color: #ffcf9e; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./prime-agent-internals.html">← 回到 Prime Agent 內部細節</a>
+
+  <div class="hero">
+    <h1>🔌 packages/ai 統一 provider 抽象 · session JSONL 格式</h1>
+    <p class="sub">一套 API 統一 20+ 家模型;一份 JSONL 存下整棵對話樹 —— Prime Agent 兩個底層基石</p>
+    <div>
+      <span class="badge green">Provider / API / Model 三層</span>
+      <span class="badge blue">統一事件流</span>
+      <span class="badge orange">JSONL 樹狀 session</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <span class="grp">Part A · Provider 抽象</span>
+      <a href="#problem">① 問題與三層模型</a>
+      <a href="#events">② 統一事件流</a>
+      <a href="#model">③ 統一介面 vs 各家細節</a>
+      <a href="#addprovider">④ 加一個 provider 的接縫</a>
+      <a href="#handoff">⑤ 跨 provider 交接</a>
+      <span class="grp">Part B · Session JSONL</span>
+      <a href="#jsonl">⑥ 檔案格式與樹狀結構</a>
+      <a href="#messages">⑦ 訊息型別</a>
+      <a href="#sources">⑧ 來源</a>
+    </div>
+  </nav>
+
+  <div class="divider">Part A · packages/ai 的統一 provider 抽象</div>
+
+  <!-- ① -->
+  <section id="problem">
+    <h2><span class="num">①</span> 問題與三層模型</h2>
+    <p><code>packages/ai</code>(<code>@earendil-works/pi-ai</code>)是一個「<strong>統一 LLM API</strong>」工具包:自動模型探索、provider 設定、token/成本追蹤,以及<strong>對話 context 的持久化與 mid-session 換模型</strong>。它只收<strong>支援 tool calling 的模型</strong>(agentic 必需)。</p>
+    <p>抽象拆成三層:</p>
+    <table>
+      <thead><tr><th>層</th><th>是什麼</th><th>例</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Provider</strong></td><td>「誰家」——一個廠商/端點(含憑證)</td><td><code>anthropic</code>、<code>openai</code>、<code>google</code>、<code>prime-inference</code>… 共 20+ 家</td></tr>
+        <tr><td><strong>API</strong></td><td>「用哪種線協定」——一種 wire 協定的實作</td><td><code>anthropic-messages</code>、<code>openai-completions</code>、<code>openai-responses</code>、<code>google-generative-ai</code>、<code>bedrock-converse-stream</code>、<code>mistral-conversations</code></td></tr>
+        <tr><td><strong>Model</strong></td><td>某 provider 上的一個具體模型(綁定一種 API)</td><td><code>anthropic/claude-sonnet-4</code>、<code>openai/gpt-5-mini</code></td></tr>
+      </tbody>
+    </table>
+    <p><code>KnownProvider</code> 型別聯集列出 20+ 家:amazon-bedrock、anthropic、google、google-vertex、openai、azure-openai-responses、openai-codex、prime-inference、deepseek、github-copilot、xai、groq、cerebras、openrouter、vercel-ai-gateway、zai、mistral、minimax、moonshotai…。<strong>多家 provider 可共用同一個 API 實作</strong>(例如一堆 OpenAI 相容端點都走 <code>openai-completions</code>)。</p>
+    <div class="callout info"><strong>關鍵洞見:</strong>抽象的接縫在「<strong>API</strong>」——真正要寫程式適配的是「wire 協定」(anthropic-messages / openai-completions…),而 provider 多半只是「換 baseUrl + 憑證 + 模型清單」。所以支援一個新的 OpenAI 相容 provider,常常<strong>不用寫新 API 實作</strong>。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="events">
+    <h2><span class="num">②</span> 統一事件流(<code>AssistantMessageEvent</code>)</h2>
+    <p>不論底層是哪家,每個 provider 的 <code>stream*()</code> 都回傳同一種 <strong><code>AssistantMessageEventStream</code></strong>,吐出<strong>標準化事件</strong>——這是「統一」的核心:</p>
+    <pre><code><span class="kw">type</span> AssistantMessageEvent =
+  | { type: <span class="st">"start"</span>; partial }
+  | { type: <span class="st">"text_start"</span> | <span class="st">"text_delta"</span> | <span class="st">"text_end"</span>; contentIndex; delta?; ... }
+  | { type: <span class="st">"thinking_start"</span> | <span class="st">"thinking_delta"</span> | <span class="st">"thinking_end"</span>; ... }
+  | { type: <span class="st">"toolcall_start"</span> | <span class="st">"toolcall_delta"</span> | <span class="st">"toolcall_end"</span>; toolCall? }
+  | { type: <span class="st">"done"</span>;  reason: <span class="st">"stop"</span>|<span class="st">"length"</span>|<span class="st">"toolUse"</span>; message }
+  | { type: <span class="st">"error"</span>; reason: <span class="st">"aborted"</span>|<span class="st">"error"</span>; error };</code></pre>
+    <p>約定:先送 <code>start</code>,中間是 partial 增量(text / thinking / toolcall 各有 start-delta-end),最後以 <code>done</code>(帶最終 <code>AssistantMessage</code>)或 <code>error</code> 收尾。每個 provider 檔案的職責就是把「該家的 SSE/串流」<strong>翻譯成這組事件</strong>。</p>
+    <p><code>StopReason</code> 也統一成 <code>stop</code> / <code>length</code> / <code>toolUse</code> / <code>error</code> / <code>aborted</code> 五種。上層(agent/coding-agent)因此<strong>完全不需要知道底層是誰</strong>。</p>
+  </section>
+
+  <!-- ③ -->
+  <section id="model">
+    <h2><span class="num">③</span> 統一介面 vs 各家細節</h2>
+    <h4>兩層 API:<code>streamSimple</code> / <code>completeSimple</code> vs <code>stream</code> / <code>complete</code></h4>
+    <ul>
+      <li><strong><code>streamSimple(model, context, SimpleStreamOptions)</code></strong>:跨家<strong>統一</strong>選項(如 thinking 開關、thinking level),不管哪家都一樣寫。</li>
+      <li><strong><code>stream(model, context, &lt;Provider&gt;Options)</code></strong>:要用某家<strong>專屬</strong>選項時走這條,吃 provider-specific options 介面。</li>
+    </ul>
+    <h4><code>Model</code> 介面(統一描述一個模型)</h4>
+    <pre><code><span class="kw">interface</span> Model {
+  id; name; api; provider; baseUrl;
+  reasoning: <span class="kw">boolean</span>;
+  thinkingLevelMap?;              <span class="cm">// pi 的 thinking 等級 → 各家對應值(null=不支援)</span>
+  input: (<span class="st">"text"</span>|<span class="st">"image"</span>)[];
+  cost: { input; output; cacheRead; cacheWrite };  <span class="cm">// $/百萬 token</span>
+  contextWindow; maxTokens;
+  featured?;                      <span class="cm">// 旗艦,排在 picker 前面</span>
+  compat?;                        <span class="cm">// OpenAI 相容端點的相容性覆寫(否則從 baseUrl 自動偵測)</span>
+}</code></pre>
+    <p><code>thinkingLevelMap</code> 把 pi 的抽象「思考等級」映射到各家實際參數;<code>compat</code>(如 <code>OpenAICompletionsCompat</code>)處理各家 OpenAI 相容端點的差異(支不支援 <code>store</code>、<code>developer</code> role、<code>reasoning_effort</code>、<code>stream_options.include_usage</code>…),不用時從 URL 自動偵測。</p>
+  </section>
+
+  <!-- ④ -->
+  <section id="addprovider">
+    <h2><span class="num">④</span> 加一個 provider 要動哪些接縫(看見抽象邊界)</h2>
+    <p>官方「新增 provider」清單最能揭示抽象的接縫:</p>
+    <ol>
+      <li><strong>types.ts</strong>:在 <code>Api</code> 聯集加 API id、建一個 extends <code>StreamOptions</code> 的 options 介面、加進 <code>ApiOptionsMap</code>、在 <code>KnownProvider</code> 加名字。</li>
+      <li><strong>providers/&lt;name&gt;.ts</strong>:export <code>stream&lt;Provider&gt;()</code>(回 <code>AssistantMessageEventStream</code>)、<code>streamSimple&lt;Provider&gt;()</code>、options 介面、訊息/工具轉換函式、<strong>把回應解析成標準事件</strong>(text/tool_call/thinking/usage/stop)。</li>
+      <li><strong>register-builtins.ts</strong>:用 <strong>lazy loader</strong> 註冊(不靜態 import 實作);<code>env-api-keys.ts</code> 加憑證偵測。</li>
+      <li><strong>generate-models.ts</strong>:抓/解析該家模型清單,映射到標準 <code>Model</code> 介面(<strong>不可手改 <code>models.generated.ts</code></strong>)。</li>
+      <li><strong>coding-agent</strong>:<code>model-resolver.ts</code> 加預設模型、<code>provider-display-names.ts</code> 加登入顯示名、<code>args.ts</code> 加 env 文件。</li>
+    </ol>
+    <div class="callout tip"><strong>讀法:</strong>1–2 是「協定適配」的核心(新 API 才需要);3–5 多是「登錄與 UI 接線」。若新 provider 用既有 API(如又一個 OpenAI 相容端點),第 2 步幾乎可重用 <code>openai-completions</code>,只補 <code>compat</code> 與模型清單。</div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="handoff">
+    <h2><span class="num">⑤</span> 跨 provider 交接(mid-session 換模型)</h2>
+    <p>同一段對話裡可以<strong>中途換家</strong>(Claude → GPT-5 → Gemini),context 自動轉換相容:</p>
+    <table>
+      <thead><tr><th>訊息類型</th><th>轉換規則</th></tr></thead>
+      <tbody>
+        <tr><td>User / toolResult</td><td>原樣傳遞</td></tr>
+        <tr><td>同 provider/API 的 assistant</td><td>原樣保留</td></tr>
+        <tr><td><strong>不同 provider 的 assistant</strong></td><td>其 <strong>thinking block 轉成 <code>&lt;thinking&gt;</code> 標記文字</strong></td></tr>
+        <tr><td>tool call / 一般 text</td><td>原樣保留</td></tr>
+      </tbody>
+    </table>
+    <p>於是可以「快模型先答 → 換強模型做複雜推理 → 用專用模型做特定任務」,甚至在某家 provider 出狀況時<strong>換家續跑</strong>而不斷對話。測試則有 <code>registerFauxProvider()</code> 提供記憶體內的假 provider(可設 tokens/sec、預設回應),不碰真 API。</p>
+  </section>
+
+  <div class="divider">Part B · Session JSONL 格式</div>
+
+  <!-- ⑥ -->
+  <section id="jsonl">
+    <h2><span class="num">⑥</span> 檔案格式與樹狀結構</h2>
+    <p>Session 存成 <strong>JSONL</strong>:每行一個帶 <code>type</code> 欄位的 JSON 物件。entries 透過 <code>id</code>/<code>parentId</code> 形成<strong>樹</strong>——可<strong>就地分支</strong>而不用開新檔。</p>
+    <pre><code><span class="cm"># 位置(現行為扁平目錄)</span>
+~/.prime/agent/sessions/&lt;session-id&gt;.jsonl</code></pre>
+    <p>header 記錄工作目錄。版本演進:</p>
+    <table>
+      <thead><tr><th>版本</th><th>結構</th></tr></thead>
+      <tbody>
+        <tr><td><strong>v1</strong></td><td>線性 entry 序列(legacy,載入時自動遷移)</td></tr>
+        <tr><td><strong>v2</strong></td><td><strong>樹狀</strong>,以 <code>id</code>/<code>parentId</code> 連結</td></tr>
+        <tr><td><strong>v3</strong></td><td>把 <code>hookMessage</code> role 更名為 <code>custom</code>(extensions 統一)</td></tr>
+      </tbody>
+    </table>
+    <p>載入舊 session 會自動遷移到 v3。刪除 = 刪 <code>.jsonl</code>(或在 <code>/resume</code> 選中按 <code>Ctrl+D</code>,可用時走 <code>trash</code> CLI 避免永久刪除)。<code>/tree</code> 導覽與 compaction/branch summary 的 entry 也存在同一棵樹裡(見<a href="./prime-agent-deep.html">深挖三題 ③</a>)。</p>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="messages">
+    <h2><span class="num">⑦</span> 訊息型別</h2>
+    <p>Session entry 承載 <code>AgentMessage</code>。內容是<strong>型別化 content block 陣列</strong>:</p>
+    <pre><code>TextContent    { type:<span class="st">"text"</span>; text }
+ImageContent   { type:<span class="st">"image"</span>; data(base64); mimeType }
+ThinkingContent{ type:<span class="st">"thinking"</span>; thinking }
+ToolCall       { type:<span class="st">"toolCall"</span>; id; name; arguments }</code></pre>
+    <h4>基礎訊息(來自 pi-ai)</h4>
+    <table>
+      <thead><tr><th>role</th><th>重點欄位</th></tr></thead>
+      <tbody>
+        <tr><td><code>user</code></td><td>content(text/image)、timestamp</td></tr>
+        <tr><td><code>assistant</code></td><td>content(text/thinking/toolCall)、<strong>api / provider / model</strong>、<strong>usage</strong>、stopReason、errorMessage?</td></tr>
+        <tr><td><code>toolResult</code></td><td>toolCallId、toolName、content、isError、details?</td></tr>
+      </tbody>
+    </table>
+    <p>每則 assistant 都記下<strong>是哪個 api/provider/model 產生的</strong>——這正是跨 provider 交接(⑤)判斷「同家/異家」的依據。<code>Usage</code> 帶 input/output/cacheRead/cacheWrite/totalTokens 與對應 <strong>cost</strong>(逐項 + total)。</p>
+    <h4>擴充訊息(來自 coding-agent)</h4>
+    <table>
+      <thead><tr><th>role</th><th>作用</th></tr></thead>
+      <tbody>
+        <tr><td><code>bashExecution</code></td><td>command/output/exitCode/cancelled/truncated;<code>excludeFromContext</code>(<code>!!</code> 前綴指令)</td></tr>
+        <tr><td><code>custom</code></td><td>extension 訊息:<code>customType</code>、<code>display</code>(要不要顯示)、details?</td></tr>
+        <tr><td><code>branchSummary</code></td><td>分支摘要:summary、<code>fromId</code></td></tr>
+        <tr><td><code>compactionSummary</code></td><td>壓縮摘要(對應 <code>CompactionEntry</code>)</td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><strong>怎麼解析一個 session:</strong>逐行讀 JSON → 依 <code>type</code>/<code>role</code> 分派 → 用 <code>id</code>/<code>parentId</code> 重建樹 → 從 root 沿到某 leaf 就是一條對話路徑;遇到 <code>compaction</code> entry 就用「摘要 + <code>firstKeptEntryId</code> 起的訊息」重建 LLM 看到的 context。</div>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="sources">
+    <h2><span class="num">⑧</span> 來源</h2>
+    <ul>
+      <li><a href="https://github.com/PrimeIntellect-ai/prime-agent" target="_blank" rel="noopener">GitHub · PrimeIntellect-ai/prime-agent</a>:<code>packages/ai/src/types.ts</code>、<code>packages/ai/README.md</code>、<code>packages/ai/src/providers/</code>、<code>AGENTS.md</code>(Adding a New LLM Provider)、<code>packages/coding-agent/docs/session-format.md</code></li>
+    </ul>
+    <div class="related">
+      <a href="./prime-agent-internals.html">
+        <div class="rel-title">🔬 Prime Agent 內部細節</div>
+        <div class="rel-sub">RLM loop、agent_message、Harness、長任務</div>
+      </a>
+      <a href="./prime-agent-deep.html">
+        <div class="rel-title">🧪 Prime Agent 深挖三題</div>
+        <div class="rel-sub">ZeroMQ 通道 · daemon 復原 · compaction</div>
+      </a>
+      <a href="./prime-agent.html">
+        <div class="rel-title">🔷 Prime Agent 架構總覽</div>
+        <div class="rel-sub">三層架構、RLM 橋接、daemon</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁依撰寫時 clone 的原始碼與官方 docs 整理;型別、欄位名、provider 清單會隨版本變動,實際以官方 repo 最新內容為準。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./prime-agent-internals.html">← Prime Agent 內部細節</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
