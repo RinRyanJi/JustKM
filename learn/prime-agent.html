@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Prime Agent：RLM 自我改進 coding agent 的架構拆解 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .diagram { background: var(--navy); color: #cdd6ea; border-radius: 12px; padding: 18px 20px; margin: 12px 0 14px; overflow-x: auto;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.74rem; line-height: 1.55; white-space: pre; }
+    .diagram b { color: #ffcf9e; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🔷 Prime Agent：RLM 自我改進 coding agent 的架構拆解</h1>
+    <p class="sub">建於 <code style="color:#ffcf9e;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);padding:1px 5px;border-radius:4px;">pi</code> 之上 · daemon／worker／IPython kernel 三層 · 兩大抽象:RLM 與 Continual Harness</p>
+    <div>
+      <span class="badge green">TypeScript + Python · MIT</span>
+      <span class="badge blue">daemon-backed</span>
+      <span class="badge orange">RLM 遞迴子代理</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#what">① 它是什麼(建於 pi)</a>
+      <a href="#structure">② 專案結構</a>
+      <a href="#launch">③ 怎麼啟動</a>
+      <a href="#runtime">④ 執行架構總覽</a>
+      <a href="#rlm">⑤ 深入:RLM 遞迴橋接</a>
+      <a href="#daemon">⑥ 深入:Daemon 架構</a>
+      <a href="#abstractions">⑦ 兩大核心抽象</a>
+      <a href="#run">⑧ 要跑起來需要什麼</a>
+      <a href="#sources">⑨ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>Prime Agent 是 PrimeIntellect 的開源「自我改進 RLM coding/research agent」,為長時間任務設計。</strong>它把 agent 拆成<strong>常駐 daemon + session worker + 模型面向的持久 IPython kernel</strong>三層,核心是兩個抽象:<strong>RLM</strong>(把上下文當變數、子代理當函式呼叫,全在一個持久 REPL 裡)與 <strong>Continual Harness</strong>(把提示/記憶/技能/子代理規格存成耐久狀態,用 <code>/refine</code> 小步演化)。</p>
+    <div class="callout info"><strong>📌 關鍵事實:</strong>Prime Agent <strong>建構在 <code>pi</code>(earendil-works/pi)之上</strong>——repo 內的套件就是 <code>@earendil-works/pi-*</code>,再加上 PrimeIntellect 的 <code>prime-agent-runtime</code>(RLM 的 Python kernel shim)與長任務功能。與站內<a href="./oh-my-pi.html">oh-my-pi</a> 同屬 <code>pi</code> 家族。授權 MIT。</div>
+  </section>
+
+  <!-- ① -->
+  <section id="what">
+    <h2><span class="num">①</span> 它是什麼(建於 pi)</h2>
+    <p>官方定位:「一個 general 且 long-running 的開源 coding/research agent」。它圍繞兩個核心抽象設計(詳見 ⑦):</p>
+    <ul>
+      <li><strong>Recursive Language Model (RLM)</strong>:context 是變數(prompt-as-a-variable)、工具與遞迴子代理是函式呼叫(programmatic tool / sub-agent calling),都在一個<strong>持久 IPython REPL</strong> 裡。</li>
+      <li><strong>Continual Harness</strong>:補充提示、記憶、技能描述、可重用子代理規格 = <strong>耐久狀態</strong>,agent 可用小步、有證據的更新去精煉,<strong>預設 local 到當前 session</strong>。</li>
+    </ul>
+    <p>設計主張:「<strong>一切都是程式化的</strong>」——檔案操作、shell、工具、子代理、上下文管理全透過程式碼;子代理內建(<code>rlm(...)</code>);harness 可自我改進(<code>/refine</code>,但<strong>永不改動不可變的 base system prompt</strong>);技能是可 import 的 Python 套件;session 可背景常駐、斷線 reattach;agent 之間能直接通訊。</p>
+  </section>
+
+  <!-- ② -->
+  <section id="structure">
+    <h2><span class="num">②</span> 專案結構</h2>
+    <div class="diagram">prime-agent/
+├─ prime-agent.sh          <b>啟動器</b>(tsx 開發 / dist bundle)
+├─ install.sh              安裝腳本(下載 release + 驗 SHA-256)
+├─ packages/               <b>TypeScript monorepo(~916 個 .ts)</b>
+│   ├─ ai/          @earendil-works/pi-ai          模型 provider(Anthropic/OpenAI/Gemini/Bedrock/Mistral…)
+│   ├─ agent/       @earendil-works/pi-agent-core  agent 核心
+│   ├─ coding-agent/@earendil-works/pi-coding-agent <b>主體</b>:CLI/daemon/session/kernel/tools  ← bin: pi
+│   └─ tui/         @earendil-works/pi-tui         終端 UI
+└─ prime-agent-runtime/    <b>Python(IPython kernel 端)</b>
+    └─ src/rlm/            harness.py · skill.py · mcp_base.py · __init__.py</div>
+    <p>四個 TS 套件各司其職;<code>coding-agent</code> 是主體(CLI、daemon、AgentSession、kernel 管理、工具都在這)。Python 端 <code>prime-agent-runtime</code> 只是 kernel 內的<strong>薄 shim</strong>——不呼叫 provider、不實作 agent loop。</p>
+  </section>
+
+  <!-- ③ -->
+  <section id="launch">
+    <h2><span class="num">③</span> 怎麼啟動(入口鏈)</h2>
+    <ol>
+      <li><code>prime-agent</code> / <code>prime-agent.sh</code> 是啟動器,注入 build id 等環境。</li>
+      <li><strong>開發模式</strong>:用 <code>tsx</code> 跑 <code>packages/coding-agent/src/cli.ts</code>;<strong>使用者版</strong>:<code>--dist</code> 跑打包好的 <code>dist/bundle/cli.js</code>(啟動快 ~3 倍)。</li>
+      <li>需 <strong>Node ≥ 22.8</strong>;<code>--no-env</code> 會清掉所有 provider API keys(見 <code>packages/ai/src/env-api-keys.ts</code>)。</li>
+    </ol>
+    <p>CLI 起來後,不是自己跑 session,而是<strong>連上背景 daemon</strong>(沒有就啟動一個),由 daemon 分派給 worker——這就進入下面的執行架構。</p>
+  </section>
+
+  <!-- ④ -->
+  <section id="runtime">
+    <h2><span class="num">④</span> 執行架構總覽</h2>
+    <p>它刻意把「畫面 / 程序協調 / agent 執行 / 模型面向 Python / 持久狀態」分層:</p>
+    <div class="diagram">互動 TUI / headless(Print · JSON · RPC)
+        │  <b>AgentConnection</b>(client 只負責渲染與輸入,不擁有執行)
+        ▼
+<b>Daemon Supervisor</b>(公用 socket、路由、附掛、崩潰復原、跨 agent 傳訊)
+        ├─ Catalog 子程序(掃描已存 session)
+        ▼
+<b>Session Worker</b>(一棵 root session 樹一個 process)
+   AgentSessionRuntime ─→ Root <b>AgentSession</b>
+        ├─ 串流呼叫 ⟶ Model Providers
+        ├─ Root <b>IPython Kernel</b>  ← 模型主要的「工具」就是持久 Python
+        ├─ RLM 子 runtime(subagents,各自 session + 可選 kernel)
+        └─ Scheduler(heartbeat / cron / goal / autonomous)
+        ▼
+   Session JSONL 逐字稿 + artifacts(持久化)</div>
+    <h4>一次 prompt 的流程</h4>
+    <p>client 送 <em>versioned command</em> → supervisor 路由到 active session → worker 排入 AgentSession → 串流給模型 → 模型回「文字」或「IPython 工具呼叫」→ kernel 執行 Python;若是 <strong>typed host request</strong>(檔案操作、spawn 子代理…)就回 TS host 執行 → 逐字稿與 artifact 落地 → 事件串回 client 渲染。<strong>heartbeat / 排程 / goal / autonomous / 別的 agent 觸發時,走的是同一條路。</strong></p>
+    <div class="callout warn"><strong>不是安全沙箱:</strong>worker 與 kernel 是分開的 process,只為<strong>生命週期與故障隔離</strong>,跑的是你的使用者權限。官方明確警告:只在可信 repo 用,untrusted 程式請丟外部沙箱。</div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="rlm">
+    <h2><span class="num">⑤</span> 深入:RLM 遞迴橋接(<code>rlm.run</code> 是怎麼運作的)</h2>
+    <p>每個 session 有一個<strong>持久 IPython kernel</strong> 與原生的遞迴子代理介面。Python 的 <code>rlm</code> 套件只是<strong>模型面向的 shim</strong>;真正的子代理執行、持久化、用量計算、生命週期<strong>都在 TypeScript host</strong>。</p>
+    <p>當模型在 Python 裡委派工作:</p>
+    <pre><code>handle = <span class="kw">await</span> rlm(<span style="color:#c2410c;">"inspect the API"</span>, name=<span style="color:#c2410c;">"api-reviewer"</span>)
+print(handle.rlm_child_id, handle.name, handle.session_dir, handle.model)</code></pre>
+    <h4>橋接怎麼走</h4>
+    <ol>
+      <li>這個呼叫透過一個 Jupyter <strong>comm target <code>host.request</code></strong> 送出。</li>
+      <li><code>KernelManager</code> 把 request type <code>rlm.run</code> 分派給<strong>父 AgentSession</strong>。</li>
+      <li>父 session <strong>檢查遞迴深度、解析要用的模型、admit 子任務、更新 registry</strong>,然後透過與父層相同的 agent 機制啟動子代理。</li>
+      <li>⭐ <strong>關鍵:呼叫在「任務被接受」後<em>立即</em>用 comm 回傳一個 child handle,不等、也不回子代理的答案</strong>(fire-and-forget)。結果只透過<strong>顯式的 <code>agent_message</code> 回覆或檔案</strong>回來。</li>
+    </ol>
+    <div class="callout tip"><strong>為什麼這樣設計:</strong>子代理是「非阻塞」的——父代理 spawn 之後可以繼續做別的事、或平行 spawn 更多子代理,之後再收訊息。這正是它能做<strong>平行 / 背景 / 長時間</strong>工作的關鍵。同一條 <code>host.request</code> 橋也支撐 <code>goal.*</code>、<code>agent_message.*</code> 等 typed 請求——狀態與政策一律留在 TS host。</div>
+    <h4>元件職責</h4>
+    <table>
+      <thead><tr><th>元件</th><th>負責</th></tr></thead>
+      <tbody>
+        <tr><td><code>src/core/kernel/index.ts</code></td><td>ZeroMQ sockets、Jupyter framing、執行、comm 分派、中斷、關閉</td></tr>
+        <tr><td><code>src/core/tools/ipython.ts</code></td><td>agent 工具包裝、kernel 延遲建立、namespace bootstrap、輸出整形</td></tr>
+        <tr><td><code>src/core/agent-session.ts</code></td><td>RLM 政策、子代理建立、registry、用量歸屬、取消、goal handlers</td></tr>
+        <tr><td><code>src/core/rlm-runtime.ts</code></td><td><code>rlm.run</code> 的 typed 請求/handle 驗證、模型 discovery/list/delete</td></tr>
+        <tr><td><code>prime-agent-runtime/src/rlm/</code></td><td>Python shim、handle 型別、可呼叫的 <code>rlm</code>、session-backed harness 狀態</td></tr>
+      </tbody>
+    </table>
+    <h4>Kernel 生命週期</h4>
+    <p>kernel <strong>首次用到 IPython 才延遲建立</strong>。Python 解析順序:① <code>PRIME_AGENT_KERNEL_PYTHON</code>(能 import ipykernel 時)→ ② <code>~/.prime/agent/kernel-venv/bin/python</code>(用 <code>uv</code> bootstrap)→ ③ <code>~/.prime</code> 不可寫時退到 XDG 位置。受管環境含 Python 3.11 + <code>ipykernel</code> + <code>prime-agent-runtime</code>。啟動會建臨時 Jupyter 連線檔(loopback TCP ports + HMAC key)、起 <code>ipykernel_launcher</code>、連 shell/IOPub/control 三個 socket、用 <code>kernel_info_request</code> 探測就緒。傳輸走 <strong>ZeroMQ 上的 Jupyter 協定</strong>。持久 session 可把 kernel namespace 快照到 artifact 目錄以便復活。</p>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="daemon">
+    <h2><span class="num">⑥</span> 深入:Daemon 架構(常駐、租約、復原)</h2>
+    <p>Prime Agent 把每棵 active root session 樹<strong>隔離在自己的 process</strong>。daemon 是內部基礎設施;interactive / print / JSON / RPC 只是 client 行為。</p>
+    <div class="diagram">Clients(interactive · print · JSON · RPC)
+        │  public local protocol
+        ▼
+<b>Supervisor</b>(公用 socket、附掛、路由、全域 agent-message、worker 健康、指令 journal、協調更新)
+        ├─ Catalog 子程序(已存 session 掃描;掛了不影響 active worker)
+        ├─ Resident worker · root A(RLM 後代 + kernels)
+        ├─ Resident worker · root B
+        └─ Client-owned worker(隱藏 root;headless/ephemeral 用)</div>
+    <p><strong>Supervisor 不執行</strong> provider/工具/compaction/bash/kernel/排程/掃描——它只管協調。</p>
+    <h4>Resident workers(互動 session)</h4>
+    <ul>
+      <li>每棵 active root 樹一個 detached process group;<strong>關掉 TUI 只是 detach client,worker 不會停</strong>。</li>
+      <li>worker 監看 supervisor socket;若 supervisor 消失,某個 worker 取得<strong>原子 launch lease</strong> 啟動替補 supervisor,替補會<strong>認領現存 workers</strong>。</li>
+      <li><strong>崩潰復原:</strong>一次 worker crash 只影響一棵 root 樹;復原在 <strong>250ms → 1s → 5s</strong> 重試,<strong>三次失敗</strong>就標記該 root failed。</li>
+      <li><code>prime-agent shutdown</code> 停 supervisor 與所有 worker;<code>--force</code> 連無回應的 process group 與追蹤的子程序一起終止。</li>
+    </ul>
+    <h4>Client-owned workers(headless/一次性)</h4>
+    <p>print / piped-stdin / JSON 是 one-shot;RPC 用 LF 分隔的 JSONL,收 prompt 到 EOF;interactive <code>--no-session</code> 用記憶體內 session。client 意外斷線會進入<strong>有限的清理寬限期</strong>,用同一 client identity 重連可取消清理。</p>
+    <h4>Session 租約(防並發寫壞逐字稿)</h4>
+    <p>每個持久 session 由一個<strong>以正規 JSONL 路徑為 key 的 process-safe lease</strong> 保護:worker 開 session 前先取 lease;runtime 替換時<strong>先取新 lease 再放舊的</strong>;並發開啟回傳 <code>session_already_active</code> 與擁有者的 active-session ID;並發建立會<strong>收斂到同一個 worker</strong>。排程 job 存在各 session 的 <code>session-artifacts/&lt;id&gt;/scheduled-jobs.json</code>,不共用全域 cron。</p>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="abstractions">
+    <h2><span class="num">⑦</span> 兩大核心抽象</h2>
+    <h3>RLM(Recursive Language Model)</h3>
+    <ul>
+      <li><strong>prompt-as-a-variable</strong>:上下文是 REPL 裡的變數,可被程式操作。</li>
+      <li><strong>programmatic sub-agent calling</strong>:<code>rlm(...)</code> 是函式呼叫,spawn 真的子代理,非阻塞回 handle。</li>
+      <li>一切經持久 IPython:檔案、shell、工具、子代理、上下文管理都用程式碼做。</li>
+    </ul>
+    <h3>Continual Harness(自我改進的耐久狀態)</h3>
+    <ul>
+      <li>Python 端 <code>harness.py</code> 把 <strong>prompt / memory / skill / subagent</strong> 四種項目 + refinement 事件,存成 <code>~/.prime/agent/harness/harness_state.json</code>(預設 local scope,可 global)。</li>
+      <li><code>/refine</code> 檢視當前 trajectory,做<strong>小步、有證據的更新</strong>;有快照支援 rollback;<strong>永不改動不可變的 base system prompt</strong>。</li>
+      <li>技能是<strong>可 import 的 Python 套件</strong>,內建 skill creator 能把重複流程變成 project/personal skill。</li>
+    </ul>
+    <div class="callout"><strong>連到「自我演化 Agent」:</strong>Continual Harness ＝ 綜述裡「環境中心 · 動態經驗/技能增強演化」的工程化;RLM 的遞迴子代理 ＝「拓撲/多代理」路線的實作。見 <a href="./self-evolving-agents.html">自我演化 Agent 綜述</a>。</div>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="run">
+    <h2><span class="num">⑧</span> 要跑起來需要什麼</h2>
+    <pre><code><span class="cm"># 正式安裝(macOS/Linux)</span>
+curl -fsSL https://app.primeintellect.ai/prime-agent/install.sh | sh
+cd /path/to/project &amp;&amp; prime-agent
+<span class="cm"># 首次 /login 選 subscription 或 API-key provider</span>
+
+<span class="cm"># 從原始碼</span>
+npm install          <span class="cm"># repo root,Node ≥ 22.8</span>
+npm run build        <span class="cm"># 依序 build tui→ai→agent→coding-agent</span>
+./prime-agent.sh     <span class="cm"># 或 --dist 跑 bundle</span></code></pre>
+    <p>另需 Python(IPython runtime,首次用到 kernel 時以 <code>uv</code> 自動 bootstrap)與模型 provider 金鑰。常用:<code>prime-agent agents / attach / --resume / status / doctor --fix / shutdown</code>。</p>
+  </section>
+
+  <!-- ⑨ -->
+  <section id="sources">
+    <h2><span class="num">⑨</span> 來源</h2>
+    <ul>
+      <li><a href="https://github.com/PrimeIntellect-ai/prime-agent" target="_blank" rel="noopener">GitHub · PrimeIntellect-ai/prime-agent</a>（MIT;本頁依 clone 的原始碼與 <code>docs/</code> 整理）</li>
+      <li>底層:<a href="https://github.com/earendil-works/pi" target="_blank" rel="noopener">earendil-works/pi</a>;RLM 說明見官方 blog、Continual Harness 見其論文連結</li>
+    </ul>
+    <div class="related">
+      <a href="./oh-my-pi.html">
+        <div class="rel-title">🥧 oh-my-pi 深入</div>
+        <div class="rel-sub">同屬 pi 家族的編碼 harness</div>
+      </a>
+      <a href="./herdr.html">
+        <div class="rel-title">🐑 Herdr</div>
+        <div class="rel-sub">多 agent 的終端 runtime</div>
+      </a>
+      <a href="./self-evolving-agents.html">
+        <div class="rel-title">🧬 自我演化 Agent 綜述</div>
+        <div class="rel-sub">Harness/RLM 對應的研究地圖</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁依撰寫時 clone 的原始碼與官方 docs 整理;版本演進後細節(檔案路徑、旗標、行為)可能變動,實際以官方 repo 最新內容為準。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
