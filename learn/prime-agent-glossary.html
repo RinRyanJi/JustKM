@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Prime Agent 白話術語表：IPython/REPL/ZeroMQ/daemon… 一次看懂 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 24px 30px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.2rem; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .ic { font-size: 1.1rem; }
+
+    .term { border: 1px solid var(--hairline); border-radius: 12px; padding: 14px 16px; margin: 10px 0; background: var(--surface); }
+    .term .name { font-weight: 800; color: var(--ink); font-size: 0.95rem; margin-bottom: 4px; }
+    .term .name .en { font-family: 'SF Mono', Menlo, monospace; color: var(--primary-deep); font-size: 0.82rem; font-weight: 700; margin-left: 4px; }
+    .term .def { font-size: 0.875rem; color: var(--charcoal); margin-bottom: 6px; }
+    .term .meta { font-size: 0.8rem; color: var(--slate); }
+    .term .meta b { color: var(--teal); }
+    .term .meta .pi { color: var(--orange); }
+    .term code { font-family: 'SF Mono', Menlo, monospace; background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./prime-agent.html">← 回到 Prime Agent 架構總覽</a>
+
+  <div class="hero">
+    <h1>📖 Prime Agent 白話術語表</h1>
+    <p class="sub">IPython、REPL、kernel、ZeroMQ、daemon、compaction… 每個詞:一句定義 + 生活比喻 + 在 Prime Agent 的角色</p>
+    <div>
+      <span class="badge green">零基礎友善</span>
+      <span class="badge blue">32 個常見術語</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 分類</div>
+    <div class="toc-grid">
+      <a href="#basic">① 基礎:程式執行</a>
+      <a href="#transport">② 傳輸與協定</a>
+      <a href="#process">③ 程序與架構</a>
+      <a href="#agent">④ Agent 概念</a>
+      <a href="#model">⑤ 模型與介面</a>
+    </div>
+  </nav>
+
+  <div class="callout tip"><strong>怎麼用這頁:</strong>在 Prime Agent 各頁看到不懂的詞,回這裡查。每則都有 <b style="color:var(--teal)">🌰 比喻</b> 幫你建立直覺,和 <span class="pi" style="color:var(--orange)">▸ 在 Prime Agent</span> 說明它實際扮演什麼角色。</div>
+
+  <!-- ① -->
+  <section id="basic">
+    <h2><span class="ic">⌨️</span> ① 基礎:程式執行</h2>
+
+    <div class="term">
+      <div class="name">REPL <span class="en">Read–Eval–Print Loop</span></div>
+      <div class="def">一個「你打一行、它馬上跑一行、立刻給結果」的互動環境。讀取(Read)你的輸入 → 執行(Eval)→ 印出(Print)結果 → 回到等你下一行(Loop)。</div>
+      <div class="meta"><b>🌰 比喻:</b>像跟計算機對話——按 <code>2+3</code> 立刻顯示 <code>5</code>,不用「寫完整個程式再一次跑」。<span class="pi">▸ 在 Prime Agent:</span>模型就是在一個 REPL 裡「打一段 Python、看結果、再打下一段」地工作。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Python</div>
+      <div class="def">一種很常用的程式語言,語法接近英文、好讀好寫,資料處理與自動化的首選。</div>
+      <div class="meta"><span class="pi">▸ 在 Prime Agent:</span>模型主要用 Python 來讀寫檔案、跑指令、呼叫工具——「一切都是程式化的」。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">IPython</div>
+      <div class="def">一個「加強版的 Python 互動環境」(REPL)。比原生 Python 好用:有語法高亮、指令補全、還能用 <code>%%bash</code> 這類「魔法指令」。</div>
+      <div class="meta"><b>🌰 比喻:</b>普通 Python REPL 是陽春計算機,IPython 是有記憶、有快捷鍵的工程計算機。<span class="pi">▸ 在 Prime Agent:</span>每個 session 有一個<strong>持久的 IPython 環境</strong>,是模型唯一的內建工具(叫 <code>ipython</code>)。「IPython REPL」= 這個互動式的 Python 工作台。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Kernel(核心)<span class="en">IPython kernel</span></div>
+      <div class="def">真正「跑你的 Python」的那個背景程式。你在介面打字,kernel 在背後執行並把結果送回來。</div>
+      <div class="meta"><b>🌰 比喻:</b>介面是「遙控器」,kernel 是「主機」。你按遙控器,主機做事。<span class="pi">▸ 在 Prime Agent:</span>kernel 是獨立的 process,第一次用到才啟動;變數會一直留著(跨對話回合)。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Namespace(命名空間)</div>
+      <div class="def">一個環境裡「目前存在的所有變數與函式」的集合。</div>
+      <div class="meta"><b>🌰 比喻:</b>像你桌上攤開的所有文件與工具。<span class="pi">▸ 在 Prime Agent:</span>一個 kernel 一個共享 namespace,所以前面算出的變數,後面還能直接用。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Token(權杖 / 詞元)</div>
+      <div class="def">LLM 處理文字的最小單位,約等於「一個詞或半個詞」。模型的輸入輸出、計費、context 上限都以 token 計。</div>
+      <div class="meta"><b>🌰 比喻:</b>像文章的「字數」,但切法是模型自己的。<span class="pi">▸ 在 Prime Agent:</span>compaction、成本、context window 全用 token 衡量。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Streaming(串流)/ delta(增量)</div>
+      <div class="def">模型不是「整段一次吐出」,而是<strong>一小塊一小塊即時傳</strong>(每一小塊叫一個 delta),所以你會看到字一個個冒出來。</div>
+      <div class="meta"><b>🌰 比喻:</b>像直播 vs 錄好再上傳。<span class="pi">▸ 在 Prime Agent:</span>回應以 start → 一堆 delta → done 的事件流傳回,UI 邊收邊顯示。</div>
+    </div>
+  </section>
+
+  <!-- ② -->
+  <section id="transport">
+    <h2><span class="ic">🔌</span> ② 傳輸與協定(程式之間怎麼講話)</h2>
+
+    <div class="term">
+      <div class="name">協定 / 協議 <span class="en">protocol</span></div>
+      <div class="def">兩個程式溝通時「講好的規矩」——訊息長怎樣、誰先講、怎麼回。</div>
+      <div class="meta"><b>🌰 比喻:</b>像打電話的禮節:先「喂?」再報名字。<span class="pi">▸ 在 Prime Agent:</span>host 與 kernel 用 Jupyter 協定;client 與 daemon 用自訂的 daemon 協定。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Jupyter</div>
+      <div class="def">一套跑互動式程式(尤其 Python)的生態,定義了「介面 ↔ kernel」怎麼傳訊息的標準協定。</div>
+      <div class="meta"><span class="pi">▸ 在 Prime Agent:</span>host 與 IPython kernel 之間就是走標準 Jupyter 協定(執行請求、輸出、中斷…)。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Socket(通訊端)</div>
+      <div class="def">程式之間傳資料的「插座 / 管道」的兩端。一邊寫入、另一邊讀出。</div>
+      <div class="meta"><b>🌰 比喻:</b>像兩支對講機之間的頻道。<span class="pi">▸ 在 Prime Agent:</span>host 與 kernel 之間開了多個 socket(不同用途各一條)。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">ZeroMQ <span class="en">ØMQ</span></div>
+      <div class="def">一套「高效能訊息傳遞函式庫」,讓程式之間用 socket 快速、可靠地傳訊息。</div>
+      <div class="meta"><b>🌰 比喻:</b>像一套專業的「管路系統」,比自己接水管穩。<span class="pi">▸ 在 Prime Agent:</span>Jupyter 協定的訊息底層就是用 ZeroMQ 在 host↔kernel 之間傳。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">通道 <span class="en">channel</span>(shell / iopub / control)</div>
+      <div class="def">同一對程式之間,依用途分開的幾條獨立管道。</div>
+      <div class="meta"><b>🌰 比喻:</b>像同一棟樓的「客用電梯 / 貨梯 / 消防梯」各走各的。<span class="pi">▸ 在 Prime Agent:</span><code>shell</code>=送執行請求、<code>iopub</code>=收輸出、<code>control</code>=中斷與「host 回覆」。分開是為了避免塞車與死鎖。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Comm(通訊物件)<span class="en">Jupyter comm</span></div>
+      <div class="def">Jupyter 裡一種「開一條臨時雙向小管道」的機制,讓 kernel 與 host 在執行中互相傳自訂訊息。</div>
+      <div class="meta"><span class="pi">▸ 在 Prime Agent:</span>模型在 Python 裡呼叫 <code>rlm(...)</code> 時,就是透過一個叫 <code>host.request</code> 的 comm 把請求送回 host。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">HMAC-SHA256(訊息簽章)</div>
+      <div class="def">用一把「共用密鑰」替每則訊息算一個指紋。收到時重算比對,指紋對得上才可信——確保訊息<strong>沒被竄改、來自對的人</strong>。</div>
+      <div class="meta"><b>🌰 比喻:</b>像文件上的防偽火漆印。<span class="pi">▸ 在 Prime Agent:</span>host↔kernel 的每則 JSON 訊息都用 HMAC-SHA256 簽章。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">JSON / JSONL</div>
+      <div class="def"><strong>JSON</strong> 是一種通用的資料格式(用 <code>{ }</code> 表示鍵值)。<strong>JSONL</strong> = 一行一個 JSON 物件的檔案(JSON Lines)。</div>
+      <div class="meta"><b>🌰 比喻:</b>JSONL 像「一行一筆」的帳本,方便逐行讀、逐行append。<span class="pi">▸ 在 Prime Agent:</span>整個 session(對話紀錄)就存成一個 <code>.jsonl</code> 檔,每行一個訊息/事件。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">SHA-256 checksum(校驗碼)</div>
+      <div class="def">把一個檔案算成一段固定長度的「指紋」。下載後重算,對得上就代表檔案完整沒被動過。</div>
+      <div class="meta"><span class="pi">▸ 在 Prime Agent:</span>安裝腳本下載 release 後會驗 SHA-256,確保沒被掉包。</div>
+    </div>
+  </section>
+
+  <!-- ③ -->
+  <section id="process">
+    <h2><span class="ic">⚙️</span> ③ 程序與架構</h2>
+
+    <div class="term">
+      <div class="name">Process(程序 / 行程)</div>
+      <div class="def">作業系統裡「一個正在執行的程式」。彼此隔離:一個崩潰不會直接拖垮另一個。</div>
+      <div class="meta"><b>🌰 比喻:</b>像電腦上開的一個個獨立視窗/應用。<span class="pi">▸ 在 Prime Agent:</span>supervisor、每個 worker、每個 kernel 都是<strong>各自獨立的 process</strong>,故障才不會全倒。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Daemon(常駐程式 / 守護程序)</div>
+      <div class="def">在背景默默常駐、不需要你盯著的程式。你關掉視窗它還在跑。</div>
+      <div class="meta"><b>🌰 比喻:</b>像大樓的中央空調主機,你回家了它還運轉。<span class="pi">▸ 在 Prime Agent:</span>daemon 讓 agent 在你關掉終端後<strong>繼續跑</strong>,之後可重新接上。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Supervisor(監督者)/ Worker(工人)</div>
+      <div class="def">分工架構:supervisor 負責「調度、路由、看健康」;worker 負責「真正幹活」。</div>
+      <div class="meta"><b>🌰 比喻:</b>supervisor 是工頭(派工、點名),worker 是工人(做事)。<span class="pi">▸ 在 Prime Agent:</span>一個 supervisor 管多個 worker,每個 worker 跑一棵對話樹。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Attach / Detach(接上 / 卸離)</div>
+      <div class="def">Detach=把「介面」跟「背景在跑的工作」分開(工作繼續);Attach=再把介面接回去看它。</div>
+      <div class="meta"><b>🌰 比喻:</b>像掛掉視訊但通話還在,之後再接回來。<span class="pi">▸ 在 Prime Agent:</span>關 TUI 只是 detach,agent 不停;<code>prime-agent attach</code> 再接回。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Lease(租約 / 佔用鎖)</div>
+      <div class="def">一種「同一時間只准一個人用」的機制。誰先拿到租約,誰才能寫;別人得等。</div>
+      <div class="meta"><b>🌰 比喻:</b>像廁所門上的「使用中」牌子。<span class="pi">▸ 在 Prime Agent:</span>每個 session 檔有 lease,防止兩個 worker 同時寫壞同一份對話紀錄。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Idempotency(冪等)</div>
+      <div class="def">「同一個操作做一次或做很多次,結果都一樣、不會出錯或重複扣款」的性質。</div>
+      <div class="meta"><b>🌰 比喻:</b>像電梯按鈕按一次跟按十次結果一樣。<span class="pi">▸ 在 Prime Agent:</span>指令用 <code>clientId+commandId</code> 當 key,重送已完成的指令只回原結果,不會重跑。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Journal(日誌 / 流水帳)</div>
+      <div class="def">把「發生了什麼」按順序、只增不改地記下來的檔案,用來事後復原。</div>
+      <div class="meta"><b>🌰 比喻:</b>像航海日誌/黑盒子。<span class="pi">▸ 在 Prime Agent:</span>指令與狀態轉移先寫 journal,崩潰後靠它還原、且不重播不確定的副作用。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Snapshot(快照)/ Replay(重播)</div>
+      <div class="def">Snapshot=某一刻的完整狀態存檔;Replay=把中間發生的事件重新播一遍追上進度。</div>
+      <div class="meta"><b>🌰 比喻:</b>snapshot 像遊戲存檔,replay 像看回放補進度。<span class="pi">▸ 在 Prime Agent:</span>重新接上時,先套用 snapshot 當基準,再補上缺的事件;補不到也沒關係。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Backpressure(反壓 / 回壓)</div>
+      <div class="def">當接收方來不及處理時,系統「放慢或暫停供給」以免爆掉的機制。</div>
+      <div class="meta"><b>🌰 比喻:</b>像水管下游塞住,上游要減壓。<span class="pi">▸ 在 Prime Agent:</span>某個卡住的 client 只會自己收不到增量,不會拖累其他 client 與 worker。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Bootstrap / venv / uv</div>
+      <div class="def"><strong>Bootstrap</strong>=首次自動把環境準備好;<strong>venv</strong>=Python 的「獨立小環境」(不污染系統);<strong>uv</strong>=一個很快的 Python 套件/環境工具。</div>
+      <div class="meta"><span class="pi">▸ 在 Prime Agent:</span>第一次用到 kernel 時,用 <code>uv</code> 自動 bootstrap 一個含 ipykernel 的 venv。</div>
+    </div>
+  </section>
+
+  <!-- ④ -->
+  <section id="agent">
+    <h2><span class="ic">🤖</span> ④ Agent 概念</h2>
+
+    <div class="term">
+      <div class="name">Tool calling / Function calling(工具呼叫)</div>
+      <div class="def">讓模型不只吐文字,還能「請系統幫我執行某個動作(函式)並回結果」的能力。是 agent 的基礎。</div>
+      <div class="meta"><b>🌰 比喻:</b>像助理不只回你話,還能真的幫你「訂餐廳」。<span class="pi">▸ 在 Prime Agent:</span>模型的主要工具是 <code>ipython</code>——它「呼叫」的就是跑 Python。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Agent / Subagent(代理 / 子代理)</div>
+      <div class="def"><strong>Agent</strong>=會自己規劃、呼叫工具、多步完成任務的 AI。<strong>Subagent</strong>=某個 agent 為了子任務而開的另一個小 agent。</div>
+      <div class="meta"><b>🌰 比喻:</b>主管(agent)把工作分派給下屬(subagent)。<span class="pi">▸ 在 Prime Agent:</span>在 Python 裡 <code>rlm("子任務")</code> 就 spawn 一個 subagent。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">RLM <span class="en">Recursive Language Model</span></div>
+      <div class="def">Prime Agent 的核心理念:把「上下文當變數、工具與子代理當函式呼叫」,全部在一個持久 Python 環境裡組合;子代理還能再開子代理(遞迴)。</div>
+      <div class="meta"><b>🌰 比喻:</b>像一個會寫程式的助理,能在腳本裡再叫更多助理。<span class="pi">▸ 在 Prime Agent:</span>就是它整套運作的骨架。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">遞迴 <span class="en">recursion</span></div>
+      <div class="def">「東西自己包含同類的自己」——例如一個代理再開一個同類的代理,可以一層層下去。</div>
+      <div class="meta"><b>🌰 比喻:</b>像兩面鏡子對照、俄羅斯娃娃。<span class="pi">▸ 在 Prime Agent:</span>子代理可再開子代理,有「深度上限」防止無限展開。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">非阻塞 / fire-and-forget(送出就不等)</div>
+      <div class="def">發出一個請求後<strong>不站在原地等結果</strong>,先繼續做別的,結果之後再來。</div>
+      <div class="meta"><b>🌰 比喻:</b>像寄出一封信就去忙,回信之後再看,而不是站在信箱旁等。<span class="pi">▸ 在 Prime Agent:</span><code>rlm(...)</code> 立刻回一個「收據」,子代理的答案之後才透過訊息或檔案回來——所以能平行養很多子代理。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">async / await(非同步 / 等待)</div>
+      <div class="def">寫並行程式的語法:<code>async</code> 標記「這件事可以並行」,<code>await</code> 標記「這裡要等它好」。</div>
+      <div class="meta"><span class="pi">▸ 在 Prime Agent:</span>你會看到 <code>await rlm(...)</code>——這裡的 await 只等「任務被接受」,不等答案。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Context window(上下文視窗)</div>
+      <div class="def">模型「一次能看的最大文字量」(以 token 計)。超過就得取捨,不能無限塞。</div>
+      <div class="meta"><b>🌰 比喻:</b>像人的短期記憶容量。<span class="pi">▸ 在 Prime Agent:</span>快滿時觸發 compaction。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Compaction(壓縮 / 精簡)</div>
+      <div class="def">對話太長、context 快爆時,把<strong>舊訊息摘要成一段</strong>、只保留最近的原文,騰出空間繼續。</div>
+      <div class="meta"><b>🌰 比喻:</b>像把厚厚的會議紀錄濃縮成重點摘要。<span class="pi">▸ 在 Prime Agent:</span>自動觸發或 <code>/compact</code>;<strong>Python 變數不受影響</strong>,只精簡對話。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Heartbeat(心跳)/ Schedule(排程)/ Autonomous(自主模式)</div>
+      <div class="def">Heartbeat=週期性自動再進來看一下;Schedule=在指定時間/cron 觸發;Autonomous=在設定的預算內自己一直做下去。</div>
+      <div class="meta"><span class="pi">▸ 在 Prime Agent:</span>都是「長時間任務」的續跑機制,走跟你手動下 prompt 完全相同的路徑。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Harness(執行框架 / 承載層)</div>
+      <div class="def">包在模型外面、讓它能真正做事的那層「骨架」:管工具、記憶、流程、狀態。</div>
+      <div class="meta"><b>🌰 比喻:</b>模型是引擎,harness 是整台車(方向盤、油箱、儀表)。<span class="pi">▸ 在 Prime Agent:</span>「Continual Harness」還能自我精煉(<code>/refine</code>)存下的提示/記憶/技能。</div>
+    </div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="model">
+    <h2><span class="ic">🧩</span> ⑤ 模型與介面</h2>
+
+    <div class="term">
+      <div class="name">LLM <span class="en">Large Language Model</span></div>
+      <div class="def">大型語言模型——用海量文字訓練、能理解與生成語言的 AI(如 GPT、Claude、Gemini)。</div>
+      <div class="meta"><span class="pi">▸ 在 Prime Agent:</span>就是背後做決策、寫程式的「大腦」,可中途換家。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Provider / API / Model(供應商 / 介面 / 模型)</div>
+      <div class="def">Provider=哪一家(OpenAI、Anthropic…);API=用哪種線上協定;Model=具體哪個模型。</div>
+      <div class="meta"><b>🌰 比喻:</b>Provider=電信公司,API=通訊制式(4G/5G),Model=你選的方案。<span class="pi">▸ 在 Prime Agent:</span><code>packages/ai</code> 用這三層把 20+ 家統一成同一套呼叫。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">Thinking / Reasoning(思考 / 推理)</div>
+      <div class="def">某些模型會先「內心演算一段」再給答案,這段中間思考叫 thinking/reasoning。</div>
+      <div class="meta"><span class="pi">▸ 在 Prime Agent:</span>跨家換模型時,異家的 thinking 會轉成 <code>&lt;thinking&gt;</code> 標記文字以保相容。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">MCP <span class="en">Model Context Protocol</span></div>
+      <div class="def">一套「讓 AI 連接外部工具/資料源」的標準協定,像給 AI 裝外接擴充的通用插槽。</div>
+      <div class="meta"><span class="pi">▸ 在 Prime Agent:</span>可透過 MCP 接入外部工具;技能與 provider 也能整合。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">TUI / CLI / Headless / RPC</div>
+      <div class="def"><strong>CLI</strong>=在終端打指令用;<strong>TUI</strong>=終端裡的圖形化介面;<strong>Headless</strong>=沒有介面、給程式自動化用;<strong>RPC</strong>=程式間互相呼叫的協定。</div>
+      <div class="meta"><span class="pi">▸ 在 Prime Agent:</span>互動用 TUI;自動化用 print/JSON/RPC 等 headless 模式。</div>
+    </div>
+
+    <div class="term">
+      <div class="name">OAuth / API key / credential(憑證)</div>
+      <div class="def">證明「你有權用某服務」的東西。<strong>API key</strong>=一串密鑰;<strong>OAuth</strong>=用你的帳號授權登入(如「用 Google 登入」);credential=兩者統稱。</div>
+      <div class="meta"><span class="pi">▸ 在 Prime Agent:</span><code>/login</code> 選 provider,金鑰存在 <code>auth.json</code>。</div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="ic">↗</span> 相關</h2>
+    <div class="related">
+      <a href="./prime-agent.html">
+        <div class="rel-title">🔷 Prime Agent 架構總覽</div>
+        <div class="rel-sub">從這裡開始</div>
+      </a>
+      <a href="./prime-agent-internals.html">
+        <div class="rel-title">🔬 內部細節</div>
+        <div class="rel-sub">RLM loop、技能、Harness</div>
+      </a>
+      <a href="./prime-agent-deep.html">
+        <div class="rel-title">🧪 深挖三題</div>
+        <div class="rel-sub">ZeroMQ、daemon、compaction</div>
+      </a>
+      <a href="./prime-agent-ai-and-sessions.html">
+        <div class="rel-title">🔌 Provider 抽象 + session</div>
+        <div class="rel-sub">統一多家 API、JSONL 格式</div>
+      </a>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./prime-agent.html">← Prime Agent 架構總覽</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
