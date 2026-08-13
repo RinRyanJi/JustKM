@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Prime Agent 深挖三題：ZeroMQ 傳輸 · Daemon 復原 · Compaction 摘要 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    .st { color: #c2410c; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .diagram { background: var(--navy); color: #cdd6ea; border-radius: 12px; padding: 18px 20px; margin: 12px 0 14px; overflow-x: auto;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.74rem; line-height: 1.55; white-space: pre; }
+    .diagram b { color: #ffcf9e; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./prime-agent-internals.html">← 回到 Prime Agent 內部細節</a>
+
+  <div class="hero">
+    <h1>🧪 Prime Agent 深挖三題</h1>
+    <p class="sub">Kernel 的 ZeroMQ 三通道傳輸 · Daemon 的復原與協定 · Compaction 的結構化摘要格式</p>
+    <div>
+      <span class="badge green">依原始碼逐處查證</span>
+      <span class="badge blue">含 wire format</span>
+      <span class="badge orange">MIT</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#kernel">① Kernel:ZeroMQ 三通道</a>
+      <a href="#daemon">② Daemon:復原與協定</a>
+      <a href="#compaction">③ Compaction:結構化摘要</a>
+      <a href="#sources">④ 來源</a>
+    </div>
+  </nav>
+
+  <div class="callout info">本頁是 <a href="./prime-agent-internals.html">內部細節</a> 的再深一層,逐處對照原始碼(<code>src/core/kernel/index.ts</code>、<code>docs/daemon.md</code>、<code>docs/compaction.md</code>)。以官方 repo 最新為準。</div>
+
+  <!-- ① -->
+  <section id="kernel">
+    <h2><span class="num">①</span> Kernel:ZeroMQ 三通道傳輸</h2>
+    <p>TS host 與 IPython kernel 之間走<strong>標準 Jupyter 協定,傳輸層是 ZeroMQ</strong>(<code>import { Dealer, Subscriber } from "zeromq"</code>)。連線檔記錄五個 port + HMAC 金鑰,實際使用三個主要通道:</p>
+    <table>
+      <thead><tr><th>通道</th><th>ZeroMQ socket</th><th>承載</th></tr></thead>
+      <tbody>
+        <tr><td><strong>shell</strong></td><td><code>Dealer</code></td><td><code>execute_request</code> / <code>execute_reply</code> / <code>kernel_info_request</code></td></tr>
+        <tr><td><strong>iopub</strong></td><td><code>Subscriber</code></td><td>stdout / stderr / results / errors / status / <code>comm_open</code></td></tr>
+        <tr><td><strong>control</strong></td><td><code>Dealer</code></td><td>interrupt / shutdown / <strong>執行期間的 host-request 回覆</strong></td></tr>
+      </tbody>
+    </table>
+    <p>另有 <code>stdin</code> 與 <code>hb</code>(heartbeat)port。訊息用標準 Jupyter multipart framing,JSON frame 以 <strong>HMAC-SHA256 簽章</strong>:</p>
+    <div class="diagram">&lt;IDS|MSG&gt;
+signature          <b>← HMAC-SHA256(header+parent+metadata+content)</b>
+header
+parent_header
+metadata
+content</div>
+    <p>一般輸出<strong>只在 <code>parent_header.msg_id</code> 對上當前執行</strong>時才接受;但 comm 訊息在這個過濾之前處理——因為非同步 Python 任務可能在排程 cell 回到 idle 後才開 comm。</p>
+    <h4>⭐ 為什麼 host-request 回覆走 control 通道(而非 shell)</h4>
+    <p>這是最精妙的一點。一個正在跑的 cell 可以 <code>await</code> 任務被接受:</p>
+    <pre><code>handle = <span class="kw">await</span> rlm(<span class="st">"subtask"</span>)</code></pre>
+    <p>IPython <strong>序列處理 shell 訊息</strong>。若把接受回覆送在 shell 通道會<strong>死鎖</strong>:當前的 <code>execute_request</code> 要等回覆才能結束,而 kernel 又要等這個 request 結束才會處理那個 shell 回覆——互相卡死。</p>
+    <div class="callout tip"><strong>解法:</strong>Python shim 把 comm handler 註冊在 <strong>control 通道</strong>,host 的接受回覆走那裡;未來完成用 <code>loop.call_soon_threadsafe()</code> 排程(control handler 可能在別的執行緒)。子代理的<strong>答案不走這條路</strong>——它們之後透過 <code>agent_message</code> 或檔案回來。</div>
+    <h4>執行序列化 vs 子代理並發</h4>
+    <p><code>KernelManager.execute()</code> 的呼叫是<strong>序列化</strong>的:一個 kernel 一個共享 namespace,不會同時跑兩個普通 IPython cell。但 <strong>RLM 子代理仍可並發</strong>——因為每次委派用不同的 comm 與獨立 child runtime。</p>
+    <h4>Python API 匯出</h4>
+    <pre><code><span class="cm"># prime-agent-runtime exports</span>
+rlm, run(prompt, **kwargs), find_models(query="", limit=8),
+list_subagents(), delete_subagent(selector),
+host_request(request_type, payload=None),
+RLMSpawnHandle, RLMModel, RLMSubagent, TokenUsage</code></pre>
+    <p><code>rlm.run</code> 只吃 <code>name</code> 與 <code>model</code>(精確 <code>provider/model</code> selector);<strong>未知參數會直接失敗</strong>;model 搜尋限於有效未過期憑證;選不到或 auth preflight 失敗就<strong>spawn 失敗,不會靜默 fallback</strong> 到別的模型。</p>
+  </section>
+
+  <!-- ② -->
+  <section id="daemon">
+    <h2><span class="num">②</span> Daemon:復原、傳輸與協定</h2>
+
+    <h3>Reconnect / Replay / Snapshot</h3>
+    <ul>
+      <li>每個 sequenced event 屬於某個 <strong>worker generation</strong>;client 保留最後的 <code>{ generation, sequence }</code> 游標,attach 時出示。</li>
+      <li>server 回報請求區間是 <strong>complete / partial / unavailable</strong>。generation 改變會使舊 sequence 失效。</li>
+      <li><strong>replay 遺失不致命</strong>:attach snapshot 是耐久復原基準。<code>DaemonAgentConnection</code> 套用 snapshot、忽略重複或退役 generation 的事件、向 UI 回報「已重新同步」。</li>
+      <li>大 snapshot 在 worker 端編碼,透過有界 supervisor cache <strong>以不透明 chunk 串流</strong>(512 KiB 目標 chunk);supervisor <strong>從不建構 history 大小的物件</strong>。</li>
+    </ul>
+
+    <h3>Private Worker Transport(二進位框架)</h3>
+    <div class="diagram">4-byte  JSON header length
+4-byte  payload length
+        small JSON routing header
+        opaque payload bytes</div>
+    <p>worker <strong>把公開事件序列化一次</strong>;supervisor 只讀 routing header,把<strong>同一份 payload buffer</strong> 轉發給符合的 client。assistant 串流用私有的 start/delta/end payload,supervisor 每個 delta 只重建一次公開的 <code>message_update</code>——<strong>不會反覆把整條增長中的 assistant 訊息從 worker 傳到 supervisor</strong>。私有連線用 per-worker token 認證,並圍籬在當前 supervisor generation,防止過時的替補 supervisor 繼續指揮已認領的 worker。</p>
+
+    <h3>Backpressure(附掛層級)</h3>
+    <ul>
+      <li>被阻塞的 client 停止收增量事件;<strong>其他 client 與 worker 繼續</strong>。</li>
+      <li>supervisor <strong>不保留無界的 per-client 佇列</strong>;排空後該附掛從游標追上或收新 snapshot。</li>
+    </ul>
+
+    <h3>Idempotency 與崩潰復原</h3>
+    <ul>
+      <li>變更型指令以 <code>clientId + commandId</code> 為 key,<strong>dispatch 前先寫 append-only journal</strong>。</li>
+      <li>重複一個已完成指令 → 回傳<strong>存好的結果</strong>;收到但沒有耐久結果的指令 → 回報<strong>uncertain,不重播</strong>。</li>
+      <li>worker crash 後:reap 舊 process group 與追蹤的 detached bash 樹 → 逐字稿附上<strong>可見的 recovery marker</strong> → 在同一 active-session ID 下還原 root → <strong>不重播不確定的副作用</strong>。</li>
+    </ul>
+
+    <h3>Coordinated Updates(兩階段)</h3>
+    <ol>
+      <li>resident workers 並行建立<strong>非破壞性 checkpoint</strong>;</li>
+      <li>supervisor 驗證並原子持久化<strong>聚合 manifest</strong>;</li>
+      <li><strong>每個 prepare 都成功後</strong>才 commit 並停 worker。</li>
+    </ol>
+    <p>若 prepare 或 manifest 驗證失敗,已準備的 worker 被釋放,<strong>所有 root 繼續運行</strong>。協定用 <code>DAEMON_PROTOCOL_VERSION</code> 與 schema revision 獨立版本化;相容新增走 capability 協商,不相容變更才 bump 版本。</p>
+  </section>
+
+  <!-- ③ -->
+  <section id="compaction">
+    <h2><span class="num">③</span> Compaction:結構化摘要格式</h2>
+    <p>compaction 與 branch summarization <strong>共用同一套結構化摘要格式</strong>,由 LLM 產生:</p>
+    <pre><code><span class="cm">## Goal</span>
+[使用者想達成什麼]
+
+<span class="cm">## Constraints &amp; Preferences</span>
+- [使用者提到的要求]
+
+<span class="cm">## Progress</span>
+### Done
+- [x] [已完成任務]
+### In Progress
+- [ ] [進行中]
+### Blocked
+- [受阻項目]
+
+<span class="cm">## Key Decisions</span>
+<span class="cm">## Next Steps</span>
+<span class="cm">## Critical Context</span></code></pre>
+
+    <h3>切點規則(Cut Point Rules)</h3>
+    <p>合法切點:<strong>User / Assistant / BashExecution / Custom(custom_message、branch_summary)</strong>訊息。<strong>絕不切在 tool result</strong>——它必須跟著其 tool call。</p>
+
+    <h3>Split Turns(單一 turn 就爆預算)</h3>
+    <p>一個 turn = 從 user 訊息到下個 user 訊息之間的所有 assistant 回應與 tool call。通常切在 turn 邊界;但當<strong>單一 turn 超過 <code>keepRecentTokens</code></strong>,切點落在 turn 中間的某個 assistant 訊息(<code>isSplitTurn = true</code>)。此時產<strong>兩份摘要並合併</strong>:① 歷史摘要(先前 context)② turn 前綴摘要(這個 split turn 的前半)。</p>
+
+    <h3>累計檔案追蹤</h3>
+    <p>兩種摘要都<strong>累計</strong>追蹤檔案:從「被摘要訊息裡的 tool call」+「前次 compaction/branch summary 的 <code>details</code>」抽取 read/modified 檔案,跨多次壓縮或巢狀分支摘要<strong>保留完整讀寫歷史</strong>。</p>
+
+    <h3>Entry 結構</h3>
+    <pre><code><span class="kw">interface</span> CompactionEntry {
+  type: <span class="st">"compaction"</span>; id; parentId; timestamp;
+  summary: <span class="kw">string</span>;
+  firstKeptEntryId: <span class="kw">string</span>;   <span class="cm">// 從這裡起的訊息保留給 LLM</span>
+  tokensBefore: <span class="kw">number</span>;      <span class="cm">// 從重建的 context 重算</span>
+  customInstructions?: <span class="kw">string</span>; <span class="cm">// /compact &lt;instructions&gt;</span>
+  details?: { readFiles: string[]; modifiedFiles: string[] };
+}</code></pre>
+    <p><strong>LLM 實際看到的</strong> = <code>system prompt</code> + <code>摘要(來自 cmp entry)</code> + <code>從 firstKeptEntryId 起的訊息</code>。重複壓縮時,被摘要的跨度<strong>從上次的保留邊界起</strong>(不是從 compaction entry 本身),以保住上次壓縮存活下來的訊息。</p>
+
+    <h3>Branch Summarization(<code>/tree</code>)</h3>
+    <p>用 <code>/tree</code> 切到別的分支時,Prime Agent 會摘要你要離開的分支並注入新分支:找<strong>共同祖先</strong> → 從舊 leaf 收集到祖先 → 按 token 預算(新的優先)→ 生成摘要 → 在導覽點存 <code>BranchSummaryEntry</code>(含 <code>fromId</code>)。</p>
+    <div class="callout"><strong>整體設計哲學:</strong>壓縮的是「對話訊息」,<strong>IPython kernel 的 Python 狀態不動</strong>;摘要是<strong>結構化、可累計、可迭代</strong>的(帶入前次摘要),而非每次從零重寫——這讓長 session 的「記憶」穩定且可審閱。</div>
+  </section>
+
+  <!-- ④ -->
+  <section id="sources">
+    <h2><span class="num">④</span> 來源</h2>
+    <ul>
+      <li><a href="https://github.com/PrimeIntellect-ai/prime-agent" target="_blank" rel="noopener">GitHub · PrimeIntellect-ai/prime-agent</a>:<code>src/core/kernel/index.ts</code>、<code>docs/rlm-runtime.md</code>、<code>docs/daemon.md</code>、<code>docs/compaction.md</code>、<code>src/core/compaction/</code></li>
+    </ul>
+    <div class="related">
+      <a href="./prime-agent-internals.html">
+        <div class="rel-title">🔬 Prime Agent 內部細節</div>
+        <div class="rel-sub">RLM loop、agent_message、Harness、長任務</div>
+      </a>
+      <a href="./prime-agent.html">
+        <div class="rel-title">🔷 Prime Agent 架構總覽</div>
+        <div class="rel-sub">三層架構、RLM 橋接、daemon</div>
+      </a>
+      <a href="./self-evolving-agents.html">
+        <div class="rel-title">🧬 自我演化 Agent 綜述</div>
+        <div class="rel-sub">研究地圖</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁依撰寫時 clone 的原始碼與官方 docs 整理;wire format、欄位名與預設值可能隨版本變動,實際以官方 repo 最新內容為準。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./prime-agent-internals.html">← Prime Agent 內部細節</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

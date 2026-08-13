@@ -142,6 +142,7 @@
   </nav>
 
   <div class="callout info">本頁是 <a href="./prime-agent.html">Prime Agent 架構總覽</a> 的深入補充。先看總覽的三層架構(daemon/worker/kernel)與 RLM 橋接,再讀這裡的細節。範例取自官方 <code>docs/</code>,以官方 repo 最新為準。</div>
+  <div class="callout tip"><strong>🧪 還要更底層?</strong>另有一頁 <a href="./prime-agent-deep.html"><strong>Prime Agent 深挖三題</strong></a>——kernel 的 <strong>ZeroMQ 三通道</strong>(shell/iopub/control + 為何 host-request 走 control 避免死鎖)、daemon 的<strong>復原與 wire format</strong>(snapshot/replay、二進位框架、idempotency journal、兩階段更新)、compaction 的<strong>結構化摘要格式</strong>(Goal/Progress/Key Decisions… + split turns + entry 結構)。</div>
 
   <!-- ① -->
   <section id="loop">
@@ -334,6 +335,10 @@ prime-agent shutdown [--force]        <span class="cm"># 全停</span></code></p
       <li><a href="https://github.com/PrimeIntellect-ai/prime-agent" target="_blank" rel="noopener">GitHub · PrimeIntellect-ai/prime-agent</a> 的 <code>packages/coding-agent/docs/</code>(rlm.md、rlm-runtime.md、daemon.md、long-running-agents.md、skills.md、compaction.md)與 <code>prime-agent-runtime/src/rlm/</code></li>
     </ul>
     <div class="related">
+      <a href="./prime-agent-deep.html">
+        <div class="rel-title">🧪 Prime Agent 深挖三題</div>
+        <div class="rel-sub">ZeroMQ 通道 · daemon 復原 · compaction 摘要</div>
+      </a>
       <a href="./prime-agent.html">
         <div class="rel-title">🔷 Prime Agent 架構總覽</div>
         <div class="rel-sub">三層架構、RLM 橋接、daemon</div>
