@@ -143,6 +143,7 @@
       <a href="#projects">⑥ 代表性開源專案</a>
       <a href="#techniques">⑦ 核心技術</a>
       <a href="#pipeline">⑧ 流水線架構總結</a>
+      <a href="#templates">⑨ 可複製的 Prompt 範本</a>
     </div>
   </nav>
 
@@ -301,6 +302,90 @@
       </tbody>
     </table>
     <div class="callout info"><strong>一句話收斂:</strong>高品質不是靠「更會寫的模型」,而是靠<strong>一套把品質拆成可勾選事實、把扣分綁上可驗真引用、把生成與審查分開、並自動迭代到達標</strong>的流水線。這與本站反覆出現的主題一致——<strong>不靠更強的模型,靠更好的環境與流程</strong>。</div>
+  </section>
+
+  <!-- ⑨ -->
+  <section id="templates">
+    <h2><span class="num">⑨</span> 可直接複製的 Prompt 範本</h2>
+    <p>把前面八節落成四塊可貼上就用的模板。用法:先寫 <strong>A 邊界條件</strong> → 生成時附 <strong>B</strong> → 評分時用 <strong>C</strong>(稽核 Agent)→ 再用 <strong>D</strong> 反查引用真偽。占位符用 <code>&lt;…&gt;</code> 自行替換。</p>
+
+    <h3>A · 文件邊界條件(Metadata)宣告</h3>
+    <p>每份文件在生成/評分前先定義邊界,後續一切照它審:</p>
+    <pre><code>{
+  <span class="st">"doc_type"</span>: <span class="st">"&lt;技術規格書 | API 文件 | 決策摘要 | …&gt;"</span>,
+  <span class="st">"audience"</span>: <span class="st">"&lt;資深後端工程師 | 非技術主管 | …&gt;"</span>,
+  <span class="st">"domain"</span>: <span class="st">"&lt;金融風控 | 雲端基礎設施 | …&gt;"</span>,
+  <span class="st">"required_sections"</span>: [<span class="st">"摘要"</span>, <span class="st">"範疇"</span>, <span class="st">"時程"</span>, <span class="st">"風險與因應"</span>],
+  <span class="st">"must_include"</span>: [<span class="st">"具體時間節點"</span>, <span class="st">"風險因應策略"</span>],
+  <span class="st">"style"</span>: { <span class="st">"code_blocks_need_language"</span>: true, <span class="st">"tone"</span>: <span class="st">"技術、精簡、無客套"</span> }
+}</code></pre>
+
+    <h3>B · 生成 Agent 系統提示</h3>
+    <pre><code>你是撰寫 Agent。依附上的「邊界條件(Metadata)」撰寫文件。
+規則:
+1. 必須涵蓋 required_sections 的每一個章節,缺一不可。
+2. 用語深度必須符合 audience;術語必須符合 domain 規範。
+3. must_include 的每一項都要有具體內容(不可含糊帶過)。
+4. 程式碼區塊一律標示語言種類。
+5. 只寫有依據的內容;凡引用事實/來源,標註出處。禁止杜撰。
+輸出:純文件內容(Markdown)。</code></pre>
+
+    <h3>C · 稽核 / 評分 Agent 系統提示(核心)</h3>
+    <pre><code>你是嚴格的稽核 Agent,不是作者的朋友。任務:依 Rubric 對文件扣分。
+鐵律:
+1. 【預設滿分,按點扣分】每個維度從滿分起算,發現缺失才扣,不「從零加分」。
+2. 【先推理後給分】每筆扣分必須「先寫理由 + 精確引用文件原文」,再結算分數。
+3. 【強制引用】每筆扣分都要附 quote:一段<em>逐字出現在文件中</em>的原文。
+   若某缺失是「缺少某章節」,quote 填該處前後最近的原文,並在 reason 註明「缺章」。
+4. 【禁止主觀評語】不准出現「寫得不錯 / 大致良好」這類話。
+5. 【二元優先】能拆成 True/False 的先用檢查清單判定(見下)。
+檢查清單(每項 True/False,False 即依 Rubric 扣分):
+  - 是否包含 required_sections 的每一節?
+  - must_include 各項是否都有具體內容?
+  - 程式碼區塊是否都標語言?
+  - 用語深度是否符合 audience?
+  - 術語是否符合 domain?
+Rubric(各維度滿分與扣分點,依你的專案調整):
+  - 結構完整度 /30:缺一必備章節 −10;章節順序混亂 −5
+  - 受眾契合度 /25:深度不符 −10;出現不該有的術語/過度簡化 −5
+  - 領域精準度 /25:術語誤用 −10(每處);缺關鍵領域要素 −5
+  - 事實與可佐證 /20:出現無依據宣稱 −10(每處);引用缺失 −5
+只輸出 JSON,格式如下,不要任何其他文字。</code></pre>
+    <pre><code>{
+  <span class="st">"total"</span>: 0,
+  <span class="st">"dimensions"</span>: {
+    <span class="st">"structure"</span>:     { <span class="st">"score"</span>: 0, <span class="st">"max"</span>: 30 },
+    <span class="st">"audience_fit"</span>:  { <span class="st">"score"</span>: 0, <span class="st">"max"</span>: 25 },
+    <span class="st">"domain"</span>:        { <span class="st">"score"</span>: 0, <span class="st">"max"</span>: 25 },
+    <span class="st">"grounding"</span>:     { <span class="st">"score"</span>: 0, <span class="st">"max"</span>: 20 }
+  },
+  <span class="st">"checklist"</span>: [ { <span class="st">"item"</span>: <span class="st">"包含『風險與因應』章節"</span>, <span class="st">"pass"</span>: false } ],
+  <span class="st">"deductions"</span>: [
+    { <span class="st">"dimension"</span>: <span class="st">"structure"</span>, <span class="st">"points"</span>: -10,
+      <span class="st">"reason"</span>: <span class="st">"缺少『風險與因應』章節"</span>,
+      <span class="st">"quote"</span>: <span class="st">"&lt;逐字引用文件中最接近的原文&gt;"</span> }
+  ]
+}</code></pre>
+    <div class="callout tip"><strong>多次採樣:</strong>把 C 對同一份文件<strong>獨立跑 3–5 次</strong>(temperature 稍高),取各維度分數的<strong>中位數</strong>,再合計——降低單次偶然誤差(即 Self-Consistency)。</div>
+
+    <h3>D · 反向引用驗證(防幻覺扣分)</h3>
+    <p>拿 C 的輸出,用<strong>獨立程式</strong>逐筆檢查 <code>quote</code> 是否真的在原文裡;不在就作廢該筆扣分並把分數加回:</p>
+    <pre><code><span class="kw">import</span> re, json
+<span class="kw">def</span> verify(report_json, doc_text):
+    rep = json.loads(report_json)
+    norm = re.sub(r<span class="st">"\s+"</span>, <span class="st">" "</span>, doc_text)          <span class="cm"># 正規化空白</span>
+    valid = []
+    <span class="kw">for</span> d <span class="kw">in</span> rep[<span class="st">"deductions"</span>]:
+        q = re.sub(r<span class="st">"\s+"</span>, <span class="st">" "</span>, d.get(<span class="st">"quote"</span>, <span class="st">""</span>)).strip()
+        <span class="kw">if</span> q <span class="kw">and</span> q <span class="kw">in</span> norm:                  <span class="cm"># 引用真的存在 → 扣分有效</span>
+            valid.append(d)
+        <span class="kw">else</span>:                                 <span class="cm"># 幻覺引用 → 作廢,分數加回</span>
+            dim = d[<span class="st">"dimension"</span>]
+            rep[<span class="st">"dimensions"</span>][dim][<span class="st">"score"</span>] -= d[<span class="st">"points"</span>]  <span class="cm"># points 是負值→加回</span>
+    rep[<span class="st">"deductions"</span>] = valid
+    rep[<span class="st">"total"</span>] = sum(x[<span class="st">"score"</span>] <span class="kw">for</span> x <span class="kw">in</span> rep[<span class="st">"dimensions"</span>].values())
+    <span class="kw">return</span> rep</code></pre>
+    <div class="callout"><strong>自動迭代收尾:</strong>若 <code>total</code> 低於門檻(如 85),把「<code>deductions</code> 的 reason + quote」連同初稿退回 <strong>B</strong> 重寫,跑一到兩輪(Reflexion loop)直到達標。對「缺章」類扣分,程式無法用 quote 驗真,可改驗「required_sections 的標題字串是否出現在文件」。</div>
   </section>
 
   <!-- related -->
