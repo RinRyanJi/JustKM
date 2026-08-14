@@ -238,12 +238,12 @@
       <thead><tr><th>專案</th><th>定位</th><th>核心機制</th></tr></thead>
       <tbody>
         <tr>
-          <td><strong>GPT-Researcher</strong></td>
+          <td><strong><a href="ai-quality/gpt-researcher.html">GPT-Researcher</a></strong> <span style="font-size:.72rem;color:var(--stone);">→ 詳解</span></td>
           <td>全自動深度報告/技術文件生成</td>
           <td>「<strong>計畫→檢索→摘要→聚合→撰寫</strong>」五階段流水線;大綱拆解後派多個子 Agent 平行搜集與撰寫;<strong>每段強制附資料來源引用</strong>(事實錨定)</td>
         </tr>
         <tr>
-          <td><strong>AutoGen / CrewAI</strong></td>
+          <td><strong><a href="ai-quality/autogen.html">AutoGen</a> / <a href="ai-quality/crewai.html">CrewAI</a></strong> <span style="font-size:.72rem;color:var(--stone);">→ 詳解</span></td>
           <td>多角色協作框架(模擬編寫+審查團隊)</td>
           <td>「<strong>生成者 vs 審查者</strong>」對立;分工研究員/撰寫員/稽核員;稽核員依 CheckList 評分,<strong>低於門檻(如 85 分)退回重寫</strong>,形成自動校正迴圈</td>
         </tr>
@@ -253,7 +253,7 @@
           <td>「<strong>AST 語法樹解析 + 上下文注入 RAG</strong>」;直接讀原始碼,把抽象語法樹與註解抽成 Metadata,確保文件與底層實作<strong>高度一致</strong>、防幻覺</td>
         </tr>
         <tr>
-          <td><strong>Ragas / DeepEval</strong></td>
+          <td><strong><a href="ai-quality/ragas.html">Ragas</a> / <a href="ai-quality/deepeval.html">DeepEval</a></strong> <span style="font-size:.72rem;color:var(--stone);">→ 詳解</span></td>
           <td>文件評分與量化評估框架</td>
           <td>「<strong>LLM-as-a-Judge + 數學指標</strong>」;量化<strong>忠實度</strong>(有無事實依據)、<strong>相關性</strong>(精準回答 vs 堆廢話)、<strong>上下文召回率/精準度</strong></td>
         </tr>
@@ -272,7 +272,7 @@
     <h3>反思與自我校正(Self-Correction / Reflexion Loop)</h3>
     <p>初稿 + 評分標準(Rubric)一起餵給稽核 Agent → 產生具體批判與修改計畫 → 生成 Agent 二次修正。<strong>一到兩輪自動迭代</strong>顯著提升品質。</p>
     <div class="callout tip"><strong>站內深挖:</strong>這正是 <a href="./self-evolving/reflexion.html">Reflexion</a> / <a href="./self-evolving/self-refine.html">Self-Refine</a> 的文件應用——把「失敗回饋」寫成文字,下一輪帶入修正。</div>
-    <h3>動態 Prompt 編譯與優化(DSPy 框架)</h3>
+    <h3>動態 Prompt 編譯與優化(<a href="ai-quality/dspy.html">DSPy</a> 框架 → 詳解)</h3>
     <p>不手寫固定 Prompt,而是把 Prompt 當<strong>可編譯模組</strong>。DSPy 依你設定的評分標準,<strong>自動測試、調整、編譯</strong>出高精準度 Prompt,解決品質不穩與 prompt 漂移。</p>
     <div class="callout"><strong>對照:</strong>站內 <a href="./evoagentx.html">EvoAgentX</a> 的 <strong>MIPRO</strong>(DSPy 系)與 TextGrad 就是這種「提示自動優化器」;它把「調 prompt」從人肉試錯變成可搜尋的優化問題。</div>
   </section>
