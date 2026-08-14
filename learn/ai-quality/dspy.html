@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>DSPy:把 Prompt 當可編譯程式 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+    .toc .grp { grid-column: 1 / -1; font-size: 0.68rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; padding: 2px 10px; }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    .divider { font-size: 0.72rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--stone); text-align: center; margin: 30px 0 14px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    .st { color: #c2410c; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .diagram { background: var(--navy); color: #cdd6ea; border-radius: 12px; padding: 18px 20px; margin: 12px 0 14px; overflow-x: auto;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.74rem; line-height: 1.55; white-space: pre; }
+    .diagram b { color: #ffcf9e; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../ai-quality-docs.html">← 回到 高品質文件方法論</a>
+
+  <div class="hero">
+    <h1>🧬 DSPy:把 Prompt 當「可編譯的程式」</h1>
+    <p class="sub">Stanford NLP 的框架 —— 用<strong>寫程式(programming)</strong>取代<strong>調提示(prompting)</strong>;你定義程式與評分,DSPy 自動編譯出高效 Prompt 與 few-shot 範例</p>
+    <div>
+      <span class="badge green">stanfordnlp/dspy</span>
+      <span class="badge blue">Declarative Self-improving Python</span>
+      <span class="badge orange">Prompt 自動編譯優化</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話</a>
+      <a href="#why">① 解決什麼問題</a>
+      <a href="#concepts">② 核心概念</a>
+      <a href="#how">③ 怎麼運作</a>
+      <a href="#docquality">④ 用於文件品質</a>
+      <a href="#example">⑤ 最小範例</a>
+      <a href="#pipeline">⑥ 在文件流水線的位置</a>
+      <a href="#sources">⑦ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話</h2>
+    <p><strong>DSPy</strong>(取自 <em>Declarative Self-improving Python</em>)是 Stanford NLP 開源的框架,主張「<strong>programming — not prompting — language models</strong>」:把跟語言模型互動的邏輯寫成<strong>模組化的 Python 程式</strong>,再交給 DSPy 的<strong>優化器</strong>依你的評分自動「編譯」出高品質的 Prompt 與示範範例,而不是靠人手一次次改提示字串。</p>
+    <div class="callout info"><strong>心智模型轉換:</strong>傳統做法是「寫一段咒語般的 Prompt,不行就再改字」;DSPy 的做法是「宣告你要什麼(輸入→輸出)、給一個能打分的 metric,讓框架把『調 prompt』當成一個<strong>可搜尋、可編譯的優化問題</strong>」。</div>
+  </section>
+
+  <div class="divider">一 · 是什麼、解決什麼</div>
+
+  <!-- ① -->
+  <section id="why">
+    <h2><span class="num">①</span> 它解決什麼問題</h2>
+    <p>手寫、寫死的 Prompt 有幾個老問題,DSPy 正是衝著它們來的:</p>
+    <table>
+      <thead><tr><th>手寫固定 Prompt 的痛點</th><th>DSPy 的回應</th></tr></thead>
+      <tbody>
+        <tr><td><strong>脆弱</strong>:一個字、一個範例改動就崩,靠玄學調參</td><td>把 Prompt 拆成可組合的<strong>模組</strong>,由優化器系統性地搜出好版本</td></tr>
+        <tr><td><strong>Prompt 漂移</strong>:同一份提示在不同輸入/時間表現飄忽</td><td>用<strong>metric + 資料集</strong>把「好不好」量化,讓優化有客觀依據</td></tr>
+        <tr><td><strong>換模型就壞</strong>:為 A 模型調好的 Prompt,搬到 B 模型失效</td><td>程式與 Prompt 解耦;換 LM 後<strong>重新 <code>compile()</code></strong>即可再優化,不必重寫邏輯</td></tr>
+        <tr><td><strong>few-shot 範例靠手挑</strong>,費工又未必最優</td><td>優化器(如 BootstrapFewShot)<strong>自動挑選/生成示範</strong></td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><strong>與本站主題呼應:</strong>這正是 <a href="../ai-quality-docs.html">高品質文件方法論</a> 反覆講的「<strong>不靠更強的模型,靠更好的流程</strong>」——把品質不穩交給可優化的機制,而非祈禱一次寫對 Prompt。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="concepts">
+    <h2><span class="num">②</span> 核心概念</h2>
+    <p>DSPy 的積木不多,關鍵是四層加一個動作:</p>
+
+    <h3>Signature — 宣告「輸入 → 輸出」</h3>
+    <p>用宣告式的方式描述某一步要做什麼,而<strong>不寫</strong>具體 Prompt 字句。可用精簡的字串形式,也可用類別形式加上型別與說明:</p>
+    <pre><code><span class="cm"># 字串式 Signature</span>
+<span class="st">"question -> answer"</span>
+
+<span class="cm"># 類別式 Signature</span>
+<span class="kw">class</span> BasicQA(dspy.Signature):
+    <span class="st">"""Answer questions with short factoid answers."""</span>
+    question: str = dspy.InputField()
+    answer: str = dspy.OutputField(desc=<span class="st">"often between 1 and 5 words"</span>)</code></pre>
+
+    <h3>Module — 決定「怎麼推理」</h3>
+    <p>把 Signature 套進一個推理策略。常見內建 Module:</p>
+    <table>
+      <thead><tr><th>Module</th><th>作用</th></tr></thead>
+      <tbody>
+        <tr><td><code>dspy.Predict</code></td><td>最基本:直接依 Signature 產生輸出</td></tr>
+        <tr><td><code>dspy.ChainOfThought</code></td><td>先產生推理步驟(思考鏈)再給答案</td></tr>
+        <tr><td><code>dspy.ReAct</code></td><td>推理 + 行動(可呼叫工具)的代理式流程</td></tr>
+      </tbody>
+    </table>
+    <p>多個 Module 可組合成一個更大的程式(<code>dspy.Module</code> 子類),像一般 Python 那樣呼叫與巢狀。</p>
+
+    <h3>Optimizer / Teleprompter — 自動「編譯」Prompt</h3>
+    <p>優化器(舊稱 Teleprompter)吃你的程式、metric 與訓練集,自動找出更好的 Prompt 指令與 few-shot 範例。常見的有:</p>
+    <ul>
+      <li><code>BootstrapFewShot</code>:自動<strong>生成/挑選示範範例</strong>(bootstrap few-shot)。</li>
+      <li><code>MIPROv2</code>:同時優化<strong>指令文字與示範</strong>的進階優化器(EvoAgentX 引用的 MIPRO 同源)。</li>
+    </ul>
+
+    <h3>Metric — 定義「什麼叫好」</h3>
+    <p>一個回傳分數/布林的函式,讓優化有客觀目標。例如判斷答案是否正確:</p>
+    <pre><code><span class="kw">def</span> gsm8k_metric(gold, pred, trace=None) -> int:
+    <span class="kw">return</span> int(parse_integer_answer(str(gold.answer))) == int(parse_integer_answer(str(pred.answer)))</code></pre>
+
+    <h3>compile() — 按下編譯鍵</h3>
+    <p>把「程式 + metric + trainset」交給優化器的 <code>compile()</code>,回傳一個<strong>被優化過的新程式</strong>。這一步就是 DSPy 所謂的「編譯」:它不改你的邏輯,而是<strong>改出最合適的 Prompt/範例</strong>。</p>
+  </section>
+
+  <!-- ③ -->
+  <section id="how">
+    <h2><span class="num">③</span> 怎麼運作:把「調 Prompt」變成優化問題</h2>
+    <p>流程可以拆成三段:你<strong>宣告程式</strong>、你<strong>提供評分</strong>、DSPy <strong>自動搜尋並編譯</strong>。</p>
+    <div class="diagram"><b>1. 你定義</b>   Signature(輸入→輸出) + Module(Predict / CoT / ReAct)組成程式
+        │
+        ▼
+<b>2. 你評分</b>   一個 metric(什麼叫「好」) + 一小份 trainset / 範例
+        │
+        ▼
+<b>3. DSPy 編譯</b>  Optimizer.compile() 自動搜尋:試不同指令、挑/生成 few-shot 範例
+        │            用 metric 打分,保留表現最好的組合
+        │
+        └──▶ 產出:被優化過的程式(內含高效 Prompt 與示範)</div>
+    <p>關鍵轉念:你<strong>不再直接編輯 Prompt 字串</strong>。你維護的是「程式結構 + 評分標準」,Prompt 本身變成優化器的<strong>輸出</strong>。換了模型或改了 metric,重跑 <code>compile()</code> 就重新優化一次。</p>
+    <div class="callout tip"><strong>為什麼這招有效:</strong>人手調 Prompt 是在高維空間裡盲目試錯;DSPy 把它變成有<strong>目標函式(metric)</strong>、有<strong>搜尋策略(optimizer)</strong>、有<strong>驗證資料(trainset)</strong>的優化,自然更穩、更可複現、可隨模型演進而重跑。</div>
+  </section>
+
+  <div class="divider">二 · 用在文件品質</div>
+
+  <!-- ④ -->
+  <section id="docquality">
+    <h2><span class="num">④</span> 用於文件品質:讓 DSPy 自動編譯你的評分器/生成器</h2>
+    <p>回到 <a href="../ai-quality-docs.html">高品質文件方法論</a> 的場景。那裡的痛點是「品質不穩、評分主觀、換個 Prompt 就飄」。DSPy 的落地方式:</p>
+    <ul>
+      <li><strong>把 Rubric 寫成 metric</strong>:方法論裡的「二元檢核清單、按點扣分、強制引用反查」本質上就是一個可程式化的評分函式——正好當 DSPy 的 <code>metric</code>。</li>
+      <li><strong>把評分器/生成器寫成 Module</strong>:例如一個 <code>ChainOfThought</code> 評分器(先列扣分理由與原文引用,再給分)、或一個生成器 Module。</li>
+      <li><strong>讓 DSPy 自動編譯</strong>:用少量「已知好/壞的文件範例 + Rubric metric」跑 <code>compile()</code>,DSPy 會自動調出讓評分最貼近你 Rubric 的 Prompt 與示範,解決「同一份評分 Prompt 時好時壞」。</li>
+    </ul>
+    <div class="callout info"><strong>一句話:</strong>方法論負責<strong>定義「好」的規則(Rubric)</strong>,DSPy 負責<strong>自動把 Prompt 調到最能執行這套規則</strong>。前者是標準,後者是達標的自動化手段。</div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="example">
+    <h2><span class="num">⑤</span> 最小範例(以官方 repo / cheatsheet 為準)</h2>
+    <p>下列片段取自 DSPy 官方文件的用法,依序展示 Signature → Module → 優化編譯:</p>
+
+    <h4>a. Predict / ChainOfThought / ReAct</h4>
+    <pre><code><span class="cm"># 最基本:字串式 Signature</span>
+predict = dspy.Predict(<span class="st">"question -> answer"</span>)
+predict(question=<span class="st">"1+1"</span>, config={<span class="st">"rollout_id"</span>: 1, <span class="st">"temperature"</span>: 1.0})
+
+<span class="cm"># 思考鏈:先推理再答(套用類別式 BasicQA)</span>
+generate_answer = dspy.ChainOfThought(BasicQA)
+pred = generate_answer(question=<span class="st">"What is the color of the sky?"</span>)
+
+<span class="cm"># 代理式:推理 + 行動</span>
+react_module = dspy.ReAct(BasicQA)
+result = react_module(question=<span class="st">"Sarah has 5 apples. She buys 7 more ... how many now?"</span>)</code></pre>
+
+    <h4>b. 用優化器編譯(BootstrapFewShot)</h4>
+    <pre><code><span class="kw">from</span> dspy.teleprompt <span class="kw">import</span> BootstrapFewShot
+
+fewshot_optimizer = BootstrapFewShot(
+    metric=your_defined_metric, max_bootstrapped_demos=4,
+    max_labeled_demos=16, max_rounds=1, max_errors=10)
+
+<span class="cm"># compile():回傳被優化過的新程式</span>
+your_dspy_program_compiled = fewshot_optimizer.compile(
+    student=your_dspy_program, trainset=trainset)</code></pre>
+
+    <h4>c. 進階優化器(MIPROv2 — 同時優化指令與示範)</h4>
+    <pre><code><span class="kw">from</span> dspy.teleprompt <span class="kw">import</span> MIPROv2
+
+teleprompter = MIPROv2(metric=gsm8k_metric, auto=<span class="st">"light"</span>)
+optimized_program = teleprompter.compile(
+    program.deepcopy(), trainset=trainset,
+    max_bootstrapped_demos=3, max_labeled_demos=4)</code></pre>
+    <div class="callout warn"><strong>版本註記:</strong>DSPy API 仍在演進(優化器名稱、參數、<code>dspy.LM</code> 設定方式等可能隨版本調整)。實際簽名與可用選項<strong>以官方 repo 與 dspy.ai 文件為準</strong>;上面片段取自官方 cheatsheet,用於示意流程。</div>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="pipeline">
+    <h2><span class="num">⑥</span> 在「高品質文件流水線」中的位置</h2>
+    <p>對照 <a href="../ai-quality-docs.html">方法論總頁</a> 的四層流水線,DSPy 不是取代其中某一層,而是提供一種「<strong>動態 Prompt 編譯</strong>」的能力,讓生成器與評分器的 Prompt 不用手寫寫死:</p>
+    <div class="diagram"><b>結構定義</b>  Metadata / Schema  ── 邊界條件(讀者、領域、必備章節)
+     │
+     ▼
+<b>生成 &amp; 評分</b>  ←── 這兩層的 Prompt 交給 <b>DSPy 編譯</b>
+     │           生成器 Module / 評分器 Module(Rubric = metric)
+     │           BootstrapFewShot / MIPROv2 自動調出高效 Prompt
+     ▼
+<b>自動迭代</b>  未達門檻 → 帶扣分理由重寫(Reflexion loop)</div>
+    <p>簡言之:方法論的「Rubric、二元檢核、強制引用」是<strong>評分標準(metric)</strong>;DSPy 是<strong>把 Prompt 自動優化到最能執行這套標準</strong>的引擎。</p>
+    <div class="callout"><strong>站內對照:</strong>本站 <a href="../evoagentx.html">EvoAgentX</a> 用到的 <strong>MIPRO</strong> 正是 DSPy 系的優化器(與此頁的 <code>MIPROv2</code> 同源);EvoAgentX 把這類「提示自動優化」放進代理工作流的自動演化裡。兩頁可搭配讀:此頁講「編譯 Prompt 的原理」,EvoAgentX 講「把它用在會自我演化的代理系統」。</div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="sources">
+    <h2><span class="num">⑦</span> 來源</h2>
+    <ul>
+      <li>官方 repo:<code>github.com/stanfordnlp/dspy</code>(README:定位「Programming—not prompting」、DSPy = Declarative Self-improving Python、Signature/Module/Optimizer/Metric/compile 概念)。</li>
+      <li>官方文件站:<code>dspy.ai</code>(完整 API 與教學;本次撰寫時該網域於環境中無法直接抓取,程式片段改採官方 repo 的 cheatsheet)。</li>
+      <li>程式片段:取自 DSPy 官方 <code>docs/docs/cheatsheet.md</code>(Predict / ChainOfThought / ReAct / BootstrapFewShot / MIPROv2 用法)。</li>
+    </ul>
+    <div class="callout warn">本頁為概念整理,力求貼合官方定義;<strong>具體 API 簽名、優化器選項與版本差異,一律以官方 repo 與 dspy.ai 文件為準</strong>。文中未列 star 數等易變資訊。</div>
+
+    <h3>相關單元</h3>
+    <div class="related">
+      <a href="../ai-quality-docs.html">
+        <div class="rel-title">📝 高品質文件方法論</div>
+        <div class="rel-sub">Rubric / 評分 / 流水線的總頁</div>
+      </a>
+      <a href="../evoagentx.html">
+        <div class="rel-title">🔁 EvoAgentX(MIPRO 同源)</div>
+        <div class="rel-sub">把 Prompt 自動優化放進自我演化代理</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">回到 learn 首頁</div>
+      </a>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="../index.html">← 回到 learn</a> · <a href="../ai-quality-docs.html">高品質文件方法論</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

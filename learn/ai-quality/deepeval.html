@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>DeepEval:LLM 版的 pytest 評測框架 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+    .toc .grp { grid-column: 1 / -1; font-size: 0.68rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; padding: 2px 10px; }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    .divider { font-size: 0.72rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--stone); text-align: center; margin: 30px 0 14px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    .st { color: #c2410c; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .diagram { background: var(--navy); color: #cdd6ea; border-radius: 12px; padding: 18px 20px; margin: 12px 0 14px; overflow-x: auto;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.74rem; line-height: 1.55; white-space: pre; }
+    .diagram b { color: #ffcf9e; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../ai-quality-docs.html">← 回到「AI 產生高品質文件」方法論</a>
+
+  <div class="hero">
+    <h1>🧪 DeepEval:LLM 版的 pytest 評測框架</h1>
+    <p class="sub">把「LLM 輸出品質」變成可以 <code>assert</code> 的單元測試 —— 開源、pytest 風格、可進 CI/CD 的 LLM 評估框架(confident-ai/deepeval)</p>
+    <div>
+      <span class="badge green">開源評測框架</span>
+      <span class="badge blue">pytest 風格</span>
+      <span class="badge orange">LLM-as-a-Judge · G-Eval</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話定位</a>
+      <a href="#problem">① 它解決什麼</a>
+      <a href="#mechanism">② 核心機制:三件套</a>
+      <a href="#metrics">③ 核心指標與 G-Eval</a>
+      <a href="#usage">④ 用法:TestCase / metrics / 執行</a>
+      <a href="#example">⑤ 最小範例</a>
+      <a href="#pipeline">⑥ 在高品質文件流水線的位置</a>
+      <a href="#sources">⑦ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話定位</h2>
+    <p><strong>DeepEval</strong> 官方自述為「<strong>The LLM Evaluation Framework</strong> —— 一個簡單易用的開源 LLM 評估框架,用於評估大型語言模型系統」。用一句話類比:它是 <strong>「LLM 版的 pytest」</strong>——沿用 pytest 的測試哲學,但專門用來對 LLM 應用做<strong>單元測試</strong>。你像寫測試檔一樣寫評測,再用 <code>deepeval test run</code> 執行。<span class="cm">(以官方 repo 為準)</span></p>
+    <div class="callout info"><strong>核心轉念:</strong>傳統上「這個回答好不好」是人肉主觀判斷;DeepEval 把它變成<strong>可自動執行、可通過/失敗、可回歸(regression)、可進 CI</strong> 的測試斷言。品質從「感覺」變成「測試套件的綠燈與紅燈」。</div>
+  </section>
+
+  <div class="divider">一 · 為什麼需要它</div>
+
+  <!-- ① -->
+  <section id="problem">
+    <h2><span class="num">①</span> 它解決什麼:把 LLM 輸出品質變成可跑的單元測試</h2>
+    <p>LLM 應用(聊天機器人、RAG、agent)的輸出<strong>不確定、難以用固定字串比對</strong>。傳統 <code>assert output == expected</code> 在這裡幾乎無效——同樣正確的答案可以有一千種寫法。這帶來三個實務痛點:</p>
+    <ul>
+      <li><strong>改了 prompt / 換了模型,品質有沒有退步?</strong> 沒有測試套件就只能靠人工抽看。</li>
+      <li><strong>RAG 到底錯在哪?</strong> 是檢索沒撈到對的段落,還是模型撈到了卻答錯(幻覺)?需要能分層量化。</li>
+      <li><strong>怎麼進 CI/CD?</strong> 要能在每次提交自動跑、低於門檻就讓 pipeline 失敗。</li>
+    </ul>
+    <p>DeepEval 的答案是:提供一組<strong>研究背書的評測指標</strong>(metric),把「好不好」拆成可打分、可設門檻(threshold)的維度;再用 <strong>pytest 風格</strong>把這些打分包成測試,<strong>低於門檻就 fail</strong>。官方定位它能對 LLM 應用做<strong>端到端(黑箱)、完整 agent 軌跡、以及單一步驟</strong>的評估,協助你挑出最佳模型 / prompt / 架構,並<strong>防止 prompt 漂移(prompt drift)</strong>。<span class="cm">(以官方 repo 為準)</span></p>
+    <div class="callout"><strong>與站內方法論的呼應:</strong>這正是 <a href="../ai-quality-docs.html">「讓 AI 產生高品質文件」</a> 一頁裡「把評分演算法化、結構化」的工具化版本——DeepEval 就是那套流水線裡的<strong>「品質評估層」</strong>。</div>
+  </section>
+
+  <div class="divider">二 · 怎麼運作</div>
+
+  <!-- ② -->
+  <section id="mechanism">
+    <h2><span class="num">②</span> 核心機制:test case + metric + assert_test 三件套</h2>
+    <p>DeepEval 的心智模型只有三個零件,組合起來就是一條測試:</p>
+    <table>
+      <thead><tr><th>零件</th><th>角色</th><th>對應 pytest</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Test Case</strong><br><code>LLMTestCase</code></td>
+          <td>一次待評估的互動,承載 <code>input</code>、<code>actual_output</code>、<code>expected_output</code>、<code>retrieval_context</code> 等欄位</td>
+          <td>測試的「輸入與實際結果」</td>
+        </tr>
+        <tr>
+          <td><strong>Metric</strong><br>如 <code>GEval</code>、<code>AnswerRelevancyMetric</code></td>
+          <td>評分準則,帶一個 <code>threshold</code>(門檻);對 test case 打出 0~1 的分數並判定通過與否</td>
+          <td>斷言的「判準」</td>
+        </tr>
+        <tr>
+          <td><strong>assert_test()</strong></td>
+          <td>把一個 test case 丟給一組 metrics 跑;任何 metric 未達門檻就讓測試 <strong>失敗</strong></td>
+          <td><code>assert ...</code></td>
+        </tr>
+      </tbody>
+    </table>
+    <h4>pytest 風格整合 → 直接進 CI/CD</h4>
+    <p>你把 <code>assert_test(...)</code> 寫進 <code>test_xxx.py</code> 的 <code>test_</code> 函式裡,然後用官方 CLI 執行:</p>
+    <pre><code><span class="cm"># 像跑 pytest 一樣跑 LLM 評測</span>
+deepeval test run test_chatbot.py</code></pre>
+    <p>因為它<strong>相容 pytest 的執行方式</strong>,可以直接掛進既有的 CI pipeline:每次提交自動跑評測,分數低於門檻就讓 build 變紅,達成「<strong>LLM 品質的回歸測試</strong>」。若不想走 pytest,也可以用純函式的 <code>evaluate([...], [...])</code> 直接在腳本裡批次評估。<span class="cm">(以官方 repo 為準)</span></p>
+    <div class="callout tip"><strong>三種評估粒度:</strong>官方強調 DeepEval 可評估「端到端黑箱輸出」、「完整 agent 軌跡(trajectory)」與「單一步驟」——對複雜 agent,可用 <code>dataset.evals_iterator()</code> 之類的迭代器捕捉整條決策路徑再逐段評分。</div>
+  </section>
+
+  <div class="divider">三 · 指標:品質怎麼被量化</div>
+
+  <!-- ③ -->
+  <section id="metrics">
+    <h2><span class="num">③</span> 核心指標:從 RAG 到 agent,以 G-Eval 為靈魂</h2>
+    <p>DeepEval 內建數十種 metric。以下依用途分類(<strong>以 README 為準</strong>,實際清單與參數以官方 repo 最新版為準):</p>
+
+    <h3>RAG 指標(檢索增強生成)</h3>
+    <table>
+      <thead><tr><th>指標</th><th>量化什麼</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Answer Relevancy</strong>(答案相關性)</td><td>回答是否精準對應提問,而非答非所問、堆廢話</td></tr>
+        <tr><td><strong>Faithfulness</strong>(忠實度)</td><td>回答是否<strong>忠於檢索到的上下文</strong>、有無事實依據(對抗幻覺)</td></tr>
+        <tr><td><strong>Contextual Precision</strong>(上下文精準度)</td><td>檢索出的段落中,<strong>相關的是否排在前面</strong></td></tr>
+        <tr><td><strong>Contextual Recall</strong>(上下文召回率)</td><td>該撈到的關鍵資訊<strong>是否都被檢索到</strong></td></tr>
+        <tr><td><strong>Contextual Relevancy</strong>(上下文相關性)</td><td>檢索到的上下文整體與提問的相關程度</td></tr>
+        <tr><td><strong>RAGAS</strong></td><td>整合式的 RAG 綜合分數</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Agentic 指標(代理行為)</h3>
+    <p>用於評估 agent 的行為與工具使用,例如:<strong>Task Completion</strong>(任務完成度)、<strong>Tool Correctness</strong>(工具呼叫正確性)、<strong>Goal Accuracy</strong>(目標達成準確度),以及 Argument Correctness、Plan Adherence 等軌跡層面的指標。<span class="cm">(以官方 repo 為準)</span></p>
+
+    <h3>多輪對話指標</h3>
+    <p>如 <strong>Knowledge Retention</strong>(跨輪記憶)、<strong>Conversation Completeness</strong>(對話完整度)、<strong>Turn Relevancy</strong>、<strong>Role Adherence</strong>(是否守住設定角色)等。</p>
+
+    <h3>安全與其他</h3>
+    <p><strong>Hallucination</strong>(幻覺)、<strong>Bias</strong>(偏見)、<strong>Toxicity</strong>(毒性)、<strong>JSON Correctness</strong>(格式正確性)、<strong>Prompt Alignment</strong> 等。</p>
+
+    <h3>🌟 G-Eval:用自然語言 rubric 的 LLM-as-a-Judge</h3>
+    <p>官方把 <strong>G-Eval</strong> 描述為「一個<strong>研究背書</strong>的 LLM-as-a-judge 指標,能以接近人類的準確度,對<strong>任意自訂準則</strong>評分」。它的關鍵在於:<strong>你不必寫程式定義評分邏輯,只要用自然語言寫下 rubric(評分準則)</strong>,G-Eval 就會據此讓 LLM 當裁判打分。</p>
+    <pre><code><span class="kw">from</span> deepeval.metrics <span class="kw">import</span> GEval
+<span class="kw">from</span> deepeval.test_case <span class="kw">import</span> LLMTestCase, SingleTurnParams
+
+correctness_metric = GEval(
+    name=<span class="st">"Correctness"</span>,
+    <span class="cm"># ↓ 用一句自然語言描述「什麼叫對」,這就是 rubric</span>
+    criteria=<span class="st">"Determine if the 'actual output' is correct based on the 'expected output'."</span>,
+    evaluation_params=[SingleTurnParams.ACTUAL_OUTPUT, SingleTurnParams.EXPECTED_OUTPUT],
+    threshold=<span class="st">0.5</span>
+)</code></pre>
+    <p>運作上,G-Eval 會把你的 <code>criteria</code> 展開成一串評估步驟(chain-of-thought 式的評分推理),再讓裁判模型依步驟對指定的 <code>evaluation_params</code>(這裡是實際輸出 vs 期望輸出)打分。<strong>換一個評分維度,只要換一句 <code>criteria</code></strong>——這讓「品質標準」變成可版本控管、可調整的文字資產。</p>
+    <div class="callout"><strong>呼應站內 Rubric 方法論:</strong>站內 <a href="../ai-quality-docs.html#rubric">Rubric-based Evaluation</a> 講「把主觀印象轉為明確錨點、按點評分」;G-Eval 正是這套 rubric 思路的<strong>工具化落地</strong>——你把「得分要包含什麼、缺什麼扣分」寫進 <code>criteria</code>,LLM 就照 rubric 當裁判。兩者是同一件事的「方法論版」與「框架版」。</div>
+    <div class="callout warn"><strong>注意 LLM-as-a-Judge 的邊界:</strong>裁判本身也是 LLM,可能有偏差或幻覺。這也是站內方法論強調「<strong>多次採樣取中位數</strong>」與「<strong>強制引用反向驗真</strong>」的原因——把單次裁判的偶然誤差與幻覺理由壓下去。</div>
+  </section>
+
+  <div class="divider">四 · 實際寫法</div>
+
+  <!-- ④ -->
+  <section id="usage">
+    <h2><span class="num">④</span> 用法:LLMTestCase、metrics、assert_test / evaluate</h2>
+    <h4>1. 造一個 test case</h4>
+    <p>用 <code>LLMTestCase</code> 描述一次互動。RAG 情境常帶 <code>retrieval_context</code>(檢索到的段落),讓 Faithfulness、Contextual 系列指標有依據可評:</p>
+    <pre><code><span class="kw">from</span> deepeval.test_case <span class="kw">import</span> LLMTestCase
+
+test_case = LLMTestCase(
+    input=<span class="st">"What if these shoes don't fit?"</span>,
+    actual_output=<span class="st">"You have 30 days to get a full refund at no extra cost."</span>,
+    expected_output=<span class="st">"We offer a 30-day full refund at no extra costs."</span>,
+    retrieval_context=[<span class="st">"All customers are eligible for a 30 day full refund at no extra costs."</span>]
+)</code></pre>
+
+    <h4>2. 選 metrics 並設門檻</h4>
+    <p>每個 metric 帶一個 <code>threshold</code>;可同時掛多個 metric 一起評:</p>
+    <pre><code><span class="kw">from</span> deepeval.metrics <span class="kw">import</span> AnswerRelevancyMetric
+
+answer_relevancy_metric = AnswerRelevancyMetric(threshold=<span class="st">0.7</span>)</code></pre>
+
+    <h4>3a. pytest 路線:assert_test</h4>
+    <p>寫進 <code>test_</code> 函式,任何 metric 未達門檻即 fail,再用 <code>deepeval test run</code> 執行(見下節完整範例)。</p>
+
+    <h4>3b. 腳本路線:evaluate</h4>
+    <p>不想走 pytest,就用 <code>evaluate()</code> 直接批次評估一組 test cases:</p>
+    <pre><code><span class="kw">from</span> deepeval <span class="kw">import</span> evaluate
+<span class="kw">from</span> deepeval.metrics <span class="kw">import</span> AnswerRelevancyMetric
+<span class="kw">from</span> deepeval.test_case <span class="kw">import</span> LLMTestCase
+
+answer_relevancy_metric = AnswerRelevancyMetric(threshold=<span class="st">0.7</span>)
+test_case = LLMTestCase(
+    input=<span class="st">"What if these shoes don't fit?"</span>,
+    actual_output=<span class="st">"We offer a 30-day full refund at no extra costs."</span>,
+    retrieval_context=[<span class="st">"All customers are eligible for a 30 day full refund at no extra costs."</span>]
+)
+evaluate([test_case], [answer_relevancy_metric])</code></pre>
+
+    <h4>4. 用 dataset 批次跑</h4>
+    <p>可把多筆評估組成資料集(dataset / golden),對整個資料集批次評估;DeepEval 也支援<strong>合成資料集生成</strong>(single-turn 與 multi-turn),並提供 <code>evals_iterator()</code> 之類的迭代器,把資料集餵過你的應用、逐筆評分。<span class="cm">(以官方 repo 為準)</span></p>
+    <div class="callout tip"><strong>組裝方式很自由:</strong>一個 test case 可以掛多個 metric(例如同時測 Answer Relevancy + Faithfulness + 一個自訂 G-Eval);一次評估可跑多個 test case。門檻(threshold)決定紅綠燈,因此「要多嚴」由你按專案風險調。</div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="example">
+    <h2><span class="num">⑤</span> 最小範例:一個完整的 LLM 測試檔</h2>
+    <p>以下為 README 的入門範例(逐字引用),把三件套組成一條可跑的測試:</p>
+    <pre><code><span class="kw">import</span> pytest
+<span class="kw">from</span> deepeval <span class="kw">import</span> assert_test
+<span class="kw">from</span> deepeval.metrics <span class="kw">import</span> GEval
+<span class="kw">from</span> deepeval.test_case <span class="kw">import</span> LLMTestCase, SingleTurnParams
+
+<span class="kw">def</span> test_case():
+    correctness_metric = GEval(
+        name=<span class="st">"Correctness"</span>,
+        criteria=<span class="st">"Determine if the 'actual output' is correct based on 'expected output'."</span>,
+        evaluation_params=[SingleTurnParams.ACTUAL_OUTPUT, SingleTurnParams.EXPECTED_OUTPUT],
+        threshold=<span class="st">0.5</span>
+    )
+    test_case = LLMTestCase(
+        input=<span class="st">"What if these shoes don't fit?"</span>,
+        actual_output=<span class="st">"You have 30 days to get a full refund at no extra cost."</span>,
+        expected_output=<span class="st">"We offer a 30-day full refund at no extra costs."</span>,
+        retrieval_context=[<span class="st">"All customers are eligible for a 30 day full refund at no extra costs."</span>]
+    )
+    assert_test(test_case, [correctness_metric])</code></pre>
+    <p>執行:</p>
+    <pre><code>deepeval test run test_chatbot.py</code></pre>
+    <div class="callout info"><strong>讀法:</strong>這條測試在問——「機器人回覆(<code>actual_output</code>)在<strong>語意上</strong>是否等同於期望回覆(<code>expected_output</code>)?」判準不是字串相等,而是 G-Eval 用 <code>criteria</code> 這句 rubric 讓 LLM 當裁判打分;分數 ≥ <code>threshold</code>(0.5)才通過。<span class="cm">(範例欄位如 <code>SingleTurnParams</code> 之命名以官方 repo 最新版為準)</span></div>
+  </section>
+
+  <div class="divider">五 · 放回大圖</div>
+
+  <!-- ⑥ -->
+  <section id="pipeline">
+    <h2><span class="num">⑥</span> 在「高品質文件流水線」的位置:品質評估層 + 自動迭代門檻</h2>
+    <p>回到站內 <a href="../ai-quality-docs.html">高品質文件產出流水線</a>。DeepEval 對應的是<strong>第 3 層「品質評估」與第 4 層「自動迭代」的門檻判定</strong>——把生成好的文件/回答量化打分,分數低於門檻就退回重寫。</p>
+    <div class="diagram"><b>1. 結構定義</b>  Pydantic / JSON Schema + Metadata(讀者/領域/必備章節)
+        │
+        ▼
+<b>2. 生成流程</b>  多 Agent:撰寫者 ⇄ 審查者 對立協同
+        │
+        ▼
+<b>3. 品質評估</b>  <b>DeepEval</b>:G-Eval(自訂 rubric)+ Faithfulness/Relevancy → 客觀分數
+        │
+        ▼
+<b>4. 自動迭代</b>  分數 &lt; threshold → assert 失敗/退回重寫(Reflexion loop)
+        │
+        └──▶ 達標輸出 / CI 綠燈</div>
+    <table>
+      <thead><tr><th>流水線需求</th><th>DeepEval 提供的機制</th></tr></thead>
+      <tbody>
+        <tr><td>把「品質」變成客觀分數</td><td>一組研究背書的 metric(RAG / agent / 安全 / G-Eval 自訂 rubric)</td></tr>
+        <tr><td>設定「達標門檻」以自動迭代</td><td>每個 metric 的 <code>threshold</code>;未達即 <code>assert_test</code> 失敗</td></tr>
+        <tr><td>防幻覺、對照依據</td><td>Faithfulness / Contextual 系列,依 <code>retrieval_context</code> 評分</td></tr>
+        <tr><td>進 CI/CD、防 prompt 漂移</td><td>pytest 相容的 <code>deepeval test run</code>,可掛進 pipeline 做回歸</td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><strong>一句話收斂:</strong>站內方法論教你「<strong>怎麼想</strong>」(Rubric、二元檢核、強制引用、角色分離、自動迭代);DeepEval 給你一套「<strong>怎麼跑</strong>」的現成框架——尤其 G-Eval 把你的 rubric 直接變成可執行、可設門檻、可進 CI 的裁判。兩者合起來,就是「<strong>把品質工程化</strong>」。</div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="sources">
+    <h2><span class="num">⑦</span> 來源</h2>
+    <ul>
+      <li>DeepEval GitHub 官方 repo(README、docs):<code>github.com/confident-ai/deepeval</code></li>
+      <li>本頁的定位語、三件套、指標清單、G-Eval 描述與程式範例,均取自上述官方 README;範例程式為逐字引用。</li>
+    </ul>
+    <div class="callout warn">本頁為整理與導讀。DeepEval 的指標清單、類別/欄位命名(如 <code>SingleTurnParams</code>)、CLI 與 API 會隨版本演進——<strong>實際功能、參數與最新指標一律以官方 repo 為準</strong>。文中凡標「(以官方 repo 為準)」處尤然。本頁未引用任何 star 數等會變動的統計。</div>
+
+    <h3>相關單元</h3>
+    <div class="related">
+      <a href="../ai-quality-docs.html">
+        <div class="rel-title">📝 讓 AI 產生高品質文件</div>
+        <div class="rel-sub">五大評分方法論與流水線(本頁的母題)</div>
+      </a>
+      <a href="../ai-quality-docs.html#rubric">
+        <div class="rel-title">📏 Rubric-based Evaluation</div>
+        <div class="rel-sub">G-Eval 的方法論源頭:量規與錨點</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">回到 learn 主目錄</div>
+      </a>
+      <a href="../../skills/index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">Rubric / 邊界 / 評測的技能版</div>
+      </a>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 品質評測 · <a href="../ai-quality-docs.html">← 回到「AI 產生高品質文件」</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
