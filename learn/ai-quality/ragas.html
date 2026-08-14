@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Ragas:把生成品質量化成分數的評測框架 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+    .toc .grp { grid-column: 1 / -1; font-size: 0.68rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; padding: 2px 10px; }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    .divider { font-size: 0.72rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--stone); text-align: center; margin: 30px 0 14px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    .st { color: #c2410c; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .diagram { background: var(--navy); color: #cdd6ea; border-radius: 12px; padding: 18px 20px; margin: 12px 0 14px; overflow-x: auto;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.74rem; line-height: 1.55; white-space: pre; }
+    .diagram b { color: #ffcf9e; font-weight: 700; }
+
+    .formula { background: var(--surface); border: 1px solid var(--hairline); border-left: 3px solid var(--primary); border-radius: 0 10px 10px 0;
+      padding: 12px 16px; margin: 10px 0 14px; font-family: 'SF Mono', Menlo, monospace; font-size: 0.8rem; color: var(--charcoal); overflow-x: auto; }
+    .formula .frac { color: var(--primary); font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../ai-quality-docs.html">← 回到〈高品質文件〉方法論</a>
+
+  <div class="hero">
+    <h1>📊 Ragas:把生成品質量化成分數的評測框架</h1>
+    <p class="sub">開源(GitHub: explodinggradients/ragas)。用「LLM-as-a-Judge + 數學指標」,把 RAG / LLM 應用「答得好不好」變成可比較、可回歸、可進 CI 的客觀數字</p>
+    <div>
+      <span class="badge green">開源評測框架</span>
+      <span class="badge blue">RAG / LLM 應用</span>
+      <span class="badge orange">忠實度 · 相關性 · 上下文精準/召回</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話</a>
+      <a href="#problem">① 它解決什麼問題</a>
+      <a href="#mechanism">② 核心機制:評分怎麼被量化</a>
+      <span class="grp">核心指標逐一拆解</span>
+      <a href="#faithfulness">③a 忠實度 Faithfulness</a>
+      <a href="#relevancy">③b 相關性 Answer Relevancy</a>
+      <a href="#precision">③c Context Precision</a>
+      <a href="#recall">③d Context Recall</a>
+      <a href="#more-metrics">③e 其他常用指標</a>
+      <span class="grp">落地與定位</span>
+      <a href="#usage">④ 用法:dataset + evaluate()</a>
+      <a href="#example">⑤ 最小範例</a>
+      <a href="#pipeline">⑥ 在高品質文件流水線的位置</a>
+      <a href="#sources">⑦ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話</h2>
+    <p><strong>Ragas 是一套開源的 LLM 應用評測框架</strong>,把「這個回答忠不忠於資料、切不切題、檢索到的內容夠不夠準夠不夠全」這些原本靠人主觀感覺的判斷,轉成 <strong>0–1 之間的客觀分數</strong>。它的做法是讓一個 LLM 當「裁判(LLM-as-a-Judge)」把回答拆成可查核的原子單元,再套用<strong>數學公式</strong>算出比例,於是品質變成可以跨版本比較、可以設門檻、可以塞進 CI 的量化訊號。</p>
+    <div class="callout info"><strong>定位對照:</strong>本頁是站內〈<a href="../ai-quality-docs.html">讓 AI 產生高品質文件</a>〉裡「⑥ 代表性開源專案 → Ragas / DeepEval」那一格的深入版。那頁講方法論,這頁講 <strong>Ragas 具體怎麼把品質算成分數</strong>。</div>
+  </section>
+
+  <!-- ① -->
+  <section id="problem">
+    <h2><span class="num">①</span> 它解決什麼問題</h2>
+    <h4>問題一:生成品質沒有客觀數字</h4>
+    <p>RAG / LLM 應用的輸出是自然語言,「答得好不好」天生模糊。傳統字串比對(BLEU、ROUGE、精確匹配)對同義改寫、換句話說幾乎無能為力——語意對了,分數卻很低。於是團隊只能靠人工抽樣讀、憑感覺打分,<strong>慢、貴、而且無法回歸測試</strong>:改了 prompt 或換了檢索,到底變好還是變壞,說不清。</p>
+    <h4>問題二:直接叫 LLM「打個分」很不穩</h4>
+    <p>把整份回答丟給模型說「請給 1–10 分」,分數會飄:同一份輸入多跑幾次給的分不一樣,也說不出扣在哪。這正是站內〈高品質文件〉一開頭講的病——<strong>模糊的評分指令會換來缺乏依據的高分與客套評語</strong>。</p>
+    <div class="callout"><strong>Ragas 的切入點:</strong>不問「這篇幾分」,而是把大問題<strong>拆成一串小到可以二元判定的查核</strong>(這個 claim 有沒有被上下文支持?這個 chunk 相不相關?),再用比例公式聚合。判斷顆粒越小,LLM 裁判越穩,分數越可複現——這與站內主張的「<a href="../ai-quality-docs.html#rubric">二元檢核比給幾分穩定得多</a>」是同一個道理。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="mechanism">
+    <h2><span class="num">②</span> 核心機制:LLM-as-a-Judge + 數學指標</h2>
+    <p>Ragas 幾乎所有指標都遵循同一套「先拆解、再判定、後聚合」的三段式流程。理解這個骨架,就理解了全部指標:</p>
+    <div class="diagram"><b>1. 拆解(Decompose)</b>  LLM 把「回答」或「參考答案」拆成一串原子 claim(可獨立查核的最小陳述)
+        │
+        ▼
+<b>2. 判定(Judge)</b>    對每個 claim / 每個 chunk 做二元或分類判定:
+                   「這條能不能被 retrieved context 支持?」是/否
+        │
+        ▼
+<b>3. 聚合(Aggregate)</b> 把一串是/否套進數學公式(比例、precision@k、F1、cosine),得出 0–1 的分數</div>
+    <p>兩類判定工具交替使用:</p>
+    <ul>
+      <li><strong>LLM 判定(LLM-based)</strong>:語意層的「支持與否 / 相關與否 / 蘊含與否(NLI)」交給模型,取代脆弱的字串比對。</li>
+      <li><strong>數學/嵌入指標</strong>:比例、precision@k、precision/recall/F1、cosine similarity 等<strong>確定性公式</strong>負責把一堆判定收斂成一個數字——這一步不靠模型發揮,所以結果穩定可重現。</li>
+    </ul>
+    <div class="callout tip"><strong>關鍵設計:</strong>模型只做它擅長、且顆粒夠小的<strong>局部語意判斷</strong>;「怎麼合成總分」交給<strong>寫死的數學</strong>。把「主觀」關進最小的籠子裡,再用確定性公式包在外面——這就是 Ragas 讓分數可信的核心手法。因為要拆 claim、要跑 NLI,大多數指標都需要你指定一顆 evaluator LLM(有些還要 embeddings)。</div>
+  </section>
+
+  <div class="divider">核心指標逐一拆解</div>
+
+  <!-- ③a -->
+  <section id="faithfulness">
+    <h2><span class="num">③a</span> 忠實度 Faithfulness — 有沒有在編</h2>
+    <p><strong>量什麼:</strong>回答與「檢索到的上下文(retrieved context)」在事實上有多一致。分數 0–1,越高代表回答裡的說法越都有依據;<strong>這是對付幻覺最直接的指標</strong>——回答講的東西,上下文裡到底有沒有。</p>
+    <p><strong>怎麼算:</strong>(1) LLM 把回答拆成一條條 claim;(2) 逐條判定該 claim 能否從 retrieved context 推得;(3) 套公式:</p>
+    <div class="formula"><span class="frac">Faithfulness =</span>  回答中「被上下文支持」的 claim 數  ÷  回答的 claim 總數</div>
+    <p>一份回答只有在「<strong>所有 claim 都能被 retrieved context 支持</strong>」時才算完全忠實。只要有一條 claim 是模型自己腦補、上下文找不到依據,分數就會被拉低。</p>
+    <div class="callout info"><strong>對應站內概念:</strong>這正是〈高品質文件〉④「<a href="../ai-quality-docs.html#grounding">事實錨定(Grounding)</a>」的量化版——「凡宣稱必須有依據」被算成了一個具體比例。</div>
+  </section>
+
+  <!-- ③b -->
+  <section id="relevancy">
+    <h2><span class="num">③b</span> 相關性 Answer Relevancy — 有沒有切題</h2>
+    <p><strong>量什麼:</strong>回答對「使用者問題」有多切題。分數越高代表越直接回應了原問題;<strong>它會懲罰答非所問、不完整、以及灌水冗長</strong>的回答(堆一堆廢話反而扣分)。注意:它衡量的是「切不切題」,<em>不</em>衡量事實對不對(那是忠實度的事)。</p>
+    <p><strong>怎麼算(反向出題法):</strong></p>
+    <ol>
+      <li>讓 LLM 讀著「回答」<strong>反推</strong>出若干個「這個回答像是在回答什麼問題」的人造問題(預設約 3 個,可用 <code>strictness</code> 調整);</li>
+      <li>算每個「反推問題」與「原始使用者問題」的 embedding <strong>cosine 相似度</strong>;</li>
+      <li>取平均。</li>
+    </ol>
+    <div class="formula"><span class="frac">Answer Relevancy =</span>  (1/N) · Σ  cosine( 反推問題ᵢ 的嵌入 , 原問題的嵌入 )</div>
+    <p>直覺:如果回答真的切題,拿它反推出來的問題就會跟原問題很像;如果回答跑題或灌水,反推出的問題會偏離原問題,相似度就低。<strong>因為要算 cosine,這個指標需要 embeddings。</strong></p>
+  </section>
+
+  <!-- ③c -->
+  <section id="precision">
+    <h2><span class="num">③c</span> Context Precision — 檢索有沒有把對的排前面</h2>
+    <p><strong>量什麼:</strong>評估<strong>檢索器(retriever)</strong>把「相關的 chunk」排在「不相關的 chunk」前面的能力。它關心的不只是「有沒有撈到相關內容」,而是<strong>相關內容有沒有被排到前排</strong>——因為靠前的 chunk 才最會被模型用到。</p>
+    <p><strong>怎麼算:</strong>對 retrieved context 裡每個位置 k 的 chunk 判定其相關性(v<sub>k</sub> ∈ {0,1}),計算各位置的 precision@k,再做加權平均(Context Precision@K):</p>
+    <div class="formula">Precision@k = 前 k 個中的 true positives ÷ (true positives + false positives) @k
+<span class="frac">Context Precision@K =</span>  Σₖ ( Precision@k · vₖ )  ÷  前 K 個中的相關項目總數</div>
+    <p>因為是按<strong>排名</strong>加權,<strong>把不相關的 chunk 排在越前面,對分數的傷害越大</strong>;排在很後面則影響輕微。這讓它成為衡量「檢索排序品質」的敏感指標。</p>
+  </section>
+
+  <!-- ③d -->
+  <section id="recall">
+    <h2><span class="num">③d</span> Context Recall — 該撈的有沒有漏掉</h2>
+    <p><strong>量什麼:</strong>回答一個問題「所需要的相關資訊」,檢索到底撈齊了沒有。分數越高代表<strong>漏掉的相關內容越少</strong>。Precision 問「撈進來的準不準」,Recall 問「該撈的有沒有漏」——兩者是檢索品質的一體兩面。</p>
+    <p><strong>怎麼算(LLM 版 LLMContextRecall):</strong>用<strong>參考答案(reference)當作 ground truth 的代理</strong>——因為逐字標註「理想上下文」太耗人力。做法:LLM 把參考答案拆成一條條 claim,逐條判定「這條能不能歸因到 retrieved context」,理想情況下參考答案裡每一條 claim 都該在檢索內容裡找到支持:</p>
+    <div class="formula"><span class="frac">Context Recall =</span>  參考答案中「被 retrieved context 支持」的 claim 數  ÷  參考答案的 claim 總數</div>
+    <div class="callout warn"><strong>注意前提:</strong>Context Recall(以及下面的 Factual Correctness)需要一份 <strong>reference / ground truth</strong> 才能算——它是拿「標準答案」在比對。Faithfulness、Answer Relevancy、Context Precision 則有不需要參考答案的變體,較適合線上、無標註的情境。(各指標的必要欄位以官方 repo 為準。)</div>
+  </section>
+
+  <!-- ③e -->
+  <section id="more-metrics">
+    <h2><span class="num">③e</span> 其他常用指標(README / docs 有列)</h2>
+    <p>除了上面四個 RAG 經典指標,Ragas 的 <code>available_metrics</code> 還收了一批,常見的有:</p>
+    <table>
+      <thead><tr><th>指標</th><th>量什麼 / 怎麼算</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Factual Correctness</strong><br>事實正確性</td>
+          <td>把「回答」與「參考答案」都用 LLM 拆成 claim,再用 <strong>NLI(自然語言推論)</strong>比對兩邊事實重疊,算 <strong>precision / recall / F1</strong>(<code>mode</code> 可選,預設 F1)。TP=兩邊都有、FP=只在回答、FN=只在參考。還可用 <code>atomicity</code> / <code>coverage</code> 調拆解顆粒度。</td>
+        </tr>
+        <tr>
+          <td><strong>Aspect Critic</strong><br>面向評判</td>
+          <td><strong>二元</strong>評判:針對你自訂的面向(如 harmlessness、correctness)讓 LLM 回一個是/否(0/1)。用 <code>DiscreteMetric</code> 定義 <code>allowed_values</code> 與 prompt,回傳分類值 + 理由。對應站內「<a href="../ai-quality-docs.html#rubric">檢核清單二元化</a>」。</td>
+        </tr>
+        <tr>
+          <td><strong>Noise Sensitivity</strong><br>雜訊敏感度</td>
+          <td>系統「用了檢索內容卻給出錯誤 claim」的頻率。逐條檢查回答的 claim 是否正確(對 ground truth)且能否歸因到上下文;公式 = 錯誤 claim 數 ÷ claim 總數。<strong>越低越好</strong>(0 最佳)。</td>
+        </tr>
+        <tr>
+          <td><strong>Context Entities Recall</strong><br>實體召回</td>
+          <td>以「實體」為單位算 recall:參考答案中的關鍵實體,有多少比例出現在 retrieved context。適合看檢索有沒有漏掉關鍵名詞。</td>
+        </tr>
+        <tr>
+          <td><strong>Semantic Similarity</strong><br>語意相似度</td>
+          <td>用 embeddings 算「回答」與「參考答案」的語意相似度(非字面比對)。</td>
+        </tr>
+        <tr>
+          <td><strong>Rubrics-based / Summarization / SQL / Multi-Modal 等</strong></td>
+          <td>還有 Rubric 評分、摘要品質、SQL 語意等值、多模態忠實度/相關性等專用指標。完整清單與定義<strong>以官方 repo 為準</strong>。</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><strong>怎麼挑:</strong>一條 RAG 鏈可拆成「檢索」與「生成」兩段。<strong>檢索</strong>好不好看 Context Precision / Context Recall;<strong>生成</strong>好不好看 Faithfulness(有沒有編)/ Answer Relevancy(切不切題)。有標準答案時再加 Factual Correctness;有安全/風格要求時加 Aspect Critic。</div>
+  </section>
+
+  <div class="divider">落地與定位</div>
+
+  <!-- ④ -->
+  <section id="usage">
+    <h2><span class="num">④</span> 用法:把資料變成 dataset,再 evaluate()</h2>
+    <h4>資料模型</h4>
+    <p>Ragas 用結構化的樣本承載一次評估所需的欄位,常見四個:<code>user_input</code>(問題)、<code>retrieved_contexts</code>(檢索到的片段清單)、<code>response</code>(系統回答)、<code>reference</code>(參考答案,需要 ground truth 的指標才用到)。單筆用 <code>SingleTurnSample</code>,整批用 <code>EvaluationDataset</code>(可由 <code>EvaluationDataset.from_list(...)</code> 從 list of dict 建立)。</p>
+    <h4>一行跑分</h4>
+    <p>核心入口是頂層的 <code>evaluate(dataset=..., metrics=[...], llm=...)</code>:傳入資料集、想算的指標清單、以及一顆當裁判的 LLM(需要 embeddings 的指標再傳 embeddings),回傳每個指標的分數。裁判模型用 wrapper 包裝以接不同供應商,例如 <code>LangchainLLMWrapper(...)</code>。</p>
+    <h4>整合與 CI</h4>
+    <ul>
+      <li><strong>框架整合:</strong>與 <strong>LangChain</strong>、<strong>LlamaIndex</strong> 等主流 RAG 框架整合,可直接評估既有 pipeline 的輸出(整合清單以官方 repo 為準)。</li>
+      <li><strong>測試資料生成:</strong>沒有現成測試集時,Ragas 能從你的文件<strong>自動生成測試問題集</strong>(test set generation),補上「沒有標註資料」的缺口。</li>
+      <li><strong>進 CI:</strong>因為輸出是客觀數字,可對關鍵指標<strong>設門檻</strong>(如 Faithfulness ≥ 0.9),在 CI 對每次改動跑回歸——分數掉了就擋 PR,把「改 prompt / 換檢索有沒有變糟」變成自動檢查。</li>
+    </ul>
+    <div class="callout"><strong>對照站內流水線:</strong>這一步對應〈高品質文件〉的「<a href="../ai-quality-docs.html#pipeline">3. 品質評估</a>」層——把生成結果換成客觀分數,未達門檻就退回重寫,形成自動迭代迴圈。</div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="example">
+    <h2><span class="num">⑤</span> 最小範例(以官方 repo 為準)</h2>
+    <h4>安裝</h4>
+    <pre><code><span class="cm"># 官方 README</span>
+pip install ragas</code></pre>
+
+    <h4>A · 評估一條 RAG 鏈(dataset + evaluate)</h4>
+    <p>把資料整理成 list of dict(含 <code>user_input</code> / <code>retrieved_contexts</code> / <code>response</code> / <code>reference</code>)→ 建 <code>EvaluationDataset</code> → 選指標 → 跑 <code>evaluate()</code>:</p>
+    <pre><code><span class="kw">from</span> ragas <span class="kw">import</span> EvaluationDataset, evaluate
+<span class="kw">from</span> ragas.llms <span class="kw">import</span> LangchainLLMWrapper
+<span class="kw">from</span> ragas.metrics <span class="kw">import</span> LLMContextRecall, Faithfulness, FactualCorrectness
+
+<span class="cm"># dataset：每筆含 user_input / retrieved_contexts / response / reference</span>
+evaluation_dataset = EvaluationDataset.from_list(dataset)
+
+evaluator_llm = LangchainLLMWrapper(llm)          <span class="cm"># 包一顆裁判 LLM</span>
+result = evaluate(
+    dataset=evaluation_dataset,
+    metrics=[LLMContextRecall(), Faithfulness(), FactualCorrectness()],
+    llm=evaluator_llm,
+)
+<span class="kw">print</span>(result)                                     <span class="cm"># 各指標分數</span></code></pre>
+
+    <h4>B · 自訂一個二元 / 分類指標(Aspect Critic 風格)</h4>
+    <p>README 的 quickstart 展示了用 <code>DiscreteMetric</code> 定義「允許值 + prompt」的裁判指標,回傳分類值與理由:</p>
+    <pre><code><span class="kw">import</span> asyncio
+<span class="kw">from</span> openai <span class="kw">import</span> AsyncOpenAI
+<span class="kw">from</span> ragas.metrics <span class="kw">import</span> DiscreteMetric
+<span class="kw">from</span> ragas.llms <span class="kw">import</span> llm_factory
+
+client = AsyncOpenAI()
+llm = llm_factory(<span class="st">"gpt-4o"</span>, client=client)
+
+metric = DiscreteMetric(
+    name=<span class="st">"summary_accuracy"</span>,
+    allowed_values=[<span class="st">"accurate"</span>, <span class="st">"inaccurate"</span>],
+    prompt=<span class="st">"""Evaluate if the summary is accurate and captures key information.
+Response: {response}
+Answer with only 'accurate' or 'inaccurate'."""</span>,
+)
+
+<span class="kw">async def</span> main():
+    score = <span class="kw">await</span> metric.ascore(
+        llm=llm,
+        response=<span class="st">"The summary of the text is..."</span>,
+    )
+    <span class="kw">print</span>(f<span class="st">"Score: {score.value}"</span>)
+    <span class="kw">print</span>(f<span class="st">"Reason: {score.reason}"</span>)
+
+<span class="kw">if</span> __name__ == <span class="st">"__main__"</span>:
+    asyncio.run(main())</code></pre>
+    <div class="callout warn"><strong>版本提醒:</strong>Ragas 仍在快速演進,類別名稱(如 <code>LLMContextRecall</code> vs <code>context_recall</code>)、匯入路徑與 API 介面可能隨版本調整。<strong>實際簽名、指標必要欄位、整合方式一律以官方 repo 與 <code>docs.ragas.io</code> 的當前版本為準。</strong>上列程式碼取自官方 README / repo 文件。</div>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="pipeline">
+    <h2><span class="num">⑥</span> 在「高品質文件流水線」的位置</h2>
+    <p>回到站內〈<a href="../ai-quality-docs.html">高品質文件</a>〉的四層流水線,Ragas 精準地坐在<strong>第 3 層「品質評估」</strong>:它把生成層產出的文件/回答,轉成一組客觀分數,交給第 4 層決定要不要退回重寫。</p>
+    <div class="diagram"><b>1. 結構定義</b>  Pydantic / JSON Schema + Metadata(讀者/領域/必備章節)
+        │
+        ▼
+<b>2. 生成流程</b>  多 Agent:撰寫者 ⇄ 審查者(Map-Reduce 分塊)
+        │
+        ▼
+<b>3. 品質評估</b>  <b>Ragas</b> → Faithfulness / Answer Relevancy / Context Precision·Recall
+        │              忠實度 = 事實錨定的量化版(claim 有沒有被上下文支持)
+        ▼
+<b>4. 自動迭代</b>  未達門檻 → 帶「扣分原因」退回重寫(Reflexion loop)
+        │
+        └──▶ 達標輸出</div>
+    <table>
+      <thead><tr><th>站內方法論概念</th><th>Ragas 的對應量化</th></tr></thead>
+      <tbody>
+        <tr><td><strong>事實錨定 / 強制引用</strong>(消滅幻覺)</td><td><strong>Faithfulness</strong>:回答 claim 被 retrieved context 支持的比例</td></tr>
+        <tr><td><strong>精準回答 vs 堆廢話</strong></td><td><strong>Answer Relevancy</strong>:反推問題與原問題的 cosine 相似度</td></tr>
+        <tr><td><strong>上下文契合 / 範疇正確</strong></td><td><strong>Context Precision / Recall</strong>:檢索排序準度與召回完整度</td></tr>
+        <tr><td><strong>二元檢核 / Rubric</strong></td><td><strong>Aspect Critic / Rubrics-based</strong>:自訂面向的是/否與評分</td></tr>
+        <tr><td><strong>品質門檻 → 退回重寫</strong></td><td>對指標設閾值,進 <strong>CI</strong> 做回歸與 gating</td></tr>
+      </tbody>
+    </table>
+    <div class="callout info"><strong>一句話收斂:</strong>〈高品質文件〉主張「把評分演算法化」;<strong>Ragas 就是這句話在 RAG / LLM 應用上最成熟的一個實作</strong>——它把「忠實度、相關性、上下文精準/召回」做成現成、可組合、可進 CI 的量化指標,讓「品質」第一次有了能跨版本比較的座標。</div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="sources">
+    <h2><span class="num">⑦</span> 來源</h2>
+    <ul>
+      <li>官方 GitHub repo(README、quickstart、安裝):<code>github.com/explodinggradients/ragas</code></li>
+      <li>指標定義與公式,取自 repo 內 <code>docs/concepts/metrics/available_metrics/</code> 各檔:<code>faithfulness</code>、<code>answer_relevance</code>、<code>context_precision</code>、<code>context_recall</code>、<code>factual_correctness</code>、<code>aspect_critic</code>、<code>noise_sensitivity</code> 等。</li>
+      <li>官方文件站:<code>docs.ragas.io</code>(本次撰稿時該網域無法直接存取,指標內容以 repo 內對應 Markdown 原始檔為準)。</li>
+    </ul>
+    <div class="callout warn">本頁為教學整理,力求貼合官方定義;但 Ragas 版本迭代快,<strong>API 名稱、指標必要欄位、公式細節與整合方式,一律以官方 repo 與 docs.ragas.io 的當前版本為準</strong>。未寫入無法從官方來源確認的數字或宣稱。</div>
+
+    <div class="related">
+      <a href="../ai-quality-docs.html">
+        <div class="rel-title">📝 讓 AI 產生高品質文件</div>
+        <div class="rel-sub">本頁的方法論母體:五大評分法與流水線</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">回到 learn 首頁</div>
+      </a>
+      <a href="../../skills/index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">Rubric / 邊界 / 評測的技能版</div>
+      </a>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 品質評測 · <a href="../ai-quality-docs.html">← 回到〈高品質文件〉</a> · <a href="../index.html">learn 首頁</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
