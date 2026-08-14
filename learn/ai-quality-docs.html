@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>讓 AI 產生高品質文件：多 Agent 協同與自動化評分方法論 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+    .toc .grp { grid-column: 1 / -1; font-size: 0.68rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; padding: 2px 10px; }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    .divider { font-size: 0.72rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--stone); text-align: center; margin: 30px 0 14px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    .st { color: #c2410c; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .diagram { background: var(--navy); color: #cdd6ea; border-radius: 12px; padding: 18px 20px; margin: 12px 0 14px; overflow-x: auto;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.74rem; line-height: 1.55; white-space: pre; }
+    .diagram b { color: #ffcf9e; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>📝 讓 AI 產生高品質文件：多 Agent 協同與自動化評分</h1>
+    <p class="sub">把「評分」演算法化、把「生成」流水線化 —— 用結構取代感性,用引用消滅幻覺,用角色分離消滅自我感覺良好</p>
+    <div>
+      <span class="badge green">方法論</span>
+      <span class="badge blue">五大評分法 + 開源專案</span>
+      <span class="badge orange">可落地流水線</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#problem">⓪ 單一 Prompt 的局限</a>
+      <span class="grp">一 · 五大評分方法論</span>
+      <a href="#rubric">① Rubric + 二元檢核</a>
+      <a href="#metadata">② Metadata 契合度</a>
+      <a href="#roles">③ 角色對立 + CoT + 採樣</a>
+      <a href="#grounding">④ 事實錨定 + 反向驗證</a>
+      <a href="#prompt">⑤ 結構化 Prompt 規範</a>
+      <span class="grp">二 · 開源專案與技術</span>
+      <a href="#projects">⑥ 代表性開源專案</a>
+      <a href="#techniques">⑦ 核心技術</a>
+      <a href="#pipeline">⑧ 流水線架構總結</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="problem">
+    <h2><span class="num">⓪</span> 單一 Prompt 的局限與客觀評分架構</h2>
+    <p>AI 本身缺乏主觀意識與真實的標準感知。若只給模糊的評分指令(如「請幫我評分」),AI 往往給出<strong>缺乏依據的高分或客套評語</strong>。要建立客觀、不失真、具一致性的評分機制,必須把評分過程<strong>「演算法化與結構化」</strong>。</p>
+    <div class="callout info"><strong>四個核心替換:</strong>① 用 <strong>Rubric/CheckList</strong> 取代感性評語;② 用 <strong>Metadata 邊界條件</strong> 限制審查範疇;③ 用 <strong>強制引用</strong> 解決幻覺;④ 用 <strong>角色分離</strong>(生成者 vs 稽核者)解決「自我感覺良好」。</div>
+  </section>
+
+  <div class="divider">一 · 五大核心評分方法論</div>
+
+  <!-- ① -->
+  <section id="rubric">
+    <h2><span class="num">①</span> 從主觀印象轉為客觀指標(Rubric-based Evaluation)</h2>
+    <h4>引入評分量規與錨點</h4>
+    <p>明確定義<strong>每個分數對應的具體特徵與條件</strong>,而非只給分數等級。例如:規定得分必須包含「具體的專案範疇、時間節點、風險因應策略」,<strong>缺少特定要素即按點扣分</strong>。</p>
+    <h4>檢核清單二元化(Binary Verification)</h4>
+    <p>把高層次標準拆成<strong>二元檢查清單(True / False)</strong>,例如:</p>
+    <ul>
+      <li>是否包含摘要? ✅/❌</li>
+      <li>程式碼區塊是否標示語言種類? ✅/❌</li>
+    </ul>
+    <div class="callout tip"><strong>為什麼有效:</strong>二元判斷比「給幾分」<strong>穩定得多</strong>——AI 對「有沒有」的判斷一致性遠高於「好不好」。把主觀的「品質」拆成一串可勾選的客觀事實,分數自然變得可複現。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="metadata">
+    <h2><span class="num">②</span> 元資料導向:上下文契合度檢驗(Metadata-driven Alignment)</h2>
+    <p>每份文件在<strong>生成或評分前</strong>都附帶一段<strong>邊界條件聲明</strong>(文件類型、目標讀者、領域情境、必須包含的章節…)。評分機制據此檢驗三件事:</p>
+    <table>
+      <thead><tr><th>維度</th><th>檢驗什麼</th></tr></thead>
+      <tbody>
+        <tr><td><strong>受眾契合度</strong></td><td>文件用語深度是否符合目標讀者設定(給工程師 vs 給主管)</td></tr>
+        <tr><td><strong>結構完整度</strong></td><td>章節是否完全覆蓋「必備章節清單」</td></tr>
+        <tr><td><strong>領域精準度</strong></td><td>專業術語是否符合特定領域規範</td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><strong>連結:</strong>這正是站內 <a href="../skills/index.html">Skills 分析專區</a> 說的「好 Skill 的 <code>description</code> 要講清楚<strong>目標讀者與邊界</strong>」的評分版——先聲明邊界,再照邊界審。</div>
+  </section>
+
+  <!-- ③ -->
+  <section id="roles">
+    <h2><span class="num">③</span> 機制設計:多重 Prompt 與角色對立架構</h2>
+    <h4>角色分離與對立機制</h4>
+    <p>把<strong>生成與審查職責分離</strong>:生成 Agent 負責撰寫;另設<strong>稽核 Agent</strong> 扮演嚴格審查者,專門找缺失、並要求附帶原文引用。</p>
+    <h4>先推理後評分(Chain-of-Thought)</h4>
+    <p>強制 AI 在給分前<strong>先列出具體扣分原因與原文對照</strong>,避免「先給隨機分數、再編造理由」。</p>
+    <h4>多次採樣求中位數(Self-Consistency)</h4>
+    <p>對同一份文件<strong>多次獨立評估</strong>取平均或中位數,降低單次輸出的偶然誤差。</p>
+    <div class="callout tip"><strong>站內深挖:</strong>這兩招在研究上都有專頁——<a href="./self-evolving/self-consistency.html">Self-Consistency</a>(多路取樣→多數決/中位數)與序列自我修正的 <a href="./self-evolving/reflexion.html">Reflexion</a>。角色對立=「生成者 vs 稽核者」正是 <a href="./self-evolving-agents.html">多代理</a> 的評測應用。</div>
+  </section>
+
+  <!-- ④ -->
+  <section id="grounding">
+    <h2><span class="num">④</span> 事實錨定與扣分反向驗證(Grounding &amp; Proof Verification)</h2>
+    <h4>強制原文引用</h4>
+    <p>稽核 Agent 提出扣分時,<strong>必須精確引用文件中的原始文句</strong>作為依據。</p>
+    <h4>反向程式驗證</h4>
+    <p>用<strong>獨立程式或輕量模型</strong>檢查評分報告引用的段落<strong>是否真實存在於原文</strong>;若引用不存在,該次扣分<strong>判定無效</strong>——防止 AI 產生「幻覺扣分」。</p>
+    <div class="callout warn"><strong>這是全套機制的樞紐:</strong>「強制引用 + 程式反查引用是否存在」把 AI 評分從「它說了算」變成「<strong>它得拿出證據,而且證據要能被機器驗真</strong>」。沒有這一步,前面的 Rubric 也可能被幻覺理由架空。</div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="prompt">
+    <h2><span class="num">⑤</span> 結構化 Prompt 實作規範</h2>
+    <p>評分 Prompt 必須:</p>
+    <ul>
+      <li><strong>設定預設滿分 + 嚴格按點扣分</strong>規則;</li>
+      <li><strong>禁止輸出主觀評語</strong>;</li>
+      <li>要求以<strong>結構化格式(如 JSON)</strong>輸出:各維度得分、扣分明細、引用原文、扣分理由。</li>
+    </ul>
+    <pre><code>{
+  <span class="st">"dimensions"</span>: {
+    <span class="st">"structure"</span>:  { <span class="st">"score"</span>: 18, <span class="st">"max"</span>: 20 },
+    <span class="st">"audience_fit"</span>:{ <span class="st">"score"</span>: 15, <span class="st">"max"</span>: 20 }
+  },
+  <span class="st">"deductions"</span>: [
+    { <span class="st">"points"</span>: -5, <span class="st">"reason"</span>: <span class="st">"缺少風險因應章節"</span>,
+      <span class="st">"quote"</span>: <span class="st">"&lt;原文中被引用以佐證的句子&gt;"</span> }
+  ]
+}</code></pre>
+    <div class="callout"><strong>設計含義:</strong>「預設滿分、按點扣分」比「從零加分」更嚴——AI 傾向給高分,所以讓它<strong>找理由扣</strong>而非找理由加,配合強制引用,分數才不會虛高。</div>
+  </section>
+
+  <div class="divider">二 · 開源專案與核心技術</div>
+
+  <!-- ⑥ -->
+  <section id="projects">
+    <h2><span class="num">⑥</span> 代表性開源專案</h2>
+    <table>
+      <thead><tr><th>專案</th><th>定位</th><th>核心機制</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>GPT-Researcher</strong></td>
+          <td>全自動深度報告/技術文件生成</td>
+          <td>「<strong>計畫→檢索→摘要→聚合→撰寫</strong>」五階段流水線;大綱拆解後派多個子 Agent 平行搜集與撰寫;<strong>每段強制附資料來源引用</strong>(事實錨定)</td>
+        </tr>
+        <tr>
+          <td><strong>AutoGen / CrewAI</strong></td>
+          <td>多角色協作框架(模擬編寫+審查團隊)</td>
+          <td>「<strong>生成者 vs 審查者</strong>」對立;分工研究員/撰寫員/稽核員;稽核員依 CheckList 評分,<strong>低於門檻(如 85 分)退回重寫</strong>,形成自動校正迴圈</td>
+        </tr>
+        <tr>
+          <td><strong>DocuWriter.ai / Quivr</strong></td>
+          <td>基於 RAG 的結構化文件生成(接程式碼庫/知識庫)</td>
+          <td>「<strong>AST 語法樹解析 + 上下文注入 RAG</strong>」;直接讀原始碼,把抽象語法樹與註解抽成 Metadata,確保文件與底層實作<strong>高度一致</strong>、防幻覺</td>
+        </tr>
+        <tr>
+          <td><strong>Ragas / DeepEval</strong></td>
+          <td>文件評分與量化評估框架</td>
+          <td>「<strong>LLM-as-a-Judge + 數學指標</strong>」;量化<strong>忠實度</strong>(有無事實依據)、<strong>相關性</strong>(精準回答 vs 堆廢話)、<strong>上下文召回率/精準度</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="techniques">
+    <h2><span class="num">⑦</span> 開源專案採用的核心方法論與技術</h2>
+    <h3>Map-Reduce 與分塊寫作(Chunked Generation)</h3>
+    <p>長篇文件易出現品質衰退或前後矛盾。做法:<strong>Map</strong> 階段把文件拆成 JSON 階層式大綱 → <strong>Execution</strong> 階段由獨立 Prompt 分別寫各章節 → <strong>Reduce</strong> 階段由編輯器 Agent 做全篇銜接潤飾與格式統一。</p>
+    <div class="callout"><strong>對照:</strong>這與 <a href="./prime-agent.html">Prime Agent</a> 的 <code>rlm(...)</code> 平行子代理、以及 <a href="./self-evolving-agents.html">綜述</a> 的「拓撲/多代理」是同一思路——把大任務拆成可平行、可各自驗收的小塊。</div>
+    <h3>強制 Schema 與 JSON Mode</h3>
+    <p>為避免 Markdown 結構缺失/排版錯位,用 <strong>Pydantic 或 TypeChat</strong> 嚴格限制輸出資料結構(必須含標題、摘要、技術細節、風險評估等欄位)。<strong>未通過 Schema 驗證的輸出直接觸發重試</strong>。</p>
+    <h3>反思與自我校正(Self-Correction / Reflexion Loop)</h3>
+    <p>初稿 + 評分標準(Rubric)一起餵給稽核 Agent → 產生具體批判與修改計畫 → 生成 Agent 二次修正。<strong>一到兩輪自動迭代</strong>顯著提升品質。</p>
+    <div class="callout tip"><strong>站內深挖:</strong>這正是 <a href="./self-evolving/reflexion.html">Reflexion</a> / <a href="./self-evolving/self-refine.html">Self-Refine</a> 的文件應用——把「失敗回饋」寫成文字,下一輪帶入修正。</div>
+    <h3>動態 Prompt 編譯與優化(DSPy 框架)</h3>
+    <p>不手寫固定 Prompt,而是把 Prompt 當<strong>可編譯模組</strong>。DSPy 依你設定的評分標準,<strong>自動測試、調整、編譯</strong>出高精準度 Prompt,解決品質不穩與 prompt 漂移。</p>
+    <div class="callout"><strong>對照:</strong>站內 <a href="./evoagentx.html">EvoAgentX</a> 的 <strong>MIPRO</strong>(DSPy 系)與 TextGrad 就是這種「提示自動優化器」;它把「調 prompt」從人肉試錯變成可搜尋的優化問題。</div>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="pipeline">
+    <h2><span class="num">⑧</span> 高品質文件產出流水線架構總結</h2>
+    <div class="diagram"><b>1. 結構定義</b>  Pydantic / JSON Schema 設定格式約束 + Metadata(讀者/領域/必備章節)
+        │
+        ▼
+<b>2. 生成流程</b>  多 Agent:撰寫者 ⇄ 審查者 對立協同(Map-Reduce 分塊)
+        │
+        ▼
+<b>3. 品質評估</b>  Ragas / DeepEval → 客觀分數 + 對照引用(強制原文引用 + 反向驗真)
+        │
+        ▼
+<b>4. 自動迭代</b>  未達門檻 → 帶「扣分原因 + 原文對照」退回重寫(Reflexion loop)
+        │
+        └──▶ 達標輸出</div>
+    <table>
+      <thead><tr><th>層</th><th>手段</th><th>解決的問題</th></tr></thead>
+      <tbody>
+        <tr><td>結構定義</td><td>Pydantic / JSON Schema + Metadata</td><td>格式缺失、範疇失焦</td></tr>
+        <tr><td>生成流程</td><td>多 Agent 撰寫者/審查者對立</td><td>自我感覺良好、缺乏審查</td></tr>
+        <tr><td>品質評估</td><td>Ragas / DeepEval + 強制引用</td><td>主觀評語、幻覺扣分</td></tr>
+        <tr><td>自動迭代</td><td>品質門檻 + 扣分對照重寫</td><td>一次到位不可靠、品質不穩</td></tr>
+      </tbody>
+    </table>
+    <div class="callout info"><strong>一句話收斂:</strong>高品質不是靠「更會寫的模型」,而是靠<strong>一套把品質拆成可勾選事實、把扣分綁上可驗真引用、把生成與審查分開、並自動迭代到達標</strong>的流水線。這與本站反覆出現的主題一致——<strong>不靠更強的模型,靠更好的環境與流程</strong>。</div>
+  </section>
+
+  <!-- related -->
+  <section>
+    <h2><span class="num">↗</span> 相關單元</h2>
+    <div class="related">
+      <a href="./self-evolving/self-consistency.html">
+        <div class="rel-title">🔁 Self-Consistency</div>
+        <div class="rel-sub">多次採樣求中位數的原理</div>
+      </a>
+      <a href="./self-evolving/reflexion.html">
+        <div class="rel-title">🪞 Reflexion</div>
+        <div class="rel-sub">反思迴圈:自我校正的研究源頭</div>
+      </a>
+      <a href="./evoagentx.html">
+        <div class="rel-title">🔁 EvoAgentX(DSPy/MIPRO)</div>
+        <div class="rel-sub">Prompt 自動編譯優化</div>
+      </a>
+      <a href="../skills/index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">Rubric/邊界/評測的技能版</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁為方法論整理;各開源專案的具體功能與版本以其官方 repo 為準。核心原則(Rubric、二元檢核、強制引用反查、角色分離、Schema、Reflexion、DSPy)可跨工具通用。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
