@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>GPT-Researcher:自主深度研究與報告生成 Agent · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+    .toc .grp { grid-column: 1 / -1; font-size: 0.68rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; padding: 2px 10px; }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    .divider { font-size: 0.72rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--stone); text-align: center; margin: 30px 0 14px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    .st { color: #c2410c; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .diagram { background: var(--navy); color: #cdd6ea; border-radius: 12px; padding: 18px 20px; margin: 12px 0 14px; overflow-x: auto;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.74rem; line-height: 1.55; white-space: pre; }
+    .diagram b { color: #ffcf9e; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../ai-quality-docs.html">← 回到「讓 AI 產生高品質文件」</a>
+
+  <div class="hero">
+    <h1>🔎 GPT-Researcher:自主深度研究與報告生成 Agent</h1>
+    <p class="sub">給它一個題目,它自己規劃問題、上網檢索、逐段摘要、聚合成帶引用的長篇研究報告 —— 用「計畫→檢索→摘要→聚合→撰寫」的多階段流水線,把「內容空洞、無中生有」換成「有來源、可追溯」</p>
+    <div>
+      <span class="badge green">開源深度研究 Agent</span>
+      <span class="badge blue">planner / executor 架構</span>
+      <span class="badge orange">強制來源引用</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話認識它</a>
+      <a href="#why">① 它解決什麼問題</a>
+      <a href="#how">② 核心機制:多階段流水線</a>
+      <a href="#grounding">③ 事實錨定:每段附來源</a>
+      <a href="#features">④ 關鍵特性</a>
+      <a href="#usage">⑤ 最小使用範例</a>
+      <a href="#pipeline">⑥ 在「高品質文件流水線」的位置</a>
+      <a href="#sources">⑦ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話認識它</h2>
+    <p><strong>GPT-Researcher</strong>(GitHub:<code>assafelovic/gpt-researcher</code>)自我定位為「<strong>第一個開源的深度研究 Agent(open deep research agent)</strong>,同時支援針對任意題目做<strong>網路研究與本地文件研究</strong>」。你丟一個題目,它自主完成「規劃研究問題 → 派 agent 上網檢索 → 逐份資料摘要與追蹤來源 → 聚合過濾 → 產出一份帶引用的長篇研究報告」。</p>
+    <div class="callout info"><strong>它是什麼、不是什麼:</strong>它不是聊天機器人,也不是單次 prompt 的「幫我寫一篇」。它是一條把<strong>研究行為流程化</strong>的自動化流水線 —— 這正是本站〈高品質文件〉反覆強調的:品質靠<strong>流程與環境</strong>,而不是靠一次更會寫的模型輸出。</div>
+  </section>
+
+  <div class="divider">一 · 動機與機制</div>
+
+  <!-- ① -->
+  <section id="why">
+    <h2><span class="num">①</span> 它解決什麼問題</h2>
+    <p>官方 README 列出當前 AI 研究的幾個核心痛點,這些也正是「文件品質」的天敵:</p>
+    <table>
+      <thead><tr><th>痛點</th><th>對文件品質的傷害</th></tr></thead>
+      <tbody>
+        <tr><td><strong>人工研究耗時</strong>:一份客觀結論常要花數週、大量資源</td><td>成本高、更新慢</td></tr>
+        <tr><td><strong>LLM 訓練資料過時</strong>,容易<strong>幻覺(hallucinate)</strong>或給出不相關內容</td><td>無中生有、與現況脫節</td></tr>
+        <tr><td><strong>Token 限制</strong>使模型難以一次生成長篇報告</td><td>內容被截斷、深度不足</td></tr>
+        <tr><td><strong>來源太少</strong>導致偏誤與淺薄結果</td><td>單薄、片面、易被錯誤資訊帶偏</td></tr>
+        <tr><td><strong>選擇性取材</strong>把偏見帶進研究任務</td><td>結論失衡、不客觀</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn"><strong>核心觀察:</strong>「內容空洞、無中生有、單一 agent 研究深度不足」不是換個更大的模型就能解決的。GPT-Researcher 的答案是 —— 用<strong>多個 agent 平行擴大取材面</strong>、用<strong>強制引用</strong>把每句話綁回來源、用<strong>聚合階段</strong>突破單次 token 上限。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="how">
+    <h2><span class="num">②</span> 核心機制:計畫 → 檢索 → 摘要 → 聚合 → 撰寫</h2>
+    <h4>planner / executor 架構(規劃者 / 執行者)</h4>
+    <p>系統採<strong>三類角色分工</strong>:一個 <strong>planner agent(規劃者)</strong> 依題目生成一組<strong>研究問題</strong>;多個 <strong>execution agents(執行者 / 爬蟲 agent)</strong> 針對每個問題各自去搜集資料;最後由<strong>發布 / 聚合角色(publisher)</strong> 把發現彙整成報告。這是典型的「先拆解、再平行、後聚合」。</p>
+    <h4>五階段流水線</h4>
+    <p>README 描述的工作流程可對應為以下多階段流水線:</p>
+    <div class="diagram"><b>1. 計畫 Plan</b>    由 query 建立任務專屬 agent,生成一組能形成「客觀觀點」的研究問題
+        │
+        ▼
+<b>2. 檢索 Search</b>  對每個問題各派一個 crawler/executor agent 平行上網搜集資料
+        │
+        ▼
+<b>3. 摘要 Summarize</b> 逐份資料做摘要,並「追蹤與記錄來源」(source tracking)
+        │
+        ▼
+<b>4. 聚合 Aggregate</b> 過濾、彙整各問題的摘要 —— 突破單次 token 上限
+        │
+        ▼
+<b>5. 撰寫 Write</b>   由聚合後的素材產出帶引用的長篇研究報告</div>
+    <h4>大綱拆解 → 多子 agent 平行</h4>
+    <p>把一個大題目拆成多個<strong>子問題</strong>後,每個子問題交給獨立的執行 agent 平行搜集與處理。這種「拆解 + 平行」正是能同時<strong>擴大來源覆蓋面</strong>與<strong>維持每塊深度</strong>的關鍵 —— 單一 agent 順序處理往往顧此失彼。</p>
+    <div class="callout tip"><strong>為什麼有效:</strong>把「研究一個大題目」拆成「並行研究 N 個子問題再聚合」,同時解掉三件事 —— ①單次 token 上限(分塊產生);②取材偏窄(多問題多來源);③深度不足(每塊獨立聚焦)。這與站內〈高品質文件〉講的 <strong>Map-Reduce 分塊寫作</strong>是同一套思路。</div>
+  </section>
+
+  <!-- ③ -->
+  <section id="grounding">
+    <h2><span class="num">③</span> 事實錨定:每段強制附資料來源引用</h2>
+    <p>GPT-Researcher 的報告<strong>全篇附帶引用(citations throughout)</strong>。關鍵在於:系統在<strong>摘要與聚合階段就持續追蹤來源(source tracking)</strong> —— 也就是每一份被摘要的資料,它的出處會一路被帶到最終報告,而不是最後才補引用。</p>
+    <div class="callout"><strong>這是對「無中生有」的直接反制:</strong>當每個論述段落都必須錨回一個真實檢索到的來源,模型就很難憑空杜撰 —— 因為沒有來源可掛的內容,根本進不了聚合與撰寫階段。這正是本站〈高品質文件〉第④節「<strong>事實錨定與強制引用</strong>」在生成端的具體實作:引用不是產出後才驗,而是<strong>從檢索源頭就綁定</strong>。</p>
+    </div>
+    <div class="callout info"><strong>對照站內方法論:</strong>評分端我們談「稽核 Agent 提扣分要附逐字引用、再用程式反查引用是否存在」;生成端 GPT-Researcher 則是「每段內容都掛著它來自哪個檢索來源」。一端<strong>驗</strong>引用、一端<strong>建</strong>引用,兩端合起來才是完整的反幻覺閉環。</div>
+  </section>
+
+  <div class="divider">二 · 特性與用法</div>
+
+  <!-- ④ -->
+  <section id="features">
+    <h2><span class="num">④</span> 關鍵特性</h2>
+    <table>
+      <thead><tr><th>特性</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><strong>深度研究(Deep Research)</strong></td><td>支援<strong>樹狀展開(tree-like exploration)</strong>的深入研究模式,能沿子題目逐層鑽研,而非只做一層淺搜</td></tr>
+        <tr><td><strong>網路 + 本地文件</strong></td><td>可用<strong>網路來源</strong>與<strong>本地文件</strong>產生詳細研究報告</td></tr>
+        <tr><td><strong>來源引用</strong></td><td>報告全篇附引用,並在流程中持續追蹤來源</td></tr>
+        <tr><td><strong>多種輸出格式</strong></td><td>報告可匯出為 <strong>PDF、Word 等格式</strong></td></tr>
+        <tr><td><strong>可配置 LLM / 檢索器</strong></td><td>可切換不同 <strong>LLM 供應商</strong>,並整合自訂<strong>檢索器(retriever)</strong>(如 Tavily、MCP)</td></tr>
+        <tr><td><strong>強化的網頁抓取</strong></td><td>支援<strong>啟用 JavaScript</strong> 的網頁爬取,能處理動態頁面</td></tr>
+        <tr><td><strong>AI 生成內文配圖</strong></td><td>可用 Google Gemini 產生內文插圖(以官方 repo 為準)</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><strong>可配置性 = 可落地性:</strong>「LLM 可換、檢索器可換、輸出格式多樣」意味著它能被接進你既有的知識庫與模型棧,而不是綁死一家。這對想把它當成「文件生成流水線一環」的團隊很關鍵。</div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="usage">
+    <h2><span class="num">⑤</span> 最小使用範例</h2>
+    <p>以官方 README 為準,最小安裝與基本呼叫如下。</p>
+    <h4>安裝</h4>
+    <pre><code><span class="cm"># 以套件形式安裝</span>
+pip install gpt-researcher</code></pre>
+    <h4>基本 Python 呼叫</h4>
+    <pre><code><span class="kw">from</span> gpt_researcher <span class="kw">import</span> GPTResearcher
+
+query = <span class="st">"why is Nvidia stock going up?"</span>
+researcher = GPTResearcher(query=query)
+
+<span class="cm"># 執行研究流程(計畫→檢索→摘要→聚合)</span>
+research_result = <span class="kw">await</span> researcher.conduct_research()
+
+<span class="cm"># 由聚合後的素材撰寫帶引用的報告</span>
+report = <span class="kw">await</span> researcher.write_report()</code></pre>
+    <div class="callout"><strong>讀這段程式碼:</strong>兩步剛好對應機制 —— <code>conduct_research()</code> 是「計畫→檢索→摘要→聚合」,<code>write_report()</code> 是最後的「撰寫」。研究與撰寫<strong>分階段</strong>,正是它能先把來源錨定好、再落筆成文的原因。此外兩個方法都是 <code>async</code>,反映其「多個子 agent 平行搜集」的並行本質。實際部署另有 <strong>Web 前端與 API</strong> 等用法,細節以官方 repo 為準。</div>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="pipeline">
+    <h2><span class="num">⑥</span> 在「高品質文件流水線」的位置</h2>
+    <p>回到站內主軸 —— <a href="../ai-quality-docs.html">〈讓 AI 產生高品質文件〉</a>把高品質拆成一條流水線。GPT-Researcher 幾乎是其中<strong>「生成端」的一個完整實作</strong>:</p>
+    <table>
+      <thead><tr><th>站內〈高品質文件〉的原則</th><th>GPT-Researcher 的對應實作</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Map-Reduce 分塊寫作</strong>:大綱拆解 → 平行寫各塊 → 聚合潤飾</td><td>planner 拆研究問題 → 多個 executor <strong>平行</strong>檢索摘要 → publisher <strong>聚合</strong>成報告</td></tr>
+        <tr><td><strong>事實錨定 + 強制引用</strong>:每個論述都要有可追溯來源</td><td>摘要/聚合階段全程 <strong>source tracking</strong>,報告全篇附引用</td></tr>
+        <tr><td><strong>角色分離</strong>:不同職責交給不同 agent</td><td>planner(規劃)/ executor(檢索)/ publisher(彙整)<strong>三類角色分工</strong></td></tr>
+        <tr><td><strong>突破單次生成上限</strong>,避免長文品質衰退</td><td>分子問題平行產生、再聚合,繞開單次 token 限制</td></tr>
+      </tbody>
+    </table>
+    <div class="callout info"><strong>怎麼一起用:</strong>把 GPT-Researcher 當「<strong>生成 + 事實錨定</strong>」的前段(產出帶引用的初稿),再接上站內談的「<strong>Rubric 評分 + 反向引用驗真 + Reflexion 重寫</strong>」評分後段 —— 一端負責<strong>把來源建進文件</strong>,一端負責<strong>把品質量化並逼近達標</strong>,就湊成一條完整、可迭代的高品質文件流水線。</div>
+  </section>
+
+  <div class="divider">三 · 出處</div>
+
+  <!-- ⑦ -->
+  <section id="sources">
+    <h2><span class="num">⑦</span> 來源</h2>
+    <ul>
+      <li>GitHub 專案:<code>assafelovic/gpt-researcher</code> —— <a href="https://github.com/assafelovic/gpt-researcher">github.com/assafelovic/gpt-researcher</a></li>
+      <li>官方 README(定位、動機、架構、特性、安裝與範例)—— <code>raw.githubusercontent.com/assafelovic/gpt-researcher/master/README.md</code></li>
+    </ul>
+    <div class="callout warn">本頁內容依官方 README 於撰寫時整理;GPT-Researcher 為活躍開發中的專案,具體功能、預設檢索器、輸出格式與 API 介面<strong>以官方 repo 最新版本為準</strong>。標「以官方 repo 為準」者請至原始碼確認。</div>
+  </section>
+
+  <!-- related -->
+  <section>
+    <h2><span class="num">↗</span> 相關單元</h2>
+    <div class="related">
+      <a href="../ai-quality-docs.html">
+        <div class="rel-title">📝 讓 AI 產生高品質文件</div>
+        <div class="rel-sub">多 Agent 協同、Map-Reduce 分塊與事實錨定</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">回到 learn 首頁</div>
+      </a>
+      <a href="../../skills/index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">Rubric / 邊界 / 評測的技能版</div>
+      </a>
+      <a href="https://github.com/assafelovic/gpt-researcher">
+        <div class="rel-title">🔗 GitHub · gpt-researcher</div>
+        <div class="rel-sub">原始碼與官方文件</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁為技術介紹整理;GPT-Researcher 的實際功能、版本與介面以其官方 repo 為準。核心設計原則(計畫→檢索→摘要→聚合→撰寫、planner/executor 角色分離、source tracking 強制引用)是可跨工具借鏡的方法論。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="../ai-quality-docs.html">← 回到「讓 AI 產生高品質文件」</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

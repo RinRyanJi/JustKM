@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>CrewAI:角色化多 Agent 協作框架 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+    .toc .grp { grid-column: 1 / -1; font-size: 0.68rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; padding: 2px 10px; }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    .divider { font-size: 0.72rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--stone); text-align: center; margin: 30px 0 14px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    pre code { color: var(--charcoal); }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    .st { color: #c2410c; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--orange); }
+
+    .diagram { background: var(--navy); color: #cdd6ea; border-radius: 12px; padding: 18px 20px; margin: 12px 0 14px; overflow-x: auto;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.74rem; line-height: 1.55; white-space: pre; }
+    .diagram b { color: #ffcf9e; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../ai-quality-docs.html">← 回到「高品質文件」方法論</a>
+
+  <div class="hero">
+    <h1>🚢 CrewAI:角色化多 Agent 協作框架</h1>
+    <p class="sub">用「像真實團隊般分工」的方式編排自主 AI agent —— 每個 agent 有 role/goal/backstory,任務串接,流程可選 sequential 或 hierarchical。獨立於 LangChain 的精簡 Python 框架。</p>
+    <div>
+      <span class="badge green">開源框架</span>
+      <span class="badge blue">多 Agent 協作</span>
+      <span class="badge orange">crewAIInc/crewAI</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話</a>
+      <a href="#why">① 解決什麼問題</a>
+      <a href="#concepts">② 核心概念</a>
+      <a href="#team">③ 文件編寫 + 審查團隊</a>
+      <a href="#flows">④ Flows:事件驅動編排</a>
+      <a href="#example">⑤ 最小範例</a>
+      <a href="#pipeline">⑥ 在高品質文件流水線的位置</a>
+      <a href="#sources">⑦ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話</h2>
+    <p><strong>CrewAI 是一個精簡、快速、獨立於 LangChain 的 Python 框架,專門用來編排「角色化(role-playing)、自主的 AI agent」與可上線的多 agent 工作流。</strong>它的核心比喻很直接:把一群各有專長的 AI agent 組成一個「crew(小組)」,像真實團隊一樣分工、把工作交接下去,合力完成一件事。</p>
+    <div class="callout info"><strong>官方定位(以官方 repo 為準):</strong>README 將其描述為 “Framework for orchestrating role-playing, autonomous AI agents.”,並強調它是「a lean, fast Python framework built specifically for orchestrating autonomous AI agents and production-ready agentic workflows」。</div>
+  </section>
+
+  <!-- ① -->
+  <section id="why">
+    <h2><span class="num">①</span> 它解決什麼問題:要像真實團隊般分工協作</h2>
+    <p>單一 agent + 單一 prompt 想一次做完「研究 → 撰寫 → 審查」這種複合任務,常常顧此失彼:研究不夠深、寫作分心、又缺乏獨立審查。人類團隊怎麼解?<strong>分工</strong>——把不同職責交給不同專長的人,並定義好交接與協調方式。</p>
+    <p>CrewAI 把這個直覺搬進程式:</p>
+    <ul>
+      <li><strong>每個 agent 是一個「有職稱的專才」</strong>:你用自然語言給它 role(職位)、goal(目標)、backstory(背景與觀點),它就會用那個身分去思考與行動。</li>
+      <li><strong>工作被拆成 task(任務)</strong>,分派給對應的 agent,並可把前一個任務的產出當作下一個任務的輸入(交接)。</li>
+      <li><strong>crew(小組)負責編排</strong>:決定任務照什麼流程跑——是照順序(sequential),還是由一個 manager agent 動態指派與協調(hierarchical)。</li>
+    </ul>
+    <div class="callout tip"><strong>設計哲學:</strong>不是靠「一個更聰明的巨無霸 prompt」,而是靠<strong>角色分離 + 明確任務 + 流程編排</strong>,讓多個各司其職的 agent 協作出比單體更可靠的結果。這與本站反覆出現的主題一致——靠更好的環境與流程,而非只靠更強的模型。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="concepts">
+    <h2><span class="num">②</span> 核心概念:Agent / Task / Crew / Process / Tools / Memory</h2>
+    <p>CrewAI 是「自帶原語(primitives)」的獨立框架。官方 FAQ 明確表示:「CrewAI is a standalone Python framework with its own primitives for agents, tasks, crews, flows, tools, and orchestration.」以下是幾個要角(以官方 repo 為準)。</p>
+
+    <h3>Agent(角色化的執行單位)</h3>
+    <p>一個 agent 由三個基礎屬性定義出「它是誰」:</p>
+    <table>
+      <thead><tr><th>屬性</th><th>意義</th><th>例子</th></tr></thead>
+      <tbody>
+        <tr><td><strong>role</strong></td><td>職位/功能,決定它扮演誰</td><td>「資深技術研究員」</td></tr>
+        <tr><td><strong>goal</strong></td><td>主要目標,它一切行動的方向</td><td>「找出並整理最可靠的一手資料」</td></tr>
+        <tr><td><strong>backstory</strong></td><td>背景、專長與觀點,塑造語氣與判斷</td><td>「你有十年產業研究經驗,重視引用與查證」</td></tr>
+      </tbody>
+    </table>
+    <p>agent 還可以配備 tools(工具)與是否啟用 memory 等設定。</p>
+
+    <h3>Task(工作單位)</h3>
+    <p>一個 task 描述「要做什麼」與「期望產出(expected output)」,並指派給某個 agent 執行。任務可串接——把前一個任務的輸出交給下一個任務作為上下文(context)。</p>
+
+    <h3>Crew(小組)</h3>
+    <p>把一組 agent 與一組 task 收攏在一起,用一個指定的<strong>流程(process)</strong>去編排它們的協作。crew 是你最終「按下啟動鍵」的對象。</p>
+
+    <h3>Process(流程:sequential / hierarchical)</h3>
+    <table>
+      <thead><tr><th>流程</th><th>怎麼跑</th><th>適用</th></tr></thead>
+      <tbody>
+        <tr><td><strong>sequential</strong></td><td>任務照定義的順序一個接一個執行,前一個的產出可餵給後一個</td><td>清楚的線性流水線(研究→撰寫→審查)</td></tr>
+        <tr><td><strong>hierarchical</strong></td><td>由一個自動的 <strong>manager agent</strong> 負責協調:動態決定該把哪個任務交給哪個 agent、如何整合</td><td>需要動態調度、任務分派不固定的情境</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Tools(工具)</h3>
+    <p>agent 為了完成工作可以呼叫的外部能力(搜尋、讀檔、呼叫 API 等)。工具讓 agent 從「只會講話」變成「能實際動手取得資料、產生副作用」。</p>
+
+    <h3>Memory(記憶)</h3>
+    <p>agent 可以在互動之間保留與引用資訊,讓跨任務、跨回合的協作保有連貫的上下文,而不是每一步都失憶重來。</p>
+  </section>
+
+  <!-- ③ -->
+  <section id="team">
+    <h2><span class="num">③</span> 應用於「文件編寫 + 審查團隊」</h2>
+    <p>把 CrewAI 的原語對映到一個典型的文件生產小組,正好落在本站主線主題上:<strong>研究員 / 撰寫員 / 稽核員各有 role 與 goal,任務串接,由 manager 協調;稽核依 checklist 評分,未達門檻退回重寫。</strong></p>
+
+    <table>
+      <thead><tr><th>Agent</th><th>role</th><th>goal(重點)</th></tr></thead>
+      <tbody>
+        <tr><td><strong>研究員 Researcher</strong></td><td>資深技術研究員</td><td>蒐集可靠的一手資料,整理成有出處、可查證的素材</td></tr>
+        <tr><td><strong>撰寫員 Writer</strong></td><td>技術文件撰寫者</td><td>依邊界條件(讀者/領域/必備章節)把素材寫成完整文件</td></tr>
+        <tr><td><strong>稽核員 Auditor</strong></td><td>嚴格的品質稽核者</td><td>照 checklist / rubric 逐項評分,找缺失並要求原文引用</td></tr>
+      </tbody>
+    </table>
+
+    <h4>任務怎麼串接</h4>
+    <p>三個任務可以照 sequential 流程接力:<strong>研究任務</strong>的產出(素材與出處)成為<strong>撰寫任務</strong>的 context;撰寫任務的初稿再成為<strong>稽核任務</strong>的輸入。若採 hierarchical,則由 manager agent 動態決定何時該回頭補研究、何時該送審。</p>
+
+    <div class="diagram"><b>研究員</b>  role/goal:找可靠一手資料 + 出處
+      │  產出:素材 + 引用來源
+      ▼
+<b>撰寫員</b>  role/goal:依邊界條件寫成完整文件
+      │  產出:文件初稿
+      ▼
+<b>稽核員</b>  role/goal:照 checklist 逐項評分 + 強制引用
+      │
+      ├─ 分數 ≥ 門檻(如 85) ──▶ 通過,輸出
+      └─ 分數 < 門檻 ──▶ 帶「扣分原因 + 原文對照」退回撰寫員重寫
+                              (由 manager / 流程串成自動校正迴圈)</div>
+
+    <div class="callout"><strong>與方法論頁的對應:</strong>這正是 <a href="../ai-quality-docs.html">高品質文件方法論</a> 第 ③ 節「角色對立(生成者 vs 稽核者)」與第 ⑥ 節「稽核員依 CheckList 評分,低於門檻退回重寫」的框架實作版——CrewAI 提供的正是把這種「分工 + 退回重寫」落地的編排骨架。</div>
+    <div class="callout warn"><strong>務實提醒:</strong>「退回重寫」的迴圈與門檻判斷通常需要你在流程層自行設計(例如用條件分支或 Flows 控制,見下節);CrewAI 提供的是 agent/task/crew 的編排能力,實際的評分門檻與迭代邏輯由使用者組裝。具體 API 與可用機制以官方 repo 為準。</div>
+  </section>
+
+  <!-- ④ -->
+  <section id="flows">
+    <h2><span class="num">④</span> Flows:較新的事件驅動編排</h2>
+    <p>除了 crew 這種「小組協作」的抽象,CrewAI 另提供 <strong>Flows</strong>——一種<strong>事件驅動(event-driven)</strong>的編排方式,用來對複雜自動化流程做<strong>精準的控制</strong>。</p>
+    <p>依 README 所述(以官方 repo 為準),Flows 提供 “precise, event-driven workflows that deliver precise control over complex automations”,特點包括:</p>
+    <ul>
+      <li><strong>狀態管理(state management)</strong>:在流程各步驟間帶著、更新共享狀態。</li>
+      <li><strong>條件分支(conditional branching)</strong>:依事件或中間結果走不同路徑。</li>
+      <li><strong>與純 Python 程式交織</strong>:把一般 Python 程式碼與 agent/crew 的執行組合在同一個流程裡。</li>
+    </ul>
+    <div class="callout info"><strong>兩種抽象怎麼選:</strong>粗略地說,<strong>Crew</strong> 適合「讓一組 agent 自主協作把事情做完」的開放式任務;<strong>Flows</strong> 適合「我要對步驟、分支、狀態有明確掌控」的結構化自動化。兩者可以搭配使用(在 Flow 裡呼叫 crew)。實際 API 以官方 repo 為準。</div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="example">
+    <h2><span class="num">⑤</span> 最小範例:定義 agent + task + crew.kickoff()</h2>
+    <p>以下範例改寫自官方 repo 的用法(以官方 repo 為準),示意最小的「定義 agent → 定義 task → 組成 crew → kickoff()」流程。CrewAI 常見兩種寫法:直接實例化,或用 <code>@CrewBase</code> 裝飾器 + YAML 設定。</p>
+
+    <h4>寫法一:直接實例化(概念示意)</h4>
+    <pre><code><span class="kw">from</span> crewai <span class="kw">import</span> Agent, Task, Crew, Process
+
+researcher = Agent(
+    role=<span class="st">"資深技術研究員"</span>,
+    goal=<span class="st">"找出並整理最可靠的一手資料"</span>,
+    backstory=<span class="st">"你有十年產業研究經驗,重視引用與查證"</span>,
+)
+writer = Agent(
+    role=<span class="st">"技術文件撰寫者"</span>,
+    goal=<span class="st">"把研究素材寫成完整、有出處的文件"</span>,
+    backstory=<span class="st">"你擅長把複雜主題寫得精準而好讀"</span>,
+)
+
+research_task = Task(
+    description=<span class="st">"研究主題:{topic},整理重點與來源"</span>,
+    expected_output=<span class="st">"帶出處的重點清單"</span>,
+    agent=researcher,
+)
+write_task = Task(
+    description=<span class="st">"依研究結果撰寫一篇結構完整的文件"</span>,
+    expected_output=<span class="st">"Markdown 文件"</span>,
+    agent=writer,
+)
+
+crew = Crew(
+    agents=[researcher, writer],
+    tasks=[research_task, write_task],
+    process=Process.sequential,
+    verbose=<span class="kw">True</span>,
+)
+
+result = crew.kickoff(inputs={<span class="st">"topic"</span>: <span class="st">"AI Agents"</span>})
+<span class="kw">print</span>(result)</code></pre>
+
+    <h4>寫法二:@CrewBase 裝飾器(取自官方 repo 用法)</h4>
+    <pre><code><span class="kw">@CrewBase</span>
+<span class="kw">class</span> LatestAiDevelopmentCrew():
+    <span class="kw">@agent</span>
+    <span class="kw">def</span> researcher(self) -> Agent:
+        <span class="kw">return</span> Agent(config=self.agents_config[<span class="st">'researcher'</span>])
+
+    <span class="kw">@task</span>
+    <span class="kw">def</span> research_task(self) -> Task:
+        <span class="kw">return</span> Task(config=self.tasks_config[<span class="st">'research_task'</span>])
+
+    <span class="kw">@crew</span>
+    <span class="kw">def</span> crew(self) -> Crew:
+        <span class="kw">return</span> Crew(agents=self.agents, tasks=self.tasks,
+                    process=Process.sequential, verbose=<span class="kw">True</span>)
+
+crew = LatestAiDevelopmentCrew().crew()
+crew.kickoff(inputs={<span class="st">'topic'</span>: <span class="st">'AI Agents'</span>})</code></pre>
+    <div class="callout warn"><strong>注意:</strong>上述程式為說明用意的示意,實際欄位、匯入路徑與最新 API(尤其 <code>@CrewBase</code> 與 YAML 設定結構)請以官方 repo 與文件為準;CrewAI 迭代較快,細節可能隨版本調整。</div>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="pipeline">
+    <h2><span class="num">⑥</span> 在「高品質文件流水線」的位置</h2>
+    <p>回到本站主線:<a href="../ai-quality-docs.html">高品質文件方法論</a>把品質拆成「<strong>結構定義 → 多 agent 生成 → 品質評估 → 自動迭代</strong>」四層。CrewAI 主要落在其中的<strong>「生成流程」</strong>這一層——它提供把<strong>角色對立(撰寫者 vs 稽核者)</strong>與<strong>階層流程(manager 協調)</strong>組裝起來的編排骨架。</p>
+    <table>
+      <thead><tr><th>方法論的層</th><th>CrewAI 對應</th></tr></thead>
+      <tbody>
+        <tr><td>結構定義(邊界/Schema)</td><td>寫進 task 的 description / expected_output,或以 Flows 的 state 帶入(仍常搭配 Pydantic 等)</td></tr>
+        <tr><td><strong>生成流程(多 agent 對立協同)</strong></td><td><strong>CrewAI 的主場</strong>:role/goal/backstory 定義研究員/撰寫員/稽核員;Process 決定 sequential 或 hierarchical 協調</td></tr>
+        <tr><td>品質評估(客觀分數 + 引用)</td><td>由稽核 agent 依 checklist/rubric 評分;評分規則與強制引用由使用者在 task 中設計</td></tr>
+        <tr><td>自動迭代(未達門檻退回重寫)</td><td>用流程/條件分支(或 Flows)串成「不達標 → 退回撰寫員」的迴圈</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><strong>一句話收斂:</strong>CrewAI 不是評分演算法本身,而是把「<strong>誰負責寫、誰負責審、怎麼交接、什麼時候退回重寫</strong>」這套<strong>分工與流程</strong>變成可宣告、可執行的程式。它讓方法論頁講的「角色分離 + Reflexion 迴圈」有了現成的編排載體。</div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="sources">
+    <h2><span class="num">⑦</span> 來源</h2>
+    <ul>
+      <li>官方 repo:<strong>crewAIInc/crewAI</strong> — <code>https://github.com/crewAIInc/crewAI</code>(README 與概念說明)。本頁的定位語句、核心概念(Agent role/goal/backstory、Task、Crew、Process sequential/hierarchical、Tools、Memory)、Flows 說明與程式範例皆據此整理。</li>
+      <li>引號內的英文定位語句取自該 repo 的 README(以官方 repo 為準):<em>“Framework for orchestrating role-playing, autonomous AI agents.”</em>、<em>“a lean, fast Python framework…”</em>、<em>“a standalone Python framework with its own primitives…”</em>、Flows 的 <em>“precise, event-driven workflows…”</em>。</li>
+    </ul>
+    <div class="callout warn"><strong>查證聲明:</strong>本頁僅整理可自官方 repo 確認的內容,未列出 star 數等易變動指標。CrewAI 版本更新較快,具體 API、欄位與機制細節<strong>一律以官方 repo 與官方文件為準</strong>。</div>
+
+    <h3>相關單元</h3>
+    <div class="related">
+      <a href="../ai-quality-docs.html">
+        <div class="rel-title">📝 高品質文件方法論</div>
+        <div class="rel-sub">角色對立 + 自動評分 + Reflexion 迴圈</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">回到 learn 主目錄</div>
+      </a>
+      <a href="../../skills/index.html">
+        <div class="rel-title">🧩 Skills 分析專區</div>
+        <div class="rel-sub">Rubric / 邊界 / 評測的技能版</div>
+      </a>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="../ai-quality-docs.html">← 回到高品質文件方法論</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
