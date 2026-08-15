@@ -147,6 +147,7 @@
     <h2><span class="num">⓪</span> 一句話總結</h2>
     <p><strong>DeepSeek Harness(<code>dsh</code>)是 DeepSeek AI 開源的 agent harness(智能體框架)。</strong>它把「一切都做成插件」——包括<strong>模型適配器、工具註冊表、會話日誌,甚至 agent loop 本身</strong>——都是可從設定替換的插件,底層由 <a href="https://github.com/cordiverse/cordis" target="_blank" rel="noopener">Cordis</a> 框架驅動。<strong>沒有需要打補丁的特權內核</strong>:擴充方式是把插件掛到別的插件旁邊。</p>
     <div class="callout warn"><strong>⚠️ 開發者預覽:</strong>官方明講目前<strong>快速迭代、未來會有破壞相容性的變更</strong>。本頁依撰寫時 clone 的原始碼與 <code>docs/</code>(含官方中文文件)整理,實際以官方 repo 最新為準。</div>
+    <div class="callout tip"><strong>💡 不只是插件——想看它獨到的 agent 設計思路?</strong>另開一頁 <a href="./deepseek-harness-ideas.html"><strong>DeepSeek Harness 的 agent 設計思路</strong></a>:事件日誌即真相、waterfall 中介層、<strong>單調守衛與 fail-closed</strong>、可逆副作用+熱替換、能力 seam(<code>llm-replay</code> 可重放)、inbox 非同步紀律、防禦性工程、供應鏈衛生——9 個有別於一般 agent 的思路。</div>
   </section>
 
   <!-- ① -->
@@ -301,6 +302,10 @@ pnpm dsh web</code></pre>
       <li>底層框架:<a href="https://github.com/cordiverse/cordis" target="_blank" rel="noopener">cordiverse/cordis</a> 及其論文《A Programming Paradigm for Spatiotemporal Composability》</li>
     </ul>
     <div class="related">
+      <a href="./deepseek-harness-ideas.html">
+        <div class="rel-title">💡 它獨到的 agent 設計思路</div>
+        <div class="rel-sub">事件日誌/中介層/單調守衛/可重放… 不只是插件</div>
+      </a>
       <a href="./prime-agent.html">
         <div class="rel-title">🔷 Prime Agent 架構拆解</div>
         <div class="rel-sub">另一個插件化 agent harness</div>

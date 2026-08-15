@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>DeepSeek Harness 的 agent 設計思路：不只是插件 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.25rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: baseline; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; flex: none; align-self: flex-start; margin-top:2px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+    .lead { font-size: 0.86rem; color: var(--slate); font-style: italic; margin-bottom: 4px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .diagram { background: var(--navy); color: #cdd6ea; border-radius: 12px; padding: 18px 20px; margin: 12px 0 14px; overflow-x: auto;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.72rem; line-height: 1.5; white-space: pre; }
+    .diagram b { color: #ffcf9e; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+    .diff { font-size: 0.8rem; color: var(--slate); margin: 6px 0 2px; }
+    .diff b { color: var(--teal); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./deepseek-harness.html">← 回到 DeepSeek Harness 架構總覽</a>
+
+  <div class="hero">
+    <h1>💡 DeepSeek Harness 的 agent 設計思路:不只是插件</h1>
+    <p class="sub">插件只是表層。底下有一組更深的主張——把 agent 當「可組合的作業系統」而非單體循環</p>
+    <div>
+      <span class="badge green">依原始碼與 docs 逐處查證</span>
+      <span class="badge blue">9 個獨到思路</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#thesis">⓪ 核心主張</a>
+      <a href="#log">① 事件日誌即真相</a>
+      <a href="#waterfall">② Waterfall 中介層</a>
+      <a href="#guards">③ 單調守衛與 fail-closed</a>
+      <a href="#effects">④ 可逆副作用 + 熱替換</a>
+      <a href="#seams">⑤ 能力 seam:可替換/可重放</a>
+      <a href="#inbox">⑥ inbox 與非同步紀律</a>
+      <a href="#defensive">⑦ 防禦性工程</a>
+      <a href="#supply">⑧ 供應鏈衛生</a>
+      <a href="#summary">⑨ 一句話總結</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="thesis">
+    <h2><span class="num">⓪</span> 核心主張:agent 是「可組合的作業系統」</h2>
+    <p>一般 agent 常是「一個寫死的迴圈:呼叫 LLM → 解析工具呼叫 → 執行 → 回填」。DeepSeek Harness 的不同,不在「它用了插件」,而在它把 agent 拆成一套<strong>作業系統式的結構</strong>:</p>
+    <ul>
+      <li><strong>一份只追加的事件日誌</strong>當唯一真相,模型看到的歷史是從日誌<em>推導</em>出來的;</li>
+      <li><strong>持久事實</strong>與<strong>即時控制</strong>兩個平面分離;</li>
+      <li>擴充點是<strong>中介層(waterfall)</strong>——不改迴圈就能包住每一步;</li>
+      <li>安全用<strong>單調守衛</strong>(只能收緊、不能放寬);</li>
+      <li>每個註冊都是<strong>可逆副作用</strong>(能熱插拔);</li>
+      <li>能力藏在<strong>可替換的 seam</strong> 後面(可換真模型、可重放、可離線測試)。</li>
+    </ul>
+    <div class="callout info">下面九節逐一拆解;每節開頭用「<em>一般 agent</em> → <strong>它的做法</strong>」點出差異。本頁依撰寫時 clone 的原始碼與官方 <code>docs/</code> 整理,dsh 為開發者預覽,細節以官方最新為準。</div>
+  </section>
+
+  <!-- ① -->
+  <section id="log">
+    <h2><span class="num">①</span> 事件日誌即真相:兩個平面分離</h2>
+    <p class="diff">一般 agent → 把「messages 陣列」當狀態,邊跑邊改。&nbsp;&nbsp;<b>它 → 只追加的事件日誌是真相,模型歷史從日誌推導。</b></p>
+    <p>Harness 把資訊分成<strong>兩個平面</strong>:</p>
+    <ul>
+      <li><strong>持久回放事實</strong> 存在 <code>session/event</code>(只追加的 <code>SessionEvent</code> 日誌)——<code>turn/*</code>、<code>step/*</code>、<code>user/message</code>、<code>assistant/*</code>、<code>tool/*</code> 都是這種。<em>重新載入後仍在</em>。</li>
+      <li><strong>即時控制與狀態</strong> 走 <code>agent/*</code> 事件(inbox、步驟、狀態、請求、驗證、續跑)——<em>觀察/攔截進行中的工作</em>用它。</li>
+    </ul>
+    <p>關鍵一句(架構文件原文):「<strong>從日誌推導 model history</strong>」。也就是說,「模型這一步看到什麼」不是某個被就地修改的陣列,而是<strong>對不可變事件日誌的一次投影</strong>。</p>
+    <div class="callout tip"><strong>為什麼強:</strong>① 天生可回放、可稽核、可時間旅行(compaction、branch 都只是日誌上的條目);② 崩潰復原=重讀日誌;③ 任何「壓縮/修剪」都不動真相,只改投影。這跟 <a href="./prime-agent-ai-and-sessions.html">Prime Agent 的 JSONL 樹狀 session</a> 是同一家族思路。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="waterfall">
+    <h2><span class="num">②</span> Waterfall 中介層:不改迴圈就能擴充</h2>
+    <p class="diff">一般 agent → 要加功能就改迴圈的 if/else。&nbsp;&nbsp;<b>它 → 迴圈固定,擴充是「環繞中介層」。</b></p>
+    <p>關鍵事件(<code>agent/pre-step</code>、<code>agent/request</code>、<code>llm/stream</code>、三個 <code>tools/*</code>)是 <strong>waterfall</strong>:監聽器收 <code>(...args, next)</code>,像洋蔥式中介層——</p>
+    <ul>
+      <li>呼叫 <code>next()</code> → 執行下游,可<strong>包裝其回傳</strong>再往外傳;</li>
+      <li>不呼叫 <code>next()</code> 直接 return → <strong>短路</strong>(有決策權的策略監聽器就這樣攔截)。</li>
+    </ul>
+    <p>於是 timeout、retry、metrics、權限、沙箱、結果改寫,都是<strong>掛在 seam 上的監聽器</strong>,而<strong>agent loop 本身一行都不用改</strong>——連 agent loop 都是可換的插件(<code>ctx.agentLoop</code>)。</p>
+    <div class="callout"><strong>對照四種分發模式:</strong><code>emit</code>(純觀察)、<code>waterfall</code>(可包裝/短路)、<code>parallel</code>(並行 await)、<code>serial</code>(按序 await 有回傳)。<strong>選對事件域與分發模式,是大多數改動的第一個決定</strong>——這把「擴充」變成宣告式的,而非改核心。</div>
+  </section>
+
+  <!-- ③ -->
+  <section id="guards">
+    <h2><span class="num">③</span> 單調守衛與 fail-closed:安全只能收緊</h2>
+    <p class="diff">一般 agent → 權限靠散落的 if 判斷,容易被繞過或「預設放行」。&nbsp;&nbsp;<b>它 → 守衛「只能拒絕或棄權,永不授予」。</b></p>
+    <p>工具執行流水線裡有一層<strong>單調守衛(monotonic guards)</strong>,原文特性:<strong>「deny or abstain; identity protected」</strong>——守衛只能<strong>拒絕</strong>或<strong>棄權</strong>,<strong>不能授予</strong>權限。這是刻意的<strong>單調性</strong>:多加一個守衛<em>只可能讓事情更嚴</em>,不可能放寬。搭配:</p>
+    <ul>
+      <li><strong>Approval 一次性提示</strong>(<code>ctx.approval</code>):<em>不存在或無法回答時 → 一律 deny</em>(fail-closed,失敗時傾向拒絕而非放行);</li>
+      <li><strong>fs 意圖閘</strong>:工具對檔案的變更要先過 <code>fs/write-intent</code> / <code>fs/edit-intent</code>;</li>
+      <li><strong>identity protected</strong>:守衛不能竄改呼叫者身分。</li>
+    </ul>
+    <h3>工具執行流水線(把關的完整順序)</h3>
+    <div class="diagram">assistant 訊息含 tool-call
+  │  <b>tool/call</b>(執行前先記日誌)
+  ▼
+<b>tools/pre-execute</b> waterfall   ← hooks、權限、沙箱
+  │ allow          │ deny → 跳過工具本體      │ ask → ctx.approval 一次性
+  ▼
+<b>單調守衛</b>(deny 或 abstain;身分受保護)
+  │ allow
+  ▼
+<b>tools/execute</b> waterfall（環繞:timeout / retry / metrics）
+  │
+  ▼  工具 execute() 本體  ─▶ fs/write-intent | fs/edit-intent（僅檔案變更）
+  ▼
+<b>tools/post-execute</b> waterfall  ← accept / block / replace / 加 context
+  ▼
+外層正規化(pipeline 拋錯 → isError) ─▶ finalizeContent ─▶ <b>tool/result</b>（凍結的權威結果,單一面向模型的結果）
+  ▼
+active-batch additionalContexts FIFO（在記錄的 tool result 之後,注入 user/message）</div>
+    <div class="callout tip"><strong>三個獨到點:</strong>① 拋錯會被<strong>正規化成 <code>isError</code></strong>(不讓例外亂竄);② <code>tool/result</code> 是<strong>凍結、權威、單一</strong>面向模型的結果(不會有兩種說法);③ 額外 context 用 <strong>FIFO 在 tool result 之後注入</strong>,而不是硬塞進本次呼叫。</div>
+  </section>
+
+  <!-- ④ -->
+  <section id="effects">
+    <h2><span class="num">④</span> 可逆副作用 + 熱替換:每個註冊都能乾淨拔除</h2>
+    <p class="diff">一般 agent → 註冊工具/提示常是全域可變狀態,難以卸載。&nbsp;&nbsp;<b>它 → 每個註冊都經 <code>ctx.effect()</code>/<code>ctx.on()</code>,teardown 自動撤銷。</b></p>
+    <p>提示片段、工具 schema、模型適配器、監聽器…全都是<strong>可逆副作用</strong>:reload 或 teardown 時「按預期撤銷」。每個註冊<strong>都應有對應的 disposer</strong>(從 <code>ctx.effect()</code> 回傳、或用框架輔助方法),若卸載順序有要求就放同一個 effect。這帶來:</p>
+    <ul>
+      <li><strong>HMR(熱模組替換)</strong>:插件與設定可以<em>熱替換</em>(vendored 的 <code>cordis-plugin-hmr</code>);</li>
+      <li><strong>Profile/bundle 的 patch 疊加</strong>能安全替換任一條目的整段 config,因為舊的能乾淨退場;</li>
+      <li>「沒有需要打補丁的特權內核」——擴充=把插件掛旁邊,不是改核心。</li>
+    </ul>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="seams">
+    <h2><span class="num">⑤</span> 能力 seam:可替換、可重放、可離線測試</h2>
+    <p class="diff">一般 agent → 直接 import 某家 SDK,綁死。&nbsp;&nbsp;<b>它 → 能力藏在穩定的 <code>ctx.&lt;key&gt;</code> seam 後面,實作可換。</b></p>
+    <p>同一個服務鍵背後可掛不同實作(從能力圖 capability-seams 可見):</p>
+    <table>
+      <thead><tr><th>seam(<code>ctx</code> 鍵)</th><th>可替換的實作</th><th>妙用</th></tr></thead>
+      <tbody>
+        <tr><td><code>ctx.llm</code></td><td><code>llm-deepseek</code> / <code>llm-pi-ai</code> / <strong><code>llm-replay</code></strong></td><td><strong>llm-replay = 用錄好的回應重放</strong> → 測試不燒 token、可重現</td></tr>
+        <tr><td><code>ctx.sessionPersistence</code></td><td><code>session-persistence-jsonl</code> / <code>-sqlite</code></td><td>存法可換(檔案 or DB)</td></tr>
+        <tr><td><code>ctx.storage</code></td><td><code>storage-json</code> / <code>-sqlite</code></td><td>非 session 資料的儲存中樞</td></tr>
+        <tr><td><code>ctx.toolResultPruner</code></td><td><code>compaction-tool-result-pruner</code></td><td><strong>不用模型</strong>就能修剪工具結果(確定性壓縮)</td></tr>
+        <tr><td><code>ctx.tokenMeter</code></td><td><code>token-meter</code></td><td>重放式 token 量測</td></tr>
+        <tr><td><code>ctx.credentials</code> / <code>ctx.settings</code></td><td><code>credentials-local</code> / <code>settings-file</code></td><td>憑證/設定都是 seam</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><strong>兩個特別有意思的:</strong>① <strong><code>llm-replay</code></strong>——把模型串流錄下來重放,讓 agent 行為<strong>可重現、可離線測</strong>(一般 agent 很難做到);② <strong>model-free 的工具結果修剪</strong>——壓縮不一定要再叫一次模型,可用確定性規則,省錢又穩定。</div>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="inbox">
+    <h2><span class="num">⑥</span> inbox 與非同步紀律:「非同步狀態 ≠ 同步狀態」</h2>
+    <p class="diff">一般 agent → followup 當成「送一則、拿一則結果」的同步呼叫。&nbsp;&nbsp;<b>它 → 訊息進 inbox,run 區間要顯式定義。</b></p>
+    <p>輸入都經<strong>同一個 inbox</strong> 到達驅動器:有些訊息<strong>立即喚醒</strong>它;<strong>注入的 context 會留在 inbox</strong>,直到另一條訊息把它喚醒。這支撐了 <strong>steering(中途引導)</strong>——running 期間插話改方向——與背景注入。</p>
+    <p>防禦模式文件把一條紀律講得很清楚:<strong>「非同步狀態不是同步狀態」</strong>——</p>
+    <ul>
+      <li><code>agent.followup()</code> <strong>沒有逐訊息的完成狀態或結果</strong>;多條排隊後續、steering、注入工作可能<strong>共用同一個 <code>running</code> 區間</strong>。</li>
+      <li>所以<strong>不能把 <code>agent/status</code> 或 <code>whenIdle()</code> 當成某次 followup 的結果</strong>;真正擁有一次 run 的呼叫方必須<strong>顯式定義區間</strong>(例如從某訊息的 inbox 回執,到 agent 下次進入 <code>idle</code>)。</li>
+    </ul>
+    <div class="callout"><strong>洞見:</strong>它正視「多輪、可插話、可背景注入」的 agent 是<strong>真並發系統</strong>,而不是請求-回應。很多 agent bug 就出在把非同步當同步——它用型別與紀律把這件事擋在門外。</div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="defensive">
+    <h2><span class="num">⑦</span> 防禦性工程:把踩過的坑寫成規則</h2>
+    <p class="diff">一般 agent → 出事再修。&nbsp;&nbsp;<b>它 → 把「發布過或差點發布」的缺陷,固化成防禦規則。</b></p>
+    <p><code>docs/defensive-patterns.md</code> 是「來之不易的缺陷類別規則」。幾條對 agent 特別關鍵:</p>
+    <ul>
+      <li><strong>正交結果獨立上報:</strong>一個結果可同時「超時 + exit 0 + 收到 signal」;<code>timedOut</code>/<code>signal</code>/<code>exitCode</code> 各自獨立回報,別把提前終止誤判成成功。</li>
+      <li><strong>公共約定兩側規範化:</strong><code>LlmRuntime.stream()</code> 只用<strong>終止型 finish 分片</strong>暴露模型失敗(不靠拋例外),讓消費方不必猜例外來自 provider、包裝層還是自己。</li>
+      <li><strong>dispose 要停穩,不只發停止訊號:</strong>清理要<em>等子進程真的退出</em>,並先關監聽器讓遲到事件靜默 → <strong>不留孤兒進程</strong>。</li>
+      <li><strong>分發器隔離回調例外:</strong>一個行為不當的訂閱者<strong>絕不能</strong>破壞核心生命週期或餓死後面的監聽器。</li>
+      <li><strong>憑證衛生:</strong>啟動命令用<em>清理過的環境變數</em>,移除名稱含 <code>*KEY*</code>/<code>*SECRET*</code>/<code>*TOKEN*</code>/<code>*PASSWORD*</code> 的項;spill/暫存檔放 <code>0700</code> 私有目錄、隨機檔名、<code>0600</code> 獨佔開啟 → 防止<strong>憑證經工具輸出或 spill 檔外洩</strong>。</li>
+    </ul>
+    <div class="callout warn"><strong>為什麼這對 agent 尤其重要:</strong>agent 會<strong>跑模型生成的指令、把輸出餵回模型</strong>。任何「憑證漏進輸出」「孤兒進程」「例外亂竄」都會被放大。把這些寫成<strong>發布規則</strong>而非口頭約定,是成熟度的訊號。</div>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="supply">
+    <h2><span class="num">⑧</span> 供應鏈衛生:vendored + 可核驗的自動改名</h2>
+    <p class="diff">一般專案 → 直接依賴上游套件。&nbsp;&nbsp;<b>它 → 把框架 vendored 進來、rescope 成自己的 scope。</b></p>
+    <p>Cordis 及其基礎庫以<strong>原始碼形式 vendored</strong> 在 <code>vendor/</code>,並改名發布到 <code>@deepseek-ai</code> scope(如 <code>@deepseek-ai/cordis</code>)。理由:每個 harness 包把框架列為 <strong>peer dependency</strong>,發布 harness 會連帶發布這層,<strong>用上游名發布等於在 registry 上占用別人的名字</strong>。而且:</p>
+    <ul>
+      <li>改名由 <code>scripts/rescope-vendor.ts</code> 承載,<strong>可 report、可 --apply、可回退</strong>(不靠手改);</li>
+      <li>目錄名、版本號、依賴 range、上游 runtime 標識符<strong>刻意不動</strong>,讓 vendored 樹仍讀作一份上游快照;</li>
+      <li>文件雙語配對還有 <code>verify-translation-pairing</code> 校驗。</li>
+    </ul>
+    <div class="callout"><strong>思路:</strong>連「用了別人的框架」這件事,都用<strong>工程紀律</strong>處理——可重現、可核驗、可回退、不占用他人命名空間。這是把「供應鏈」也當成一等公民。</div>
+  </section>
+
+  <!-- ⑨ -->
+  <section id="summary">
+    <h2><span class="num">⑨</span> 一句話總結:它到底哪裡不一樣</h2>
+    <table>
+      <thead><tr><th>面向</th><th>一般 agent</th><th>DeepSeek Harness</th></tr></thead>
+      <tbody>
+        <tr><td>狀態</td><td>可變 messages 陣列</td><td><strong>只追加事件日誌</strong>,歷史是投影</td></tr>
+        <tr><td>擴充</td><td>改迴圈 if/else</td><td><strong>waterfall 中介層</strong>,迴圈不變</td></tr>
+        <tr><td>安全</td><td>散落的權限判斷</td><td><strong>單調守衛 + fail-closed</strong></td></tr>
+        <tr><td>生命週期</td><td>全域可變、難卸載</td><td><strong>可逆副作用 + HMR</strong></td></tr>
+        <tr><td>能力</td><td>直接綁 SDK</td><td><strong>可替換 seam(可重放/離線測)</strong></td></tr>
+        <tr><td>並發</td><td>當請求-回應</td><td><strong>inbox + 顯式 run 區間</strong></td></tr>
+        <tr><td>品質</td><td>出事再修</td><td><strong>缺陷固化成防禦規則</strong></td></tr>
+      </tbody>
+    </table>
+    <div class="callout info"><strong>收斂:</strong>DeepSeek Harness 真正的特色,是把 agent 從「一個聰明的迴圈」升級成「<strong>一個有事件日誌、中介層、單調安全、可逆生命週期、可替換能力的作業系統</strong>」。插件只是這套哲學的外顯。這與本站 <a href="./self-evolving-agents.html">自我演化綜述</a>的「模組架構/拓撲演化」、以及 <a href="./prime-agent.html">Prime Agent</a> 的分層設計,指向同一個方向——<strong>agent 的競爭力越來越在「工程結構」,而非只在模型。</strong></div>
+  </section>
+
+  <section>
+    <h2><span class="num">↗</span> 相關</h2>
+    <div class="related">
+      <a href="./deepseek-harness.html">
+        <div class="rel-title">🐋 DeepSeek Harness 架構總覽</div>
+        <div class="rel-sub">Cordis、profile/bundle、turn/step</div>
+      </a>
+      <a href="./prime-agent.html">
+        <div class="rel-title">🔷 Prime Agent 架構拆解</div>
+        <div class="rel-sub">另一個插件化 agent harness</div>
+      </a>
+      <a href="./prime-agent-ai-and-sessions.html">
+        <div class="rel-title">🔌 Provider 抽象 + session JSONL</div>
+        <div class="rel-sub">事件日誌即真相的另一實作</div>
+      </a>
+      <a href="./self-evolving-agents.html">
+        <div class="rel-title">🧬 自我演化 Agent 綜述</div>
+        <div class="rel-sub">模組架構/拓撲演化</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁依撰寫時 clone 的原始碼與官方 docs(含中文)整理;dsh 為開發者預覽,事件名、ctx 鍵、套件結構會變動,實際以官方 repo 最新為準。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./deepseek-harness.html">← DeepSeek Harness 架構總覽</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
