@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>DeepSeek Harness 最底層：工具執行流水線 + Cordis scope/effect · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+    .toc .grp { grid-column: 1 / -1; font-size: 0.68rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; padding: 2px 10px; }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.25rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: baseline; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; flex: none; align-self: flex-start; margin-top:2px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    .divider { font-size: 0.72rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--stone); text-align: center; margin: 30px 0 14px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.81rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+    td code { white-space: nowrap; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .diagram { background: var(--navy); color: #cdd6ea; border-radius: 12px; padding: 18px 20px; margin: 12px 0 14px; overflow-x: auto;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.72rem; line-height: 1.5; white-space: pre; }
+    .diagram b { color: #ffcf9e; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./deepseek-harness-ideas.html">← 回到「DeepSeek Harness 的 agent 設計思路」</a>
+
+  <div class="hero">
+    <h1>🔩 DeepSeek Harness 最底層:工具執行流水線 + Cordis scope/effect</h1>
+    <p class="sub">把兩塊機制鑽到底:工具從 tool-call 到 tool/result 的每一段,以及 Cordis 的作用域、可逆副作用與生命週期</p>
+    <div>
+      <span class="badge green">依原始碼 + subsystems docs</span>
+      <span class="badge blue">含型別與 wire 約定</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <span class="grp">A · 工具執行流水線</span>
+      <a href="#tooldef">① ToolDefinition 解剖</a>
+      <a href="#pipeline">② 流水線逐段</a>
+      <a href="#codemode">③ Code Mode(run_code)</a>
+      <span class="grp">B · Cordis scope / effect</span>
+      <a href="#scope">④ 兩層扁平 scope</a>
+      <a href="#shadow">⑤ shadowing 與 restriction</a>
+      <a href="#ctx">⑥ agent.ctx / setup / lineage</a>
+      <a href="#effect">⑦ effect / disposer / Fiber</a>
+      <a href="#sources">⑧ 來源</a>
+    </div>
+  </nav>
+
+  <div class="divider">A · 工具執行流水線</div>
+
+  <!-- ① -->
+  <section id="tooldef">
+    <h2><span class="num">①</span> <code>ToolDefinition</code> 解剖:模型面向 vs host-only</h2>
+    <p>一個註冊的工具(<code>ToolDefinition</code>)= <strong>面向模型的 <code>ToolSchema</code></strong> + 一堆<strong>只給 host 用、絕不能洩漏給模型</strong>的欄位:</p>
+    <table>
+      <thead><tr><th>欄位</th><th>作用</th><th>面向模型?</th></tr></thead>
+      <tbody>
+        <tr><td><code>ToolSchema</code>(name/description/參數 schema)</td><td>模型看得到的宣告</td><td>✅ 是</td></tr>
+        <tr><td><code>output</code>(<code>ToolOutputDefinition</code>)</td><td><strong>強制的權威輸出契約</strong>:JSON schema + <code>render()</code>(把值投影成內容)+ <code>presentationMeta()</code></td><td>❌ host</td></tr>
+        <tr><td><code>execute(args, exec)</code></td><td>跑一次呼叫,只回<strong>權威的無損 JSON 值</strong></td><td>❌ host</td></tr>
+        <tr><td><code>timeoutMs</code> / <code>isConcurrencySafe</code></td><td>host 端排程 metadata</td><td>❌ host</td></tr>
+        <tr><td><code>finalizeContent</code></td><td>最後的「僅內容」不變式回調</td><td>❌ host</td></tr>
+        <tr><td><code>presentCall</code> / <code>presentResult</code></td><td>UI 呈現器(pending / completed 卡片)</td><td>❌ host</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><strong>關鍵設計:白名單防洩漏。</strong>註冊表的 <code>schemas()</code> <strong>用明確 allowlist</strong> 組出要給模型的 <code>ToolSchema[]</code>——<code>output</code>/<code>execute</code>/<code>finalizeContent</code>/<code>timeoutMs</code>/<code>presentCall/Result</code> <strong>絕不會漏進模型請求</strong>。這把「模型該看的」與「host 內部的」用型別牆分開。</div>
+    <h3><code>execute()</code> 的三條硬約定</h3>
+    <ul>
+      <li><strong>args 是無損快照、凍結的模型參數</strong>(不可被就地改);</li>
+      <li>非同步工作必須<strong>觀察/轉發 <code>exec.signal</code></strong>,且只在自己擁有的工作<strong>達到停穩(quiescence)才 settle</strong>——呼應防禦模式的「dispose 要停穩」;</li>
+      <li>註冊表透過 around-dispatch 的 signal 替換<strong>保留呼叫方的取消</strong>,不會拋棄這個 promise,但<strong>無法硬殺同進程程式碼</strong>(誠實承認限制)。</li>
+    </ul>
+  </section>
+
+  <!-- ② -->
+  <section id="pipeline">
+    <h2><span class="num">②</span> 流水線逐段:從 tool-call 到 tool/result</h2>
+    <p>三個 waterfall(<code>pre-execute</code> / <code>execute</code> / <code>post-execute</code>)可各改寫一次呼叫;由定義自己控制的 <code>finalizeContent</code> 與 <code>tools/result</code> 在其後。逐段:</p>
+    <div class="diagram">assistant 訊息含 tool-call block
+ 1  <b>tool/call</b>            執行前先記日誌  ┃  UI: presentCall(args) 出 pending 卡
+ 2  <b>tools/pre-execute</b>    waterfall:hooks、權限、沙箱  → allow | deny | ask
+ 3  <b>ctx.approval</b>         一次性詢問(在守衛之前);不存在/無法回答 → deny
+ 4  <b>單調守衛</b>             deny 或 abstain;身分受保護;不可重排的擁有者策略也在此
+ 5  <b>tools/execute</b>       waterfall(環繞:timeout / retry / metrics 包住分發)
+ 6  <b>execute() 本體</b>      → fs/write-intent | fs/edit-intent(僅 tool-fs 的檔案變更;先讀後編查在 fs/* 之下)
+ 7  工具自有會話事件         todo/write、fs/observed、hook/invoked、hook/result、tool/code-dispatch
+ 8  <b>tools/post-execute</b>  waterfall:accept | block | replace | 加 context
+ 9  外層正規化              對候選結果做無損快照;快照失敗 → 先把失敗規範化(拋錯 → isError)
+10  <b>finalizeContent</b>     同步、僅內容的不變式(隨快照固定在可見定義上)
+11  <b>tools/result</b>        同步通知:不可變、可 JSON 無損表示的<b>凍結權威結果</b>
+12  additionalContexts     active-batch FIFO,在記錄的 tool result <b>之後</b>注入 user/message</div>
+    <table>
+      <thead><tr><th>段</th><th>為什麼這樣設計</th></tr></thead>
+      <tbody>
+        <tr><td><strong>2→4 分三層把關</strong></td><td>pre-execute(通用 hook/策略)→ approval(一次性人工)→ 單調守衛(擁有者策略)。<strong>approval 在守衛之前</strong>,守衛只做「不可重排」的最終否決</td></tr>
+        <tr><td><strong>5 環繞分發</strong></td><td>timeout/retry/metrics 是「包在 execute 外面」的關注點,不進工具本體</td></tr>
+        <tr><td><strong>6 fs 意圖閘</strong></td><td>檔案變更走 <code>fs/*</code> 事件、有「先讀後編」檢查,而不是工具各自亂寫</td></tr>
+        <tr><td><strong>9→11 結果收斂</strong></td><td>無損快照 → 拋錯規範化成 <code>isError</code> → <code>finalizeContent</code> 內容不變式 → <code>tools/result</code> 凍結權威、<strong>單一面向模型的結果</strong></td></tr>
+        <tr><td><strong>12 FIFO 注入</strong></td><td>額外 context 排在 tool result <em>之後</em>當 user/message,而非硬塞進本次呼叫,保持因果順序</td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><strong>一句話:</strong>「鉤子可以跨越不同工具系列,而<strong>無需讓工具與某個策略服務耦合</strong>」——策略(權限/沙箱/timeout/結果改寫)全是掛在 seam 上的監聽器,工具本體只管 <code>execute()</code> 回一個無損值。</div>
+  </section>
+
+  <!-- ③ -->
+  <section id="codemode">
+    <h2><span class="num">③</span> Code Mode(<code>run_code</code>):子呼叫也走同一條流水線</h2>
+    <p>Code Mode 把保留的 <code>run_code</code> 傳輸與它序列化的<strong>子呼叫</strong>都送進同一條流水線。子呼叫的特別處:</p>
+    <ul>
+      <li><strong>攜帶父級 token</strong>(用量歸屬到父);</li>
+      <li>記錄 <code>tool/code-dispatch</code> 事件;</li>
+      <li>把拒絕<strong>呈現為具約束力的駁回</strong>(不是靜默略過);</li>
+      <li><strong>省略 <code>additionalContexts</code></strong>,以保持「呼叫與結果相鄰」。</li>
+    </ul>
+    <div class="callout tip"><strong>對照 Prime Agent:</strong>這跟 <a href="./prime-agent.html">Prime Agent</a> 讓模型「用程式碼呼叫工具/子代理」是同一路線——把工具呼叫下沉成可程式化、可組合的東西,而非一次一個 JSON tool-call。</div>
+  </section>
+
+  <div class="divider">B · Cordis 的 scope / effect 機制</div>
+
+  <!-- ④ -->
+  <section id="scope">
+    <h2><span class="num">④</span> 兩層扁平 scope:貢獻要嘛全域、要嘛屬於一個 agent</h2>
+    <p><strong>scope</strong> 是「按 agent 劃分的註冊單位」。一項貢獻(工具、提示片段、變數、限制、監聽器)只有兩種身分:</p>
+    <ul>
+      <li><strong>全域(global)</strong>:對所有 agent 可見;或</li>
+      <li><strong>帶作用域(scoped)</strong>:恰好屬於<strong>一個 scope key</strong>。</li>
+    </ul>
+    <p>刻意<strong>只有兩層、扁平結構</strong>:</p>
+    <ul>
+      <li><strong>scoped 註冊不向下繼承給 subagent</strong>——子樹行為<strong>用 lineage 資料</strong>表達,<em>絕不透過 scope 結構</em>;</li>
+      <li><strong>scope key</strong> 是不透明識別,按<strong>物件同一性</strong>比較;約定:<strong>一個活躍的 agent 就是自己 scope 的 key</strong>。</li>
+    </ul>
+    <div class="callout"><strong>為什麼扁平而非樹狀:</strong>樹狀繼承會讓「這個 agent 到底看得到什麼」變得難以推理、容易漏權限。兩層扁平 + 「可見性只有 global/scoped 二選一」,讓<strong>可見性可精確推理</strong>;父子關係另用 <code>lineage</code> 純資料承載,<strong>永不影響可見性</strong>。</div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="shadow">
+    <h2><span class="num">⑤</span> shadowing 與 restriction:按 agent 客製 persona 與工具</h2>
+    <h3>Shadowing(最具體者勝)</h3>
+    <p>一個 scoped 的工具/片段/變數,<strong>僅在該 scope 內</strong>替換同名的全域對應項。這就是<strong>「按 agent 定制 persona、按 agent 定制工具變體」</strong>的機制——同一個名字,不同 agent 可以有不同實作,互不干擾。</p>
+    <h3>Restriction(把全域工具集為某 scope 過濾)</h3>
+    <ul>
+      <li><code>tools.restrict</code> 為<strong>單一 scope</strong> 過濾全域工具集合;<strong>多個 restriction 取交集</strong>;</li>
+      <li>scope-local 註冊在<strong>過濾之後</strong>合併;</li>
+      <li><strong>被過濾掉的全域工具,既不出現在提示詞,也拒絕執行——與「不存在的工具」無法區分</strong>。</li>
+    </ul>
+    <div class="callout tip"><strong>安全含義:</strong>「過濾掉=從提示消失 + 拒絕執行 + 無法區分於不存在」是很乾淨的最小權限做法——模型<strong>看不到、也叫不動</strong>被限制的工具,不會靠「知道有這工具」去嘗試繞過。</div>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="ctx">
+    <h2><span class="num">⑥</span> <code>agent.ctx</code> / setup window / lineage</h2>
+    <h3><code>agent.ctx</code>:可見性與生命週期同一個事實決定</h3>
+    <p>agent 的帶作用域上下文。透過它做的註冊,<strong>既有 scope 可見性,生命週期也綁定到該 scope</strong>——<em>同一個事實同時決定這兩件事</em>;其上的監聽器參與該 agent 的 scope 過濾分發。</p>
+    <h3>Scoped dispatch:關於誰的事,用誰的 carrier</h3>
+    <p>關於某 agent 活動的事件,以<strong>該 agent 的 carrier</strong> 分發(過濾器放行無標籤監聽器 + 主體自身監聽器);關於<strong>註冊表本身</strong>的事件(如「一個工具被加了」)是<strong>註冊表主體事件,保持不過濾</strong>。</p>
+    <h3>Setup window:只註冊、不驅動</h3>
+    <p><code>CreateAgentOptions.setup</code> 是創建時隙:此時 scope 與 agent 物件已存在,但 agent/會話<strong>尚未發布</strong>、<code>agent/session-start</code> 尚未觸發、首次提示詞尚未組裝。<strong>setup 只做註冊,從不驅動 agent</strong>——把「組裝環境」與「開始跑」清楚分開。</p>
+    <h3>Lineage:父子關係是資料,不是結構</h3>
+    <p>父子事實以資料攜帶:<code>parentSession</code>、持久的 <code>delegationDepth</code>、執行時的 <code>subagentDepth</code>;<strong>從不影響可見性</strong>。要控制遞迴深度、追溯來源就讀這些資料,而不是靠 scope 樹。</p>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="effect">
+    <h2><span class="num">⑦</span> effect / disposer / Fiber:可逆生命週期</h2>
+    <h3><code>ctx.effect()</code> 與可逆副作用</h3>
+    <p>提示片段、工具 schema、適配器、監聽器…都經 <code>ctx.effect()</code> 或 <code>ctx.on()</code> 安裝,<strong>每個註冊都應回傳一個 disposer(資源釋放函式)</strong>:reload / teardown 時「按預期撤銷」。若<strong>卸載順序有要求</strong>,把相關工作放<strong>同一個 effect</strong>,以確保按序釋放。</p>
+    <div class="diagram"><b>ctx.effect(() => {</b>
+   const off = registerSomething()      <span style="color:#8a94ad">// 安裝副作用</span>
+   <b>return () => off()</b>               <span style="color:#8a94ad">// disposer:teardown/reload 時自動被呼叫</span>
+<b>})</b></div>
+    <h3>Fiber:Cordis 的生命週期單位</h3>
+    <p>Cordis 核心提供 <code>Context</code>、<code>Service</code>、<strong><code>Fiber</code></strong> 與事件。<strong>Fiber</strong> 是掛載的插件實例之生命週期單位——它擁有該插件安裝的 effects,並在 reload / dispose 時把它們一併回收;搭配 vendored 的 <code>cordis-plugin-hmr</code> 就能做<strong>熱模組替換</strong>。(Fiber 的細節以 Cordis 上游為準。)</p>
+    <div class="callout info"><strong>為什麼可逆是地基:</strong>正因每個貢獻都能乾淨拔除,<a href="./deepseek-harness.html">profile/bundle 的 patch 疊加</a> 才能安全「替換某條目的整段 config」;<a href="./deepseek-harness-ideas.html">「沒有特權內核」</a> 也才成立——擴充永遠是掛插件、拔插件,而不是改核心。這就是「一切皆插件」能運作的底層保證。</div>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="sources">
+    <h2><span class="num">⑧</span> 來源</h2>
+    <ul>
+      <li><a href="https://github.com/deepseek-ai/deepseek-harness" target="_blank" rel="noopener">GitHub · deepseek-ai/deepseek-harness</a> 的 <code>docs/tool-execution-pipeline.md</code>、<code>docs/subsystems/tools.md</code>(<code>packages/core/tools/src/</code>)、<code>docs/glossary.md</code>(scope/lineage/setup)、<code>docs/cordis-primer.md</code>、<code>docs/rescope.md</code>(Cordis 核心 Context/Service/Fiber)</li>
+      <li>底層框架:<a href="https://github.com/cordiverse/cordis" target="_blank" rel="noopener">cordiverse/cordis</a></li>
+    </ul>
+    <div class="related">
+      <a href="./deepseek-harness-ideas.html">
+        <div class="rel-title">💡 它獨到的 agent 設計思路</div>
+        <div class="rel-sub">9 個有別於一般 agent 的點</div>
+      </a>
+      <a href="./deepseek-harness.html">
+        <div class="rel-title">🐋 DeepSeek Harness 架構總覽</div>
+        <div class="rel-sub">Cordis、profile/bundle、turn/step</div>
+      </a>
+      <a href="./prime-agent-deep.html">
+        <div class="rel-title">🧪 Prime Agent 深挖三題</div>
+        <div class="rel-sub">另一 harness 的 wire 級細節</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁依撰寫時 clone 的原始碼與官方 docs(含中文)整理;dsh 為開發者預覽,型別、事件名、欄位會變動,實際以官方 repo 最新為準。Fiber 等 Cordis 上游細節以 Cordis 專案為準。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./deepseek-harness-ideas.html">← agent 設計思路</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

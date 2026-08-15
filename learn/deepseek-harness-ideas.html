@@ -209,6 +209,7 @@
   ▼
 active-batch additionalContexts FIFO（在記錄的 tool result 之後,注入 user/message）</div>
     <div class="callout tip"><strong>三個獨到點:</strong>① 拋錯會被<strong>正規化成 <code>isError</code></strong>(不讓例外亂竄);② <code>tool/result</code> 是<strong>凍結、權威、單一</strong>面向模型的結果(不會有兩種說法);③ 額外 context 用 <strong>FIFO 在 tool result 之後注入</strong>,而不是硬塞進本次呼叫。</div>
+    <div class="callout info"><strong>🔩 想看逐段拆解?</strong>另有一頁 <a href="./deepseek-harness-internals.html"><strong>最底層:工具執行流水線 + Cordis scope/effect</strong></a>——<code>ToolDefinition</code> 的模型面向/host-only 白名單、12 段流水線逐段、Code Mode,以及 Cordis 的兩層扁平 scope、shadowing/restriction、<code>agent.ctx</code>/setup/lineage、<code>effect</code>/disposer/Fiber。</div>
   </section>
 
   <!-- ④ -->
@@ -304,6 +305,10 @@ active-batch additionalContexts FIFO（在記錄的 tool result 之後,注入 us
   <section>
     <h2><span class="num">↗</span> 相關</h2>
     <div class="related">
+      <a href="./deepseek-harness-internals.html">
+        <div class="rel-title">🔩 最底層:工具流水線 + Cordis scope/effect</div>
+        <div class="rel-sub">ToolDefinition、12 段流水線、scope/shadowing/effect</div>
+      </a>
       <a href="./deepseek-harness.html">
         <div class="rel-title">🐋 DeepSeek Harness 架構總覽</div>
         <div class="rel-sub">Cordis、profile/bundle、turn/step</div>
