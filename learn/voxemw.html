@@ -199,6 +199,7 @@
       <li>另預留 <strong>~800 毫秒重開寬限</strong>:避免搶話與掉字。</li>
     </ul>
     <div class="callout"><strong>為什麼重要:</strong>「什麼時候該接話」是即時對話最像/最不像真人的分水嶺。純靠靜音長度會誤判(你只是停頓思考就被搶答)。<strong>用一個小模型做「語義判停」</strong>,是把體驗拉到「像真人」的關鍵。</div>
+    <div class="callout tip"><strong>⏱️ 想更深入即時對話工程?</strong>兩階段語義判停 SmartTurn 的模型原理、串流管線怎麼一段段接、以及「打斷」發生時的毫秒級時序與 <code>heard_prefix</code> 回寫,拆成一整頁:<a href="./voxemw-realtime.html"><strong>VoxEMW 即時對話工程深潛 →</strong></a></div>
 
     <h3>② STT:SenseVoiceSmall(FunASR)</h3>
     <p>阿里 FunASR 生態的小型高速語音辨識模型,~0.1s 完成語音轉文字。小而快是為了守住延遲預算。</p>
@@ -285,6 +286,10 @@ bash scripts/tunnel.sh            <span class="cm"># 轉發本地埠</span>
       <li>涉及模型/技術:Silero VAD、SmartTurn、SenseVoice(FunASR)、Qwen 3、VoxCPM2、AVTR-1、llama.cpp、TensorRT、WebRTC</li>
     </ul>
     <div class="related">
+      <a href="./voxemw-realtime.html">
+        <div class="rel-title">⏱️ VoxEMW 即時對話工程深潛</div>
+        <div class="rel-sub">語義判停 · 串流管線 · 打斷時序</div>
+      </a>
       <a href="./ai-context-compression.html">
         <div class="rel-title">🗜️ AI 上下文壓縮</div>
         <div class="rel-sub">長對話自動摘要的同源思路</div>

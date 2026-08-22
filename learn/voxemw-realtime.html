@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>VoxEMW 即時對話工程深挖：語義判停 · 串流管線 · 打斷時序 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+    .toc .grp { grid-column: 1 / -1; font-size: 0.68rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; padding: 2px 10px; }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.25rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: baseline; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; flex: none; align-self: flex-start; margin-top:2px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    .divider { font-size: 0.72rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--stone); text-align: center; margin: 30px 0 14px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    .cm { color: var(--steel); }
+    .kw { color: var(--green); font-weight: 700; }
+    .st { color: #c2410c; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .diagram { background: var(--navy); color: #cdd6ea; border-radius: 12px; padding: 18px 20px; margin: 12px 0 14px; overflow-x: auto;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.72rem; line-height: 1.5; white-space: pre; }
+    .diagram b { color: #ffcf9e; font-weight: 700; }
+    .diagram .g { color: #b6f0c4; }
+    .diagram .r { color: #ffb4b4; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./voxemw.html">← 回到 VoxEMW 總覽</a>
+
+  <div class="hero">
+    <h1>⏱️ VoxEMW 即時對話工程深挖:語義判停 · 串流管線 · 打斷時序</h1>
+    <p class="sub">把三塊最難的即時對話工程鑽到底——依 VoxEMW 原始碼(<code>voxemw/</code>)與 SmartTurn 模型</p>
+    <div>
+      <span class="badge green">依 orchestrator/avsync 原始碼</span>
+      <span class="badge blue">含打斷時序與回寫</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <span class="grp">A · 語義判停</span>
+      <a href="#twostage">① 兩階段:Silero + SmartTurn</a>
+      <a href="#smartturn">② SmartTurn 模型原理</a>
+      <a href="#grace">③ 800ms 重開寬限</a>
+      <span class="grp">B · 串流管線</span>
+      <a href="#pipeline">④ 串流管線與 Realtime 事件</a>
+      <a href="#mtp">⑤ MTP 投機解碼壓 LLM</a>
+      <span class="grp">C · 打斷時序</span>
+      <a href="#bargein">⑥ 打斷(barge-in)時序</a>
+      <a href="#heard">⑦ 「已聽」回寫上下文</a>
+      <a href="#avsync">⑧ 音畫同步與 av-scheduler</a>
+      <a href="#sources">⑨ 來源</a>
+    </div>
+  </nav>
+
+  <div class="divider">A · 兩階段語義判停</div>
+
+  <!-- ① -->
+  <section id="twostage">
+    <h2><span class="num">①</span> 兩階段:Silero(便宜)+ SmartTurn(語義)</h2>
+    <p>「什麼時候該接話」是即時對話最像/最不像真人的分水嶺。VoxEMW 用<strong>兩棒接力</strong>,把「便宜的觸發」與「昂貴的判斷」分開:</p>
+    <div class="diagram">你在說話 ──▶ <b>第一棒 Silero VAD</b>(便宜,持續跑)
+                 │ 偵測到停頓,軟判停門檻 <b>~64ms</b>
+                 ▼
+              <b>第二棒 SmartTurn v3.2</b>(語義複核,GPU ~10ms)
+                 │ 分析語調+語言線索,輸出「講完機率」
+     ┌───────────┴───────────┐
+   <span class="g">機率 ≥ 0.5:講完了</span>        <span class="r">機率 &lt; 0.5:只是換氣/在想</span>
+   ▼                          ▼
+  觸發 STT→LLM 回話         繼續聽,不搶話(沉住氣)</div>
+    <div class="callout tip"><strong>為什麼分兩棒:</strong>SmartTurn 是模型、要花算力,不能每一幀都跑。所以先用<strong>幾乎免費的 Silero</strong> 抓「有停頓」(64ms 軟判停),<em>只在有停頓時</em>才叫<strong>SmartTurn</strong> 做一次語義複核。這是「便宜的粗篩 + 昂貴的精判」典型組合——只有 <strong>~0.08s</strong>(64ms + 10ms)。</div>
+    <h4>可調參數(<code>configs</code> → VAD passthrough)</h4>
+    <p>VoxEMW 把 VAD 參數透傳給上游語音管線:<code>min_silence_ms</code>、<code>min_speech_ms</code>、<code>min_speech_continuation_ms</code>、<code>speech_pad_ms</code>、<code>max_speech_ms</code>、<code>smart_turn_model_path</code>——判停鬆緊可調。</p>
+  </section>
+
+  <!-- ② -->
+  <section id="smartturn">
+    <h2><span class="num">②</span> SmartTurn 模型原理:分析波形,不是文字</h2>
+    <p>SmartTurn(<code>pipecat-ai/smart-turn</code>,BSD-2)是開源的<strong>語義 VAD / 話輪結束偵測</strong>模型。關鍵特點:</p>
+    <ul>
+      <li><strong>直接分析原始波形</strong>(不靠轉寫文字)——所以能捕捉<strong>語調(intonation)與語言線索</strong>這類「人類判斷話說完沒」的自然訊號;</li>
+      <li><strong>輸出單一機率</strong>:<code>≥ 0.5</code> = 說話者已<strong>完成這一輪</strong>;</li>
+      <li>v2 多語(14 種含中文)、僅 360MB、比 v1 快 3×、L40S 上約 <strong>12ms</strong>;v3 支援快速 CPU 推理。</li>
+    </ul>
+    <div class="callout"><strong>與傳統 VAD 的根本差別:</strong>傳統 VAD 只分「有沒有人聲」(靜音=停);SmartTurn 判「這句話<strong>語義/語調上完整了沒</strong>」。所以你說「我想想喔……」中間停頓,傳統 VAD 會誤判成講完而搶話,SmartTurn 能看出「還沒完」。這就是「語義判停」四個字的實質。</div>
+  </section>
+
+  <!-- ③ -->
+  <section id="grace">
+    <h2><span class="num">③</span> 800ms 重開寬限:接話後還留一扇門</h2>
+    <p>就算判定「講完了」開始回話,VoxEMW 仍預留 <strong>~800ms 重開寬限</strong>:這段時間內如果你又開口(例如補一句),系統能<strong>把話輪重新打開</strong>,而不是硬生生把你的補充當成打斷或丟掉。</p>
+    <div class="callout tip"><strong>三道防線疊起來:</strong>Silero(別太早)→ SmartTurn(語義確認)→ 800ms 寬限(給反悔的機會)。三者合力,才有「你停頓他沉住氣、你說完他秒接、中途停頓不搶答不丟字」的體感。</div>
+  </section>
+
+  <div class="divider">B · 串流管線</div>
+
+  <!-- ④ -->
+  <section id="pipeline">
+    <h2><span class="num">④</span> 串流管線與 OpenAI Realtime 事件協定</h2>
+    <p>VoxEMW 的語音管線建於 <code>huggingface/speech-to-speech</code>,內部<strong>講 OpenAI Realtime API 的事件</strong>(<code>input_audio_buffer.*</code>、<code>response.*</code>、<code>*.audio.delta</code>…)。orchestrator(aiohttp :8000)是瀏覽器唯一入口:</p>
+    <div class="diagram">瀏覽器 ──WebRTC(VP8+Opus,TURN 走 coturn :3478)──▶ orchestrator :8000
+        └─WS 控制/麥克風/轉寫─────────────────────▶
+   orchestrator
+     ├─▶ s2s 管線 :8765   ①VAD → ②STT → ③LLM → ④TTS(講 Realtime 事件)
+     ├─▶ avatar   :8767   ⑤AVTR-1(TensorRT,說話+傾聽雙流)
+     └─▶ llama-server :8081  本地 Qwen3.8-27B(+ MTP 投機解碼)
+   下行:TTS 音訊 delta <b>雙寫</b> → AVSyncScheduler(RTC 音軌)+ avatar(驅動口型)
+        音畫走 WebRTC 媒體軌(排程器打戳對齊,瀏覽器 RTP 原生同步);WS 只留控制/轉寫</div>
+    <p>關鍵設計:</p>
+    <ul>
+      <li><strong>音訊走 WebRTC 媒體軌,不走 WS</strong>:延遲低、瀏覽器原生對齊;WS 只傳事件與轉寫(音訊 delta 事件會被<strong>剝掉 base64 音訊體</strong>,只留事件)。</li>
+      <li><strong>TTS delta 雙寫</strong>:同一份音訊同時餵給「RTC 音軌(給你聽)」與「avatar(驅動嘴型)」——音畫從源頭同源。</li>
+      <li><strong>單用戶單會話</strong>:s2s 只有 1 個管線槽位,新瀏覽器連線<strong>立即頂掉</strong>舊(換網路的僵屍會話不用等超時)。</li>
+    </ul>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="mtp">
+    <h2><span class="num">⑤</span> MTP 投機解碼:把最大宗的 LLM 延遲壓下去</h2>
+    <p>1.3s 裡 LLM 首句 ~0.8s 是最大宗。VoxEMW 的 LLM 是 <strong>Qwen3.8-27B</strong>,用 <code>UD-Q6_K_XL</code> 量化 + <strong>MTP(Multi-Token Prediction)投機解碼</strong>,在 4090 上跑到 <strong>55.5 tok/s</strong>。</p>
+    <p><strong>投機解碼(speculative decoding)</strong>白話:讓一個「小/快的草稿」先<strong>一次猜好幾個 token</strong>,再由大模型<strong>一次平行驗證</strong>——猜對的就直接採用,省掉逐 token 的來回。MTP 是把「多 token 預測」內建進模型的一種做法。</p>
+    <div class="callout tip"><strong>通用啟示:</strong>即時系統壓 LLM 延遲有三招常一起用——① <strong>量化</strong>(模型變小跑更快)、② <strong>投機/多 token 解碼</strong>(一次多吐)、③ <strong>串流 + 只等首句</strong>。VoxEMW 三招全上。</div>
+  </section>
+
+  <div class="divider">C · 打斷時序</div>
+
+  <!-- ⑥ -->
+  <section id="bargein">
+    <h2><span class="num">⑥</span> 打斷(barge-in)時序:你一開口,他就停</h2>
+    <p>即時對話必須能被打斷。VoxEMW 的打斷由一個事件觸發、連鎖一整套動作:</p>
+    <div class="diagram">數字人正在說話……
+   │  你開口 ──▶ s2s 偵測到 <b>input_audio_buffer.speech_started</b>
+   ▼
+orchestrator 收到 → 連鎖:
+   ① 對 s2s 送 <b>response.cancel</b>(interrupt_response=true)   停止繼續生成
+   ② 通知 avatar <span class="r">丟棄未消費音訊 + 運動上下文歸位</span>       嘴立刻閉上
+   ③ <b>AVSyncScheduler.flush()</b>:清隊列、播放游標歸零           音畫停
+   ④ 封殺在途的<span class="r">陳舊 speech 幀</span>(reset 前已渲染的)          不會播到舊嘴型
+   ⑤ 算出「你實際聽到多少」→ <b>heard_prefix 回寫上下文</b>(見下)   記得說到哪
+   ⑥ idle_mode 切 <b>listening</b>,數字人轉為傾聽表情              開始聽你</div>
+    <div class="callout"><strong>狀態機:</strong><code>speech_active</code>(首個音訊 delta 開、<code>response.done</code>/打斷關)——說話期間<strong>禁止 avatar 生成 idle 幀</strong>(否則句間停頓插 idle 會卡畫面);<code>idle_mode</code> 有 <strong>listening(你開口)/ thinking(你說完)/ calm(他說完)</strong> 三態,決定待機表情與驅動音。</div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="heard">
+    <h2><span class="num">⑦</span> 「已聽」回寫:讓 LLM 知道你其實只聽到一半</h2>
+    <p>這是最精巧的一步。你打斷時,數字人的回答<strong>只播了一部分</strong>。如果上下文記成「它講完了整段」,下一輪對話就會錯亂。VoxEMW 的做法:</p>
+    <ol>
+      <li><strong>量到底播了多久:</strong><code>reply_played_seconds = (已播樣本 − 本條開播時的游標) / 16000</code>(16kHz),即<em>你真的聽到的秒數</em>;</li>
+      <li><strong>估出你聽到的文字前綴</strong>(<code>heard_prefix</code>):<br><code>n = len(轉寫) × min(1, 已播秒/總音訊秒)</code>——中文語速在一條回覆內夠均勻,播放比例≈聽到的文字比例;</li>
+      <li><strong>不足 2 字就回空</strong>:上游會把整條回覆從上下文<strong>回滾</strong>(零前綴=保持回滾,當作沒說過);</li>
+      <li><strong>截斷回退到最近標點</strong>:避免半個詞留在上下文;</li>
+      <li>把這個「已聽前綴」<strong>寫回對話上下文</strong>,LLM 於是知道「我剛只說到這裡就被打斷了」。</li>
+    </ol>
+    <pre><code><span class="kw">def</span> heard_prefix(transcript, audio_seconds, played_seconds):
+    <span class="kw">if</span> <span class="kw">not</span> transcript <span class="kw">or</span> audio_seconds &lt;= 0 <span class="kw">or</span> played_seconds &lt;= 0: <span class="kw">return</span> <span class="st">""</span>
+    n = int(len(transcript) * min(1.0, played_seconds / audio_seconds))
+    <span class="kw">if</span> n &lt; 2: <span class="kw">return</span> <span class="st">""</span>            <span class="cm"># 太少 → 整條回滾,當沒說過</span>
+    cut = transcript[:n]
+    <span class="kw">if</span> n &lt; len(transcript):        <span class="cm"># 回退到最近標點,不留半個詞</span>
+        <span class="kw">for</span> i <span class="kw">in</span> range(len(cut)-1, 0, -1):
+            <span class="kw">if</span> cut[i] <span class="kw">in</span> <span class="st">"。！？；，、…—.!?;,"</span>: cut = cut[:i+1]; <span class="kw">break</span>
+    <span class="kw">return</span> cut</code></pre>
+    <div class="callout tip"><strong>為什麼是「打斷記憶」的關鍵:</strong>沒有這步,被打斷後 LLM 要嘛以為整段講完(下輪答非所問)、要嘛完全忘記(重複剛才)。用「播放進度→文字前綴」精確回寫,數字人才會<strong>「記得剛才說到哪」</strong>。這對齊 AVTR-1 官方 <code>SpeechScheduler</code> 的 <code>played_duration</code> 語義。</div>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="avsync">
+    <h2><span class="num">⑧</span> 音畫同步與 av-scheduler</h2>
+    <p>嘴型與聲音要對上,是另一個時序難題。<code>AVSyncScheduler</code> 的做法:</p>
+    <ul>
+      <li><strong>lead 秒緩衝:</strong>新回覆/打斷後,音訊<strong>等 <code>lead</code> 秒再播</strong>,讓渲染(嘴型幀)先追上來,避免「聲先到、嘴後動」;</li>
+      <li><strong>幀超前就等音訊時鐘:</strong>若嘴型幀跑在已播音訊之前 → 停下來等音訊,以音訊為主時鐘;</li>
+      <li><strong>flush 保留最後一幀 <code>_last_jpeg</code>:</strong>打斷清隊列時<strong>不黑屏</strong>,新幀到達前先定格;</li>
+      <li><strong>兩軌游標各自連續推進</strong>(RTC track 側),flush 不動它們——保證計時基準連續。</li>
+    </ul>
+    <div class="callout info"><strong>一句話:</strong>VoxEMW 的「即時感」不是靠某個神模型,而是靠<strong>一整套時序工程</strong>——兩階段判停決定「何時開口」、串流+投機解碼決定「多快出聲」、打斷回寫+音畫同步決定「被插話時多自然」。這正是 <a href="./voxemw.html">總覽頁</a>說的「延遲預算工程」的骨肉。</div>
+  </section>
+
+  <!-- ⑨ -->
+  <section id="sources">
+    <h2><span class="num">⑨</span> 來源</h2>
+    <ul>
+      <li><a href="https://github.com/emwstudio/VoxEMW" target="_blank" rel="noopener">GitHub · emwstudio/VoxEMW</a> 的 <code>voxemw/avatar/orchestrator.py</code>、<code>voxemw/avatar/avsync.py</code>、<code>voxemw/pipeline/args.py</code>、README</li>
+      <li>SmartTurn:<a href="https://github.com/pipecat-ai/smart-turn" target="_blank" rel="noopener">pipecat-ai/smart-turn</a>(BSD-2)、<a href="https://docs.pipecat.ai/api-reference/server/utilities/turn-detection/smart-turn-overview" target="_blank" rel="noopener">Pipecat Smart Turn 文件</a>、<a href="https://www.daily.co/blog/smart-turn-v2-faster-inference-and-13-new-languages-for-voice-ai/" target="_blank" rel="noopener">Daily · Smart Turn v2</a></li>
+      <li>語音管線:<a href="https://github.com/huggingface/speech-to-speech" target="_blank" rel="noopener">huggingface/speech-to-speech</a></li>
+    </ul>
+    <div class="related">
+      <a href="./voxemw.html">
+        <div class="rel-title">🎙️ VoxEMW 總覽</div>
+        <div class="rel-sub">延遲預算、六模組、架構</div>
+      </a>
+      <a href="./ai-context-compression.html">
+        <div class="rel-title">🗜️ AI 上下文壓縮</div>
+        <div class="rel-sub">長對話自動摘要</div>
+      </a>
+      <a href="./deepseek-harness-ideas.html">
+        <div class="rel-title">💡 agent 的並發紀律</div>
+        <div class="rel-sub">「被打斷」當一等公民</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁依撰寫時 clone 的 VoxEMW 原始碼(v1.7.4)與 SmartTurn 公開資料整理;參數、事件名、數字會隨版本變動,實際以官方 repo 最新為準。程式片段為節錄示意。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./voxemw.html">← VoxEMW 總覽</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
