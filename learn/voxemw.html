@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>VoxEMW：單張 4090 全本地、1.3 秒即時 AI 語音數字人拆解 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    .cm { color: var(--steel); }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .diagram { background: var(--navy); color: #cdd6ea; border-radius: 12px; padding: 18px 20px; margin: 12px 0 14px; overflow-x: auto;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.73rem; line-height: 1.5; white-space: pre; }
+    .diagram b { color: #ffcf9e; font-weight: 700; }
+
+    .lat { display: flex; align-items: stretch; gap: 3px; margin: 14px 0 6px; overflow-x: auto; }
+    .lat .seg { flex: none; border-radius: 6px; padding: 8px 8px; color: #fff; font-size: 0.7rem; text-align: center; min-width: 60px; }
+    .lat .seg small { display: block; opacity: .85; font-size: 0.62rem; font-weight: 400; }
+    .latcap { font-size: 0.72rem; color: var(--stone); margin-bottom: 14px; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🎙️ VoxEMW:單張 4090 全本地、1.3 秒即時 AI 語音數字人拆解</h1>
+    <p class="sub">電磁波Studio(emwstudio)· 從你開口到數字人回話 ≈1.3 秒 · 零外部 API、全離線 · 一條延遲預算工程的教科書級案例</p>
+    <div>
+      <span class="badge green">全本地 · MIT(代碼)</span>
+      <span class="badge blue">VAD→STT→LLM→TTS→Avatar</span>
+      <span class="badge orange">端到端 1.3s</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#why">① 為什麼「即時對話」難</a>
+      <a href="#budget">② 1.3 秒延遲預算拆解</a>
+      <a href="#modules">③ 六模組逐一</a>
+      <a href="#arch">④ 系統架構</a>
+      <a href="#ux">⑤ 對話體驗的工程細節</a>
+      <a href="#hw">⑥ 硬體與安裝</a>
+      <a href="#steal">⑦ 值得偷師的思路</a>
+      <a href="#sources">⑧ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>VoxEMW 是一套「完全本地離線」的即時語音對話數字人:</strong>從語音輸入到「數字人開口 + 嘴型對上」全程 <strong>≈1.3 秒</strong>,跑在單張 RTX 4090 上,<strong>零外部 API、零 token 費用</strong>。它把即時對話拆成 <strong>VAD → STT → LLM → TTS → Avatar</strong> 五段流水線,再加一個 <strong>Persona 人設蒸餾</strong>模組。</p>
+    <div class="callout info"><strong>真正的看點不是「某個模型」,而是「延遲預算工程」:</strong>怎麼把五個 AI 模組的延遲一段段壓到毫秒級、又靠<strong>串流</strong>與<strong>語義判停</strong>讓對話「像真人」。這是本頁的重點。</div>
+  </section>
+
+  <!-- ① -->
+  <section id="why">
+    <h2><span class="num">①</span> 為什麼「即時對話」難</h2>
+    <p>人類對話中,超過 <strong>~1 秒</strong> 的回話延遲就明顯「卡頓、像在等機器」。但一句 AI 回話要串起五件事——<strong>判斷你講完沒 → 聽懂 → 想答案 → 合成聲音 → 對上嘴型</strong>——每一步都要吃時間、又都要跑 AI 模型。難點是:</p>
+    <ul>
+      <li><strong>延遲會累加:</strong>五段串起來,任何一段慢就毀了整體;</li>
+      <li><strong>不能等全部做完:</strong>若「等 LLM 整段答案生成完才開始合成語音」,延遲會爆;</li>
+      <li><strong>判停兩難:</strong>太快接話會搶話/掉字,太慢又尷尬;</li>
+      <li><strong>全本地又要快:</strong>不能靠雲端大模型,得在一張卡上塞下所有模型還要即時。</li>
+    </ul>
+    <p>VoxEMW 的答案:<strong>每段都串流 + 只等「首句/首音」+ 兩階段語義判停</strong>。</p>
+  </section>
+
+  <!-- ② -->
+  <section id="budget">
+    <h2><span class="num">②</span> 1.3 秒延遲預算拆解</h2>
+    <div class="lat">
+      <div class="seg" style="background:#2a9d99;width:36px;">VAD<small>0.08s</small></div>
+      <div class="seg" style="background:#5645d4;width:46px;">STT<small>0.1s</small></div>
+      <div class="seg" style="background:#dd5b00;width:200px;">LLM 首句<small>0.8s</small></div>
+      <div class="seg" style="background:#7b3ff2;width:46px;">TTS 首音<small>0.1s</small></div>
+      <div class="seg" style="background:#e03131;width:80px;">Avatar<small>0.2s</small></div>
+    </div>
+    <div class="latcap">▲ 條寬約略對應各段耗時;合計 ≈ 1.3 秒(4090 全離線測試)。LLM 首句是最大宗。</div>
+    <table>
+      <thead><tr><th>段</th><th>模型 / 技術</th><th>耗時</th><th>關鍵手法</th></tr></thead>
+      <tbody>
+        <tr><td><strong>① VAD 判停</strong></td><td>Silero + SmartTurn v3.2</td><td>~0.08s</td><td>兩階段接力 + 語義複核</td></tr>
+        <tr><td><strong>② STT 轉寫</strong></td><td>SenseVoiceSmall(FunASR)</td><td>~0.1s</td><td>極速語音轉文字</td></tr>
+        <tr><td><strong>③ LLM 大腦</strong></td><td>Qwen 3(8–27B,llama.cpp)</td><td>~0.8s 首句</td><td><strong>串流輸出,只等首句</strong></td></tr>
+        <tr><td><strong>④ TTS 合成</strong></td><td>VoxCPM2(音色遷移)</td><td>~0.1s 首音</td><td><strong>串流合成,只等首音</strong></td></tr>
+        <tr><td><strong>⑤ Avatar 對齊</strong></td><td>AVTR-1(TensorRT)</td><td>~0.2s</td><td>唇形即時驅動同步</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><strong>核心招式:「首 token / 首音」而非「整段」。</strong>LLM 一產出<strong>第一句</strong>就餵給 TTS;TTS 一合成<strong>第一段音</strong>就餵給 Avatar 對嘴。於是使用者感受到的延遲 ≈ 各段「首個輸出」的時間和,而不是「各段全部做完」的時間和——這就是把 1.3s 壓下來的關鍵。</div>
+  </section>
+
+  <!-- ③ -->
+  <section id="modules">
+    <h2><span class="num">③</span> 六模組逐一</h2>
+
+    <h3>① VAD 判停:兩階段接力 + 語義複核</h3>
+    <p>最精巧的一塊。不是單純「靜音就當講完」,而是<strong>兩棒接力</strong>:</p>
+    <ul>
+      <li><strong>第一棒 Silero</strong>:先偵測停頓;停頓達 <strong>~64 毫秒</strong>觸發第二棒;</li>
+      <li><strong>第二棒 Smart(SmartTurn v3.2)</strong>:從<strong>語義與語調</strong>二次確認——你是「講完了」還是「只是換氣/在想」;</li>
+      <li>另預留 <strong>~800 毫秒重開寬限</strong>:避免搶話與掉字。</li>
+    </ul>
+    <div class="callout"><strong>為什麼重要:</strong>「什麼時候該接話」是即時對話最像/最不像真人的分水嶺。純靠靜音長度會誤判(你只是停頓思考就被搶答)。<strong>用一個小模型做「語義判停」</strong>,是把體驗拉到「像真人」的關鍵。</div>
+
+    <h3>② STT:SenseVoiceSmall(FunASR)</h3>
+    <p>阿里 FunASR 生態的小型高速語音辨識模型,~0.1s 完成語音轉文字。小而快是為了守住延遲預算。</p>
+
+    <h3>③ LLM:Qwen 3(8–27B)本地推理</h3>
+    <p>用 <code>llama.cpp</code> 在本地跑開源 Qwen 3(視訊示範等級約 8–27B),<strong>串流輸出</strong>快速產出首句。全本地=零 API 費、資料不外流。</p>
+
+    <h3>④ TTS:VoxCPM2(音色遷移 + 串流)</h3>
+    <p>支援<strong>音色遷移(voice cloning/transfer)</strong>的語音合成,~0.1s 出首音,同樣<strong>串流</strong>輸出。音色遷移讓數字人能「用指定人的聲線」說話。</p>
+
+    <h3>⑤ Avatar:AVTR-1(TensorRT)唇同步</h3>
+    <p>把生成的語音與數字人<strong>唇形即時驅動、畫面同步對齊</strong>,~0.2s。用 TensorRT 加速推理。還有「傾聽模式」——你說話時數字人有即時注視反應(見下)。</p>
+
+    <h3>⑥ Persona:人設蒸餾(女娲 · Skill 造人術)</h3>
+    <p>只要<strong>輸入目標人名</strong>,系統自動深度調研 + 思維框架構建,<strong>蒸餾出符合該角色特徵、語調、口癖的完整人設</strong>(影片示範還原網紅「大胃袋涼子」的對話風格),並可切換音色與肖像。</p>
+  </section>
+
+  <!-- ④ -->
+  <section id="arch">
+    <h2><span class="num">④</span> 系統架構</h2>
+    <div class="diagram">瀏覽器(WebRTC / WebSocket)
+   │  Opus 音訊編碼 · TURN 轉發
+   ▼
+<b>Orchestrator 編排層</b>(Python)—— 調度四個核心服務,管理串流與打斷
+   ├─▶ VAD 服務   Silero + SmartTurn
+   ├─▶ STT 服務   SenseVoiceSmall (FunASR)
+   ├─▶ LLM 服務   Qwen 3 (llama.cpp) ── 串流
+   ├─▶ TTS 服務   VoxCPM2 ── 串流
+   └─▶ Avatar     AVTR-1 (TensorRT) ── 唇同步
+   ▲
+   └── 音訊/視訊串回瀏覽器</div>
+    <p>後端 Python 編排;前端 WebRTC + WebSocket + 原生唇型對齊;推理框架 <code>llama.cpp</code>(LLM)與 TensorRT(Avatar);通訊用 TURN 轉發 + Opus 音訊編碼。<strong>編排層是靈魂</strong>——它把五個串流接起來、處理打斷與時序。</p>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="ux">
+    <h2><span class="num">⑤</span> 對話體驗的工程細節</h2>
+    <table>
+      <thead><tr><th>特性</th><th>做什麼 / 為什麼像真人</th></tr></thead>
+      <tbody>
+        <tr><td><strong>語義判停</strong></td><td>中途停頓不搶答、說完秒接(見 VAD 兩階段)</td></tr>
+        <tr><td><strong>打斷記憶</strong></td><td>被你打斷時,<strong>保留已聽內容與播放位置</strong>,不會失憶重來</td></tr>
+        <tr><td><strong>流式字幕</strong></td><td>逐字上屏,呼應串流輸出</td></tr>
+        <tr><td><strong>雙流互動</strong></td><td>你說話時,數字人有<strong>即時注視反應</strong>(AVTR-1 傾聽模式)——不是死板等待</td></tr>
+        <tr><td><strong>長對話壓縮</strong></td><td>30+ 輪後<strong>自動摘要</strong>,守住 context 不爆(同站內<a href="./ai-context-compression.html">上下文壓縮</a>的思路)</td></tr>
+        <tr><td><strong>熱插拔肖像</strong></td><td>無需重啟直接換圖/換人設</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="hw">
+    <h2><span class="num">⑥</span> 硬體與安裝</h2>
+    <p><strong>硬體:</strong>單張 <strong>RTX 4090(repo 標示 48GB 版)</strong>全棧運行、全離線(無外部 API)。示範環境為 AutoDL 雲主機的 4090。</p>
+    <pre><code><span class="cm"># AutoDL 4090 一鍵流程(以官方 repo 為準)</span>
+cp .env.example .env.local
+bash scripts/autodl_setup.sh      <span class="cm"># 環境 + 模型</span>
+bash scripts/start_assistant.sh   <span class="cm"># 一鍵起全棧</span>
+bash scripts/tunnel.sh            <span class="cm"># 轉發本地埠</span>
+<span class="cm"># 瀏覽 http://localhost:8000</span></code></pre>
+    <p><strong>授權:</strong>代碼 MIT;模型各自遵循(speech-to-speech / VoxCPM2 / Qwen 多為 Apache-2.0;AVTR-1 為 Community License)。</p>
+    <div class="callout warn"><strong>與影片摘要的小差異:</strong>影片口述提到「Qwen 2.5 7B、4090」,而 repo README 標示 <strong>Qwen 3(8–27B)、4090 48GB</strong>。版本/顯存以<strong>官方 repo 最新為準</strong>;4090 48GB 為改裝/特規卡(公版為 24GB)。</div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="steal">
+    <h2><span class="num">⑦</span> 值得偷師的思路(不只做語音的人也用得到)</h2>
+    <ol>
+      <li><strong>延遲預算工程:</strong>先把體驗目標(1.3s)拆成每段的預算,再逐段優化——這是所有即時 AI 系統的通用方法。</li>
+      <li><strong>「首輸出」而非「全輸出」:</strong>串流 + 只等首句/首音,讓感知延遲 = 各段首輸出之和,而非全做完之和。適用任何多階段 AI 管線。</li>
+      <li><strong>用小模型做「決策」:</strong>判停不靠規則靠<strong>語義小模型</strong>(SmartTurn)。把難判斷交給便宜的專用模型,是性價比極高的一招。</li>
+      <li><strong>狀態要能被打斷:</strong>打斷記憶(保留已聽內容與播放位置)——即時系統必須把「被中斷」當一等公民,呼應 <a href="./deepseek-harness-ideas.html">agent 的並發紀律</a>。</li>
+      <li><strong>全本地的取捨:</strong>零 API 費 + 隱私 + 可控,代價是硬體門檻與工程複雜度。</li>
+    </ol>
+    <div class="callout info"><strong>與站內其他單元的連結:</strong>它的「串流壓延遲」「長對話自動摘要」呼應 <a href="./ai-context-compression.html">上下文壓縮</a>;「本地跑開源模型」呼應 <a href="./train-slm-single-task.html">訓練小模型</a>;而「多模組編排 + 打斷處理」與 <a href="./prime-agent.html">agent harness</a> 的並發設計同源。</div>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="sources">
+    <h2><span class="num">⑧</span> 來源</h2>
+    <ul>
+      <li><a href="https://github.com/emwstudio/VoxEMW" target="_blank" rel="noopener">GitHub · emwstudio/VoxEMW</a>(代碼 MIT;本頁依 repo README + 影片說明整理)</li>
+      <li>影片:電磁波Studio(emwstudio)於 YouTube / B站 / 抖音 / 小紅書 發布的開發日記</li>
+      <li>涉及模型/技術:Silero VAD、SmartTurn、SenseVoice(FunASR)、Qwen 3、VoxCPM2、AVTR-1、llama.cpp、TensorRT、WebRTC</li>
+    </ul>
+    <div class="related">
+      <a href="./ai-context-compression.html">
+        <div class="rel-title">🗜️ AI 上下文壓縮</div>
+        <div class="rel-sub">長對話自動摘要的同源思路</div>
+      </a>
+      <a href="./train-slm-single-task.html">
+        <div class="rel-title">🧠 訓練小模型做單一任務</div>
+        <div class="rel-sub">本地跑專用小模型</div>
+      </a>
+      <a href="./prime-agent.html">
+        <div class="rel-title">🔷 Prime Agent 架構</div>
+        <div class="rel-sub">多模組編排與打斷處理</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁依 repo README 與影片說明整理,非官方文件;模型版本、延遲數字、顯存需求會隨版本變動,實際以官方 repo 與影片最新內容為準。未列 star 數。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
