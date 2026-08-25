@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Codex Taskboard（dashi-taskboard）：把「議題生命週期」寫成 Agent 工作流 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.6; }
+    .cm { color: var(--steel); }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .diagram { background: var(--navy); color: #cdd6ea; border-radius: 12px; padding: 18px 20px; margin: 12px 0 14px; overflow-x: auto;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.73rem; line-height: 1.5; white-space: pre; }
+    .diagram b { color: #ffcf9e; font-weight: 700; }
+
+    .flow { display: flex; align-items: stretch; gap: 3px; margin: 14px 0 6px; overflow-x: auto; flex-wrap: wrap; }
+    .flow .seg { flex: none; border-radius: 6px; padding: 8px 10px; color: #fff; font-size: 0.72rem; text-align: center; min-width: 66px; }
+    .flow .seg small { display: block; opacity: .85; font-size: 0.62rem; font-weight: 400; }
+    .flowcap { font-size: 0.72rem; color: var(--stone); margin-bottom: 14px; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🗂️ Codex Taskboard：把「議題生命週期」寫成 Agent 工作流</h1>
+    <p class="sub">chuspeeism/dashi-taskboard · 一個嵌進 OpenAI Codex 的本地優先議題板 · 真正的看點不是「又一個看板」,而是它<strong>用一份 Skill 把 issue 的認領→執行→驗收變成可被多個 AI agent 安全併發的協定</strong></p>
+    <div>
+      <span class="badge green">本地優先 · Apache-2.0</span>
+      <span class="badge blue">taskctl CLI + HTTP API</span>
+      <span class="badge orange">Codex Skill + 多代理協調</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#what">① 這到底是什麼</a>
+      <a href="#skill">② 核心:議題生命週期 = Agent 協定</a>
+      <a href="#concurrency">③ 併發紀律:版本鎖 + 五欄位綁定</a>
+      <a href="#coord">④ 協調者/執行者多代理模型</a>
+      <a href="#embed">⑤ 嵌進 Codex 的工程</a>
+      <a href="#data">⑥ 資料面:本地優先與雲端</a>
+      <a href="#steal">⑦ 值得偷師的思路</a>
+      <a href="#sources">⑧ 來源與定位</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>Codex Taskboard 是一個「本地優先」的議題板</strong>:資料存在本機 SQLite,一個 HTTP API 同時餵給 React 前端與 <code>taskctl</code> 命令列,並能<strong>直接嵌進 OpenAI Codex(ChatGPT 桌面 App)的側邊欄</strong>。但它對 KB 讀者真正的價值,是隨附的一份 <strong>Codex Skill(<code>manage-taskboard</code>)</strong>——它把「一張 issue 從被看見到被驗收」寫成一套<strong>可被多個 AI agent 安全併發</strong>的工作協定。</p>
+    <div class="callout info"><strong>為什麼收進 JustKM:</strong>市面上任務板很多,但很少有把「<strong>agent 該怎麼認領一張票、怎麼防止兩個 agent 搶同一張、什麼時候才准標記完成</strong>」寫成明文協定的。這份 repo 的 <code>SKILL.md</code> 與 <code>AGENTS.md</code> 幾乎是一份「多代理任務執行的操作手冊」——這才是本頁的重點,而不是看板 UI。</div>
+  </section>
+
+  <!-- ① -->
+  <section id="what">
+    <h2><span class="num">①</span> 這到底是什麼</h2>
+    <p>拆成三層看最清楚:</p>
+    <table>
+      <thead><tr><th>層</th><th>是什麼</th><th>給誰用</th></tr></thead>
+      <tbody>
+        <tr><td><strong>資料 / 服務層</strong></td><td>本機 Node 服務 + SQLite(<code>.data/taskboard.sqlite</code>),一個 HTTP API,議題/留言/附件變更用 <strong>SSE 即時廣播</strong>給所有開著的用戶端</td><td>底層,人與 agent 共用</td></tr>
+        <tr><td><strong>操作介面</strong></td><td>兩個並列前端:<strong>React 看板 UI</strong>(給人)與 <strong><code>taskctl</code> CLI</strong>(給 agent,輸出 JSON)——兩者打同一個 API</td><td>人用 UI、agent 用 CLI</td></tr>
+        <tr><td><strong>Agent 接入</strong></td><td>一份 <strong>Codex Skill</strong> 教 Codex 用 <code>taskctl</code> 走完整生命週期;一段<strong>注入腳本</strong>把看板嵌進 Codex 側欄</td><td>Codex / ChatGPT 桌面 App</td></tr>
+      </tbody>
+    </table>
+    <p>換句話說:<strong>人在 UI 上開票、排優先序;AI 在 Codex 裡透過 Skill + CLI 認領、實作、回報;兩邊看的是同一個本地資料庫</strong>,靠 SSE 即時同步。它把「issue tracker」和「agent 的任務隊列」合成同一個東西。</p>
+    <div class="flow">
+      <div class="seg" style="background:#2a9d99;">人 · React UI<small>開票 / 排序 / 驗收</small></div>
+      <div class="seg" style="background:#5645d4;">HTTP API + SQLite<small>單一真相 · SSE 廣播</small></div>
+      <div class="seg" style="background:#dd5b00;">taskctl CLI<small>JSON I/O</small></div>
+      <div class="seg" style="background:#7b3ff2;">Codex Skill<small>agent 走生命週期</small></div>
+    </div>
+    <div class="flowcap">▲ 同一個本地服務,人走左邊、agent 走右邊,中間用 SSE 讓兩邊即時一致。</div>
+  </section>
+
+  <!-- ② -->
+  <section id="skill">
+    <h2><span class="num">②</span> 核心:把「議題生命週期」寫成 Agent 協定</h2>
+    <p>隨附的 <code>manage-taskboard</code> Skill 定義了七個狀態與一套<strong>誰都不准跳過的流程</strong>。狀態機本身很普通,但「<strong>什麼時候才准轉場</strong>」的規則是精華:</p>
+    <div class="diagram">backlog ──(需人明確授權)──▶ todo ──(認領/claim)──▶ <b>in_progress</b> ──(驗證+留言)──▶ in_review ──(<b>人明確驗收</b>)──▶ done
+   │                                                                    │
+   └── 未批准,agent 不得認領、不得動它                                    ├──▶ blocked   (卡住,暫停)
+                                                                        └──▶ canceled  (不再繼續)</div>
+    <h3>五條「反直覺但關鍵」的規則</h3>
+    <ul>
+      <li><strong>backlog = 尚未批准執行。</strong>agent 不得認領、不得改狀態、不得做任何實作;「被指派」本身<em>不等於</em>授權。這把「待辦池」和「可執行隊列」分開,避免 agent 自作主張。</li>
+      <li><strong>先認領再動手。</strong>要開工,先把 <code>todo</code> 用它<em>當前的 <code>version</code></em> 搬到 <code>in_progress</code>;<strong>搬成功前不准讀碼、不准下載附件、不准分析</strong>。認領是一個原子動作,不是一句口號。</li>
+      <li><strong>留言即需求。</strong>開工前先 <code>issue get</code> + <code>comment list</code> + <code>attachment list</code>,把最新留言當成<em>當前需求</em>(包含被退回的返工)。留言說「先等、別做」就停下回報,不改狀態。</li>
+      <li><strong>驗證後才進 in_review。</strong>做完要留一則留言寫清楚:改了什麼、驗證結果、結論、殘留風險——再讀一次 issue、用當前 <code>version</code> 搬到 <code>in_review</code>。</li>
+      <li><strong>done 是人的權力。</strong>只有<strong>使用者明確驗收或明確要求標記完成</strong>時,才可移到 <code>done</code>。agent 永遠不能自己宣稱「我做完了所以關票」。</li>
+    </ul>
+    <div class="callout tip"><strong>可偷師的一點:</strong>把「授權邊界」寫進狀態轉場——<code>backlog→todo</code> 需要人、<code>in_review→done</code> 需要人,中間的 <code>todo→in_progress→in_review</code> agent 可自走。這等於用狀態機把「哪些決定必須留給人」固化下來,而不是靠 prompt 裡一句「請小心」。</div>
+    <h4>增量同步:每個列表各自記 cursor</h4>
+    <p>長對話裡最貴的是「每次都把整張 issue 重讀一遍」。Skill 的做法:第一次接手讀全量,並<strong>各自保存 <code>issue get</code> / <code>comment list</code> / <code>attachment list</code> 的 <code>nextCursor</code></strong>;同一張票再次恢復時,只用各自的 cursor 帶 <code>--after</code> 取回「新增或改動」的部分。這是很典型的「<strong>context 經濟學</strong>」——同站內 <a href="./ai-context-compression.html">上下文壓縮</a> 是同一種焦慮的不同解法。</p>
+  </section>
+
+  <!-- ③ -->
+  <section id="concurrency">
+    <h2><span class="num">③</span> 併發紀律:樂觀版本鎖 + 五欄位身份綁定</h2>
+    <p>一旦允許「多個 agent 同時處理一個看板」,就會踩到分散式系統的兩個經典問題:<strong>寫入衝突</strong>與<strong>身份混淆(誰擁有這張票)</strong>。這份 repo 的兩招都很值得抄。</p>
+
+    <h3>① 樂觀並發:<code>version</code> + <code>--if-version</code></h3>
+    <p>每張 issue / comment 都帶一個 <code>version</code>。任何寫入都要用 <code>--if-version N</code> 帶上「我看到的版本」:</p>
+    <pre><code><span class="cm"># 認領:用當前 version 從 todo 搬到 in_progress</span>
+taskctl issue move ISSUE_ID --status in_progress --if-version 7 ...
+
+<span class="cm"># 若別人先改過,version 已變 → 衝突(退出碼 5)</span>
+<span class="cm"># 規則:重讀 issue + comment,只有在「仍是可認領的 todo、</span>
+<span class="cm"># 沒被別的對話綁定、需求沒變」時,才用最新 version 重試一次。</span>
+<span class="cm"># 不得無限重試、不得搶走別人的認領。</span></code></pre>
+    <p>注意規則不是「衝突就重試到成功」,而是<strong>衝突就重讀、只在條件仍成立時重試<em>一次</em>,否則停下回報</strong>。這避免了 agent 之間互相打架、或硬把別人正在做的票搶過來。<code>taskctl</code> 甚至把退出碼標準化:<code>0</code> 成功、<code>2</code> 輸入錯、<code>3</code> 服務不可用、<code>4</code> API 錯、<strong><code>5</code> 衝突</strong>——衝突是一等公民。</p>
+
+    <h3>② 身份綁定:完整 <code>threadBinding</code>(防搶單)</h3>
+    <p>光有版本鎖還不夠——你得知道「這張 <code>in_progress</code> 的票<em>屬於哪一場對話</em>」,否則 agent B 會把 agent A 正在做的票當成「無主的 in_progress」接手。解法是每張被認領的票都要存一組<strong>五個欄位的完整身份</strong>:</p>
+    <table>
+      <thead><tr><th>欄位</th><th>意義</th></tr></thead>
+      <tbody>
+        <tr><td><code>threadId</code></td><td>Codex 對話 ID(來自 <code>CODEX_THREAD_ID</code> 環境變數)</td></tr>
+        <tr><td><code>codexProjectId</code></td><td>對應的 Codex 專案</td></tr>
+        <tr><td><code>codexProjectKind</code></td><td>專案種類(如 <code>local</code>)</td></tr>
+        <tr><td><code>codexHostId</code></td><td>宿主 ID(如 <code>local</code>)</td></tr>
+        <tr><td><code>workspacePath</code></td><td>工作區絕對路徑</td></tr>
+      </tbody>
+    </table>
+    <p>規則極嚴:<strong>五個欄位任一缺失,就不准把票搬到 <code>in_progress</code></strong>;絕不允許只存 <code>threadId</code> 的「殘缺綁定」。之後每次保留擁有權的 <code>issue move</code> 都要原封不動帶回這五個值,<strong>不得從當前 context 重建、不得取代別的對話所擁有的綁定</strong>。</p>
+    <div class="callout warn"><strong>這解決的真實痛點:</strong>多 agent 併發時,「這張票是誰的」不能靠時間或直覺猜。用一組不可偽造、必須完整的身份鍵,把「認領」變成一個<strong>可驗證的擁有權宣告</strong>——這跟 <a href="./deepseek-harness-internals.html">DeepSeek Harness 的單調守衛</a>、<a href="./prime-agent.html">Prime Agent 的並發設計</a> 是同一個家族的紀律:<em>讓危險的併發操作有明文、可檢查的前置條件</em>。</div>
+  </section>
+
+  <!-- ④ -->
+  <section id="coord">
+    <h2><span class="num">④</span> 協調者 / 執行者:一份多代理操作手冊(AGENTS.md)</h2>
+    <p>repo 的 <code>AGENTS.md</code> 更進一步,把「一個協調對話 + 多個執行對話」的分工寫成明文。裡面有幾個對任何在做多代理系統的人都通用的觀念:</p>
+
+    <h3>E3 循環:Estimate → Execute → Expand</h3>
+    <ol>
+      <li><strong>Estimate(估):</strong>先估 context、步驟、重疊與風險,把工作分成 small / medium / high risk,並<em>先講清楚打算怎麼直接驗證</em>。</li>
+      <li><strong>Execute(做):</strong>先證明再實作——用「入口 → 使用者/agent 動作 → 元件/API/資料變更 → 可觀察結果」寫下真實操作路徑,再做<strong>能讓它動起來的最小改動</strong>。</li>
+      <li><strong>Expand(擴):</strong>只有在直接驗證失敗、證據推翻了原本的根因、或使用者回報新案例時,才擴大讀取/修改範圍。</li>
+    </ol>
+
+    <h3>反過度設計,寫成硬規則</h3>
+    <p>這份文件反覆強調的一條主張,值得任何 agent 系統的設計者記住:</p>
+    <div class="callout"><strong>「在使用者確認功能可用之前,不要主動加護欄、回歸測試、相容層、防禦性擴充或臆測性 fallback。」</strong>——先讓被要求的功能<em>真的動起來</em>,把最小根因改動做對;測試與護欄只在使用者明確要求、或回報了具體失敗場景時才加。</div>
+    <p>這是對「AI 一寫程式就狂加防禦、把小需求做成大工程」的直接反制。它把「altitude(改在對的高度、不過度)」寫進了團隊規則。</p>
+
+    <h3>併發按「衝突域」而非「票數」切</h3>
+    <ul>
+      <li><strong>不設固定的執行道數。</strong>十張票可能變成幾個並行組、也可能合成一個連貫組,取決於<em>重疊程度</em>。</li>
+      <li><strong>併發由共享資源決定:</strong>共享檔案、feature 狀態、Codex App 行程、Launcher runtime、CDP、瀏覽器審查狀態、CI 容量、發布資源——而不是「票多就開更多 worktree」。</li>
+      <li><strong>共享可變 runtime 不併發:</strong>獨立的程式路徑可以並行;但同一個 App 環境的 Launcher / 注入 / 更新 / 簽章 / 發布,一次只能跑一個。</li>
+      <li><strong>程式改動用 worktree 隔離;</strong>研究、分診、回覆這類不改碼的工作通常不需要 worktree。</li>
+    </ul>
+
+    <h3>依風險審查(review by risk)</h3>
+    <p>低複雜度的改動由執行 agent 自己 review;複雜或高風險的,才由該執行對話自己把 PR 丟給「ChatGPT web Pro」做更重的審查——而且<strong>只在使用者已確認功能可用之後</strong>才送審(不能拿 Pro 來判斷一個沒做完的功能能不能動)。協調者只檢查交接證據齊不齊,<em>不重做</em>程式審查。</p>
+    <div class="callout info"><strong>一句話總覽這份手冊:</strong>把「最小可行改動 + 直接驗證 + 依衝突域併發 + 依風險審查 + 人掌驗收」寫成明文,讓一群 agent 能像一個克制、有紀律的工程團隊那樣協作,而不是各自暴衝。</div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="embed">
+    <h2><span class="num">⑤</span> 嵌進 Codex 的工程(不改 app.asar)</h2>
+    <p>看板要「長在 Codex 側欄裡」,但作者刻意<strong>不去 patch ChatGPT 桌面 App 本體</strong>。做法是走 <strong>CDP(Chrome DevTools Protocol)注入</strong>:</p>
+    <ul>
+      <li><strong>用獨立 CDP 埠起一個 Codex 實例</strong>(如 <code>--remote-debugging-port=9231</code>),再跑注入腳本 <code>codex-taskboard.user.js</code>(1800+ 行),在 renderer 裡插入一個「Taskboard」側欄項與一個 iframe。</li>
+      <li><strong>OOPIF + CSP 繞過:</strong>新版 Codex 的 renderer CSP 會擋任意 HTTP iframe;Launcher 因此對該 renderer 啟用 CSP bypass、reload 一次、裝上 document-start 腳本,等到 Taskboard 的 OOPIF 真的載入為止。</li>
+      <li><strong>不動原生資料:</strong>腳本只用 Codex 既有的專案、composer、route 標記;<strong>不 patch React、不替換 <code>fetch</code>、不載入私有 chunk、不改 Codex 資料檔</strong>。選另一個 Codex 頁面就會還原原生介面。</li>
+      <li><strong>對話歸屬:</strong>「在對話中打開」會開一個未送出的原生 composer,帶上 <code>e-taskboard</code> 指令與該 issue 的真實識別碼;等對話<em>真的處理了</em>這張票,<code>taskctl</code> 讀 <code>CODEX_THREAD_ID</code> 把該 ID 記回 issue——形成前面說的 <code>threadBinding</code>。</li>
+    </ul>
+    <div class="callout warn"><strong>安全提醒(repo 自己標的):</strong>CDP 對同機其他行程是未認證的,所以「只在 Launcher 活躍時執行可信的本地程式」。這也是為什麼 LAN 模式明說「同一信任網段內任何人都能讀寫看板」,公網/雲端才需要認證邊界。把威脅模型講清楚,是這份 repo 值得學的態度。</div>
+    <p>桌面版(Tauri 打包的 macOS / Windows / Linux App)則把 Node runtime、服務、UI、Skill、CLI 與注入腳本全包進去,目標機只要裝了官方 Codex App 就能用,不需要這個 repo 或系統級 Node。</p>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="data">
+    <h2><span class="num">⑥</span> 資料面:本地優先,雲端是可選的第二形態</h2>
+    <table>
+      <thead><tr><th>模式</th><th>資料在哪</th><th>認證</th><th>適用</th></tr></thead>
+      <tbody>
+        <tr><td><strong>本機(預設)</strong></td><td>本地 SQLite <code>.data/taskboard.sqlite</code></td><td>無(loopback)</td><td>單人 / 自己的 agent</td></tr>
+        <tr><td><strong>LAN 共享</strong></td><td>同上,綁 <code>0.0.0.0</code></td><td><strong>無</strong>——同網段皆可讀寫</td><td>同一信任網段的隊友</td></tr>
+        <tr><td><strong>Cloudflare 雲</strong></td><td>D1 為權威業務庫、R2 私有桶存附件、Worker Static Assets 出 UI</td><td>HTTPS Basic Auth(共享密碼)</td><td>兩位可信協作者</td></tr>
+      </tbody>
+    </table>
+    <p>幾個工程細節:</p>
+    <ul>
+      <li><strong>SSE 即時廣播:</strong>議題/留言/附件變更推給每個開著的用戶端;斷線重連的用戶端做一次全量刷新,<strong>不漏掉離線期間的變更</strong>。</li>
+      <li><strong>雲端不 fallback、不雙寫:</strong>cloud 模式下,上游寫入失敗就<em>失敗</em>,絕不回退或同時寫本地 SQLite——避免「兩份真相」。</li>
+      <li><strong>loopback companion:</strong>雲端模式下 <code>taskctl</code> 仍打一個「本機環回服務」,由它套 Basic Auth、存裝置本地的專案路徑映射、保留 Codex/Git/Skill/MCP 能力在本機。每台裝置的 checkout 映射各自獨立。</li>
+      <li><strong>schema 有版本:</strong>除了內建 help,每個成功命令都輸出一個帶 <code>schemaVersion</code> 的 JSON 物件(目前為 <code>2</code>),讓 agent 消費輸出時有穩定契約。</li>
+    </ul>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="steal">
+    <h2><span class="num">⑦</span> 值得偷師的思路(不做看板也用得到)</h2>
+    <ol>
+      <li><strong>把「授權邊界」編進狀態機:</strong>用 <code>backlog→todo</code>(需人)、<code>in_review→done</code>(需人)固化「哪些決定必須留給人」,中間放手讓 agent 自走。比 prompt 裡叮嚀「請小心」可靠得多。</li>
+      <li><strong>認領要原子、衝突要一等公民:</strong>樂觀版本鎖 + 標準化的「衝突退出碼」+ 「只重試一次」規則,讓多 agent 併發不打架。</li>
+      <li><strong>身份要完整才算數:</strong>五欄位 <code>threadBinding</code>——寧可缺一欄就拒絕開工,也不接受殘缺身份。這是防「搶單/接錯票」的根。</li>
+      <li><strong>context 經濟學:</strong>各列表各記 cursor、只取增量;一則認領留言 + 一則收尾留言,不寫「還在等」的流水帳。</li>
+      <li><strong>反過度設計寫成規則:</strong>「使用者確認前不加護欄/測試/相容層/臆測 fallback」——直接壓制 AI 把小需求做成大工程的傾向。</li>
+      <li><strong>併發按衝突域切、不按票數:</strong>由共享檔案/行程/runtime 決定並行度,而不是「票多就開更多道」。</li>
+      <li><strong>擴充宿主別 patch 本體:</strong>用 CDP 注入 + OOPIF 把 UI 掛進 Codex,不改 app.asar、不換 <code>fetch</code>——可還原、風險可控,並老實寫出威脅模型。</li>
+    </ol>
+    <div class="callout info"><strong>與站內的連結:</strong>這頁的「併發紀律 / 單調守衛 / 明文前置條件」與 <a href="./deepseek-harness-internals.html">DeepSeek Harness 內部機制</a>、<a href="./prime-agent.html">Prime Agent</a> 同源;「把工作流寫成一份 Skill 讓 agent 照走」呼應 <a href="../skills/index.html">Skills 專區</a>;「留給人的驗收閘」與 <a href="./ai-quality-docs.html">讓 AI 產出高品質文件</a> 的人機分工思路一致。</div>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="sources">
+    <h2><span class="num">⑧</span> 來源與定位</h2>
+    <ul>
+      <li><a href="https://github.com/chuspeeism/dashi-taskboard" target="_blank" rel="noopener">GitHub · chuspeeism/dashi-taskboard</a>(產品名 <em>Codex Taskboard</em>;程式碼 Apache-2.0)</li>
+      <li>本頁依 repo 的 <code>README.md</code>、<code>AGENTS.md</code>、<code>skills/manage-taskboard/SKILL.md</code> 與 <code>references/cli.md</code>、<code>shared/domain.mjs</code>、<code>inject/codex-taskboard.user.js</code> 等原始碼整理。</li>
+      <li>關聯技術:OpenAI Codex / ChatGPT 桌面 App、Chrome DevTools Protocol(CDP)、Tauri、SQLite、Server-Sent Events、Cloudflare Workers / D1 / R2。</li>
+    </ul>
+    <div class="related">
+      <a href="./deepseek-harness-internals.html">
+        <div class="rel-title">🧩 DeepSeek Harness 內部機制</div>
+        <div class="rel-sub">單調守衛 · 明文前置條件</div>
+      </a>
+      <a href="./prime-agent.html">
+        <div class="rel-title">🔷 Prime Agent 架構</div>
+        <div class="rel-sub">併發、認領與打斷紀律</div>
+      </a>
+      <a href="../skills/index.html">
+        <div class="rel-title">🛠️ Skills 專區</div>
+        <div class="rel-sub">用一份 Skill 教 agent 照走流程</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁依 repo 當前原始碼整理,非官方文件;狀態機、CLI 介面、雲端與注入細節會隨版本變動,實際以官方 repo 最新內容為準。未列 star 數。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
