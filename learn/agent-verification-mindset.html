@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>把晶片驗證思維帶進 AI Agent:從 90% 表面功夫到全自動驗證閉環 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h2 .num.clr { background: var(--orange); }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    .clarify-tag { display: inline-block; background: var(--tint-yellow); color: var(--orange); border: 1px solid #f2d98a; font-size: 0.66rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; }
+    .fig svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🔬 把晶片驗證思維帶進 AI Agent:從 90% 表面功夫到全自動驗證閉環</h1>
+    <p class="sub">拆解「數字黑魔法」的案例分享《我做 AI Agent 一年,90% 在做表面功夫——直到我換了思路》· 核心不是換模型,而是把晶片工程「設計可驗證架構」的方法論搬進 Agent 開發 · 並把 <strong>前後端分離、ACI、MCP 差別、雙層裁判、debug 差別</strong>逐一講清楚</p>
+    <div>
+      <span class="badge orange">驗證不對稱性</span>
+      <span class="badge blue">ACI · SWE-agent</span>
+      <span class="badge green">雙層裁判 · 自動閉環</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#pain">① 痛點:驗證的不對稱性</a>
+      <a href="#chip">② 晶片工程的啟發</a>
+      <a href="#split">③ 前後端徹底分離</a>
+      <a href="#aci">④ ACI:為 AI 設計的接口</a>
+      <a href="#mcp">⑤ ACI/CLI 和 MCP 差在哪</a>
+      <a href="#judge">⑥ 雙層裁判機制</a>
+      <a href="#flag">⑦ 功能開關與回歸測試</a>
+      <a href="#loop">⑧ 全自動開發閉環</a>
+      <a href="#debug">⑨ debug 的差別</a>
+      <a href="#role">⑩ 角色轉變與偷師</a>
+      <a href="#sources">⑪ 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>做 AI Agent 一年,90% 的時間不是在寫代碼,而是在「開網頁、手動餵資料、肉眼看 agent 有沒有變好或壞掉」。</strong>影片作者(晶片背景)的頓悟是:這正是晶片工程三十年前就解決過的問題——<strong>當「生產」變便宜,工程師的核心價值就轉移到「設計一套可自動驗證的架構」</strong>。於是他把 Agent 從「為人的眼睛與手設計」改造成「為 AI 與自動化測試設計」,用<strong>雙層裁判 + 回歸測試 + 功能開關</strong>組成全自動開發閉環,讓工程師不再盯螢幕,而是專注<strong>定義「何謂正確」</strong>。</p>
+    <div class="callout info"><strong>本頁在影片摘要之上,額外把五個容易卡住的概念講透:</strong>③ 前後端到底在分什麼、④ ACI 是什麼、⑤ <strong>MCP 和 ACI/CLI 差在哪</strong>、⑥ 雙層裁判怎麼分工、⑨ <strong>新舊 debug 差別(含 CLI vs MCP)</strong>。標了 <span class="clarify-tag">講清楚</span> 的段落就是這些。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="pain">
+    <h2><span class="num">①</span> 痛點與底層邏輯:驗證的不對稱性</h2>
+    <p>作者攤開一年的真實時間分配:<strong>寫代碼與架構設計只佔 10%,剩下 90% 全耗在「手動驗證」</strong>——開網頁、一筆筆餵資料進去、用肉眼觀察 agent 的行為是變好還是壞掉。這不是他懶,而是一個結構性問題。</p>
+    <p>他把它命名為<strong>「驗證不對稱性(Verifiability Law)」</strong>:</p>
+    <div class="callout warn"><strong>AI 讓「生成」變得極度便宜,但「驗證」卻依然異常昂貴。</strong>你可以三秒生出一段代碼、一個回答、一個方案;但要<em>確認它真的對</em>,還是得慢慢看、慢慢試、慢慢比。生成與驗證的成本,被 AI 拉開成一道巨大的鴻溝。</div>
+    <div class="fig">
+      <svg viewBox="0 0 720 210" role="img" aria-label="驗證不對稱性：AI 把生成成本壓到接近零，但驗證成本幾乎不變，仍然很高">
+        <g font-family="sans-serif">
+          <text x="20" y="34" font-size="12.5" font-weight="700" fill="#1a1a1a">生成成本 Generation</text>
+          <rect x="20" y="44" width="560" height="30" rx="6" fill="#eee7fb" stroke="#c9b8f2"/>
+          <rect x="20" y="44" width="70" height="30" rx="6" fill="#7b3ff2"/>
+          <text x="100" y="64" font-size="10.5" fill="#3a2a99" font-weight="700">被 AI 壓到 ≈ 0</text>
+          <text x="600" y="63" font-size="10" fill="#787671">← 曾經很貴</text>
+
+          <text x="20" y="112" font-size="12.5" font-weight="700" fill="#1a1a1a">驗證成本 Verification</text>
+          <rect x="20" y="122" width="560" height="30" rx="6" fill="#ffe8d4" stroke="#f2c79a"/>
+          <rect x="20" y="122" width="540" height="30" rx="6" fill="#dd5b00"/>
+          <text x="290" y="142" font-size="10.5" fill="#fff" font-weight="700">幾乎沒變,依然昂貴</text>
+
+          <path d="M92,80 L92,120" stroke="#7b3ff2" stroke-width="1.6" stroke-dasharray="3 3"/>
+          <path d="M562,80 L562,120" stroke="#dd5b00" stroke-width="1.6" stroke-dasharray="3 3"/>
+          <text x="360" y="188" text-anchor="middle" font-size="11" fill="#5d5b54">兩者間的鴻溝 = 你 90% 的時間掉進去的地方。<tspan font-weight="700" fill="#dd5b00">工程的新戰場在右邊那條長棒。</tspan></text>
+        </g>
+      </svg>
+      <div class="figcap">▲ AI 讓左邊(生成)幾乎歸零,右邊(驗證)卻幾乎沒動。價值與心力,被迫全部移到「驗證」這一側。</div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section id="chip">
+    <h2><span class="num">②</span> 晶片工程的啟發<span class="clarify-tag">講清楚</span></h2>
+    <p>這段是整支影片的<strong>根</strong>。為什麼一個做晶片的思路,能救 Agent 開發?因為晶片業被一個殘酷的物理限制,逼著三十年前就活在「驗證不對稱」的世界裡。</p>
+
+    <h3>為什麼晶片業「驗證人力是設計的好幾倍」?</h3>
+    <p>關鍵是:<strong>晶片一旦流片(tape-out)製造出來,就不能改。</strong></p>
+    <ul>
+      <li>軟體有 bug → 推個 patch,成本趨近於零。</li>
+      <li>晶片有 bug → 整批報廢、重新流片(respin),<strong>一次幾百萬美金、延誤數個月</strong>。</li>
+    </ul>
+    <p>所以晶片業被逼出一個文化:<strong>所有錯誤都必須在「製造之前」抓出來</strong>。驗證因此不是附屬工作,而是一個獨立、龐大、有整套基礎設施的工程學科——複雜 SoC 專案裡,<strong>驗證工程師常是設計工程師的兩三倍</strong>,六七成心力花在「證明它是對的」,而不是「把它做出來」。</p>
+
+    <h3>被借用的那條定律</h3>
+    <div class="callout info"><strong>當「生產這個東西」的成本趨近於零,工程師的價值就整個移到「設計驗證系統」上。</strong>晶片業:合成(synthesis)是自動、便宜的,難的是驗證。AI 時代:寫代碼也趨近於零,難的還是驗證。晶片工程師只是早三十年就住在這個世界——所以他們的方法論可以直接搬過來。</div>
+
+    <h3>晶片驗證的招式,幾乎一對一對應到 Agent</h3>
+    <p>影片後半的斷言層、雙層裁判、回歸測試,其實全是晶片驗證的老詞:</p>
+    <table>
+      <thead><tr><th>晶片驗證</th><th>對應到 AI Agent</th><th>在乎什麼</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Assertion(SVA 斷言)</strong></td><td>確定性斷言層</td><td>硬性規則:某狀態<strong>必須</strong>成立(工具有沒有正確觸發、中繼狀態對不對),零成本、絕對可靠</td></tr>
+        <tr><td><strong>Scoreboard / 黃金參考模型</strong></td><td>LLM 裁判層</td><td>拿「已知正確的參考」比對輸出;輸出是自然語言就換獨立 LLM 打分</td></tr>
+        <tr><td><strong>Coverage 覆蓋率</strong></td><td>Validation Benchmark</td><td>我到底測過哪些重要路徑?沒覆蓋的就是盲區</td></tr>
+        <tr><td><strong>Regression suite 回歸測試</strong></td><td>自動回歸 + Feature Flag 對比</td><td>每次改動都重跑,確保「本來會的,現在沒退步」</td></tr>
+        <tr><td><strong>Design-for-Test 可測試性設計</strong></td><td>前後端分離、暴露中間狀態</td><td><strong>刻意把系統設計成「可被觀察、可被驗證」的樣子</strong></td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><strong>最容易被漏掉、卻最重要的一點——DFT(Design for Test)。</strong>晶片工程師不會等設計做完才想怎麼測;他們在設計當下就刻意加進 scan chain、測試點、觀測 hook,讓晶片<em>天生就能被探測</em>。搬到 Agent:原本為「人的眼睛」設計的 Web UI 把內部狀態藏在畫面背後,只能人肉盯;<strong>改造成 headless CLI + 暴露每一步狀態,就是 Agent 版的 DFT</strong>——先讓它「可被驗證」,自動化驗證才可能存在。這一步是後面一切自動化的前提(下一節)。</div>
+  </section>
+
+  <!-- 3 -->
+  <section id="split">
+    <h2><span class="num">③</span> 前後端徹底分離:到底在分什麼<span class="clarify-tag">講清楚</span></h2>
+    <p>這是最實際、也最容易含糊的一步。先看「為什麼原本的架構逼你人肉介入」。</p>
+
+    <h3>問題:Agent 為「人的眼睛與手」而生</h3>
+    <p>原先的 Agent 是繞著一個 <strong>Web UI</strong> 打造的——邏輯、工具調用、中間狀態,全都糾纏在畫面背後。要測試,你只能<strong>當那雙眼睛和那雙手</strong>:開網頁、手動貼資料、按按鈕、肉眼判斷輸出好壞。這條路<strong>無法腳本化、無法重現、無法自動比對</strong>,於是每次驗證都得人到場。</p>
+
+    <h3>解法:把「引擎」和「儀表板」拆開</h3>
+    <ul>
+      <li><strong>後端 = Agent 的核心引擎。</strong>能以<strong>命令列(CLI)獨立、無頭(headless)運行</strong>:輸入用參數/stdin/檔案餵、跑完整個迴圈(LLM 調用、工具調用、狀態轉移),並把<strong>每一步的中間狀態完整暴露</strong>成結構化輸出(JSON / log)。</li>
+      <li><strong>前端 = 純監控介面。</strong>只讀後端暴露出來的狀態、渲染給人看。它是<strong>唯讀、可有可無、不在測試的關鍵路徑上</strong>。</li>
+    </ul>
+    <div class="fig">
+      <svg viewBox="0 0 720 360" role="img" aria-label="前後端分離前後對比：改造前 Web UI 糾纏、需人肉介入；改造後 headless CLI 後端暴露狀態、前端純監控、測試腳本可自動跑百次">
+        <g font-family="sans-serif">
+          <!-- BEFORE -->
+          <text x="20" y="24" font-size="13" font-weight="800" fill="#e03131">改造前 ✗</text>
+          <rect x="20" y="34" width="300" height="118" rx="12" fill="#fdeaea" stroke="#e03131" stroke-width="1.4"/>
+          <text x="170" y="60" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1a1a">Web UI(給人看)</text>
+          <text x="170" y="80" text-anchor="middle" font-size="10" fill="#5d5b54">邏輯 · 工具調用 · 狀態</text>
+          <text x="170" y="95" text-anchor="middle" font-size="10" fill="#5d5b54">全糾纏在畫面背後</text>
+          <text x="170" y="120" text-anchor="middle" font-size="22">🧑‍💻👀🖐️</text>
+          <text x="170" y="142" text-anchor="middle" font-size="10" fill="#e03131" font-weight="700">人肉:開網頁、餵資料、肉眼看</text>
+          <text x="170" y="170" text-anchor="middle" font-size="10" fill="#a4a097">無法腳本化 · 無法重現 · 無法自動比對</text>
+
+          <!-- arrow -->
+          <path d="M340,95 L378,95" stroke="#8a93ad" stroke-width="2.5" marker-end="url(#a2)"/>
+          <defs><marker id="a2" markerWidth="11" markerHeight="11" refX="8" refY="5.5" orient="auto"><path d="M0,0 L11,5.5 L0,11 Z" fill="#8a93ad"/></marker>
+            <marker id="a3" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#2a9d99"/></marker></defs>
+
+          <!-- AFTER -->
+          <text x="398" y="24" font-size="13" font-weight="800" fill="#1aae39">改造後 ✓</text>
+          <rect x="398" y="34" width="302" height="76" rx="12" fill="#eef7f0" stroke="#1aae39" stroke-width="1.4"/>
+          <text x="549" y="56" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1a1a">後端核心(headless CLI)</text>
+          <text x="549" y="74" text-anchor="middle" font-size="9.5" fill="#5d5b54">跑完整迴圈,把每一步中間狀態</text>
+          <text x="549" y="90" text-anchor="middle" font-size="9.5" fill="#137a29" font-weight="700">完整暴露成 JSON / log</text>
+
+          <rect x="398" y="122" width="146" height="60" rx="10" fill="#fff" stroke="#0075de" stroke-width="1.3"/>
+          <text x="471" y="146" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a1a1a">前端(純監控)</text>
+          <text x="471" y="164" text-anchor="middle" font-size="9" fill="#787671">唯讀 · 可有可無</text>
+
+          <rect x="554" y="122" width="146" height="60" rx="10" fill="#fff" stroke="#7b3ff2" stroke-width="1.3"/>
+          <text x="627" y="141" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a1a1a">測試腳本 / CI</text>
+          <text x="627" y="158" text-anchor="middle" font-size="9" fill="#787671">餵輸入 → 讀輸出</text>
+          <text x="627" y="172" text-anchor="middle" font-size="9" fill="#7b3ff2" font-weight="700">→ 斷言 / 打分</text>
+
+          <path d="M471,110 L471,120" stroke="#0075de" stroke-width="1.4" marker-end="url(#a3)"/>
+          <path d="M627,110 L627,120" stroke="#7b3ff2" stroke-width="1.4" marker-end="url(#a3)"/>
+
+          <!-- payoff -->
+          <rect x="20" y="210" width="680" height="130" rx="12" fill="#f6f5f4" stroke="#e5e3df"/>
+          <text x="36" y="234" font-size="12" font-weight="800" fill="#1a1a1a">關鍵回報:一旦後端是「無頭 + 可腳本 + 狀態外露」的 CLI……</text>
+          <text x="36" y="262" font-size="11" fill="#5d5b54">· 你可以用腳本<tspan font-weight="700" fill="#1aae39"> 跑它 100 次</tspan>、不同輸入、擷取輸出、對它斷言——<tspan font-weight="700">全程沒有人</tspan>。</text>
+          <text x="36" y="286" font-size="11" fill="#5d5b54">· 逼你人肉介入的,一直是那個 Web UI;把它降級成「純監控」,人就從關鍵路徑上退出來了。</text>
+          <text x="36" y="310" font-size="11" fill="#5d5b54">· 這一步 = 前面說的 <tspan font-weight="700" fill="#dd5b00">Design-for-Test</tspan>:先讓 Agent「可被驗證」,自動回歸才有可能。</text>
+          <text x="36" y="332" font-size="10.5" fill="#787671" font-style="italic">類比:把程式的「邏輯」和「GUI」拆開,你才能對邏輯寫單元測試。後端是能上測試台的引擎,前端是儀表板。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 分離的重點不是「好看」,而是把「逼你人肉介入的 Web UI」搬出關鍵路徑,讓後端變成一個「可以被腳本反覆拷問、且每一步都看得見」的東西。</div>
+    </div>
+    <div class="callout info"><strong>一句話:</strong>「前後端分離」在這裡不是網頁工程術語,而是<strong>「把可自動化驗證的引擎,從只能人看的介面裡解放出來」</strong>。狀態外露 + 無頭可跑,就是自動化的兩把鑰匙。</div>
+  </section>
+
+  <!-- 4 -->
+  <section id="aci">
+    <h2><span class="num">④</span> ACI:為 AI 設計的接口<span class="clarify-tag">講清楚</span></h2>
+    <p>把後端改成 CLI 之後,還有一個更深的問題:<strong>這個接口對 agent「好不好用」?</strong>影片引用普林斯頓的 <strong>SWE-agent 論文</strong>(Yang et al., NeurIPS 2024)提出的觀念——<strong>Agent-Computer Interface(ACI)</strong>。</p>
+
+    <h3>核心轉念:agent 是一種「全新的使用者」</h3>
+    <p>論文主張:語言模型 agent 不是人,不該逼它用「為人設計的接口」。<code>bash</code>、<code>vim</code>、<code>grep</code> 是為<strong>有眼睛、會捲動、有肌肉記憶的人</strong>設計的,但 agent:</p>
+    <ul>
+      <li><strong>沒有螢幕</strong>——一個 <code>vim</code> 畫面,它「看不到」游標在哪;</li>
+      <li>有<strong>有限的上下文視窗</strong>——你 <code>grep</code> 噴出一萬行,直接把它的「腦容量」灌爆,反而變笨;</li>
+      <li><strong>無狀態</strong>——不像人記得「我剛在第幾行」。</li>
+    </ul>
+
+    <h3>ACI 的四條設計原則</h3>
+    <table>
+      <thead><tr><th>原則</th><th>具體做法</th></tr></thead>
+      <tbody>
+        <tr><td><strong>① 動作要簡單、好懂</strong></td><td>別照抄人類工具。「效率」重於「熟悉感」,為 agent 量身做指令</td></tr>
+        <tr><td><strong>② 動作精簡、回饋簡潔但夠用</strong></td><td>吃上下文預算的意識:搜尋結果<strong>設上限</strong>(約最多 50 筆);檔案檢視器只給<strong>約 100 行的視窗</strong>(論文實測最佳)、標行號、超出用省略標記</td></tr>
+        <tr><td><strong>③ 內建護欄、能防錯也能回復</strong></td><td>編輯前先跑 <strong>linter</strong>:語法不對的修改<strong>直接擋下</strong>、回傳精確錯誤(這一項就 +3 個百分點)</td></tr>
+        <tr><td><strong>④ 專為 agent 打造的編輯/搜尋</strong></td><td>給它 <code>open</code>、會捲動的視窗檢視器、限定行段的 <code>edit</code>、<code>find_file</code>/<code>search_file</code>——而不是叫它駕馭 <code>sed</code>/<code>grep</code>/<code>vim</code></td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><strong>最震撼的實驗:</strong>論文做對照,<strong>同一個模型(GPT-4 Turbo)</strong>,只把接口從「原始 bash」換成「設計良好的 ACI 工具」,SWE-bench 分數<strong>大約翻倍</strong>。轉述其主旨(非原文逐字):<strong>「好好設計 agent 的接口,效果可以跟換一顆更強的模型一樣大、甚至更大。」</strong>——這就是影片說「良好接口的影響甚至超越更換更強模型」的來源。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="mcp">
+    <h2><span class="num">⑤</span> ACI / CLI 和 MCP 差在哪<span class="clarify-tag">講清楚</span></h2>
+    <p>很多人一聽「暴露工具給 agent」就想到 <strong>MCP(Model Context Protocol)</strong>,然後把 ACI、CLI、MCP 混成一團。其實<strong>它們回答的是不同問題</strong>,而且是<strong>正交的兩件事</strong>。</p>
+
+    <h3>先各自定義</h3>
+    <table>
+      <thead><tr><th></th><th>它回答什麼問題</th><th>本質</th></tr></thead>
+      <tbody>
+        <tr><td><strong>MCP</strong></td><td>「工具<em>怎麼插上去</em>、怎麼被不同 agent/客戶端<em>重用</em>?」</td><td><strong>整合/互通標準</strong>(Anthropic 2024/11 推出,JSON-RPC 2.0;host/client/server;server 暴露 tools/resources/prompts)</td></tr>
+        <tr><td><strong>ACI</strong></td><td>「這個工具對 agent <em>好不好用</em>?」</td><td><strong>設計/品質原則</strong>(輸出簡潔?有護欄?錯誤訊息有用?編輯器是為 agent 做的?)</td></tr>
+        <tr><td><strong>CLI</strong></td><td>「後端<em>怎麼被跑起來、被觀察</em>?」</td><td>一種<strong>載體</strong>——無頭可跑、狀態外露,便於腳本化與斷言</td></tr>
+      </tbody>
+    </table>
+
+    <h3>關鍵:MCP 和 ACI 是「兩個獨立的軸」</h3>
+    <p>MCP 管「插頭標不標準、能不能到處插」;ACI 管「插上去的工具本身設計得好不好」。這兩件事互不保證:</p>
+    <div class="fig">
+      <svg viewBox="0 0 560 440" role="img" aria-label="MCP 與 ACI 是兩個獨立的軸的四象限圖：横軸為是否標準可重用(MCP)，縱軸為對 agent 是否好用(ACI)">
+        <g font-family="sans-serif">
+          <!-- axes -->
+          <line x1="60" y1="380" x2="520" y2="380" stroke="#37352f" stroke-width="1.6" marker-end="url(#ax)"/>
+          <line x1="60" y1="380" x2="60" y2="40" stroke="#37352f" stroke-width="1.6" marker-end="url(#ax)"/>
+          <defs><marker id="ax" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#37352f"/></marker></defs>
+          <text x="290" y="410" text-anchor="middle" font-size="11.5" font-weight="700" fill="#5645d4">MCP 軸:是否標準化、可跨客戶端重用 →</text>
+          <text x="30" y="210" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1aae39" transform="rotate(-90 30 210)">ACI 軸:對 agent 是否好用 →</text>
+          <!-- dividers -->
+          <line x1="290" y1="60" x2="290" y2="380" stroke="#e5e3df" stroke-width="1" stroke-dasharray="4 4"/>
+          <line x1="60" y1="210" x2="520" y2="210" stroke="#e5e3df" stroke-width="1" stroke-dasharray="4 4"/>
+          <!-- quadrants -->
+          <rect x="300" y="70" width="205" height="130" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.3"/>
+          <text x="402" y="96" text-anchor="middle" font-size="11.5" font-weight="800" fill="#137a29">✓ 理想</text>
+          <text x="402" y="120" text-anchor="middle" font-size="9.5" fill="#2f6b40">好接口 + 標準可重用</text>
+          <text x="402" y="138" text-anchor="middle" font-size="9.5" fill="#2f6b40">(把好 ACI 透過 MCP 提供)</text>
+
+          <rect x="72" y="70" width="205" height="130" rx="10" fill="#e6e0f5" stroke="#7b3ff2" stroke-width="1.3"/>
+          <text x="174" y="96" text-anchor="middle" font-size="11.5" font-weight="800" fill="#3a2a99">好用但不通用</text>
+          <text x="174" y="120" text-anchor="middle" font-size="9.5" fill="#4a3a8a">SWE-agent 的內建 CLI 工具</text>
+          <text x="174" y="138" text-anchor="middle" font-size="9.5" fill="#4a3a8a">(沒 MCP,但對 agent 極好用)</text>
+
+          <rect x="300" y="222" width="205" height="130" rx="10" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.3"/>
+          <text x="402" y="248" text-anchor="middle" font-size="11.5" font-weight="800" fill="#b34700">通用但難用</text>
+          <text x="402" y="272" text-anchor="middle" font-size="9.5" fill="#8a4a1a">合規的 MCP server,但工具</text>
+          <text x="402" y="290" text-anchor="middle" font-size="9.5" fill="#8a4a1a">一叫就噴一萬行雜訊</text>
+
+          <rect x="72" y="222" width="205" height="130" rx="10" fill="#fdeaea" stroke="#e03131" stroke-width="1.3"/>
+          <text x="174" y="248" text-anchor="middle" font-size="11.5" font-weight="800" fill="#c02020">✗ 最糟</text>
+          <text x="174" y="272" text-anchor="middle" font-size="9.5" fill="#a02525">直接把原始 bash 丟給 agent</text>
+          <text x="174" y="290" text-anchor="middle" font-size="9.5" fill="#a02525">(既不標準也不好用)</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 「MCP 合規」不保證「對 agent 好用」;「對 agent 好用」也不保證「可跨客戶端重用」。它們是獨立的兩軸——正交,不是對立。</div>
+    </div>
+    <div class="callout info"><strong>所以影片的洞見其實和 MCP 正交。</strong>影片的重點是把後端做成「無頭可跑 + 狀態外露」的可驗證引擎(偏 CLI/ACI);MCP 只是「要不要把工具用標準協定包裝、給多個客戶端重用」的另一個決定。理想是兩者兼得——<strong>好 ACI 透過 MCP 提供</strong>;但為了「建一個能自我拷問的測試閉環」,先做好 CLI/狀態外露,比先接 MCP 重要。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="judge">
+    <h2><span class="num">⑥</span> 雙層裁判機制:怎麼自動判「對不對」<span class="clarify-tag">講清楚</span></h2>
+    <p>難點:agent 的輸出是<strong>自然語言、有模糊性</strong>,同一輸入跑兩次字句可能不同,<code>assert output == "expected"</code> 直接失效。解法是把「判斷」拆成兩層,各司其職。</p>
+    <div class="fig">
+      <svg viewBox="0 0 720 300" role="img" aria-label="雙層裁判：輸出分流到確定性斷言層與 LLM 裁判層，合成一個分數餵進回歸測試">
+        <g font-family="sans-serif">
+          <rect x="20" y="120" width="120" height="56" rx="10" fill="#0a1530"/>
+          <text x="80" y="145" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Agent 輸出</text>
+          <text x="80" y="163" text-anchor="middle" font-size="9" fill="#9fb0d0">工具調用 + 自然語言</text>
+
+          <path d="M140,138 C180,138 180,86 220,86" stroke="#1aae39" stroke-width="2" fill="none" marker-end="url(#j1)"/>
+          <path d="M140,158 C180,158 180,214 220,214" stroke="#7b3ff2" stroke-width="2" fill="none" marker-end="url(#j2)"/>
+          <defs><marker id="j1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#1aae39"/></marker>
+            <marker id="j2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#7b3ff2"/></marker>
+            <marker id="j3" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#5d5b54"/></marker></defs>
+
+          <!-- assertion layer -->
+          <rect x="220" y="52" width="290" height="70" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+          <text x="236" y="74" font-size="12" font-weight="800" fill="#137a29">① 確定性斷言層(Assertion)</text>
+          <text x="236" y="92" font-size="9.5" fill="#2f6b40">硬規則:工具觸發了嗎?參數/順序對嗎?狀態結構對嗎?</text>
+          <text x="236" y="110" font-size="9.5" fill="#137a29" font-weight="700">零成本 · 絕對可靠 · 極快 ── 抓「水管有沒有接對」</text>
+
+          <!-- llm layer -->
+          <rect x="220" y="180" width="290" height="70" rx="10" fill="#e6e0f5" stroke="#7b3ff2" stroke-width="1.4"/>
+          <text x="236" y="202" font-size="12" font-weight="800" fill="#3a2a99">② LLM 裁判層(Evaluator)</text>
+          <text x="236" y="220" font-size="9.5" fill="#4a3a8a">語意品質:對題嗎?真解決了嗎?推理合理嗎?</text>
+          <text x="236" y="238" font-size="9.5" fill="#3a2a99" font-weight="700">獨立 + 乾淨上下文的模型 · 量化評分 ── 評「話講得好不好」</text>
+
+          <!-- merge -->
+          <path d="M510,87 C560,87 560,140 585,140" stroke="#5d5b54" stroke-width="1.8" fill="none" marker-end="url(#j3)"/>
+          <path d="M510,215 C560,215 560,150 585,150" stroke="#5d5b54" stroke-width="1.8" fill="none" marker-end="url(#j3)"/>
+          <rect x="588" y="116" width="112" height="52" rx="10" fill="#fff5cc" stroke="#e0a800" stroke-width="1.4"/>
+          <text x="644" y="139" text-anchor="middle" font-size="11.5" font-weight="800" fill="#8a6a00">合成一個分數</text>
+          <text x="644" y="157" text-anchor="middle" font-size="9" fill="#8a6a00">→ 回歸 / Flag 對比</text>
+
+          <text x="360" y="284" text-anchor="middle" font-size="10.5" fill="#5d5b54">原則:<tspan font-weight="700" fill="#137a29">能硬查的全下推到 ①</tspan>(便宜可靠);<tspan font-weight="700" fill="#3a2a99">② 只留給硬查不了的語意殘餘</tspan>(貴但必要)。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 這正是晶片驗證的老套路:assertion 管硬性不變量 + scoreboard/黃金參考模型管輸出比對。</div>
+    </div>
+
+    <h3>① 確定性斷言層</h3>
+    <p>查有明確對錯、可用程式碼硬判的:該觸發的工具有沒有被觸發?參數/順序對不對?中繼狀態結構符不符?<strong>三個特性:零成本(不花 LLM 錢)、絕對可靠(同輸入必同結論)、極快。</strong>就是晶片的 assertion、軟體的 unit test。</p>
+
+    <h3>② LLM 裁判層</h3>
+    <p>查沒有硬規則、只能靠理解的<strong>語意品質</strong>。兩個關鍵設計,做錯就白搭:</p>
+    <ul>
+      <li><strong>用「獨立、乾淨上下文」的模型。</strong>不能拿「剛生成答案的那顆模型」給自己打分——它會<strong>自我偏袒</strong>。要換一顆<strong>沒參與開發、上下文全新</strong>的模型當裁判。</li>
+      <li><strong>輸出量化分數。</strong>把「模糊的好壞」變成一個數字,才能拿去做回歸追蹤與閉環反饋。</li>
+    </ul>
+    <div class="callout warn"><strong>要提醒的坑:</strong>LLM 裁判本身有已知偏誤——位置偏誤、囉嗦偏誤、自我偏袒、附和。所以「乾淨上下文 + 獨立模型 + 明確評分準則」不是可有可無,是壓這些偏誤的必要設計(呼應站內<a href="./multi-persona-prompting.html">多角色抗附和</a>的思路)。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="flag">
+    <h2><span class="num">⑦</span> 功能開關與回歸測試:防止效能退步</h2>
+    <p>有了分數,還要防「改 A 修好了、卻默默弄壞 B」的<strong>回歸(Regression)</strong>。做法:<strong>每個新功能都配一個 Feature Flag(功能開關)</strong>。</p>
+    <ul>
+      <li><strong>並行對比開/關:</strong>同一套測試,分別在「開啟新功能」與「關閉新功能」下各跑一次,比較回歸指標。</li>
+      <li><strong>指標退步就擋下:</strong>若開啟後整體分數下降,代表這個功能造成退步——立刻看得見,而不是幾週後才被使用者發現。</li>
+      <li><strong>可安全累積:</strong>開關讓新功能能「先合進去、但預設關」,降低每次改動的風險。</li>
+    </ul>
+    <div class="callout tip"><strong>晶片對應:</strong>這就是 regression suite——每次改動都重跑整套測試,確保「本來會的,現在還會」。Feature Flag 則讓你能<strong>精準歸因</strong>是<em>哪一個</em>改動造成退步。</div>
+  </section>
+
+  <!-- 8 -->
+  <section id="loop">
+    <h2><span class="num">⑧</span> 全自動開發閉環</h2>
+    <p>把前面所有零件接起來,就得到一條<strong>不需要人盯著的開發迴圈</strong>。Coding Agent(如 Codex / Claude Code)開發一個功能時,依序完成:</p>
+    <div class="fig">
+      <svg viewBox="0 0 720 320" role="img" aria-label="全自動開發閉環：設計測試與驗收→建 Feature Flag→寫功能碼→跑回歸(斷言+LLM裁判)→依評分自我修正，工程師只定義何謂正確">
+        <defs><marker id="loop" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#5645d4"/></marker></defs>
+        <g font-family="sans-serif" text-anchor="middle">
+          <rect x="270" y="18" width="180" height="46" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.3"/>
+          <text x="360" y="38" font-size="11" font-weight="700" fill="#1a1a1a">① 設計測試案例 + 驗收標準</text>
+          <text x="360" y="54" font-size="9" fill="#5d5b54">Happy Path</text>
+
+          <rect x="520" y="98" width="170" height="46" rx="10" fill="#e6e0f5" stroke="#7b3ff2" stroke-width="1.3"/>
+          <text x="605" y="118" font-size="11" font-weight="700" fill="#1a1a1a">② 建 Feature Flag 開關</text>
+          <text x="605" y="134" font-size="9" fill="#5d5b54">開/關可並行對比</text>
+
+          <rect x="520" y="200" width="170" height="46" rx="10" fill="#fff" stroke="#37352f" stroke-width="1.3"/>
+          <text x="605" y="220" font-size="11" font-weight="700" fill="#1a1a1a">③ 編寫功能代碼</text>
+          <text x="605" y="236" font-size="9" fill="#5d5b54">生成成本 ≈ 0</text>
+
+          <rect x="270" y="255" width="180" height="50" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.3"/>
+          <text x="360" y="276" font-size="11" font-weight="700" fill="#1a1a1a">④ 自動跑回歸測試</text>
+          <text x="360" y="292" font-size="9" fill="#2f6b40">斷言層 + LLM 裁判 → 分數</text>
+
+          <rect x="30" y="200" width="170" height="46" rx="10" fill="#fff5cc" stroke="#e0a800" stroke-width="1.3"/>
+          <text x="115" y="220" font-size="11" font-weight="700" fill="#1a1a1a">⑤ 依評分自我修正</text>
+          <text x="115" y="236" font-size="9" fill="#8a6a00">分數不夠 → 回 ③ 再改</text>
+
+          <!-- center: engineer -->
+          <circle cx="115" cy="115" r="66" fill="#0a1530"/>
+          <text x="115" y="104" font-size="11.5" font-weight="800" fill="#fff">工程師</text>
+          <text x="115" y="123" font-size="9" fill="#9fb0d0">只做一件事:</text>
+          <text x="115" y="139" font-size="9.5" font-weight="700" fill="#ffcf9e">定義「何謂正確」</text>
+
+          <!-- arrows around loop -->
+          <g stroke="#5645d4" stroke-width="2" fill="none" marker-end="url(#loop)">
+            <path d="M450,44 C510,50 520,74 560,96"/>
+            <path d="M605,144 L605,198"/>
+            <path d="M560,246 C500,270 470,278 452,280"/>
+            <path d="M270,282 C200,280 170,262 150,248"/>
+            <path d="M108,200 C100,150 150,60 268,40"/>
+          </g>
+          <text x="360" y="180" text-anchor="middle" font-size="9.5" fill="#a4a097" font-style="italic">迴圈自動轉,直到分數達標;工程師不進迴圈,只設定驗收標準(Validation Benchmark)</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 五步自動循環:agent 自己設計測試、建開關、寫碼、跑回歸、依分數自我修正。工程師退到迴圈之外,只負責「定義何謂正確」。</div>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section id="debug">
+    <h2><span class="num">⑨</span> debug 的差別:舊 vs 新,以及 CLI vs MCP<span class="clarify-tag">講清楚</span></h2>
+
+    <h3>A. 開發者的 debug:從「肉眼看」到「系統量」</h3>
+    <table>
+      <thead><tr><th></th><th>舊做法(人肉)</th><th>新做法(自動化驗證)</th></tr></thead>
+      <tbody>
+        <tr><td><strong>怎麼發現壞了</strong></td><td>開網頁、餵資料、肉眼判斷「好像變差了」</td><td>斷言層<strong>秒抓</strong>硬性錯誤;LLM 裁判給出<strong>分數下降</strong></td></tr>
+        <tr><td><strong>能不能重現</strong></td><td>難——手動操作,每次不一樣</td><td>能——固定輸入、可重跑、可比對</td></tr>
+        <tr><td><strong>定位到哪</strong></td><td>模糊,「感覺是這裡」</td><td>斷言<strong>精準指出</strong>哪條不變量壞了;Flag 指出<strong>哪個改動</strong>造成退步</td></tr>
+        <tr><td><strong>會不會退步</strong></td><td>常常沒發現,直到使用者踩到</td><td>回歸測試<strong>當場擋下</strong></td></tr>
+        <tr><td><strong>工程師在 debug 什麼</strong></td><td>盯著螢幕 debug <em>代碼</em></td><td>debug <em>驗收標準的定義</em>(Validation Benchmark)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>B. 底層的 debug:純 CLI vs 走 MCP</h3>
+    <p>還有一層常被混淆:當工具是「<strong>行程內的 CLI 調用</strong>」 vs 「<strong>藏在 MCP server 後面</strong>」,debug 的難度不一樣。</p>
+    <table>
+      <thead><tr><th></th><th>純 CLI / 行程內(狀態外露)</th><th>走 MCP(獨立 server + JSON-RPC)</th></tr></thead>
+      <tbody>
+        <tr><td><strong>邊界數</strong></td><td>一個行程、一條 log、一個 stack trace</td><td>多一道<strong>跨行程 + 協定邊界</strong>(client / 傳輸 / server 三段)</td></tr>
+        <tr><td><strong>失敗面</strong></td><td>就是你的程式邏輯</td><td>還多了:握手/協定版本不符、<strong>schema 不符</strong>、傳輸中斷、stdio 串流被污染</td></tr>
+        <tr><td><strong>怎麼看內部</strong></td><td>直接讀 stdout / log / 檔案,<code>grep</code>/<code>jq</code> 就好</td><td>常要專用工具 <strong>MCP Inspector</strong> 才看得到 client↔server 的 JSON-RPC 訊息</td></tr>
+        <tr><td><strong>重現/歸因</strong></td><td>單行程,好固定、好重跑</td><td>server 是長命的獨立行程、有自己狀態,較難快照與重置;失敗要<strong>對照兩邊 log</strong>才能定位</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn"><strong>一個經典坑(stdio MCP):</strong><code>stdout</code> 被保留給 JSON-RPC 訊息,<strong>所有除錯 log 必須印到 <code>stderr</code></strong>。不小心 <code>print</code> 到 stdout,就會污染串流、在 Inspector 裡變成一堆 JSON 解析錯誤。</div>
+    <div class="callout info"><strong>結論(呼應第⑤節):</strong>MCP 買到的是「工具可跨客戶端重用」,代價是多一道協定邊界、多幾種失敗面。對「建一個能自我拷問的緊密測試閉環」而言,<strong>純 CLI + 狀態外露的 debug 摩擦更小</strong>;MCP 的價值在「一個工具給很多 agent 共用」。兩者不衝突,理想是把好 ACI 透過 MCP 提供,並用 Inspector 補上那道邊界的可觀察性。</div>
+  </section>
+
+  <!-- 10 -->
+  <section id="role">
+    <h2><span class="num">⑩</span> 角色轉變與值得偷師的思路</h2>
+    <p>整套方法論的終點,是工程師的角色徹底轉變:</p>
+    <div class="callout"><strong>不再手動編寫細節代碼、不再盯著螢幕測試,而是專注於「精確定義何謂正確」(Validation Benchmark)。</strong>寫代碼交給 coding agent,判斷對錯交給雙層裁判,防退步交給回歸 + Flag;人只做那件機器做不了的事——決定「什麼叫做對」。</p>
+    <h3>不做 Agent 也用得到的幾條</h3>
+    <ol>
+      <li><strong>先問「驗證怎麼自動化」,再開始做。</strong>當生成變便宜,瓶頸一定在驗證;把驗證架構當第一公民設計。</li>
+      <li><strong>Design-for-Test:讓系統天生可被觀察。</strong>狀態外露、無頭可跑,是自動化的前提;為人設計的 UI 會把你鎖進人肉迴圈。</li>
+      <li><strong>接口設計 ≈ 換更強模型。</strong>ACI 的教訓:別急著等更強的模型,先把 agent 的接口設計好,常有翻倍的回報。</li>
+      <li><strong>能硬查的絕不叫 LLM 查。</strong>雙層裁判:確定性斷言零成本可靠,LLM 裁判是留給語意的昂貴手段;裁判要獨立、乾淨、量化。</li>
+      <li><strong>用開關防退步、做歸因。</strong>Feature Flag + 回歸,讓每次改動的效能影響「當場可見、可歸因」。</li>
+    </ol>
+    <div class="callout info"><strong>站內連結:</strong>這套「把驗證當第一公民」呼應 <a href="./ai-quality-docs.html">讓 AI 產出高品質文件</a> 的稽核 Agent 與評分 Rubric;「獨立乾淨裁判」呼應 <a href="./multi-persona-prompting.html">多角色抗附和</a>;「接口/工具紀律」與 <a href="./deepseek-harness-internals.html">DeepSeek Harness</a>、<a href="./codex-taskboard.html">Codex Taskboard</a> 的 agent 工程同源。</div>
+  </section>
+
+  <!-- 11 -->
+  <section id="sources">
+    <h2><span class="num">⑪</span> 來源</h2>
+    <ul>
+      <li>影片:<strong>數字黑魔法</strong>《我做 AI Agent 一年,90% 在做表面功夫——直到我換了思路》(YouTube)。本頁依使用者提供的內容摘要整理,並補上論文/協定的查證細節。</li>
+      <li>ACI:Yang et al., <em>SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering</em> — <a href="https://arxiv.org/abs/2405.15793" target="_blank" rel="noopener">arXiv:2405.15793</a>(Princeton;NeurIPS 2024)。「同模型換 ACI 約翻倍」為對其主旨的轉述,非原文逐字。</li>
+      <li>MCP:Anthropic <a href="https://www.anthropic.com/news/model-context-protocol" target="_blank" rel="noopener">Introducing the Model Context Protocol</a>(2024/11);規格 <a href="https://modelcontextprotocol.io/specification/2025-11-25/basic/transports" target="_blank" rel="noopener">2025-11-25 · Transports</a>(現行網路傳輸為 Streamable HTTP,舊 SSE 已淘汰);<a href="https://github.com/modelcontextprotocol/inspector" target="_blank" rel="noopener">MCP Inspector</a>。</li>
+      <li>晶片驗證概念:Assertion(SVA)、Scoreboard、Coverage、Regression、Design-for-Test 為 IC 驗證通用術語。</li>
+    </ul>
+    <div class="related">
+      <a href="./ai-quality-docs.html">
+        <div class="rel-title">📝 讓 AI 產出高品質文件</div>
+        <div class="rel-sub">稽核 Agent · 評分 Rubric</div>
+      </a>
+      <a href="./multi-persona-prompting.html">
+        <div class="rel-title">🎭 多角色 AI 腦力激盪</div>
+        <div class="rel-sub">獨立乾淨裁判 · 抗附和</div>
+      </a>
+      <a href="./codex-taskboard.html">
+        <div class="rel-title">🗂️ Codex Taskboard</div>
+        <div class="rel-sub">agent 工程紀律</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁整合影片摘要與公開論文/協定整理,非官方文件;論文數字(如同模型換 ACI 約翻倍、SWE-bench 分數)以原論文為準,MCP 術語(Streamable HTTP、現行規格版本)會隨版本更新。晶片驗證為類比,細節依實際方法論而定。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
