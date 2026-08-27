@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>多角色 AI 腦力激盪：從卡帕西 5 角色到完整角色庫與運作法 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .diagram { background: var(--navy); color: #cdd6ea; border-radius: 12px; padding: 18px 20px; margin: 12px 0 14px; overflow-x: auto;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.73rem; line-height: 1.5; white-space: pre; }
+    .diagram b { color: #ffcf9e; font-weight: 700; }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; }
+    .fig svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🎭 多角色 AI 腦力激盪:從卡帕西 5 角色到完整角色庫與運作法</h1>
+    <p class="sub">讓一個(或多個)AI 同時扮演互補視角的專家,用「認知綜效」破除單一回答的盲點與過度樂觀 · 補上學理根據、更完整的角色庫、四種運作模式,以及最容易被忽略的「抗附和」設計</p>
+    <div>
+      <span class="badge green">SPP · 多代理辯論</span>
+      <span class="badge blue">六頂思考帽 · 紅藍隊</span>
+      <span class="badge orange">3 份可複製範本</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#why">① 為什麼多角色能破盲點</a>
+      <a href="#base">② 卡帕西的 5 角色(基礎陣容)</a>
+      <a href="#theory">③ 學理:SPP 與多代理辯論</a>
+      <a href="#when">④ 何時有效 vs 只是劇場</a>
+      <a href="#roster">⑤ 擴充角色庫(11+)</a>
+      <a href="#hats">⑥ 六頂思考帽 + 紅藍隊</a>
+      <a href="#modes">⑦ 四種運作模式</a>
+      <a href="#anti">⑧ 反模式與抗附和設計</a>
+      <a href="#templates">⑨ 可複製的 Prompt 範本</a>
+      <a href="#sources">⑩ 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>「多角色腦力激盪」是讓 AI 同時扮演數個<em>誘因互相衝突</em>的專家,先各自發言、再由一個整合者裁決。</strong>它之所以有效,是因為單一模型回答時會有系統性偏誤——太樂觀、太附和、看不見自己的盲點;讓「務實架構師」「魔鬼代言人」「終端使用者」互相拆台,能把一個模糊概念壓力測試成可執行方案。</p>
+    <div class="callout info"><strong>卡帕西分享的 5 角色是很好的起點,但確實不夠完整。</strong>本頁補三塊:<strong>(1) 學理根據</strong>——它不是玄學,有 SPP 與多代理辯論兩篇論文撐著,而且<em>只在夠強的模型上才有效</em>;<strong>(2) 更完整的角色庫</strong>——依決策類型選角的 11+ 個互補角色 + 六頂思考帽;<strong>(3) 最常被略過的「抗附和」設計</strong>——多角色最大的失敗,是所有角色最後都禮貌地同意一個<em>錯的</em>結論。</p></div>
+  </section>
+
+  <!-- 1 -->
+  <section id="why">
+    <h2><span class="num">①</span> 為什麼多角色能破盲點</h2>
+    <p>單一 AI 回答一個開放問題時,有三個結構性弱點:<strong>(a) 過度樂觀</strong>——訓練成「有幫助、討喜」,傾向給正面、可行的答案;<strong>(b) 單一視角盲點</strong>——一次只從一個角度想,漏掉風險、成本、維運;<strong>(c) 缺乏內部異議</strong>——沒有人逼它為自己找碴。</p>
+    <p>多角色的解法很直覺:<strong>把「一個聲音」拆成幾個<em>誘因不同</em>的聲音,再讓它們辯論。</strong>財務角色在意毛利、維運角色在意半夜被叫起來、使用者角色在意學習成本——它們的 KPI 天生衝突,於是自然吵起來,把單一回答藏起來的取捨攤開。最後由「整合者」吸收辯論、排優先級、輸出行動清單。</p>
+    <div class="fig">
+      <svg viewBox="0 0 720 380" role="img" aria-label="多角色議會輻射圖:五個誘因不同的角色圍繞整合者，各自發言後由整合者裁決輸出行動清單">
+        <defs>
+          <marker id="arrIn" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker>
+          <marker id="arrOut" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1aae39"/></marker>
+        </defs>
+        <!-- spokes -->
+        <g stroke="#8a93ad" stroke-width="1.6" marker-end="url(#arrIn)" fill="none" opacity="0.75">
+          <line x1="150" y1="70" x2="312" y2="168"/>
+          <line x1="570" y1="70" x2="408" y2="168"/>
+          <line x1="92" y1="210" x2="300" y2="192"/>
+          <line x1="628" y1="210" x2="420" y2="192"/>
+          <line x1="360" y1="300" x2="360" y2="228"/>
+        </g>
+        <!-- center -->
+        <rect x="300" y="158" width="120" height="66" rx="12" fill="#5645d4"/>
+        <text x="360" y="185" text-anchor="middle" fill="#fff" font-size="14" font-weight="700" font-family="sans-serif">整合協調官</text>
+        <text x="360" y="205" text-anchor="middle" fill="#d7d2f5" font-size="10.5" font-family="sans-serif">Synthesizer · 藍帽</text>
+        <!-- personas -->
+        <g font-family="sans-serif">
+          <g><rect x="70" y="42" width="160" height="52" rx="10" fill="#fff" stroke="#7b3ff2" stroke-width="1.6"/>
+            <text x="150" y="64" text-anchor="middle" fill="#1a1a1a" font-size="12.5" font-weight="700">🌱 願景開拓者</text>
+            <text x="150" y="82" text-anchor="middle" fill="#787671" font-size="10">極大化發散</text></g>
+          <g><rect x="490" y="42" width="160" height="52" rx="10" fill="#fff" stroke="#2a9d99" stroke-width="1.6"/>
+            <text x="570" y="64" text-anchor="middle" fill="#1a1a1a" font-size="12.5" font-weight="700">🏗️ 務實架構師</text>
+            <text x="570" y="82" text-anchor="middle" fill="#787671" font-size="10">收斂成 MVP</text></g>
+          <g><rect x="12" y="184" width="160" height="52" rx="10" fill="#fff" stroke="#e03131" stroke-width="1.6"/>
+            <text x="92" y="206" text-anchor="middle" fill="#1a1a1a" font-size="12.5" font-weight="700">😈 魔鬼代言人</text>
+            <text x="92" y="224" text-anchor="middle" fill="#787671" font-size="10">紅隊壓力測試</text></g>
+          <g><rect x="548" y="184" width="160" height="52" rx="10" fill="#fff" stroke="#dd5b00" stroke-width="1.6"/>
+            <text x="628" y="206" text-anchor="middle" fill="#1a1a1a" font-size="12.5" font-weight="700">🙋 終端使用者</text>
+            <text x="628" y="224" text-anchor="middle" fill="#787671" font-size="10">痛點校準</text></g>
+          <g><rect x="280" y="300" width="160" height="52" rx="10" fill="#fff" stroke="#0075de" stroke-width="1.6"/>
+            <text x="360" y="322" text-anchor="middle" fill="#1a1a1a" font-size="12.5" font-weight="700">🧭 領域專家…</text>
+            <text x="360" y="340" text-anchor="middle" fill="#787671" font-size="10">可從角色庫換角</text></g>
+        </g>
+        <!-- output -->
+        <line x1="420" y1="191" x2="612" y2="300" stroke="#1aae39" stroke-width="2" marker-end="url(#arrOut)" fill="none"/>
+        <rect x="556" y="300" width="150" height="52" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+        <text x="631" y="322" text-anchor="middle" fill="#137a29" font-size="12.5" font-weight="700">📋 行動清單</text>
+        <text x="631" y="340" text-anchor="middle" fill="#2f7a44" font-size="10">P0 / P1 / P2</text>
+      </svg>
+      <div class="figcap">▲ 各角色「向內」把觀點餵給整合者;整合者不做平均,而是裁決、排序、輸出 P0/P1/P2 行動清單。中央下方的角色可依決策類型從角色庫替換。</div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section id="base">
+    <h2><span class="num">②</span> 卡帕西的 5 角色(基礎陣容)</h2>
+    <p>這是很好的預設五人組——涵蓋「發散→收斂→挑錯→校準→整合」的完整弧線。把每個角色的<strong>職責邊界</strong>講死,是它能運作的關鍵:</p>
+    <table>
+      <thead><tr><th>角色</th><th>職責</th><th>核心提問</th></tr></thead>
+      <tbody>
+        <tr><td><strong>🌱 願景開拓者</strong><br><span style="color:var(--stone)">Visionary</span></td><td>極大化發散與創新</td><td>若無任何限制,這概念的<strong>終極形態</strong>是什麼?能創造哪些非對稱價值或顛覆體驗?</td></tr>
+        <tr><td><strong>🏗️ 務實架構師</strong><br><span style="color:var(--stone)">Realist / Architect</span></td><td>工程可行性、收斂 MVP</td><td>拆成具體<strong>技術架構、資料流、依賴、步驟</strong>;現有工具/算力/成本撐得住嗎?</td></tr>
+        <tr><td><strong>😈 魔鬼代言人</strong><br><span style="color:var(--stone)">Devil's Advocate</span></td><td>紅隊思維、風險壓測</td><td>專挑弱點:<strong>失敗點、瓶頸、法規與安全風險、冷啟動、棄用情境</strong>。</td></tr>
+        <tr><td><strong>🙋 終端使用者代表</strong><br><span style="color:var(--stone)">User Advocate</span></td><td>真實體驗、痛點校準</td><td>學習成本會不會太高?流程反直覺嗎?<strong>是真解痛點,還是只是自嗨?</strong></td></tr>
+        <tr><td><strong>🧭 執行協調官</strong><br><span style="color:var(--stone)">Synthesizer</span></td><td>整合衝突、權衡、出路線圖</td><td>吸收前四者辯論精華,剔除不可行項,排<strong>P0/P1/P2</strong>,產出 Action Items。</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><strong>為什麼這五個是好起點:</strong>它們的誘因天生衝突——願景要大、架構師要能做、魔鬼要它死、使用者要它好用。有衝突才有真辯論。但這套陣容有兩個缺口:<strong>沒有「怎麼衡量成功」的度量角色,也沒有「誰半夜維運它」的營運角色</strong>——這正是下面角色庫要補的。</div>
+  </section>
+
+  <!-- 3 -->
+  <section id="theory">
+    <h2><span class="num">③</span> 學理根據:這不是玄學</h2>
+    <p>多角色不是「感覺比較全面」而已,背後有兩條被驗證的技術路線,而且它們的差別很重要。</p>
+
+    <h3>① Solo Performance Prompting(SPP)—— 一個模型,內部多角色</h3>
+    <p>論文《Unleashing the Emergent Cognitive Synergy in LLMs》(Wang et al., 2023;NAACL 2024)。核心叫<strong>「認知綜效 cognitive synergy」</strong>:<em>單一</em>模型在<em>一次對話裡</em>扮演多個角色互相協作。兩階段運作:</p>
+    <ol>
+      <li><strong>動態辨識角色:</strong>先看任務、<em>從任務本身推出</em>需要哪些專家(不是預先寫死),並固定一個「AI 助理」當協調者。</li>
+      <li><strong>腦力激盪 → 多輪自我協作 → 迭代收斂:</strong>協調者出草稿 → 各專家補漏挑錯 → 協調者改稿,直到沒人再有異議,才輸出最終答案。</li>
+    </ol>
+    <div class="callout warn"><strong>最關鍵的發現:認知綜效是「湧現」的。</strong>SPP 的增益<strong>只在 GPT-4 出現,在 GPT-3.5 與 Llama-2-13B 上沒有、甚至有害</strong>。作者類比人類認知發展——「能有效自我協作」是能力到一定門檻才長出來的。<strong>實務結論:多角色請用前沿模型跑;在弱模型上它是雜訊。</strong></div>
+
+    <h3>② 多代理辯論(Multi-Agent Debate)—— 多個模型,跨實例互批</h3>
+    <p>論文《Improving Factuality and Reasoning through Multiagent Debate》(Du et al., 2023;ICML 2024),作者自稱呼應 Minsky《心智社會》。做法與 SPP 不同:<strong>多個<em>獨立</em>模型實例各自先答,再進行數輪辯論</strong>——每一輪都把「別人上一輪的答案與推理」給每個實例看,要它挑錯並修正自己的答案,最後取共識。</p>
+    <ul>
+      <li>經典配置:<strong>3 個代理 × 2 輪</strong>。</li>
+      <li>成效:比單一 Chain-of-Thought 高約 <strong>5–10 個百分點</strong>——例如 <strong>GSM8K 數學 ~77% → ~85%</strong>,並降低事實幻覺。</li>
+      <li>兩個增益來源:<strong>(a) 多個獨立起點</strong>(避免錨定)、<strong>(b) 跨輪互相糾錯</strong>。</li>
+    </ul>
+
+    <h3>兩者對照(一定要分清楚)</h3>
+    <table>
+      <thead><tr><th></th><th>SPP(單模型多角色)</th><th>多代理辯論</th></tr></thead>
+      <tbody>
+        <tr><td><strong>結構</strong></td><td>一個模型、一段脈絡,角色在內部對話</td><td>多個獨立實例,跨實例互批數輪</td></tr>
+        <tr><td><strong>多樣性</strong></td><td>較弱——共用同一顆「大腦」</td><td>較真——獨立起點、可用異質模型</td></tr>
+        <tr><td><strong>成本</strong></td><td>便宜(1×)、連貫</td><td>貴(N×(輪數+1))、需聚合規則</td></tr>
+        <tr><td><strong>何時用</strong></td><td>快速發想、日常決策</td><td>高風險、硬推理/事實題</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 4 -->
+  <section id="when">
+    <h2><span class="num">④</span> 何時有效,何時只是「確認劇場」</h2>
+    <p>誠實地說,多角色<strong>不是萬靈丹</strong>。文獻給的畫面是:</p>
+    <table>
+      <thead><tr><th style="color:var(--green)">✅ 最有效</th><th style="color:var(--error)">⚠️ 反而變差 / 浪費錢</th></tr></thead>
+      <tbody>
+        <tr><td>知識密集任務(多次檢視能抓出捏造)</td><td><strong>附和式坍縮:</strong>模型被訓練得討喜,辯論常「提早達成共識」——在自信但<em>錯誤</em>的同儕壓力下放棄<em>正確</em>答案(準確率反而隨輪數下降)</td></tr>
+        <tr><td>多步推理(獨立起點 + 互相糾錯修正算術/邏輯錯)</td><td><strong>雄辯勝過正確:</strong>裁判被流暢的說辭說服,而非被正確性說服</td></tr>
+        <tr><td>前沿能力模型(SPP 的湧現門檻)</td><td><strong>同質代理:</strong>同模型同提示,辯論只加成本不加多樣性</td></tr>
+        <tr><td>需要攤開取捨的開放決策</td><td><strong>確認劇場:</strong>看似對抗的角色,其實都在合理化一個<em>預設好</em>的結論</td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><strong>核心心法:</strong>價值來自<strong>「真正的多樣性 + 抵抗提早同意」</strong>,而不是聲音的<em>數量</em>。這也是本頁最想補的一塊——多數科普只講「找幾個角色來吵」,卻略過「怎麼防止他們最後禮貌地同意一個錯結論」(見 <a href="#anti">⑧ 抗附和設計</a>)。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="roster">
+    <h2><span class="num">⑤</span> 擴充角色庫:依決策類型選角(11+)</h2>
+    <p>下面每個角色都有<strong>不同的目標函數</strong>——這是它們「非冗餘」的關鍵。不要全部叫來;挑<strong>對這個決策而言誘因衝突最大的 3–5 個</strong>。</p>
+    <table>
+      <thead><tr><th>角色</th><th>目標函數(它為何非冗餘)</th><th>核心提問</th></tr></thead>
+      <tbody>
+        <tr><td><strong>🔬 第一性原理者</strong></td><td>把問題拆到物理/經濟/邏輯,從公理重建</td><td>忽略慣例與類比——<strong>什麼是<em>必然</em>成立的?</strong>從地基推,別從「大家都這樣做」推</td></tr>
+        <tr><td><strong>🧠 領域專家(SME)</strong></td><td>提供該領域的專業知識、術語、地雷</td><td>作為 20 年老手,<strong>內行知道、外行漏掉</strong>的是什麼?哪裡違反了業界標準做法?</td></tr>
+        <tr><td><strong>⚖️ 倫理審查</strong></td><td>保護「不在場的人」</td><td><strong>誰可能受害?</strong>二階/分配效應是什麼?我們把成本外部化給了誰?</td></tr>
+        <tr><td><strong>📊 數據度量分析師</strong></td><td>把方案變成可證偽的指標</td><td>怎麼<strong>知道</strong>它成功?定義指標、基線、目標、<strong>反指標</strong>(什麼會變好但真目標變壞)、要埋什麼數據</td></tr>
+        <tr><td><strong>✂️ 簡化者(奧坎剃刀)</strong></td><td>對抗複雜,找最小可行</td><td>能刪什麼?哪 20% 拿到 80%?<strong>有沒有無聊的現成方案?</strong>為「做更少」辯護</td></tr>
+        <tr><td><strong>📜 前例偵查(歷史學家)</strong></td><td>查這事有沒有人做過、怎麼死的</td><td>公司內外<strong>有沒有前例?</strong>上一次嘗試被什麼殺死?類似點子的墳場在說什麼?</td></tr>
+        <tr><td><strong>🛡️ 鋼鐵人(Steelman)</strong></td><td>建構<em>對立面最強</em>的版本</td><td><strong>強論證,別稻草人。</strong>用最聰明的支持者口吻,建立「反對本案/支持被否決方案」的最佳論述</td></tr>
+        <tr><td><strong>💰 客戶 / 上市(GTM)</strong></td><td>擁有「需求與收入」</td><td>作為客戶:這是<strong>止痛藥還是維他命?</strong>作為業務:一句話賣點?什麼異議會殺單?對手是誰?</td></tr>
+        <tr><td><strong>📕 法務 / 合規</strong></td><td>法規、合約、IP、隱私、責任曝險</td><td>碰到哪條法規/授權/ToS(GDPR、授權條款、產業規範)?最壞責任是什麼?最省力的合規路徑?</td></tr>
+        <tr><td><strong>🌙 營運 / SRE(半夜維運者)</strong></td><td>可靠度、on-call 負擔、長期維護</td><td>它在生產環境怎麼壞?<strong>半夜三點被叫起來看什麼?</strong>回滾、監控、雜務、五年養它的成本?</td></tr>
+        <tr><td><strong>🧮 財務 / 單位經濟</strong></td><td>單位與規模化下的錢算不算得過</td><td>每用戶/每筆成本、毛利、回本期?<strong>放大 100 倍還賺錢嗎?</strong>藏起來的 run-rate(算力/客服/基建)?</td></tr>
+        <tr><td><strong>📣 說書人 / 溝通者</strong><br><span style="color:var(--stone)">溝通重時加</span></td><td>讓不在場的人也聽得懂、記得住</td><td>濃縮成一個訊息、一條敘事弧、一個比喻。<strong>講不簡單,就還沒想清楚。</strong></td></tr>
+      </tbody>
+    </table>
+    <div class="callout info"><strong>選角範例(挑衝突最大的):</strong>
+    <ul style="margin-bottom:0;">
+      <li><strong>產品賭注:</strong>客戶/GTM + 營運/SRE + 財務 + 魔鬼代言人</li>
+      <li><strong>倫理敏感的發布:</strong>倫理審查 + 法務 + 數據度量 + 鋼鐵人</li>
+      <li><strong>技術設計:</strong>第一性原理 + 務實架構師 + 營運/SRE + 簡化者</li>
+    </ul></div>
+  </section>
+
+  <!-- 6 -->
+  <section id="hats">
+    <h2><span class="num">⑥</span> 兩個經典互補框架</h2>
+
+    <h3>de Bono 六頂思考帽</h3>
+    <p>de Bono(1985)的《六頂思考帽》強迫「一次只用一種思考模式」,得到<strong>平行思考</strong>而非爭吵。它剛好補上卡帕西陣容缺的<strong>「紅帽」——直覺/情緒</strong>通道,對讀「使用者與利害關係人的感受」特別有用。</p>
+    <div class="fig">
+      <svg viewBox="0 0 720 210" role="img" aria-label="六頂思考帽:白帽事實、紅帽情緒、黑帽謹慎、黃帽樂觀、綠帽創意、藍帽流程">
+        <defs><g id="hat"><ellipse cx="0" cy="34" rx="42" ry="10"/><path d="M-30,34 a30,30 0 0 1 60,0 Z"/></g></defs>
+        <g font-family="sans-serif" text-anchor="middle">
+          <g transform="translate(70,44)"><use href="#hat" fill="#e9e9e9" stroke="#b8b8b8" stroke-width="1.5"/></g>
+          <text x="70" y="112" font-size="12.5" font-weight="700" fill="#1a1a1a">白帽</text>
+          <text x="70" y="130" font-size="10" fill="#787671">事實 · 數據</text>
+          <text x="70" y="146" font-size="9.5" fill="#a4a097">我們知道什麼?</text>
+
+          <g transform="translate(200,44)"><use href="#hat" fill="#f5c0c0" stroke="#e03131" stroke-width="1.5"/></g>
+          <text x="200" y="112" font-size="12.5" font-weight="700" fill="#1a1a1a">紅帽</text>
+          <text x="200" y="130" font-size="10" fill="#787671">情緒 · 直覺</text>
+          <text x="200" y="146" font-size="9.5" fill="#a4a097">不必解釋的感受</text>
+
+          <g transform="translate(330,44)"><use href="#hat" fill="#4a4a4a" stroke="#222" stroke-width="1.5"/></g>
+          <text x="330" y="112" font-size="12.5" font-weight="700" fill="#1a1a1a">黑帽</text>
+          <text x="330" y="130" font-size="10" fill="#787671">謹慎 · 批判</text>
+          <text x="330" y="146" font-size="9.5" fill="#a4a097">風險與失敗</text>
+
+          <g transform="translate(460,44)"><use href="#hat" fill="#ffe08a" stroke="#e0a800" stroke-width="1.5"/></g>
+          <text x="460" y="112" font-size="12.5" font-weight="700" fill="#1a1a1a">黃帽</text>
+          <text x="460" y="130" font-size="10" fill="#787671">樂觀 · 效益</text>
+          <text x="460" y="146" font-size="9.5" fill="#a4a097">為何會成功</text>
+
+          <g transform="translate(590,44)"><use href="#hat" fill="#b6e3bf" stroke="#1aae39" stroke-width="1.5"/></g>
+          <text x="590" y="112" font-size="12.5" font-weight="700" fill="#1a1a1a">綠帽</text>
+          <text x="590" y="130" font-size="10" fill="#787671">創意 · 替代</text>
+          <text x="590" y="146" font-size="9.5" fill="#a4a097">還有什麼可能</text>
+
+          <g transform="translate(330,172)"><ellipse cx="0" cy="14" rx="44" ry="9" fill="#9cc4f0" stroke="#0075de" stroke-width="1.5"/><path d="M-31,14 a31,31 0 0 1 62,0 Z" fill="#9cc4f0" stroke="#0075de" stroke-width="1.5" transform="translate(0,-6)"/></g>
+        </g>
+        <text x="410" y="188" text-anchor="start" font-size="12.5" font-weight="700" fill="#1a1a1a" font-family="sans-serif">🔵 藍帽 = 指揮</text>
+        <text x="410" y="204" text-anchor="start" font-size="10" fill="#787671" font-family="sans-serif">不想問題,而是管理「思考的順序」與最終整合 = 整合協調官</text>
+      </svg>
+      <div class="figcap">▲ 五頂「內容帽」+ 一頂「流程帽」。藍帽 ≈ 整合者、黑帽 ≈ 魔鬼代言人、黃/綠 ≈ 願景、白 ≈ 數據度量;紅帽是卡帕西陣容原本沒有的情緒通道。</div>
+    </div>
+
+    <h3>紅隊 / 藍隊,與「對抗強度光譜」</h3>
+    <p>紅藍隊源於軍事與資安:<strong>藍隊</strong>在既定範圍內建構並防守;<strong>紅隊</strong>是專職對手,唯一目標就是<em>攻破它</em>,手段不設限。這個概念其實比電腦更古老——來自天主教會的 <em>advocatus diaboli</em>(魔鬼代言人),專門唱反調反對封聖候選人。</p>
+    <div class="fig">
+      <svg viewBox="0 0 720 128" role="img" aria-label="對抗強度光譜:從魔鬼代言人到鋼鐵人到紅隊，強度遞增">
+        <defs><linearGradient id="spec" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffd7a0"/><stop offset="0.5" stop-color="#ff9a5a"/><stop offset="1" stop-color="#e03131"/></linearGradient></defs>
+        <rect x="40" y="40" width="640" height="14" rx="7" fill="url(#spec)"/>
+        <g font-family="sans-serif" text-anchor="middle">
+          <circle cx="120" cy="47" r="8" fill="#fff" stroke="#dd5b00" stroke-width="2"/>
+          <text x="120" y="80" font-size="12" font-weight="700" fill="#1a1a1a">😈 魔鬼代言人</text>
+          <text x="120" y="97" font-size="9.5" fill="#787671">溫和、對話式挑洞</text>
+
+          <circle cx="360" cy="47" r="8" fill="#fff" stroke="#ff7a2f" stroke-width="2"/>
+          <text x="360" y="80" font-size="12" font-weight="700" fill="#1a1a1a">🛡️ 鋼鐵人</text>
+          <text x="360" y="97" font-size="9.5" fill="#787671">建構對立面最強論述</text>
+
+          <circle cx="600" cy="47" r="8" fill="#fff" stroke="#e03131" stroke-width="2"/>
+          <text x="600" y="80" font-size="12" font-weight="700" fill="#1a1a1a">💥 紅隊</text>
+          <text x="600" y="97" font-size="9.5" fill="#787671">帶「攻破任務」多向量攻擊</text>
+        </g>
+        <text x="360" y="122" text-anchor="middle" font-size="10" fill="#a4a097" font-family="sans-serif">關鍵鐵律:steelman，別 strawman——攻擊方案<tspan font-weight="700"> 最強</tspan> 的誠實版本，攻擊弱版本只是劇場</text>
+      </svg>
+      <div class="figcap">▲ 對抗不是只有一種強度。要真正有用,紅隊必須攻擊方案「最強的誠實版本」,並替被否決的替代方案 steelman;攻擊稻草人版本毫無價值。</div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section id="modes">
+    <h2><span class="num">⑦</span> 四種運作模式:怎麼實際跑</h2>
+    <div class="fig">
+      <svg viewBox="0 0 720 300" role="img" aria-label="四種運作模式：單訊息模擬 panel、輪流、平行後整合、多輪辯論">
+        <g font-family="sans-serif">
+          <!-- A single prompt -->
+          <text x="20" y="24" font-size="12.5" font-weight="700" fill="#5645d4">Ⓐ 單訊息模擬 panel</text>
+          <rect x="20" y="34" width="150" height="86" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.4"/>
+          <text x="95" y="58" text-anchor="middle" font-size="10.5" fill="#3a2a99" font-weight="700">1 次呼叫</text>
+          <text x="95" y="76" text-anchor="middle" font-size="9.5" fill="#5d5b54">模型內部扮演</text>
+          <text x="95" y="90" text-anchor="middle" font-size="9.5" fill="#5d5b54">全部角色→自己整合</text>
+          <text x="95" y="110" text-anchor="middle" font-size="9.5" fill="#1aae39" font-weight="700">成本 1× · 最快</text>
+
+          <!-- B sequential -->
+          <text x="200" y="24" font-size="12.5" font-weight="700" fill="#dd5b00">Ⓑ 輪流(round-robin)</text>
+          <g text-anchor="middle">
+            <rect x="200" y="42" width="42" height="30" rx="7" fill="#fff" stroke="#dd5b00"/><text x="221" y="61" font-size="11" fill="#1a1a1a">A</text>
+            <rect x="256" y="42" width="42" height="30" rx="7" fill="#fff" stroke="#dd5b00"/><text x="277" y="61" font-size="11" fill="#1a1a1a">B</text>
+            <rect x="312" y="42" width="42" height="30" rx="7" fill="#fff" stroke="#dd5b00"/><text x="333" y="61" font-size="11" fill="#1a1a1a">C</text>
+          </g>
+          <path d="M242,57 L254,57" stroke="#dd5b00" stroke-width="1.5" marker-end="url(#arrIn)"/>
+          <path d="M298,57 L310,57" stroke="#dd5b00" stroke-width="1.5" marker-end="url(#arrIn)"/>
+          <text x="277" y="92" text-anchor="middle" font-size="9.5" fill="#5d5b54">後者看到前者、逐層反應</text>
+          <text x="277" y="108" text-anchor="middle" font-size="9.5" fill="#dd5b00" font-weight="700">N× · 串行、慢</text>
+
+          <!-- C parallel then synth -->
+          <text x="380" y="24" font-size="12.5" font-weight="700" fill="#2a9d99">Ⓒ 平行 → 整合(推薦預設)</text>
+          <g text-anchor="middle">
+            <rect x="380" y="40" width="40" height="26" rx="6" fill="#fff" stroke="#2a9d99"/><text x="400" y="57" font-size="10" fill="#1a1a1a">A</text>
+            <rect x="380" y="72" width="40" height="26" rx="6" fill="#fff" stroke="#2a9d99"/><text x="400" y="89" font-size="10" fill="#1a1a1a">B</text>
+            <rect x="380" y="104" width="40" height="26" rx="6" fill="#fff" stroke="#2a9d99"/><text x="400" y="121" font-size="10" fill="#1a1a1a">C</text>
+            <rect x="470" y="72" width="56" height="26" rx="6" fill="#d9f3e1" stroke="#1aae39"/><text x="498" y="89" font-size="9.5" fill="#137a29" font-weight="700">整合</text>
+          </g>
+          <g stroke="#2a9d99" stroke-width="1.4" fill="none" marker-end="url(#arrIn)">
+            <path d="M420,53 L468,80"/><path d="M420,85 L468,85"/><path d="M420,117 L468,90"/>
+          </g>
+          <text x="453" y="118" text-anchor="middle" font-size="9.5" fill="#787671">各自獨立作答(不互看)</text>
+          <text x="453" y="132" text-anchor="middle" font-size="9.5" fill="#2a9d99" font-weight="700">多樣性最高 · 可並行、低延遲</text>
+
+          <!-- D debate -->
+          <text x="545" y="24" font-size="12.5" font-weight="700" fill="#7b3ff2">Ⓓ 多輪辯論</text>
+          <g text-anchor="middle">
+            <rect x="545" y="40" width="150" height="26" rx="6" fill="#fff" stroke="#7b3ff2"/><text x="620" y="57" font-size="9.5" fill="#1a1a1a">R1:各自獨立答</text>
+            <rect x="545" y="72" width="150" height="26" rx="6" fill="#ece4fb" stroke="#7b3ff2"/><text x="620" y="89" font-size="9.5" fill="#3a2a99">R2:看別人→挑錯→修正</text>
+            <rect x="545" y="104" width="150" height="26" rx="6" fill="#d9f3e1" stroke="#1aae39"/><text x="620" y="121" font-size="9.5" fill="#137a29" font-weight="700">共識 / 多數決</text>
+          </g>
+          <path d="M620,66 L620,72" stroke="#7b3ff2" stroke-width="1.4" marker-end="url(#arrIn)"/>
+          <path d="M620,98 L620,104" stroke="#7b3ff2" stroke-width="1.4" marker-end="url(#arrIn)"/>
+          <text x="620" y="150" text-anchor="middle" font-size="9.5" fill="#7b3ff2" font-weight="700">N×(輪數+1) · 最貴</text>
+
+          <!-- footer guidance -->
+          <rect x="20" y="176" width="676" height="104" rx="12" fill="#f6f5f4" stroke="#e5e3df"/>
+          <text x="34" y="200" font-size="11.5" font-weight="700" fill="#1a1a1a">選型建議</text>
+          <text x="34" y="222" font-size="10.5" fill="#5d5b54">· 預設用 Ⓒ 平行→整合:保留多樣性、延遲低,最像「顧問議會」。</text>
+          <text x="34" y="242" font-size="10.5" fill="#5d5b54">· 只有在「硬推理/事實題、值得糾錯」時才用 Ⓓ 辯論,並加上抗附和指令、輪數封頂在 2。</text>
+          <text x="34" y="262" font-size="10.5" fill="#5d5b54">· 日常快速發想用 Ⓐ 最划算。角色數量甜蜜點 3–5,超過 5–6 邊際遞減、成本近乎平方成長。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 四種拓撲的成本/多樣性/適用場景。注意:「多樣性顧問議會」的甜蜜點是 3–5 角色,別和「集成投票(對同一題投票,可到 10–40)」搞混——那是另一種技術。</div>
+    </div>
+    <h4>角色數量:3–5 是甜蜜點</h4>
+    <ul>
+      <li>低於 3 個,角度多樣性不足;超過 <strong>5–6</strong> 個進入<strong>邊際遞減</strong>——協調開銷、觀點重疊,整合者被淹沒。</li>
+      <li>擴展文獻一致:效能<strong>不隨代理數線性成長</strong>——先升、後平、再降;辯論的 token 成本<strong>約隨代理數平方成長</strong>。</li>
+      <li><strong>多樣性 &gt; 數量。</strong>異質代理(不同模型/提示/誘因)比「同一種的更多份」更值錢。</li>
+    </ul>
+    <h4>讓角色「真的不同」而非換皮</h4>
+    <ul>
+      <li><strong>不同目標函數:</strong>營運看 uptime、財務看毛利、GTM 看營收、倫理看避免傷害——KPI 衝突才會真的吵。</li>
+      <li><strong>不同資訊先驗與評分標準:</strong>告訴每個角色「你該注意什麼」「對你而言好答案是什麼」。</li>
+      <li><strong>強制異議:</strong>「你<em>必須</em>找到至少一個與其他角色實質不同意之處;全部同意就是失職。」</li>
+    </ul>
+  </section>
+
+  <!-- 8 -->
+  <section id="anti">
+    <h2><span class="num">⑧</span> 反模式與「抗附和」設計(最常被略過的一塊)</h2>
+    <p>多角色最大的失敗,是<strong>所有角色最後都禮貌地同意一個錯結論</strong>。針對每種失敗模式,都有對應的設計:</p>
+    <table>
+      <thead><tr><th>失敗模式</th><th>症狀</th><th>設計對策</th></tr></thead>
+      <tbody>
+        <tr><td><strong>附和 / 提早共識</strong></td><td>被自信但錯的同儕帶跑,放棄正確答案</td><td>要求<strong>每個角色登記一項異議</strong>;辯論前先保留「第一輪原始答案」;用多數決取代強迫共識;整合者<strong>權衡論證、不數人頭</strong></td></tr>
+        <tr><td><strong>聲音坍縮成一種</strong></td><td>所有角色講起來都一樣</td><td>不同誘因 + 不同評分標準;檢查每個輸出是否<strong>含有別人沒有的東西</strong></td></tr>
+        <tr><td><strong>確認劇場</strong></td><td>對抗只是表演,都在合理化預設結論</td><td>替<em>被否決</em>的選項 steelman;給紅隊真實「攻破任務」;<strong>寫方案的人</strong>和<strong>批評的角色</strong>分開</td></tr>
+        <tr><td><strong>過度樂觀偏誤</strong></td><td>議會整體偏正面</td><td>加重黑帽/營運/財務;要求一段「什麼會讓它失敗」;做<strong>事前驗屍(pre-mortem)</strong>:「一年後它失敗了,為什麼?」</td></tr>
+        <tr><td><strong>雄辯勝過正確</strong></td><td>流暢的錯誤論證獲勝</td><td>要求角色<strong>引用證據</strong>;整合者以<strong>可驗證性</strong>而非自信度評判</td></tr>
+        <tr><td><strong>成本與延遲</strong></td><td>辯論是 N×(輪數+1) 次呼叫</td><td>輪數封頂(2 輪通常夠);便宜情境用單訊息 SPP;<strong>只把完整辯論留給高風險決策</strong></td></tr>
+        <tr><td><strong>弱模型使用</strong></td><td>綜效根本沒湧現(SPP 發現)</td><td>多角色只在<strong>前沿模型</strong>上跑</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn"><strong>一句話記住抗附和:</strong>強迫每個角色「先獨立、後互看」,並明確允許它說「我<em>不</em>因為要合群而改答案」。禮貌地讓步,是被禁止的。</div>
+  </section>
+
+  <!-- 9 -->
+  <section id="templates">
+    <h2><span class="num">⑨</span> 可直接複製的 Prompt 範本</h2>
+
+    <h3>範本 (a):單訊息模擬議會(最便宜,SPP 式)</h3>
+    <pre><code>你是一個專家顧問議會,評估以下事項:&lt;決策 / 方案 / 問題&gt;。
+
+召集恰好 4 位顧問,每位有<span class="kw">互相衝突</span>的誘因。從下列中挑對這個問題
+最相關的 4 位:第一性原理者、領域專家、魔鬼代言人/紅隊、鋼鐵人、
+數據度量分析師、簡化者、倫理審查、營運/SRE、財務/單位經濟、
+客戶/GTM、前例偵查、法務/合規。
+
+每位顧問用自己的口吻給:
+- 立場:整體判斷(2–3 句)。
+- 關鍵點:2–4 個「只有我(基於我的誘因)才會提」的點。
+- 最強異議:最讓我擔心的那一件事。
+
+規則:
+- 每位顧問<span class="kw">必須</span>在某個實質點上與至少一位不同意。全體一致 = 失敗。
+- 不得重複別人的點;快重複時,換一個角度。
+- 引用具體事實/假設;猜測要標為猜測。
+
+然後扮演<span class="kw">整合者(藍帽)</span>。不要平均。產出:
+1. 同意 / 不同意 / 未解的張力。
+2. 優先級:P0(阻斷)、P1(重要)、P2(nice-to-have)。
+3. 行動清單,每項附「完成長什麼樣」。
+4. 你的建議(一句話)+ 它最大的單一風險。</code></pre>
+
+    <h3>範本 (b):多輪結構化辯論(硬題/高風險)</h3>
+    <pre><code>問題:&lt;問題&gt;
+
+進行 3 角色 × 2 輪辯論。角色:&lt;角色 A&gt;、&lt;角色 B&gt;、&lt;角色 C&gt;
+——為誘因衝突而選。
+
+第一輪 — 獨立(不准偷看):
+每個角色完整、獨立作答,展示推理並標信心(低/中/高)。此輪不得引用他人。
+
+第二輪 — 互批與修正:
+把另外兩人第一輪的答案給每個角色。每個角色必須:
+- 指出每個他人答案中<span class="kw">最強</span>的一點(steelman)。
+- 指出每個他人答案中最大的缺陷。
+- <span class="kw">只有</span>在被證據(非自信/語氣)真正說服時,才修改自己的答案。
+  若不同意,明確寫「我<span class="kw">不</span>改我的答案,因為……」。為合群而讓步 = 禁止。
+
+最終:
+報告哪裡收斂、哪裡仍分歧。若分歧,呈現雙方答案與各自證據,
+<span class="kw">不要</span>強迫假共識。給多數答案並註明異議。</code></pre>
+
+    <h3>範本 (c):整合者步驟(接在任何議會/辯論輸出之後)</h3>
+    <pre><code>你是整合者(藍帽)。以下是顧問/辯論輸出:
+&lt;貼上輸出&gt;
+
+你的工作是<span class="kw">裁決,不是平均</span>。依序產出:
+
+1. 帳本:每個不同的點一行,標註提出的顧問。一個都別漏。
+   標出兩位顧問互相矛盾的點。
+
+2. 張力:真正影響決策的 2–3 個分歧,以及各自賭在什麼上
+   (什麼條件成立時哪一方勝)。
+
+3. 優先級:
+   - P0 — 進行前必須解決(阻斷、致命傷)。
+   - P1 — 重要,盡快處理。
+   - P2 — 監控 / nice-to-have。
+
+4. 行動清單:每項寫成「[負責角色] 做 X;當 Y 可觀察/可量測時算完成」。
+
+5. 決策:一句話建議 + 最可能讓它出錯的單一風險 +
+   能最便宜降低該風險的一個測試。
+
+以<span class="kw">證據與可驗證性</span>加權,不以「幾個顧問說了」或「多自信」加權。</code></pre>
+    <div class="callout tip"><strong>用法提示:</strong>日常決策直接用 (a);高風險/會花大錢的決策用 (b) 跑一輪,再把結果丟給 (c) 收斂。三份範本都刻意內建了<strong>抗附和</strong>句(強制異議、禁止為合群讓步、以證據非自信加權)——這是它們和坊間版本最大的差異。</div>
+  </section>
+
+  <!-- 10 -->
+  <section id="sources">
+    <h2><span class="num">⑩</span> 來源</h2>
+    <ul>
+      <li>Wang et al., <em>Unleashing the Emergent Cognitive Synergy in LLMs(Solo Performance Prompting)</em> — <a href="https://arxiv.org/abs/2307.05300" target="_blank" rel="noopener">arXiv:2307.05300</a>(NAACL 2024)</li>
+      <li>Du et al., <em>Improving Factuality and Reasoning through Multiagent Debate</em> — <a href="https://arxiv.org/abs/2305.14325" target="_blank" rel="noopener">arXiv:2305.14325</a>(ICML 2024);Minsky《The Society of Mind》(1986)</li>
+      <li>附和/失敗模式:<em>Peacemaker or Troublemaker</em>(<a href="https://arxiv.org/abs/2509.23055" target="_blank" rel="noopener">arXiv:2509.23055</a>)、<em>Talk Isn't Always Cheap</em>(<a href="https://arxiv.org/abs/2509.05396" target="_blank" rel="noopener">arXiv:2509.05396</a>)</li>
+      <li>de Bono, <em>Six Thinking Hats</em>(1985)— <a href="https://en.wikipedia.org/wiki/Six_Thinking_Hats" target="_blank" rel="noopener">概述</a></li>
+      <li>紅隊/魔鬼代言人/鋼鐵人 — <a href="https://en.wikipedia.org/wiki/Red_team" target="_blank" rel="noopener">Red team</a>(源自 advocatus diaboli)</li>
+      <li>起點:Andrej Karpathy 分享的 5 角色腦力激盪範本(本頁在其上補學理、角色庫與抗附和設計)</li>
+    </ul>
+    <div class="related">
+      <a href="./ai-quality-docs.html">
+        <div class="rel-title">📝 讓 AI 產出高品質文件</div>
+        <div class="rel-sub">稽核 Agent · 可複製評分 Prompt</div>
+      </a>
+      <a href="./deepseek-harness-ideas.html">
+        <div class="rel-title">🧩 有別於一般 Agent 的思路</div>
+        <div class="rel-sub">多代理紀律的同源思考</div>
+      </a>
+      <a href="../skills/index.html">
+        <div class="rel-title">🛠️ Skills 專區</div>
+        <div class="rel-sub">把工作流封裝成可重用 Skill</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁整合公開論文與框架整理,非官方文件;論文數字(如 GSM8K 77→85%、3×2 配置、GPT-4 湧現門檻)以原論文為準,會隨後續研究更新。多角色是「決策輔助」工具,不取代真實使用者測試與領域專家。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
