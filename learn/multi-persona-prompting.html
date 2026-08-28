@@ -68,8 +68,8 @@
     section code { font-family: 'SF Mono', Menlo, monospace; }
 
     table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
-    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
-    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
     tr:hover td { background: #fbfbfa; }
 
     pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; }
@@ -82,8 +82,9 @@
     .diagram b { color: #ffcf9e; font-weight: 700; }
 
     .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; }
-    .fig svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
     .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
 
     .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
     .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
@@ -100,8 +101,26 @@
     .related .rel-title { color: var(--ink); font-weight: 700; }
     .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
 
-    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
-      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -158,6 +177,7 @@
     <p>單一 AI 回答一個開放問題時,有三個結構性弱點:<strong>(a) 過度樂觀</strong>——訓練成「有幫助、討喜」,傾向給正面、可行的答案;<strong>(b) 單一視角盲點</strong>——一次只從一個角度想,漏掉風險、成本、維運;<strong>(c) 缺乏內部異議</strong>——沒有人逼它為自己找碴。</p>
     <p>多角色的解法很直覺:<strong>把「一個聲音」拆成幾個<em>誘因不同</em>的聲音,再讓它們辯論。</strong>財務角色在意毛利、維運角色在意半夜被叫起來、使用者角色在意學習成本——它們的 KPI 天生衝突,於是自然吵起來,把單一回答藏起來的取捨攤開。最後由「整合者」吸收辯論、排優先級、輸出行動清單。</p>
     <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
       <svg viewBox="0 0 720 380" role="img" aria-label="多角色議會輻射圖:五個誘因不同的角色圍繞整合者，各自發言後由整合者裁決輸出行動清單">
         <defs>
           <marker id="arrIn" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker>
@@ -305,6 +325,7 @@
     <h3>de Bono 六頂思考帽</h3>
     <p>de Bono(1985)的《六頂思考帽》強迫「一次只用一種思考模式」,得到<strong>平行思考</strong>而非爭吵。它剛好補上卡帕西陣容缺的<strong>「紅帽」——直覺/情緒</strong>通道,對讀「使用者與利害關係人的感受」特別有用。</p>
     <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
       <svg viewBox="0 0 720 210" role="img" aria-label="六頂思考帽:白帽事實、紅帽情緒、黑帽謹慎、黃帽樂觀、綠帽創意、藍帽流程">
         <defs><g id="hat"><ellipse cx="0" cy="34" rx="42" ry="10"/><path d="M-30,34 a30,30 0 0 1 60,0 Z"/></g></defs>
         <g font-family="sans-serif" text-anchor="middle">
@@ -344,6 +365,7 @@
     <h3>紅隊 / 藍隊,與「對抗強度光譜」</h3>
     <p>紅藍隊源於軍事與資安:<strong>藍隊</strong>在既定範圍內建構並防守;<strong>紅隊</strong>是專職對手,唯一目標就是<em>攻破它</em>,手段不設限。這個概念其實比電腦更古老——來自天主教會的 <em>advocatus diaboli</em>(魔鬼代言人),專門唱反調反對封聖候選人。</p>
     <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
       <svg viewBox="0 0 720 128" role="img" aria-label="對抗強度光譜:從魔鬼代言人到鋼鐵人到紅隊，強度遞增">
         <defs><linearGradient id="spec" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffd7a0"/><stop offset="0.5" stop-color="#ff9a5a"/><stop offset="1" stop-color="#e03131"/></linearGradient></defs>
         <rect x="40" y="40" width="640" height="14" rx="7" fill="url(#spec)"/>
@@ -370,6 +392,7 @@
   <section id="modes">
     <h2><span class="num">⑦</span> 四種運作模式:怎麼實際跑</h2>
     <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
       <svg viewBox="0 0 720 300" role="img" aria-label="四種運作模式：單訊息模擬 panel、輪流、平行後整合、多輪辯論">
         <g font-family="sans-serif">
           <!-- A single prompt -->

@@ -71,8 +71,8 @@
     .clarify-tag { display: inline-block; background: var(--tint-yellow); color: var(--orange); border: 1px solid #f2d98a; font-size: 0.66rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
 
     table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
-    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
-    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
     tr:hover td { background: #fbfbfa; }
 
     pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
@@ -80,9 +80,10 @@
     pre .kw { color: #ffcf9e; }
     p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
 
-    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; }
-    .fig svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
     .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
 
     .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
     .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
@@ -99,8 +100,27 @@
     .related .rel-title { color: var(--ink); font-weight: 700; }
     .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
 
-    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
-      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }        /* keep diagram text legible; scroll inside .fig instead of shrinking */
+      .fig .scroll-hint { display: block; }
+      .clarify-tag { display: inline-block; margin-top: 4px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -159,6 +179,7 @@
     <p>他把它命名為<strong>「驗證不對稱性(Verifiability Law)」</strong>:</p>
     <div class="callout warn"><strong>AI 讓「生成」變得極度便宜,但「驗證」卻依然異常昂貴。</strong>你可以三秒生出一段代碼、一個回答、一個方案;但要<em>確認它真的對</em>,還是得慢慢看、慢慢試、慢慢比。生成與驗證的成本,被 AI 拉開成一道巨大的鴻溝。</div>
     <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
       <svg viewBox="0 0 720 210" role="img" aria-label="驗證不對稱性：AI 把生成成本壓到接近零，但驗證成本幾乎不變，仍然很高">
         <g font-family="sans-serif">
           <text x="20" y="34" font-size="12.5" font-weight="700" fill="#1a1a1a">生成成本 Generation</text>
@@ -226,6 +247,7 @@
       <li><strong>前端 = 純監控介面。</strong>只讀後端暴露出來的狀態、渲染給人看。它是<strong>唯讀、可有可無、不在測試的關鍵路徑上</strong>。</li>
     </ul>
     <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
       <svg viewBox="0 0 720 360" role="img" aria-label="前後端分離前後對比：改造前 Web UI 糾纏、需人肉介入；改造後 headless CLI 後端暴露狀態、前端純監控、測試腳本可自動跑百次">
         <g font-family="sans-serif">
           <!-- BEFORE -->
@@ -320,6 +342,7 @@
     <h3>關鍵:MCP 和 ACI 是「兩個獨立的軸」</h3>
     <p>MCP 管「插頭標不標準、能不能到處插」;ACI 管「插上去的工具本身設計得好不好」。這兩件事互不保證:</p>
     <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
       <svg viewBox="0 0 560 440" role="img" aria-label="MCP 與 ACI 是兩個獨立的軸的四象限圖：横軸為是否標準可重用(MCP)，縱軸為對 agent 是否好用(ACI)">
         <g font-family="sans-serif">
           <!-- axes -->
@@ -363,6 +386,7 @@
     <h2><span class="num">⑥</span> 雙層裁判機制:怎麼自動判「對不對」<span class="clarify-tag">講清楚</span></h2>
     <p>難點:agent 的輸出是<strong>自然語言、有模糊性</strong>,同一輸入跑兩次字句可能不同,<code>assert output == "expected"</code> 直接失效。解法是把「判斷」拆成兩層,各司其職。</p>
     <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
       <svg viewBox="0 0 720 300" role="img" aria-label="雙層裁判：輸出分流到確定性斷言層與 LLM 裁判層，合成一個分數餵進回歸測試">
         <g font-family="sans-serif">
           <rect x="20" y="120" width="120" height="56" rx="10" fill="#0a1530"/>
@@ -429,6 +453,7 @@
     <h2><span class="num">⑧</span> 全自動開發閉環</h2>
     <p>把前面所有零件接起來,就得到一條<strong>不需要人盯著的開發迴圈</strong>。Coding Agent(如 Codex / Claude Code)開發一個功能時,依序完成:</p>
     <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
       <svg viewBox="0 0 720 320" role="img" aria-label="全自動開發閉環：設計測試與驗收→建 Feature Flag→寫功能碼→跑回歸(斷言+LLM裁判)→依評分自我修正，工程師只定義何謂正確">
         <defs><marker id="loop" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#5645d4"/></marker></defs>
         <g font-family="sans-serif" text-anchor="middle">
