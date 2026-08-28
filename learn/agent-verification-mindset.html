@@ -121,6 +121,12 @@
       .clarify-tag { display: inline-block; margin-top: 4px; }
     }
     @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+    @media (max-width: 640px) {
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
   </style>
 </head>
 <body>
@@ -220,7 +226,7 @@
 
     <h3>晶片驗證的招式,幾乎一對一對應到 Agent</h3>
     <p>影片後半的斷言層、雙層裁判、回歸測試,其實全是晶片驗證的老詞:</p>
-    <table>
+    <div class="table-wrap"><table>
       <thead><tr><th>晶片驗證</th><th>對應到 AI Agent</th><th>在乎什麼</th></tr></thead>
       <tbody>
         <tr><td><strong>Assertion(SVA 斷言)</strong></td><td>確定性斷言層</td><td>硬性規則:某狀態<strong>必須</strong>成立(工具有沒有正確觸發、中繼狀態對不對),零成本、絕對可靠</td></tr>
@@ -229,7 +235,7 @@
         <tr><td><strong>Regression suite 回歸測試</strong></td><td>自動回歸 + Feature Flag 對比</td><td>每次改動都重跑,確保「本來會的,現在沒退步」</td></tr>
         <tr><td><strong>Design-for-Test 可測試性設計</strong></td><td>前後端分離、暴露中間狀態</td><td><strong>刻意把系統設計成「可被觀察、可被驗證」的樣子</strong></td></tr>
       </tbody>
-    </table>
+    </table></div>
     <div class="callout tip"><strong>最容易被漏掉、卻最重要的一點——DFT(Design for Test)。</strong>晶片工程師不會等設計做完才想怎麼測;他們在設計當下就刻意加進 scan chain、測試點、觀測 hook,讓晶片<em>天生就能被探測</em>。搬到 Agent:原本為「人的眼睛」設計的 Web UI 把內部狀態藏在畫面背後,只能人肉盯;<strong>改造成 headless CLI + 暴露每一步狀態,就是 Agent 版的 DFT</strong>——先讓它「可被驗證」,自動化驗證才可能存在。這一步是後面一切自動化的前提(下一節)。</div>
   </section>
 
@@ -312,7 +318,7 @@
     </ul>
 
     <h3>ACI 的四條設計原則</h3>
-    <table>
+    <div class="table-wrap"><table>
       <thead><tr><th>原則</th><th>具體做法</th></tr></thead>
       <tbody>
         <tr><td><strong>① 動作要簡單、好懂</strong></td><td>別照抄人類工具。「效率」重於「熟悉感」,為 agent 量身做指令</td></tr>
@@ -320,7 +326,7 @@
         <tr><td><strong>③ 內建護欄、能防錯也能回復</strong></td><td>編輯前先跑 <strong>linter</strong>:語法不對的修改<strong>直接擋下</strong>、回傳精確錯誤(這一項就 +3 個百分點)</td></tr>
         <tr><td><strong>④ 專為 agent 打造的編輯/搜尋</strong></td><td>給它 <code>open</code>、會捲動的視窗檢視器、限定行段的 <code>edit</code>、<code>find_file</code>/<code>search_file</code>——而不是叫它駕馭 <code>sed</code>/<code>grep</code>/<code>vim</code></td></tr>
       </tbody>
-    </table>
+    </table></div>
     <div class="callout tip"><strong>最震撼的實驗:</strong>論文做對照,<strong>同一個模型(GPT-4 Turbo)</strong>,只把接口從「原始 bash」換成「設計良好的 ACI 工具」,SWE-bench 分數<strong>大約翻倍</strong>。轉述其主旨(非原文逐字):<strong>「好好設計 agent 的接口,效果可以跟換一顆更強的模型一樣大、甚至更大。」</strong>——這就是影片說「良好接口的影響甚至超越更換更強模型」的來源。</div>
   </section>
 
@@ -330,14 +336,14 @@
     <p>很多人一聽「暴露工具給 agent」就想到 <strong>MCP(Model Context Protocol)</strong>,然後把 ACI、CLI、MCP 混成一團。其實<strong>它們回答的是不同問題</strong>,而且是<strong>正交的兩件事</strong>。</p>
 
     <h3>先各自定義</h3>
-    <table>
+    <div class="table-wrap"><table>
       <thead><tr><th></th><th>它回答什麼問題</th><th>本質</th></tr></thead>
       <tbody>
         <tr><td><strong>MCP</strong></td><td>「工具<em>怎麼插上去</em>、怎麼被不同 agent/客戶端<em>重用</em>?」</td><td><strong>整合/互通標準</strong>(Anthropic 2024/11 推出,JSON-RPC 2.0;host/client/server;server 暴露 tools/resources/prompts)</td></tr>
         <tr><td><strong>ACI</strong></td><td>「這個工具對 agent <em>好不好用</em>?」</td><td><strong>設計/品質原則</strong>(輸出簡潔?有護欄?錯誤訊息有用?編輯器是為 agent 做的?)</td></tr>
         <tr><td><strong>CLI</strong></td><td>「後端<em>怎麼被跑起來、被觀察</em>?」</td><td>一種<strong>載體</strong>——無頭可跑、狀態外露,便於腳本化與斷言</td></tr>
       </tbody>
-    </table>
+    </table></div>
 
     <h3>關鍵:MCP 和 ACI 是「兩個獨立的軸」</h3>
     <p>MCP 管「插頭標不標準、能不能到處插」;ACI 管「插上去的工具本身設計得好不好」。這兩件事互不保證:</p>
@@ -503,7 +509,7 @@
     <h2><span class="num">⑨</span> debug 的差別:舊 vs 新,以及 CLI vs MCP<span class="clarify-tag">講清楚</span></h2>
 
     <h3>A. 開發者的 debug:從「肉眼看」到「系統量」</h3>
-    <table>
+    <div class="table-wrap"><table>
       <thead><tr><th></th><th>舊做法(人肉)</th><th>新做法(自動化驗證)</th></tr></thead>
       <tbody>
         <tr><td><strong>怎麼發現壞了</strong></td><td>開網頁、餵資料、肉眼判斷「好像變差了」</td><td>斷言層<strong>秒抓</strong>硬性錯誤;LLM 裁判給出<strong>分數下降</strong></td></tr>
@@ -512,11 +518,11 @@
         <tr><td><strong>會不會退步</strong></td><td>常常沒發現,直到使用者踩到</td><td>回歸測試<strong>當場擋下</strong></td></tr>
         <tr><td><strong>工程師在 debug 什麼</strong></td><td>盯著螢幕 debug <em>代碼</em></td><td>debug <em>驗收標準的定義</em>(Validation Benchmark)</td></tr>
       </tbody>
-    </table>
+    </table></div>
 
     <h3>B. 底層的 debug:純 CLI vs 走 MCP</h3>
     <p>還有一層常被混淆:當工具是「<strong>行程內的 CLI 調用</strong>」 vs 「<strong>藏在 MCP server 後面</strong>」,debug 的難度不一樣。</p>
-    <table>
+    <div class="table-wrap"><table>
       <thead><tr><th></th><th>純 CLI / 行程內(狀態外露)</th><th>走 MCP(獨立 server + JSON-RPC)</th></tr></thead>
       <tbody>
         <tr><td><strong>邊界數</strong></td><td>一個行程、一條 log、一個 stack trace</td><td>多一道<strong>跨行程 + 協定邊界</strong>(client / 傳輸 / server 三段)</td></tr>
@@ -524,7 +530,7 @@
         <tr><td><strong>怎麼看內部</strong></td><td>直接讀 stdout / log / 檔案,<code>grep</code>/<code>jq</code> 就好</td><td>常要專用工具 <strong>MCP Inspector</strong> 才看得到 client↔server 的 JSON-RPC 訊息</td></tr>
         <tr><td><strong>重現/歸因</strong></td><td>單行程,好固定、好重跑</td><td>server 是長命的獨立行程、有自己狀態,較難快照與重置;失敗要<strong>對照兩邊 log</strong>才能定位</td></tr>
       </tbody>
-    </table>
+    </table></div>
     <div class="callout warn"><strong>一個經典坑(stdio MCP):</strong><code>stdout</code> 被保留給 JSON-RPC 訊息,<strong>所有除錯 log 必須印到 <code>stderr</code></strong>。不小心 <code>print</code> 到 stdout,就會污染串流、在 Inspector 裡變成一堆 JSON 解析錯誤。</div>
     <div class="callout info"><strong>結論(呼應第⑤節):</strong>MCP 買到的是「工具可跨客戶端重用」,代價是多一道協定邊界、多幾種失敗面。對「建一個能自我拷問的緊密測試閉環」而言,<strong>純 CLI + 狀態外露的 debug 摩擦更小</strong>;MCP 的價值在「一個工具給很多 agent 共用」。兩者不衝突,理想是把好 ACI 透過 MCP 提供,並用 Inspector 補上那道邊界的可觀察性。</div>
   </section>

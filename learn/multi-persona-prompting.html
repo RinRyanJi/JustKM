@@ -121,6 +121,12 @@
       .fig .scroll-hint { display: block; }
     }
     @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+    @media (max-width: 640px) {
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
   </style>
 </head>
 <body>
@@ -227,7 +233,7 @@
   <section id="base">
     <h2><span class="num">②</span> 卡帕西的 5 角色(基礎陣容)</h2>
     <p>這是很好的預設五人組——涵蓋「發散→收斂→挑錯→校準→整合」的完整弧線。把每個角色的<strong>職責邊界</strong>講死,是它能運作的關鍵:</p>
-    <table>
+    <div class="table-wrap"><table>
       <thead><tr><th>角色</th><th>職責</th><th>核心提問</th></tr></thead>
       <tbody>
         <tr><td><strong>🌱 願景開拓者</strong><br><span style="color:var(--stone)">Visionary</span></td><td>極大化發散與創新</td><td>若無任何限制,這概念的<strong>終極形態</strong>是什麼?能創造哪些非對稱價值或顛覆體驗?</td></tr>
@@ -236,7 +242,7 @@
         <tr><td><strong>🙋 終端使用者代表</strong><br><span style="color:var(--stone)">User Advocate</span></td><td>真實體驗、痛點校準</td><td>學習成本會不會太高?流程反直覺嗎?<strong>是真解痛點,還是只是自嗨?</strong></td></tr>
         <tr><td><strong>🧭 執行協調官</strong><br><span style="color:var(--stone)">Synthesizer</span></td><td>整合衝突、權衡、出路線圖</td><td>吸收前四者辯論精華,剔除不可行項,排<strong>P0/P1/P2</strong>,產出 Action Items。</td></tr>
       </tbody>
-    </table>
+    </table></div>
     <div class="callout tip"><strong>為什麼這五個是好起點:</strong>它們的誘因天生衝突——願景要大、架構師要能做、魔鬼要它死、使用者要它好用。有衝突才有真辯論。但這套陣容有兩個缺口:<strong>沒有「怎麼衡量成功」的度量角色,也沒有「誰半夜維運它」的營運角色</strong>——這正是下面角色庫要補的。</div>
   </section>
 
@@ -262,7 +268,7 @@
     </ul>
 
     <h3>兩者對照(一定要分清楚)</h3>
-    <table>
+    <div class="table-wrap"><table>
       <thead><tr><th></th><th>SPP(單模型多角色)</th><th>多代理辯論</th></tr></thead>
       <tbody>
         <tr><td><strong>結構</strong></td><td>一個模型、一段脈絡,角色在內部對話</td><td>多個獨立實例,跨實例互批數輪</td></tr>
@@ -270,14 +276,14 @@
         <tr><td><strong>成本</strong></td><td>便宜(1×)、連貫</td><td>貴(N×(輪數+1))、需聚合規則</td></tr>
         <tr><td><strong>何時用</strong></td><td>快速發想、日常決策</td><td>高風險、硬推理/事實題</td></tr>
       </tbody>
-    </table>
+    </table></div>
   </section>
 
   <!-- 4 -->
   <section id="when">
     <h2><span class="num">④</span> 何時有效,何時只是「確認劇場」</h2>
     <p>誠實地說,多角色<strong>不是萬靈丹</strong>。文獻給的畫面是:</p>
-    <table>
+    <div class="table-wrap"><table>
       <thead><tr><th style="color:var(--green)">✅ 最有效</th><th style="color:var(--error)">⚠️ 反而變差 / 浪費錢</th></tr></thead>
       <tbody>
         <tr><td>知識密集任務(多次檢視能抓出捏造)</td><td><strong>附和式坍縮:</strong>模型被訓練得討喜,辯論常「提早達成共識」——在自信但<em>錯誤</em>的同儕壓力下放棄<em>正確</em>答案(準確率反而隨輪數下降)</td></tr>
@@ -285,7 +291,7 @@
         <tr><td>前沿能力模型(SPP 的湧現門檻)</td><td><strong>同質代理:</strong>同模型同提示,辯論只加成本不加多樣性</td></tr>
         <tr><td>需要攤開取捨的開放決策</td><td><strong>確認劇場:</strong>看似對抗的角色,其實都在合理化一個<em>預設好</em>的結論</td></tr>
       </tbody>
-    </table>
+    </table></div>
     <div class="callout"><strong>核心心法:</strong>價值來自<strong>「真正的多樣性 + 抵抗提早同意」</strong>,而不是聲音的<em>數量</em>。這也是本頁最想補的一塊——多數科普只講「找幾個角色來吵」,卻略過「怎麼防止他們最後禮貌地同意一個錯結論」(見 <a href="#anti">⑧ 抗附和設計</a>)。</div>
   </section>
 
@@ -293,7 +299,7 @@
   <section id="roster">
     <h2><span class="num">⑤</span> 擴充角色庫:依決策類型選角(11+)</h2>
     <p>下面每個角色都有<strong>不同的目標函數</strong>——這是它們「非冗餘」的關鍵。不要全部叫來;挑<strong>對這個決策而言誘因衝突最大的 3–5 個</strong>。</p>
-    <table>
+    <div class="table-wrap"><table>
       <thead><tr><th>角色</th><th>目標函數(它為何非冗餘)</th><th>核心提問</th></tr></thead>
       <tbody>
         <tr><td><strong>🔬 第一性原理者</strong></td><td>把問題拆到物理/經濟/邏輯,從公理重建</td><td>忽略慣例與類比——<strong>什麼是<em>必然</em>成立的?</strong>從地基推,別從「大家都這樣做」推</td></tr>
@@ -309,7 +315,7 @@
         <tr><td><strong>🧮 財務 / 單位經濟</strong></td><td>單位與規模化下的錢算不算得過</td><td>每用戶/每筆成本、毛利、回本期?<strong>放大 100 倍還賺錢嗎?</strong>藏起來的 run-rate(算力/客服/基建)?</td></tr>
         <tr><td><strong>📣 說書人 / 溝通者</strong><br><span style="color:var(--stone)">溝通重時加</span></td><td>讓不在場的人也聽得懂、記得住</td><td>濃縮成一個訊息、一條敘事弧、一個比喻。<strong>講不簡單,就還沒想清楚。</strong></td></tr>
       </tbody>
-    </table>
+    </table></div>
     <div class="callout info"><strong>選角範例(挑衝突最大的):</strong>
     <ul style="margin-bottom:0;">
       <li><strong>產品賭注:</strong>客戶/GTM + 營運/SRE + 財務 + 魔鬼代言人</li>
@@ -468,7 +474,7 @@
   <section id="anti">
     <h2><span class="num">⑧</span> 反模式與「抗附和」設計(最常被略過的一塊)</h2>
     <p>多角色最大的失敗,是<strong>所有角色最後都禮貌地同意一個錯結論</strong>。針對每種失敗模式,都有對應的設計:</p>
-    <table>
+    <div class="table-wrap"><table>
       <thead><tr><th>失敗模式</th><th>症狀</th><th>設計對策</th></tr></thead>
       <tbody>
         <tr><td><strong>附和 / 提早共識</strong></td><td>被自信但錯的同儕帶跑,放棄正確答案</td><td>要求<strong>每個角色登記一項異議</strong>;辯論前先保留「第一輪原始答案」;用多數決取代強迫共識;整合者<strong>權衡論證、不數人頭</strong></td></tr>
@@ -479,7 +485,7 @@
         <tr><td><strong>成本與延遲</strong></td><td>辯論是 N×(輪數+1) 次呼叫</td><td>輪數封頂(2 輪通常夠);便宜情境用單訊息 SPP;<strong>只把完整辯論留給高風險決策</strong></td></tr>
         <tr><td><strong>弱模型使用</strong></td><td>綜效根本沒湧現(SPP 發現)</td><td>多角色只在<strong>前沿模型</strong>上跑</td></tr>
       </tbody>
-    </table>
+    </table></div>
     <div class="callout warn"><strong>一句話記住抗附和:</strong>強迫每個角色「先獨立、後互看」,並明確允許它說「我<em>不</em>因為要合群而改答案」。禮貌地讓步,是被禁止的。</div>
   </section>
 
