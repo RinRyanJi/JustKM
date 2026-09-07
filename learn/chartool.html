@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>CharTool:給多模態模型掛「工具」的圖表推理(2026)· JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>📊 CharTool:給多模態模型掛「工具」的圖表推理</h1>
+    <p class="sub">2026 · 上海交大 X-LANCE · 一個 7B 小模型,靠「該切圖時切圖、該寫程式時寫程式」的智慧體策略,在複雜圖表推理上媲美甚至打敗大數十倍的閉源大模型</p>
+    <div>
+      <span class="badge blue">工具整合視覺推理</span>
+      <span class="badge green">裁剪放大 + Python 執行</span>
+      <span class="badge orange">Agentic RL · 以小博大</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#pain">① 兩個痛點</a>
+      <a href="#tools">② 核心:掛兩個外部工具</a>
+      <a href="#agentic">③ 決策與訓練:Agentic RL</a>
+      <a href="#results">④ 以小博大:評測數字</a>
+      <a href="#situate">⑤ 定位:同期工作光譜</a>
+      <a href="#steal">⑥ 值得偷師的思路</a>
+      <a href="#sources">⑦ 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>CharTool 不是「更大的看圖模型」,而是「會用工具看圖的智慧體」。</strong>它把一個 7B 的多模態模型(Qwen2.5-VL)改造成 agent:遇到細小刻度看不清,就<strong>主動裁剪放大</strong>局部;遇到數值比較/累加/比率,就<strong>寫 Python 交給解釋器算</strong>,而不是用參數硬湊。透過雙源數據集 DuoChart + 強化學習,模型自己學會「何時該切圖、何時該寫碼、何時直接答」。</p>
+    <div class="callout info"><strong>為什麼收進 JustKM:</strong>它是「<strong>工具整合視覺推理(tool-integrated visual reasoning)</strong>」的一個乾淨範例——把大模型的兩個老毛病(看不清細節、算術會幻覺)用「按需採樣 + 數值程式化」兩把工具解掉。這套「與其把模型做大,不如教它用對工具」的思路,遠不只用在圖表。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="pain">
+    <h2><span class="num">①</span> 兩個痛點:大模型看複雜圖表為什麼會錯</h2>
+    <p>多模態大模型(MLLM)直接「看」一張複雜圖表時,常在兩個地方翻車:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>痛點</th><th>為什麼會發生</th><th>典型錯誤</th></tr></thead>
+      <tbody>
+        <tr><td><strong>👁️ 看不清細節</strong></td><td>高密度、多子圖、字體極小的區域,被壓進固定解析度輸入後,細小刻度/標籤的像素資訊直接<strong>丟失</strong></td><td>讀錯座標軸數字、認錯圖例、把兩條靠近的線看混</td></tr>
+        <tr><td><strong>🧮 數值計算幻覺</strong></td><td>比較、累加、比率、趨勢這類運算,靠模型參數「心算」,本質是<strong>用機率生成數字</strong>,不是真的在算</td><td>加總算錯、比率算反、「A 比 B 多幾%」給出一個看似合理但錯的數</td></tr>
+      </tbody>
+    </table></div>
+    <p>關鍵洞察:<strong>這兩件事,大模型再大也不容易根治</strong>——前者是輸入解析度的物理限制,後者是「生成」與「計算」的本質差異。與其堆參數,不如給它「放大鏡」和「計算機」。</p>
+  </section>
+
+  <!-- 2 -->
+  <section id="tools">
+    <h2><span class="num">②</span> 核心機制:給模型掛兩個外部工具</h2>
+    <p>CharTool 用<strong>智慧體(Agent)架構</strong>,讓模型在「邊想邊做」的過程中,按需呼叫兩個外部工具,把工具回傳的結果(放大後的圖塊 / 程式輸出)再餵回去繼續推理。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 340" role="img" aria-label="CharTool 架構：MLLM 邊推理邊呼叫裁剪放大工具與 Python 執行工具，觀察結果回饋後給出答案">
+        <defs>
+          <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker>
+          <marker id="arrb" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#2a9d99"/></marker>
+        </defs>
+        <g font-family="sans-serif">
+          <!-- input -->
+          <rect x="20" y="140" width="118" height="60" rx="10" fill="#0a1530"/>
+          <text x="79" y="165" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">圖表 + 問題</text>
+          <text x="79" y="184" text-anchor="middle" font-size="9" fill="#9fb0d0">chart + question</text>
+
+          <!-- MLLM core -->
+          <rect x="270" y="120" width="180" height="100" rx="14" fill="#5645d4"/>
+          <text x="360" y="150" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">MLLM 智慧體</text>
+          <text x="360" y="170" text-anchor="middle" font-size="9.5" fill="#d7d2f5">Qwen2.5-VL(3B / 7B)</text>
+          <text x="360" y="190" text-anchor="middle" font-size="9.5" fill="#d7d2f5">邊推理 · 邊決定要不要用工具</text>
+          <text x="360" y="207" text-anchor="middle" font-size="9" fill="#b7aeea">reason ↔ act ↔ observe</text>
+
+          <path d="M138,170 L268,170" stroke="#8a93ad" stroke-width="1.8" marker-end="url(#arr)"/>
+
+          <!-- tool 1 -->
+          <rect x="520" y="40" width="180" height="82" rx="12" fill="#fff" stroke="#dd5b00" stroke-width="1.6"/>
+          <text x="610" y="64" text-anchor="middle" font-size="12" font-weight="800" fill="#b34700">🔍 局部裁剪放大</text>
+          <text x="610" y="82" text-anchor="middle" font-size="9" fill="#8a4a1a">Image Cropping / Zoom</text>
+          <text x="610" y="100" text-anchor="middle" font-size="9" fill="#8a4a1a">切出細小區域、放大再看</text>
+
+          <!-- tool 2 -->
+          <rect x="520" y="218" width="180" height="82" rx="12" fill="#fff" stroke="#7b3ff2" stroke-width="1.6"/>
+          <text x="610" y="242" text-anchor="middle" font-size="12" font-weight="800" fill="#3a2a99">🐍 Python 代碼執行</text>
+          <text x="610" y="260" text-anchor="middle" font-size="9" fill="#4a3a8a">Code-based Computation</text>
+          <text x="610" y="278" text-anchor="middle" font-size="9" fill="#4a3a8a">生成腳本交解釋器算</text>
+
+          <!-- call arrows -->
+          <path d="M450,150 C485,120 490,95 518,85" stroke="#dd5b00" stroke-width="1.8" fill="none" marker-end="url(#arr)"/>
+          <path d="M450,190 C485,225 490,250 518,258" stroke="#7b3ff2" stroke-width="1.8" fill="none" marker-end="url(#arr)"/>
+          <!-- observation return -->
+          <path d="M518,105 C470,140 460,150 452,158" stroke="#2a9d99" stroke-width="1.5" stroke-dasharray="4 3" fill="none" marker-end="url(#arrb)"/>
+          <path d="M518,238 C470,205 460,195 452,186" stroke="#2a9d99" stroke-width="1.5" stroke-dasharray="4 3" fill="none" marker-end="url(#arrb)"/>
+          <text x="500" y="135" font-size="8.5" fill="#2a9d99">放大圖回饋</text>
+          <text x="500" y="212" font-size="8.5" fill="#2a9d99">算出的值回饋</text>
+
+          <!-- answer -->
+          <rect x="285" y="270" width="150" height="46" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+          <text x="360" y="292" text-anchor="middle" font-size="11.5" font-weight="800" fill="#137a29">✓ 最終答案</text>
+          <text x="360" y="308" text-anchor="middle" font-size="8.5" fill="#2f6b40">基於工具結果，非硬猜</text>
+          <path d="M360,220 L360,268" stroke="#1aae39" stroke-width="1.8" fill="none" marker-end="url(#arrb)"/>
+        </g>
+      </svg>
+      <div class="figcap">▲ 虛線是工具回傳的「觀察」——放大後的圖塊、或程式算出的數值——再回饋進模型繼續推理。兩個工具還能<strong>鏈式使用</strong>:先切圖讀出數值,再寫程式拿這些數值去算。</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>工具</th><th>解決哪個痛點</th><th>怎麼做</th></tr></thead>
+      <tbody>
+        <tr><td><strong>🔍 局部裁剪放大</strong></td><td>看不清細節</td><td>遇到高密度/多子圖/極小字體區域,主動呼叫裁剪工具把<strong>局部圖塊提取並放大</strong>傳入,補回丟失的視覺解析度</td></tr>
+        <tr><td><strong>🐍 Python 代碼執行</strong></td><td>數值計算幻覺</td><td>比較/累加/比率/趨勢等運算,<strong>生成 Python 腳本交由解釋器執行</strong>,確保算術 100% 精確,而非用參數硬算</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 3 -->
+  <section id="agentic">
+    <h2><span class="num">③</span> 決策與訓練:讓模型學會「何時用哪個工具」</h2>
+    <p>掛上工具只是第一步。真正難的是:<strong>模型要自己判斷「這一題,該切圖?該寫碼?還是直接答就好?」</strong>亂用工具反而拖慢又出錯。CharTool 靠訓練把這個「工具使用策略」學起來。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 300" role="img" aria-label="決策流程：面對圖表問題，判斷是否需要看清細節、是否需要數值計算，選擇切圖、寫程式、鏈式或直接回答">
+        <defs><marker id="d1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif" text-anchor="middle">
+          <rect x="20" y="128" width="120" height="46" rx="10" fill="#0a1530"/>
+          <text x="80" y="155" font-size="11" font-weight="700" fill="#fff">圖表問題進來</text>
+
+          <!-- decision 1 -->
+          <path d="M255,150 L200,120 L255,90 L310,120 Z" fill="#fff3d6" stroke="#e0a800" stroke-width="1.4"/>
+          <text x="255" y="116" font-size="9.5" fill="#8a6a00">細節</text>
+          <text x="255" y="130" font-size="9.5" fill="#8a6a00">看不清?</text>
+          <path d="M140,151 C170,140 175,130 198,124" stroke="#8a93ad" stroke-width="1.6" fill="none" marker-end="url(#d1)"/>
+
+          <!-- crop -->
+          <rect x="360" y="18" width="150" height="44" rx="10" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.4"/>
+          <text x="435" y="38" font-size="10.5" font-weight="700" fill="#b34700">🔍 切圖放大</text>
+          <text x="435" y="53" font-size="8.5" fill="#8a4a1a">讀出精確數值/標籤</text>
+          <path d="M290,100 C330,70 350,55 358,45" stroke="#dd5b00" stroke-width="1.5" fill="none" marker-end="url(#d1)"/>
+          <text x="330" y="72" font-size="8.5" fill="#dd5b00">是</text>
+
+          <!-- decision 2 -->
+          <path d="M435,150 L380,120 L435,90 L490,120 Z" fill="#fff3d6" stroke="#e0a800" stroke-width="1.4"/>
+          <text x="435" y="116" font-size="9.5" fill="#8a6a00">要算</text>
+          <text x="435" y="130" font-size="9.5" fill="#8a6a00">數值?</text>
+          <path d="M310,120 L378,120" stroke="#8a93ad" stroke-width="1.6" fill="none" marker-end="url(#d1)"/>
+          <text x="345" y="113" font-size="8.5" fill="#787671">否/看完</text>
+          <path d="M435,62 L435,88" stroke="#8a93ad" stroke-width="1.4" fill="none" marker-end="url(#d1)"/>
+
+          <!-- code -->
+          <rect x="520" y="98" width="170" height="44" rx="10" fill="#e6e0f5" stroke="#7b3ff2" stroke-width="1.4"/>
+          <text x="605" y="118" font-size="10.5" font-weight="700" fill="#3a2a99">🐍 寫 Python 算</text>
+          <text x="605" y="133" font-size="8.5" fill="#4a3a8a">比較/累加/比率/趨勢</text>
+          <path d="M490,120 L518,120" stroke="#7b3ff2" stroke-width="1.5" fill="none" marker-end="url(#d1)"/>
+          <text x="505" y="113" font-size="8.5" fill="#7b3ff2">是</text>
+
+          <!-- answer -->
+          <rect x="360" y="200" width="150" height="44" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+          <text x="435" y="220" font-size="10.5" font-weight="700" fill="#137a29">✓ 直接回答</text>
+          <text x="435" y="235" font-size="8.5" fill="#2f6b40">簡單題不動工具</text>
+          <path d="M435,150 L435,198" stroke="#8a93ad" stroke-width="1.4" fill="none" marker-end="url(#d1)"/>
+          <text x="452" y="176" font-size="8.5" fill="#787671">否</text>
+          <path d="M605,142 C605,180 520,210 512,218" stroke="#1aae39" stroke-width="1.4" stroke-dasharray="4 3" fill="none" marker-end="url(#d1)"/>
+          <path d="M435,62 C405,150 420,180 432,198" stroke="#1aae39" stroke-width="1.2" stroke-dasharray="4 3" fill="none" marker-end="url(#d1)"/>
+          <text x="360" y="272" text-anchor="middle" font-size="9" fill="#a4a097">↑ 用完工具、拿到可靠結果後,再整合成答案(工具可鏈式:先切圖→再寫碼)</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 這條「何時用哪個工具」的決策,不是寫死的規則,而是<strong>訓練出來的策略</strong>。示意流程;論文明確描述了切圖、寫碼、與兩者鏈式組合。</div>
+    </div>
+
+    <h3>訓練兩階段:SFT 冷啟動 → 強化學習</h3>
+    <p>(這裡對「純 RL」的印象做個修正:CharTool 是<strong>兩階段</strong>訓練。)</p>
+    <ol>
+      <li><strong>SFT 冷啟動:</strong>先用「帶推理與工具調用軌跡」的資料做監督微調,讓模型先會基本的「邊想邊呼叫工具」格式。</li>
+      <li><strong>強化學習:</strong>再在 DuoChart 上用 RL(以 <strong>VeRL</strong> 框架、在隔離沙箱裡端到端訓練、搭配<strong>工具感知獎勵 tool-aware reward</strong>)——獎勵「有效地用對工具 + 答案正確」,讓模型自主收斂出好的工具使用時機。</li>
+    </ol>
+
+    <h3>DuoChart:雙源數據管線</h3>
+    <p>訓練資料來自 <strong>DuoChart</strong>——一條「<strong>合成圖表 + 真實世界圖表</strong>」的雙源數據管線。合成資料可規模化、標註乾淨、覆蓋各種圖型與計算;真實圖表則保留雜訊與多樣性,避免模型只會做「乾淨的考題」。兩者搭配,兼顧量與真實度。</p>
+    <div class="callout tip"><strong>為什麼要 RL 而非只靠 SFT:</strong>「何時該動工具」是一個<strong>決策</strong>問題——同一題可能有多條解法,對錯要看最終答案。用 RL 以「答案正確 + 工具用得有效」當獎勵,比硬塞固定範例更能讓模型學到靈活、泛化的策略。這與站內 <a href="./evoagentx.html">提示/流程自動優化</a> 是同一種「把試錯變成可搜尋的優化」的精神。</div>
+  </section>
+
+  <!-- 4 -->
+  <section id="results">
+    <h2><span class="num">④</span> 以小博大:為什麼給人「更強/更快」的印象</h2>
+    <p>CharTool 最吸睛的地方,是<strong>用 7B 打贏大數十倍的模型</strong>。論文報告的關鍵數字:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>指標</th><th>提升</th><th>意義</th></tr></thead>
+      <tbody>
+        <tr><td><strong>CharXiv(推理集)</strong></td><td><strong>+8.0%</strong>(7B);+10.1%(3B)</td><td>最難的「圖表推理」評測,大幅提升</td></tr>
+        <tr><td><strong>ChartQAPro</strong></td><td><strong>+9.78%</strong></td><td>進階圖表問答,近一成提升</td></tr>
+        <tr><td><strong>平均分(論文報告)</strong></td><td><strong>66.52</strong></td><td>高於 GPT-4o(61.52)、Claude 3.5 Sonnet(63.62),並小勝體積大十倍的 Qwen2.5-VL-72B(66.02)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 240" role="img" aria-label="平均分對比：CharTool-7B 66.52 高於 Qwen2.5-VL-72B 66.02、Claude 3.5 Sonnet 63.62、GPT-4o 61.52">
+        <g font-family="sans-serif">
+          <!-- axis note -->
+          <text x="20" y="24" font-size="11.5" font-weight="700" fill="#1a1a1a">論文報告的平均分對比(座標軸自 58 起,放大差距)</text>
+          <!-- bars: scale x from 58..68 -> 150..680 (53 px per point) -->
+          <!-- CharTool-7B 66.52 -->
+          <text x="20" y="62" font-size="10.5" font-weight="800" fill="#5645d4">CharTool-7B</text>
+          <text x="20" y="76" font-size="8.5" fill="#787671">僅 7B · 工具整合</text>
+          <rect x="150" y="48" width="452" height="26" rx="5" fill="#5645d4"/>
+          <text x="612" y="66" font-size="11" font-weight="800" fill="#3a2a99">66.52 ★</text>
+
+          <!-- Qwen 72B 66.02 -->
+          <text x="20" y="108" font-size="10.5" font-weight="700" fill="#1a1a1a">Qwen2.5-VL-72B</text>
+          <text x="20" y="122" font-size="8.5" fill="#787671">72B · 約 10× 大</text>
+          <rect x="150" y="94" width="426" height="26" rx="5" fill="#a4a0d8"/>
+          <text x="586" y="112" font-size="11" font-weight="700" fill="#5d5b54">66.02</text>
+
+          <!-- Claude 3.5 Sonnet 63.62 -->
+          <text x="20" y="154" font-size="10.5" font-weight="700" fill="#1a1a1a">Claude 3.5 Sonnet</text>
+          <text x="20" y="168" font-size="8.5" fill="#787671">閉源大模型</text>
+          <rect x="150" y="140" width="299" height="26" rx="5" fill="#c8c4be"/>
+          <text x="459" y="158" font-size="11" font-weight="700" fill="#5d5b54">63.62</text>
+
+          <!-- GPT-4o 61.52 -->
+          <text x="20" y="200" font-size="10.5" font-weight="700" fill="#1a1a1a">GPT-4o</text>
+          <text x="20" y="214" font-size="8.5" fill="#787671">閉源大模型</text>
+          <rect x="150" y="186" width="187" height="26" rx="5" fill="#d8d4ce"/>
+          <text x="347" y="204" font-size="11" font-weight="700" fill="#5d5b54">61.52</text>
+
+          <line x1="150" y1="40" x2="150" y2="222" stroke="#c8c4be" stroke-width="1"/>
+          <text x="150" y="236" text-anchor="middle" font-size="8" fill="#a4a097">58</text>
+          <text x="602" y="236" text-anchor="middle" font-size="8" fill="#a4a097">≈66.5</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 一個 7B 模型(紫)以工具整合策略,平均分小勝約 10 倍大的 Qwen2.5-VL-72B,並高於 GPT-4o、Claude 3.5 Sonnet。座標軸自 58 起以放大差距;平均分的基準歸屬論文未完全揭示,數字以原論文為準。</div>
+    </div>
+
+    <h3>「更強又更輕」的兩個原因</h3>
+    <ul>
+      <li><strong>以小博大:</strong>7B 的推理表現媲美甚至擊敗體積龐大數十倍的閉源多模態模型——因為它把「看不清、算不準」這兩個大模型也治不好的病,用工具直接解掉。</li>
+      <li><strong>感知負擔更輕:</strong>不需要把全圖塞成超高 token 的全解析度輸入,而是<strong>按需精準局部採樣 + 數值程式化</strong>,在複雜推理上大幅降低「純靠視覺注意力硬解」帶來的錯誤率與計算負載。</li>
+    </ul>
+  </section>
+
+  <!-- 5 -->
+  <section id="situate">
+    <h2><span class="num">⑤</span> 定位:它站在哪條研究光譜上</h2>
+    <p>CharTool 不是憑空出現,而是 2025–2026「<strong>讓模型用工具/程式來推理視覺</strong>」這條線的一員。理解它在光譜上的位置,更能看清它的取捨:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>路線</th><th>代表</th><th>與 CharTool 的關係</th></tr></thead>
+      <tbody>
+        <tr><td><strong>用 RL 教模型「用圖思考」</strong></td><td>DeepEyes(thinking with images)</td><td>「主動切圖放大」這一招的概念前身;CharTool 把它和程式計算合併</td></tr>
+        <tr><td><strong>Code-as-Thought(以程式當思路)</strong></td><td>Visual Programmability、ChartReasoner</td><td>「寫 Python 算數值」的思路來源;把圖表理解轉成可執行程式</td></tr>
+        <tr><td><strong>放大式視覺搜尋</strong></td><td>V*(zoom-in visual search)、program-of-thought</td><td>更上游的通用概念:局部放大 + 程式化思考</td></tr>
+        <tr><td><strong>同期圖表推理競品</strong></td><td>Chart-RVR、ChartAgent、Chart-FR1…</td><td>2026 圖表推理是熱門賽道,CharTool 以「雙工具 + Agentic RL + 雙源數據」切入</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout info"><strong>一句話定位:</strong>CharTool = 「<strong>DeepEyes 的切圖放大</strong>」×「<strong>Code-as-Thought 的程式計算</strong>」,再用 <strong>Agentic RL</strong> 學會兩者的使用時機,並用 <strong>DuoChart</strong> 餵資料。它的貢獻不在單一創新,而在把這幾條線<strong>整合成一個能自主調度工具的圖表智慧體</strong>。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="steal">
+    <h2><span class="num">⑥</span> 值得偷師的思路(不做圖表也用得到)</h2>
+    <ol>
+      <li><strong>先分辨「感知問題」還是「計算問題」。</strong>看不清 → 給放大鏡(局部採樣);算不準 → 給計算機(程式執行)。很多「模型不準」其實是用錯了肌肉。</li>
+      <li><strong>把不擅長的事外包給工具,而不是堆參數。</strong>算術交給解釋器保證 100% 精確,比訓練更大的模型去「心算」划算得多——這是 <a href="./agent-verification-mindset.html">工具整合推理</a> 的通則。</li>
+      <li><strong>按需採樣,別把全部塞進 context。</strong>與其把全圖/全文以超高 token 硬灌,不如讓模型<strong>自己決定要放大哪一塊</strong>,降低感知負擔與錯誤率。</li>
+      <li><strong>「何時用工具」本身要學。</strong>用 RL 以「答案對 + 工具用得有效」當獎勵,讓模型學會靈活調度,而非寫死規則或濫用工具。</li>
+      <li><strong>合成 + 真實雙源資料。</strong>合成保量與覆蓋、真實保多樣與雜訊——DuoChart 的配方適用於幾乎所有需要規模化訓練資料的任務。</li>
+    </ol>
+    <div class="callout info"><strong>站內連結:</strong>「把算術外包、按需採樣」呼應 <a href="./agent-verification-mindset.html">把晶片驗證思維帶進 Agent</a> 的「能硬查的別叫模型硬算」;「多工具調度紀律」呼應 <a href="./deepseek-harness-internals.html">DeepSeek Harness</a>、<a href="./prime-agent.html">Prime Agent</a>;「本地小模型做專門任務」呼應 <a href="./train-slm-single-task.html">訓練小模型</a>。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="sources">
+    <h2><span class="num">⑦</span> 來源</h2>
+    <ul>
+      <li>論文:<em>CharTool: Tool-Integrated Visual Reasoning for Chart Understanding</em>(Situo Zhang 等,上海交大 X-LANCE;<a href="https://arxiv.org/abs/2604.02794" target="_blank" rel="noopener">arXiv:2604.02794</a>,2026/04)。本頁依使用者提供摘要 + 公開檢索片段整理;因取用限制未能直接讀取全文,細節以原論文為準。</li>
+      <li>基座模型:<a href="https://huggingface.co/papers/2502.13923" target="_blank" rel="noopener">Qwen2.5-VL</a>(3B / 7B-Instruct)。訓練框架:<a href="https://github.com/volcengine/verl" target="_blank" rel="noopener">VeRL</a>。</li>
+      <li>評測基準:<a href="https://princeton-nlp.github.io/CharXiv/" target="_blank" rel="noopener">CharXiv</a>、<a href="https://github.com/vis-nlp/chartqapro" target="_blank" rel="noopener">ChartQAPro</a>、ChartQA、ChartBench、ChartX、ReachQA;OOD 泛化:MathVista。</li>
+      <li>相關工作:DeepEyes(thinking with images)、<a href="https://arxiv.org/pdf/2509.09286" target="_blank" rel="noopener">Visual Programmability(code-as-thought)</a>、V*、program-of-thought、Chart-RVR、ChartAgent 等。</li>
+    </ul>
+    <div class="related">
+      <a href="./agent-verification-mindset.html">
+        <div class="rel-title">🔬 把晶片驗證思維帶進 Agent</div>
+        <div class="rel-sub">工具整合推理 · 把算術外包</div>
+      </a>
+      <a href="./train-slm-single-task.html">
+        <div class="rel-title">🧠 訓練小模型做單一任務</div>
+        <div class="rel-sub">以小博大的另一條路</div>
+      </a>
+      <a href="./evoagentx.html">
+        <div class="rel-title">🧬 EvoAgentX</div>
+        <div class="rel-sub">把試錯變成可搜尋的優化</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁整合使用者提供摘要與公開檢索片段整理,非官方文件;論文全文因網路取用限制未能直接讀取,作者、數字(如 +8.0% / +9.78% / 66.52)、訓練細節(SFT→RL、VeRL、tool-aware reward)以<strong>官方 arXiv 原文為準</strong>,平均分的基準歸屬與 RL 演算法細節屬未完全查證項。未列 star 數。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
