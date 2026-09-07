@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>為什麼 LLM 會「忘記」被賦予的 Skill:五大機制與工程解法 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h2 .num.wt { background: var(--orange); }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🧠 為什麼 LLM 會「忘記」被賦予的 Skill</h1>
+    <p class="sub">明明給了 System Prompt / 工具 / 微調,模型卻在長對話裡漸漸不照做、或有工具不用 · 拆解五個核心機制(從注意力、截斷、災難性遺忘到指令衝突),配上四招經過驗證的工程解法</p>
+    <div>
+      <span class="badge blue">中間迷失 · Context Rot</span>
+      <span class="badge orange">災難性遺忘 · 指令衝突</span>
+      <span class="badge green">Anchor · RAG · 約束解碼 · Critic</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#map">① 兩大類、五個機制</a>
+      <a href="#middle">② 注意力稀釋與中間迷失</a>
+      <a href="#truncate">③ 截斷與滑動窗口</a>
+      <a href="#forget">④ 微調的災難性遺忘</a>
+      <a href="#recency">⑤ 近期效應與指令衝突</a>
+      <a href="#tools">⑥ 工具選擇歧義</a>
+      <a href="#fixes">⑦ 四招工程解法</a>
+      <a href="#cheat">⑧ 症狀→根因→對策 速查</a>
+      <a href="#sources">⑨ 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>「LLM 忘記 Skill」不是一種毛病,而是至少五個不同機制的共同表象。</strong>它們分屬兩大類:<strong>推論時(上下文側)</strong>——注意力被稀釋、關鍵定義掉進「中間」被忽略、被截斷/摘要掉、被最近幾輪帶偏、被後續使用者指令壓過;以及<strong>訓練時(權重側)</strong>——微調把舊技能的觸發邏輯覆蓋掉。<strong>對症的解法各不相同</strong>,把「遺忘」當單一問題去救,通常救錯地方。</p>
+    <div class="callout info"><strong>核心心法:</strong>先分辨你遇到的是<strong>哪一類</strong>——是「模型<em>看不到</em>規則了」(上下文側),還是「模型<em>權重裡的規則被改壞</em>了」(權重側),還是「規則<em>還在但被更近/更強的訊號壓過</em>」(近期效應/指令衝突)。診斷對了,才知道要用 Anchor 重注入、RAG 掛載、約束解碼,還是 Critic 看門狗。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="map">
+    <h2><span class="num">①</span> 兩大類、五個機制:先有張地圖</h2>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 320" role="img" aria-label="五個機制分兩類：上下文側（注意力稀釋/中間迷失、截斷、近期效應與指令衝突、工具歧義）與權重側（災難性遺忘）">
+        <g font-family="sans-serif">
+          <text x="20" y="26" font-size="13" font-weight="800" fill="#5645d4">上下文側(推論時)——模型「看不到 / 被帶偏」</text>
+          <rect x="16" y="38" width="688" height="150" rx="14" fill="#f2f0fb" stroke="#c9c0ef" stroke-width="1.2"/>
+          <g>
+            <rect x="30" y="54" width="200" height="56" rx="10" fill="#fff" stroke="#5645d4" stroke-width="1.3"/>
+            <text x="130" y="76" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1a1a">① 注意力稀釋 / 中間迷失</text>
+            <text x="130" y="94" text-anchor="middle" font-size="8.5" fill="#787671">Lost in the Middle · Context Rot</text>
+
+            <rect x="250" y="54" width="200" height="56" rx="10" fill="#fff" stroke="#5645d4" stroke-width="1.3"/>
+            <text x="350" y="76" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1a1a">② 截斷 / 滑動窗口</text>
+            <text x="350" y="94" text-anchor="middle" font-size="8.5" fill="#787671">摘要壓縮把規則刪掉了</text>
+
+            <rect x="470" y="54" width="220" height="56" rx="10" fill="#fff" stroke="#5645d4" stroke-width="1.3"/>
+            <text x="580" y="76" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1a1a">④ 近期效應 / 指令衝突</text>
+            <text x="580" y="94" text-anchor="middle" font-size="8.5" fill="#787671">被最近幾輪、被使用者指令壓過</text>
+
+            <rect x="30" y="120" width="200" height="52" rx="10" fill="#fff" stroke="#5645d4" stroke-width="1.3"/>
+            <text x="130" y="142" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1a1a">⑤ 工具選擇歧義</text>
+            <text x="130" y="159" text-anchor="middle" font-size="8.5" fill="#787671">工具太多 / 描述模糊 → 有工具不用</text>
+            <text x="360" y="150" text-anchor="middle" font-size="9.5" fill="#7a72b8" font-style="italic">共同表象:規則還在,但沒被「有效激活」</text>
+          </g>
+
+          <text x="20" y="220" font-size="13" font-weight="800" fill="#dd5b00">權重側(訓練時)——規則被「改壞」</text>
+          <rect x="16" y="232" width="688" height="72" rx="14" fill="#fff3e8" stroke="#f0c79a" stroke-width="1.2"/>
+          <rect x="30" y="246" width="300" height="44" rx="10" fill="#fff" stroke="#dd5b00" stroke-width="1.3"/>
+          <text x="180" y="266" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1a1a">③ 災難性遺忘(LoRA / SFT)</text>
+          <text x="180" y="282" text-anchor="middle" font-size="8.5" fill="#8a4a1a">學新技能時,梯度覆蓋掉舊技能的觸發邏輯</text>
+          <text x="510" y="272" text-anchor="middle" font-size="9.5" fill="#b3702a" font-style="italic">這一類換 Prompt 救不了,要靠訓練資料混入(replay)</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 同樣是「不照 Skill 做」,根因分屬兩大類。上下文側佔絕大多數日常案例;權重側只在你自己微調時才會遇到。編號沿用下面各節。</div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section id="middle">
+    <h2><span class="num">②</span> 注意力稀釋與「中間迷失」(Lost in the Middle)</h2>
+    <p>在長對話或複雜 Agent 流程裡,上下文長度會快速膨脹,而 Transformer 的 Self-Attention <strong>不是均勻地看每個 token</strong>。</p>
+    <ul>
+      <li><strong>注意力權重分散:</strong>面對數萬到數十萬 token,最開頭定義的 System Prompt(Skill 定義、Tool schema、調用規則)拿到的注意力,會隨對話變長而<strong>逐漸被稀釋</strong>。</li>
+      <li><strong>位置偏差(U 形曲線):</strong>研究《Lost in the Middle》發現,模型對 context <strong>最前端與最尾端</strong>資訊的召回率最高,<strong>中間最差</strong>。若 Skill 定義夾在大量工具輸出、錯誤日誌、程式碼片段之間,就很容易被忽略。</li>
+    </ul>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 260" role="img" aria-label="Lost in the Middle 的 U 形曲線：資訊在 context 開頭與結尾召回率高，中間最低，甚至可能低於不給資料的基線">
+        <g font-family="sans-serif">
+          <text x="360" y="22" text-anchor="middle" font-size="12" font-weight="800" fill="#1a1a1a">召回率 / 遵循度 隨「資訊在 context 的位置」變化</text>
+          <!-- axes -->
+          <line x1="70" y1="200" x2="680" y2="200" stroke="#37352f" stroke-width="1.4"/>
+          <line x1="70" y1="60" x2="70" y2="200" stroke="#37352f" stroke-width="1.4"/>
+          <text x="40" y="70" font-size="9" fill="#787671">高</text>
+          <text x="40" y="196" font-size="9" fill="#787671">低</text>
+          <!-- closed-book baseline -->
+          <line x1="70" y1="168" x2="680" y2="168" stroke="#e03131" stroke-width="1.3" stroke-dasharray="6 4"/>
+          <text x="676" y="162" text-anchor="end" font-size="8.5" fill="#e03131">不給任何資料的基線(closed-book)</text>
+          <!-- U curve: high at ends, dip in middle below baseline -->
+          <path d="M90,80 C200,110 250,182 375,184 C500,182 540,110 660,82" fill="none" stroke="#5645d4" stroke-width="3"/>
+          <circle cx="90" cy="80" r="4" fill="#1aae39"/><circle cx="660" cy="82" r="4" fill="#1aae39"/><circle cx="375" cy="184" r="4" fill="#e03131"/>
+          <!-- markers -->
+          <text x="90" y="222" text-anchor="middle" font-size="10" font-weight="700" fill="#137a29">開頭</text>
+          <text x="90" y="236" text-anchor="middle" font-size="8" fill="#787671">primacy 高</text>
+          <text x="375" y="222" text-anchor="middle" font-size="10" font-weight="700" fill="#c02020">中間</text>
+          <text x="375" y="236" text-anchor="middle" font-size="8" fill="#787671">最容易被忽略</text>
+          <text x="660" y="222" text-anchor="middle" font-size="10" font-weight="700" fill="#137a29">結尾</text>
+          <text x="660" y="236" text-anchor="middle" font-size="8" fill="#787671">recency 高</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 經典 U 形:兩端高、中間低。原論文指出,關鍵資訊落在中間時,表現最多可掉約 20 個百分點,最壞情況甚至<strong>低於「完全不給資料」的基線</strong>(數字以原論文為準)。</div>
+    </div>
+    <h3>更深一層的原因</h3>
+    <ul>
+      <li><strong>Attention sink:</strong>模型會把不成比例的注意力丟在<strong>最前面幾個 token</strong>(StreamingLLM 的發現)——這解釋了「開頭」為何吃重,也提示只保留少數 sink token 就能穩定長流。</li>
+      <li><strong>RoPE 的距離衰減:</strong>旋轉位置編碼天生讓注意力隨相對距離<strong>衰減</strong>,結構上就偏重近距離、輕忽遠距離。</li>
+      <li><strong>Context Rot:</strong>Chroma 2025 的報告更進一步——<strong>就算是很簡單的任務</strong>,只要輸入變長,準確率就會下降,而且<strong>還沒到視窗上限就開始掉</strong>、各模型退化不一。所以「視窗夠大」不等於「內容都被用上」。</li>
+    </ul>
+  </section>
+
+  <!-- 3 -->
+  <section id="truncate">
+    <h2><span class="num">③</span> 上下文截斷與滑動窗口</h2>
+    <p>很多框架(LangChain、AutoGPT、各類 Agent 腳本)為了省 token 或防止超過上限,會用<strong>截斷策略</strong>:滑動窗口(丟最舊訊息)、摘要壓縮、刪除歷史。</p>
+    <p>問題是:如果 Skill 的<strong>使用範例(Few-shot)、工具狀態、觸發條件</strong>在壓縮過程中被 summarize 掉,模型在後續輪次裡<strong>本質上就「看不見」</strong>這項技能的具體要求——不是它不想用,而是規則已經不在它眼前了。這跟第②節不同:②是「還在但被稀釋」,③是「根本被刪掉」。</p>
+    <div class="callout warn"><strong>常見陷阱:</strong>摘要器通常為「對話語意」優化,而不是為「保留硬性規則」優化。它很樂意把「你必須先呼叫 <code>validate()</code> 再回覆」這種一次性但關鍵的規則,壓縮成一句「討論了驗證流程」——語意保住了,<strong>可執行的約束卻蒸發了</strong>。</div>
+  </section>
+
+  <!-- 4 -->
+  <section id="forget">
+    <h2><span class="num" style="background:var(--orange)">④</span> 微調中的「災難性遺忘」(權重側)</h2>
+    <p>如果 Skill 是透過 <strong>LoRA 或全參數微調(SFT)寫進權重</strong>,遺忘的機制就完全不同了——問題出在權重本身,而非 context。</p>
+    <ul>
+      <li><strong>梯度覆蓋:</strong>學新技能/新資料時,參數更新可能破壞<strong>原有的權重分佈</strong>,把先前學會的 Skill 觸發邏輯覆蓋掉。這個現象最早由 McCloskey &amp; Cohen(1989)提出,稱「災難性干擾」。</li>
+      <li><strong>泛化衝突:</strong>若訓練資料的分佈,與推論時的真實場景(Prompt 措辭、上下文格式)差太多,權重裡的 Skill 隱式特徵就<strong>激活不了</strong>。</li>
+      <li><strong>LoRA 只是減輕、不是根治:</strong>研究顯示 PEFT/LoRA 比全微調<strong>少一些</strong>遺忘,但不會消除;而且退化常<strong>先表現為「指令遵循能力下降」</strong>。</li>
+    </ul>
+    <div class="callout tip"><strong>對策方向(權重側專屬):</strong>標準解法是 <strong>replay(回放)</strong>——微調資料裡<strong>混入原始分佈/通用指令/對話資料</strong>,別讓模型只看到新技能的樣本。這是 Prompt 工程救不到的地方,因為病灶在權重不在 context。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="recency">
+    <h2><span class="num">⑤</span> 近期效應、語意漂移與指令衝突</h2>
+    <p>LLM 本質是「依機率生成下一個 token」的自回歸模型,這帶來兩個很實務的問題:</p>
+    <h3>模仿最近的模式(Recency Bias &amp; 語意漂移)</h3>
+    <p>對話進入深水區後,模型會強烈傾向<strong>模仿最近幾輪的輸出風格與模式</strong>。如果前一兩輪因為環境報錯、格式混亂、或模型自己試了別的替代做法,它就會順著這股<strong>慣性</strong>繼續走,脫離原本被設定的 Skill 路徑。</p>
+    <div class="callout info"><strong>有多快?</strong>近期多輪研究指出,對「較早輪次指令」的遵循度會<strong>隨輪數單調下降</strong>——有研究測得某強模型從第 1 輪到第 3 輪準確率由約 <strong>88% 掉到 71%</strong>;另一研究發現<strong>約 74% 的漂移案例在第 2 輪就出現首次違規</strong>。有趣的是,模型往往<strong>還「記得」那條被違反的規則</strong>——是「知道但不做」,而非真的忘了(數字以各原論文為準)。</div>
+    <h3>強指令衝突(System vs. User)</h3>
+    <p>使用者在後續提問中的隨意指令,容易在局部<strong>壓過</strong>最外層 System 定義的嚴格 Skill 規則。根因被 OpenAI 的《Instruction Hierarchy》講得很直白:<strong>模型常把 System Prompt 和使用者輸入視為「同等優先級」</strong>,所以後來的使用者話語就能覆蓋前面的系統規則。移除 System Prompt 更會造成全面退化。</p>
+  </section>
+
+  <!-- 6 -->
+  <section id="tools">
+    <h2><span class="num">⑥</span> 工具選擇歧義(有工具卻不用的假象)</h2>
+    <p>在 Tool Use / Function Calling 的 Skill 機制裡,「遺忘」常常是一種<strong>假象</strong>——工具明明掛著,模型卻退回用通用知識或純文字硬推:</p>
+    <ul>
+      <li><strong>邊界模糊:</strong>存在多個功能重疊的 Skill(如 <code>read_file</code> 與 <code>search_code</code>),模型難以判斷該用哪個。</li>
+      <li><strong>描述過寬:</strong>Skill 的 <code>description</code> 寫得太籠統、缺少<strong>觸發條件</strong>,模型不確定何時該用,乾脆不用。</li>
+      <li><strong>工具太多:</strong>可選工具一多,選對率就掉。研究《RAG-MCP》顯示,改用「按需檢索工具」後,工具選擇準確率從約 <strong>13.6% 提升到 43.1%</strong>,同時 prompt token 省下逾一半。</li>
+    </ul>
+    <div class="callout warn"><strong>直覺陷阱:</strong>「把所有能力都掛上去」通常<strong>反而更弱</strong>。工具不是越多越好——每多一個功能重疊、描述含糊的工具,都在稀釋模型「選對那一個」的機率。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="fixes">
+    <h2><span class="num">⑦</span> 四招經過驗證的工程解法</h2>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 250" role="img" aria-label="四招解法流水線：RAG 掛載相關 Skill、Anchor 重注入到底部、約束解碼強制格式、Critic 看門狗驗證失敗則退回重做">
+        <defs><marker id="fx" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker>
+          <marker id="fxr" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#e03131"/></marker></defs>
+        <g font-family="sans-serif" text-anchor="middle">
+          <rect x="14" y="70" width="150" height="60" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.3"/>
+          <text x="89" y="92" font-size="11" font-weight="700" fill="#1a1a1a">② RAG 掛載</text>
+          <text x="89" y="108" font-size="8.3" fill="#5d5b54">只檢索當前最相關</text>
+          <text x="89" y="120" font-size="8.3" fill="#5d5b54">的 1~2 個 Skill</text>
+
+          <rect x="192" y="70" width="150" height="60" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.3"/>
+          <text x="267" y="88" font-size="11" font-weight="700" fill="#1a1a1a">① Anchor 重注入</text>
+          <text x="267" y="104" font-size="8.3" fill="#4a3a8a">關鍵規則重貼到</text>
+          <text x="267" y="116" font-size="8.3" fill="#4a3a8a">context「最底部」拉高注意力</text>
+
+          <rect x="370" y="70" width="150" height="60" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.3"/>
+          <text x="445" y="88" font-size="11" font-weight="700" fill="#1a1a1a">③ 約束解碼</text>
+          <text x="445" y="104" font-size="8.3" fill="#2f6b40">JSON Schema / BNF</text>
+          <text x="445" y="116" font-size="8.3" fill="#2f6b40">堵死「用自然語言打混」</text>
+
+          <rect x="548" y="70" width="158" height="60" rx="10" fill="#fff3d6" stroke="#e0a800" stroke-width="1.3"/>
+          <text x="627" y="88" font-size="11" font-weight="700" fill="#1a1a1a">④ Critic 看門狗</text>
+          <text x="627" y="104" font-size="8.3" fill="#8a6a00">沒調用預期 Skill /</text>
+          <text x="627" y="116" font-size="8.3" fill="#8a6a00">格式違規 → 自動 reject</text>
+
+          <path d="M164,100 L190,100" stroke="#8a93ad" stroke-width="1.6" marker-end="url(#fx)"/>
+          <path d="M342,100 L368,100" stroke="#8a93ad" stroke-width="1.6" marker-end="url(#fx)"/>
+          <path d="M520,100 L546,100" stroke="#8a93ad" stroke-width="1.6" marker-end="url(#fx)"/>
+
+          <rect x="300" y="185" width="220" height="40" rx="10" fill="#0a1530"/>
+          <text x="410" y="209" font-size="10.5" font-weight="700" fill="#fff">✓ 穩定調用 Skill 的輸出</text>
+          <path d="M627,130 L627,205 L522,205" stroke="#1aae39" stroke-width="1.5" fill="none" marker-end="url(#fx)"/>
+          <!-- reject loop -->
+          <path d="M627,130 C627,160 470,160 300,150" stroke="#e03131" stroke-width="1.4" stroke-dasharray="5 3" fill="none" marker-end="url(#fxr)"/>
+          <text x="450" y="150" font-size="8.5" fill="#e03131">驗證失敗 → 攜修正 Prompt 退回重做</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 四招可疊加:先用 RAG 只掛需要的 Skill(治⑤⑥),把關鍵規則 Anchor 到底部(治①②),用約束解碼鎖死輸出格式(治語意打混),再由 Critic 看門狗兜底(治所有漏網)。</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>解法</th><th>怎麼做</th><th>主要治哪個機制</th></tr></thead>
+      <tbody>
+        <tr><td><strong>① 動態 System Prompt 注入(Anchor)</strong></td><td>每輪推論前,把關鍵 Skill 規格與強制規則<strong>重新拼接到最近上下文的最底層</strong>(User Prompt 前後),用「近期效應」強行拉高注意力權重</td><td>① 中間迷失、⑤ 近期效應</td></tr>
+        <tr><td><strong>② 語意檢索動態掛載(RAG Skills)</strong></td><td>別一開始把所有 Skill 塞進 context;依當前問題用 Vector DB <strong>只檢索最相關的 1~2 個 Skill</strong>注入當前輪次</td><td>⑥ 工具歧義、② 稀釋、③ 省 token</td></tr>
+        <tr><td><strong>③ 結構化約束(Constrained Decoding)</strong></td><td>用 JSON Schema / BNF 文法<strong>強制輸出必須符合特定 Tool Call 格式</strong>,在解碼時遮蔽非法 token,堵死「用自然語言打混過去」</td><td>⑤ 漂移、⑥ 不呼叫工具</td></tr>
+        <tr><td><strong>④ 反思 / 看門狗(Critic)</strong></td><td>引入輕量驗證步驟:發現<strong>未調用預期 Skill 或格式違規</strong>就自動 reject,攜帶修正 Prompt 要求重做(Reflexion / Self-Refine 家族)</td><td>兜底所有機制</td></tr>
+      </tbody>
+    </table></div>
+    <h3>幾個值得加進工具箱的延伸招式</h3>
+    <ul>
+      <li><strong>Sandwich(前後夾):</strong>把最關鍵那條規則<strong>同時放在最前面和最後面</strong>——一次吃 primacy、一次吃 recency,避開中間。</li>
+      <li><strong>工具回應壓縮:</strong>主動<strong>摘要或丟棄過時的工具輸出</strong>,別讓日誌/中繼結果把規則擠出視窗(Context Rot 的實務對策)。</li>
+      <li><strong>記憶分層(MemGPT 式):</strong>把「系統指令 + 最近歷史 + 可寫暫存區」放在主視窗,其餘用函式呼叫<strong>分頁進出</strong>外部記憶——像作業系統的虛擬記憶體。</li>
+      <li><strong>Instruction Hierarchy:</strong>選用有「指令階層」訓練的模型/API,讓 System 規則天生高於使用者臨時指令。</li>
+      <li><strong>約束解碼的代價:</strong>過度約束會有「alignment tax」——可能傷到推理品質。鎖格式,但別把思考空間也鎖死。</li>
+    </ul>
+  </section>
+
+  <!-- 8 -->
+  <section id="cheat">
+    <h2><span class="num">⑧</span> 速查:症狀 → 根因 → 對策</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>你看到的症狀</th><th>最可能的根因</th><th>先試哪招</th></tr></thead>
+      <tbody>
+        <tr><td>長對話後才開始不照規則</td><td>① 中間迷失 / 注意力稀釋</td><td>Anchor 重注入 + Sandwich</td></tr>
+        <tr><td>某個時點「突然」完全忘了某條規則</td><td>③ 被截斷/摘要刪掉了</td><td>保護關鍵規則不被壓縮 + 每輪 Anchor</td></tr>
+        <tr><td>微調後,原本會的反而不會了</td><td>④ 災難性遺忘(權重側)</td><td>訓練資料混入 replay;非 Prompt 能救</td></tr>
+        <tr><td>順著前一兩輪的錯誤慣性一直走偏</td><td>⑤ 近期效應 / 語意漂移</td><td>Anchor + Critic 看門狗攔截</td></tr>
+        <tr><td>使用者一句話就推翻系統規則</td><td>⑤ 指令衝突(System=User 優先級)</td><td>Instruction Hierarchy 模型 + 約束解碼</td></tr>
+        <tr><td>明明有工具卻用純文字硬答</td><td>⑥ 工具歧義 / 工具太多</td><td>RAG 掛載 + 清晰觸發條件 + 約束解碼</td></tr>
+        <tr><td>格式時對時錯、偶爾多話</td><td>⑤/⑥ 漂移或打混</td><td>約束解碼(JSON/BNF)+ Critic</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout info"><strong>與站內的連結:</strong>「Critic 看門狗 / 驗證兜底」正是 <a href="./agent-verification-mindset.html">把晶片驗證思維帶進 Agent</a> 的雙層裁判;「獨立乾淨的評判者」呼應 <a href="./multi-persona-prompting.html">多角色抗附和</a>;而「把 Skill 用檢索按需掛載、別全塞進 context」與 <a href="./codex-taskboard.html">Codex Taskboard</a>、<a href="./deepseek-harness-internals.html">DeepSeek Harness</a> 的上下文紀律同源。</div>
+  </section>
+
+  <!-- 9 -->
+  <section id="sources">
+    <h2><span class="num">⑨</span> 來源</h2>
+    <ul>
+      <li><strong>中間迷失:</strong>Liu et al., <em>Lost in the Middle: How Language Models Use Long Contexts</em> — <a href="https://arxiv.org/abs/2307.03172" target="_blank" rel="noopener">arXiv:2307.03172</a>(TACL 2024)。</li>
+      <li><strong>注意力 sink / 位置偏差:</strong>Xiao et al., <em>StreamingLLM</em> — <a href="https://arxiv.org/abs/2309.17453" target="_blank" rel="noopener">arXiv:2309.17453</a>(ICLR 2024);Position Interpolation <a href="https://arxiv.org/abs/2306.15595" target="_blank" rel="noopener">arXiv:2306.15595</a>。</li>
+      <li><strong>Context Rot:</strong>Chroma Research, <em>Context Rot: How Increasing Input Tokens Impacts LLM Performance</em>(2025) — <a href="https://research.trychroma.com/context-rot" target="_blank" rel="noopener">research.trychroma.com/context-rot</a>。</li>
+      <li><strong>災難性遺忘:</strong>McCloskey &amp; Cohen(1989);LLM 實證 <a href="https://arxiv.org/abs/2308.08747" target="_blank" rel="noopener">arXiv:2308.08747</a>、LoRA 分析 <a href="https://arxiv.org/abs/2402.15415" target="_blank" rel="noopener">arXiv:2402.15415</a>。</li>
+      <li><strong>指令衝突 / 階層:</strong>Wallace et al.(OpenAI), <em>The Instruction Hierarchy</em> — <a href="https://arxiv.org/abs/2404.13208" target="_blank" rel="noopener">arXiv:2404.13208</a>;多輪漂移數字為近期研究,以各原論文為準。</li>
+      <li><strong>工具太多 / RAG 掛載:</strong>Gan &amp; Sun, <em>RAG-MCP</em> — <a href="https://arxiv.org/abs/2505.03275" target="_blank" rel="noopener">arXiv:2505.03275</a>。</li>
+      <li><strong>約束解碼:</strong><a href="https://github.com/dottxt-ai/outlines" target="_blank" rel="noopener">Outlines</a>、<a href="https://github.com/guidance-ai/guidance" target="_blank" rel="noopener">Guidance</a>、XGrammar、llama.cpp GBNF、JSON Schema / Structured Outputs。</li>
+      <li><strong>反思 / 看門狗:</strong>Shinn et al., <em>Reflexion</em> — <a href="https://arxiv.org/abs/2303.11366" target="_blank" rel="noopener">arXiv:2303.11366</a>;Madaan et al., <em>Self-Refine</em> — <a href="https://arxiv.org/abs/2303.17651" target="_blank" rel="noopener">arXiv:2303.17651</a>。</li>
+      <li><strong>記憶分層 / 診斷:</strong>Packer et al., <em>MemGPT</em> — <a href="https://arxiv.org/abs/2310.08560" target="_blank" rel="noopener">arXiv:2310.08560</a>;NIAH 評測(Greg Kamradt, 2023)。</li>
+    </ul>
+    <div class="related">
+      <a href="./agent-verification-mindset.html">
+        <div class="rel-title">🔬 把晶片驗證思維帶進 Agent</div>
+        <div class="rel-sub">雙層裁判 = Critic 看門狗</div>
+      </a>
+      <a href="./multi-persona-prompting.html">
+        <div class="rel-title">🎭 多角色 AI 腦力激盪</div>
+        <div class="rel-sub">獨立乾淨的評判者</div>
+      </a>
+      <a href="./ai-context-compression.html">
+        <div class="rel-title">🗜️ AI 上下文壓縮</div>
+        <div class="rel-sub">截斷/摘要的另一面</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁整合使用者提供的分析與公開論文查證整理,非官方文件;論文數字(如中間迷失約 20 個百分點、多輪 88%→71%、RAG-MCP 13.6%→43.1%)以各原論文為準,部分很新的多輪研究之編號請於引用時再確認。機制與解法會隨模型與框架演進。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
