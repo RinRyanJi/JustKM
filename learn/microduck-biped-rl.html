@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Microduck:會走路的 3D 列印雙足小鴨 —— sim-to-real RL 全流程 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🦆 Microduck:會走路的 3D 列印雙足小鴨</h1>
+    <p class="sub">一台開源 DIY 小型雙足機器人:14 顆舵機、跑在樹莓派 Zero 2 W 上 · 但走路不是寫死的步態,而是在 MuJoCo 裡用強化學習「學」出來、匯出成 walk.onnx、再搬到真機上跑 —— 一條完整、可親手複製的 sim-to-real 流水線</p>
+    <div>
+      <span class="badge green">開源 DIY · 可自造</span>
+      <span class="badge blue">sim-to-real RL · MuJoCo</span>
+      <span class="badge orange">walk.onnx · Pi Zero · 50Hz</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#what">① 這是什麼(硬體總覽)</a>
+      <a href="#arch">② 系統架構:兩端</a>
+      <a href="#sim2real">③ 走路是「學」出來的</a>
+      <a href="#policy">④ 策略看什麼、輸出什麼</a>
+      <a href="#tricks">⑤ 為什麼模擬的能上真機</a>
+      <a href="#build">⑥ 動手做:最短路徑</a>
+      <a href="#steal">⑦ 值得偷師的思路</a>
+      <a href="#sources">⑧ 來源與致謝</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>Microduck 是一台你可以自己列印、組裝、開機就會走的小型雙足機器人。</strong>硬體是 14 顆 Dynamixel XL330 舵機 + 一顆 BNO08x IMU + 樹莓派 Zero 2 W;但真正有意思的是它的「大腦」——<strong>走路的控制策略不是人手寫的步態,而是在 MuJoCo 模擬器裡用強化學習訓練出來的一個神經網路</strong>(<code>walk.onnx</code>),再原封不動搬到真機上,以 50Hz 讀感測器、算動作、驅動舵機。</p>
+    <div class="callout info"><strong>為什麼收進 JustKM:</strong>它是「<strong>sim-to-real 強化學習</strong>」最平易近人的一個完整範例——一個能被親手複製的迴圈:<strong>在模擬裡練 → 匯出成 ONNX → 在便宜的邊緣裝置上推理</strong>。你能清楚看到「策略到底看什麼、輸出什麼」,以及「為什麼模擬裡學的東西,搬到真機還走得動」的那些關鍵工程細節。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="what">
+    <h2><span class="num">①</span> 這是什麼:硬體總覽</h2>
+    <p>Microduck 是一隻約手掌大的雙足「鴨」:兩條腿各 5 個關節、頭頸 4 個關節,全部用 <strong>Dynamixel XL330</strong> 智慧舵機驅動;姿態靠一顆外接 <strong>BNO08x IMU</strong> 感測;控制大腦是 <strong>樹莓派 Zero 2 W</strong>。結構件全部 3D 列印(專案附 <code>.3mf</code> / <code>.step</code>)。</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>類別</th><th>零件</th><th>數量</th><th>作用</th></tr></thead>
+      <tbody>
+        <tr><td>控制板</td><td>Raspberry Pi Zero 2 W</td><td>1</td><td>跑控制程式、藍牙手柄、Wi-Fi/SSH、ONNX 推理</td></tr>
+        <tr><td>舵機控制板</td><td>ROBOTIS OpenRB-150</td><td>1</td><td>USB 連 Pi,和 XL330 舵機總線通訊</td></tr>
+        <tr><td>舵機</td><td>Dynamixel XL330-M288-T</td><td>14</td><td>雙腿 10 + 頭頸 4(可選第 15 顆嘴部,行走不用)</td></tr>
+        <tr><td>IMU</td><td>BNO080/085/086</td><td>1</td><td>I2C 讀姿態(重力方向、角速度)</td></tr>
+        <tr><td>電池</td><td>成品 6V 電池包</td><td>1</td><td>供電;需足夠瞬時電流</td></tr>
+        <tr><td>結構件</td><td>3D 列印件(PLA)</td><td>1 套</td><td>骨架</td></tr>
+      </tbody>
+    </table></div>
+    <p>14 個關節的 ID 對應是固定的:<code>1–5</code> 右腿(踝→膝→髖俯仰→橫滾→偏航)、<code>6–10</code> 左腿、<code>11–14</code> 頭頸。這個順序很重要,因為策略的輸入輸出都<strong>按固定關節順序</strong>排列。</p>
+  </section>
+
+  <!-- 2 -->
+  <section id="arch">
+    <h2><span class="num">②</span> 系統架構:訓練端 ↔ 部署端</h2>
+    <p>整個專案分兩半,中間靠一個檔案(<code>walk.onnx</code>)連起來:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 300" role="img" aria-label="兩端架構：訓練端 mjlab_microduck 在 MuJoCo 用 RL 訓練並匯出 walk.onnx；部署端 microduck 在樹莓派上載入 onnx 驅動舵機">
+        <defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <!-- train side -->
+          <rect x="16" y="40" width="300" height="220" rx="14" fill="#f2f0fb" stroke="#c9c0ef" stroke-width="1.3"/>
+          <text x="166" y="66" text-anchor="middle" font-size="12.5" font-weight="800" fill="#3a2a99">訓練端  mjlab_microduck</text>
+          <text x="166" y="84" text-anchor="middle" font-size="9" fill="#6a5fb0">在你的電腦 / GPU 上,離線跑</text>
+          <rect x="36" y="98" width="260" height="40" rx="8" fill="#fff" stroke="#5645d4" stroke-width="1.2"/>
+          <text x="166" y="115" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a1a1a">MuJoCo / MjLab 物理模擬</text>
+          <text x="166" y="130" text-anchor="middle" font-size="8.5" fill="#787671">大量並行環境 + 域隨機化</text>
+          <rect x="36" y="146" width="260" height="38" rx="8" fill="#fff" stroke="#5645d4" stroke-width="1.2"/>
+          <text x="166" y="163" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a1a1a">強化學習(PPO 類)訓練策略</text>
+          <text x="166" y="177" text-anchor="middle" font-size="8.5" fill="#787671">速度指令為條件 · 一堆獎勵塑形</text>
+          <rect x="70" y="196" width="192" height="42" rx="8" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.3"/>
+          <text x="166" y="214" text-anchor="middle" font-size="11" font-weight="800" fill="#137a29">匯出 → walk.onnx</text>
+          <text x="166" y="230" text-anchor="middle" font-size="8.5" fill="#2f6b40">附 joint_names / default_pose 元資料</text>
+
+          <!-- bridge -->
+          <path d="M316,150 L404,150" stroke="#8a93ad" stroke-width="2.4" marker-end="url(#ar)"/>
+          <text x="360" y="142" text-anchor="middle" font-size="9" fill="#5d5b54">一個檔案</text>
+          <text x="360" y="168" text-anchor="middle" font-size="8.5" fill="#a4a097">.onnx</text>
+
+          <!-- deploy side -->
+          <rect x="404" y="40" width="300" height="220" rx="14" fill="#fff3e8" stroke="#f0c79a" stroke-width="1.3"/>
+          <text x="554" y="66" text-anchor="middle" font-size="12.5" font-weight="800" fill="#b34700">部署端  microduck</text>
+          <text x="554" y="84" text-anchor="middle" font-size="9" fill="#a06a35">在樹莓派 Zero 2 W 上,即時跑</text>
+          <rect x="424" y="98" width="260" height="40" rx="8" fill="#fff" stroke="#dd5b00" stroke-width="1.2"/>
+          <text x="554" y="115" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a1a1a">50Hz 控制迴圈</text>
+          <text x="554" y="130" text-anchor="middle" font-size="8.5" fill="#787671">讀 IMU + 舵機 → 組觀測 → 推理 → 下命令</text>
+          <rect x="424" y="146" width="260" height="38" rx="8" fill="#fff" stroke="#dd5b00" stroke-width="1.2"/>
+          <text x="554" y="163" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a1a1a">onnxruntime 載入 walk.onnx</text>
+          <text x="554" y="177" text-anchor="middle" font-size="8.5" fill="#787671">CPU 推理,輸出 14 個關節目標</text>
+          <rect x="424" y="196" width="260" height="42" rx="8" fill="#dcecfa" stroke="#0075de" stroke-width="1.2"/>
+          <text x="554" y="214" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a1a1a">OpenRB-150 → 14× XL330 舵機</text>
+          <text x="554" y="230" text-anchor="middle" font-size="8.5" fill="#787671">手柄/鍵盤下速度指令</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 訓練與部署徹底解耦。訓練端不需要真機,部署端不需要 GPU——中間只靠一個帶元資料的 <code>walk.onnx</code> 交接。這正是 sim-to-real 的骨架。</div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section id="sim2real">
+    <h2><span class="num">③</span> 走路是「學」出來的:sim-to-real 流水線</h2>
+    <p>傳統機器人走路要人工設計步態、調 PID。Microduck 走的是<strong>學習</strong>路線:在模擬器裡讓一個神經網路<strong>反覆嘗試、跌倒、被獎勵/懲罰</strong>,自己長出走路的策略。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 250" role="img" aria-label="sim-to-real 流水線：模擬器中並行大量機器人加域隨機化，RL 依速度指令與獎勵訓練策略，匯出 onnx，真機 50Hz 閉環推理">
+        <defs><marker id="p1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif" text-anchor="middle">
+          <rect x="14" y="60" width="150" height="120" rx="12" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.3"/>
+          <text x="89" y="82" font-size="11" font-weight="800" fill="#3a2a99">① 模擬</text>
+          <text x="89" y="102" font-size="8.6" fill="#4a3a8a">MuJoCo 裡並行</text>
+          <text x="89" y="116" font-size="8.6" fill="#4a3a8a">上千台虛擬鴨</text>
+          <text x="89" y="136" font-size="8.6" fill="#4a3a8a">+ 域隨機化</text>
+          <text x="89" y="150" font-size="8.6" fill="#4a3a8a">(摩擦/推力/延遲/雜訊)</text>
+          <text x="89" y="168" font-size="8" fill="#7a72b8">便宜、可加速、跌倒不心疼</text>
+
+          <rect x="200" y="60" width="150" height="120" rx="12" fill="#fff3d6" stroke="#e0a800" stroke-width="1.3"/>
+          <text x="275" y="82" font-size="11" font-weight="800" fill="#8a6a00">② RL 訓練</text>
+          <text x="275" y="102" font-size="8.6" fill="#7a5a00">給速度指令 vx/vy/vθ</text>
+          <text x="275" y="118" font-size="8.6" fill="#7a5a00">獎勵:跟上速度、</text>
+          <text x="275" y="132" font-size="8.6" fill="#7a5a00">站直、抬腳、別滑步…</text>
+          <text x="275" y="152" font-size="8.6" fill="#7a5a00">懲罰:亂晃、角動量</text>
+          <text x="275" y="168" font-size="8" fill="#b08a2a">策略自己長出步態</text>
+
+          <rect x="386" y="88" width="130" height="64" rx="12" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.3"/>
+          <text x="451" y="112" font-size="11" font-weight="800" fill="#137a29">③ 匯出</text>
+          <text x="451" y="130" font-size="9" fill="#2f6b40">walk.onnx</text>
+          <text x="451" y="144" font-size="8" fill="#2f6b40">凍結成推理圖</text>
+
+          <rect x="552" y="60" width="154" height="120" rx="12" fill="#dcecfa" stroke="#0075de" stroke-width="1.3"/>
+          <text x="629" y="82" font-size="11" font-weight="800" fill="#005bb0">④ 真機閉環</text>
+          <text x="629" y="102" font-size="8.6" fill="#0a4f8a">50Hz:讀 IMU+舵機</text>
+          <text x="629" y="118" font-size="8.6" fill="#0a4f8a">→ 組觀測 → onnx</text>
+          <text x="629" y="134" font-size="8.6" fill="#0a4f8a">→ 關節目標 → 舵機</text>
+          <text x="629" y="154" font-size="8.6" fill="#0a4f8a">手柄/鍵盤即時下指令</text>
+          <text x="629" y="170" font-size="8" fill="#3a7fbf">同一個策略,零改動</text>
+
+          <path d="M164,120 L198,120" stroke="#8a93ad" stroke-width="1.8" marker-end="url(#p1)"/>
+          <path d="M350,120 L384,120" stroke="#8a93ad" stroke-width="1.8" marker-end="url(#p1)"/>
+          <path d="M516,120 L550,120" stroke="#8a93ad" stroke-width="1.8" marker-end="url(#p1)"/>
+          <path d="M275,60 C275,34 89,34 89,58" stroke="#c9a94a" stroke-width="1.4" stroke-dasharray="4 3" fill="none" marker-end="url(#p1)"/>
+          <text x="182" y="30" font-size="8" fill="#b08a2a">試錯迴圈(數百萬步)</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ ①②在你電腦上離線跑(可花數小時);③把學到的策略凍結成一個 <code>.onnx</code>;④在便宜的樹莓派上即時閉環。真機端<strong>不訓練、不學習</strong>,只做推理。</div>
+    </div>
+    <p>訓練環境定義在 <code>mjlab_microduck</code>,策略以<strong>速度指令為條件</strong>(前進 vx、側移 vy、轉向 vθ),用一組獎勵把「好的走路」塑形出來——例如 <em>跟上速度指令</em>(權重最高)、<em>保持站直</em>、<em>抬腳高度</em>、<em>騰空時間</em>,同時<em>懲罰滑步、亂晃、過大角動量</em>。</p>
+  </section>
+
+  <!-- 4 -->
+  <section id="policy">
+    <h2><span class="num">④</span> 策略看什麼、輸出什麼</h2>
+    <p>這是理解整套系統最關鍵的一塊:那個神經網路,<strong>輸入是一個向量、輸出是一個向量</strong>,沒有魔法。</p>
+    <h3>觀測向量(policy 的輸入)</h3>
+    <p>每一個控制週期(50Hz),真機把感測器讀數拼成一個固定長度的向量餵進 ONNX。組成(N=14 個關節):</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 130" role="img" aria-label="觀測向量組成：陀螺儀3 + 投影重力3 + 關節位置誤差14 + 關節速度14 + 上一動作14 + 速度指令3 + 可選相位2">
+        <g font-family="sans-serif">
+          <!-- segments scaled -->
+          <rect x="14" y="40" width="40" height="34" rx="4" fill="#2a9d99"/><text x="34" y="61" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">gyro</text><text x="34" y="90" text-anchor="middle" font-size="8" fill="#5d5b54">3</text>
+          <rect x="58" y="40" width="40" height="34" rx="4" fill="#2a9d99"/><text x="78" y="57" text-anchor="middle" font-size="8" fill="#fff" font-weight="700">重力</text><text x="78" y="68" text-anchor="middle" font-size="7.5" fill="#dff">投影</text><text x="78" y="90" text-anchor="middle" font-size="8" fill="#5d5b54">3</text>
+          <rect x="102" y="40" width="150" height="34" rx="4" fill="#5645d4"/><text x="177" y="61" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">關節位置誤差(相對預設)</text><text x="177" y="90" text-anchor="middle" font-size="8" fill="#5d5b54">14</text>
+          <rect x="256" y="40" width="150" height="34" rx="4" fill="#7b3ff2"/><text x="331" y="61" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">關節速度</text><text x="331" y="90" text-anchor="middle" font-size="8" fill="#5d5b54">14</text>
+          <rect x="410" y="40" width="150" height="34" rx="4" fill="#dd5b00"/><text x="485" y="61" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">上一次動作</text><text x="485" y="90" text-anchor="middle" font-size="8" fill="#5d5b54">14</text>
+          <rect x="564" y="40" width="60" height="34" rx="4" fill="#0075de"/><text x="594" y="61" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">速度指令</text><text x="594" y="90" text-anchor="middle" font-size="8" fill="#5d5b54">3</text>
+          <rect x="628" y="40" width="42" height="34" rx="4" fill="#a4a097"/><text x="649" y="57" text-anchor="middle" font-size="8" fill="#fff" font-weight="700">相位</text><text x="649" y="68" text-anchor="middle" font-size="7" fill="#fff">(選)</text><text x="649" y="90" text-anchor="middle" font-size="8" fill="#5d5b54">2</text>
+          <text x="14" y="26" font-size="10.5" font-weight="700" fill="#1a1a1a">觀測向量 = 51(或含步態相位 53)維</text>
+          <text x="649" y="112" text-anchor="middle" font-size="7.5" fill="#a4a097">cos/sin 步態時鐘</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 全是「本體感覺 + 意圖」:身體怎麼轉(陀螺儀)、哪邊是下(投影重力)、每個關節現在偏離預設多少、關節多快、上次做了什麼、以及使用者要它多快走。沒有攝影機、沒有全域座標。</div>
+    </div>
+    <h3>動作(policy 的輸出)</h3>
+    <p>網路輸出 <strong>14 個數字</strong>,每個是對應關節「相對預設姿勢的偏移量」:</p>
+    <pre><code><span class="cm"># 每個關節的目標角度 = 預設姿勢 + 策略輸出 × action_scale</span>
+target_angle[j] = default_pose[j] + action[j] * <span class="kw">1.0</span>
+<span class="cm"># 再交給舵機以位置控制去追(硬體 P 增益 KP)</span></code></pre>
+    <div class="callout tip"><strong>兩個實戰細節:</strong>(1) 啟動時用 1.5 秒 smoothstep 平滑回到預設姿勢,並把舵機的 <strong>P 增益從 400 降到 125</strong>(訓練時就假設這個「較軟」的增益),讓真機的力學和模擬一致;(2) 用<strong>投影重力的 z 分量</strong>判斷是否跌倒——一旦身體翻過門檻就凍結輸出,避免暴走。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="tricks">
+    <h2><span class="num">⑤</span> 為什麼「模擬裡學的」能在真機上走(sim-to-real 關鍵)</h2>
+    <p>模擬和真實永遠有落差(sim-to-real gap)。Microduck 能跨過去,靠的是一組刻意的工程手法——這些才是真正值得學的地方:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>手法</th><th>做什麼</th><th>解決什麼落差</th></tr></thead>
+      <tbody>
+        <tr><td><strong>域隨機化</strong></td><td>訓練時隨機化摩擦、隨機推機器人一把、隨機化延遲——讓策略見過各種變化</td><td>真實地面/擾動和模擬不同,逼策略學「穩健」而非「剛好」</td></tr>
+        <tr><td><strong>觀測加噪</strong></td><td>對關節位置/速度、重力、角速度注入均勻雜訊(如角速度 ±0.03)</td><td>真感測器有雜訊;訓練時就習慣,上真機才不崩</td></tr>
+        <tr><td><strong>IMU 延遲建模</strong></td><td>模擬 BNO08x 的<strong>讀取延遲</strong>(延遲若干步、週期性更新),不是給零延遲理想值</td><td>外接 IMU 有真實延遲,是最常見的 sim-to-real 殺手</td></tr>
+        <tr><td><strong>掛載座標系對齊</strong></td><td>訓練時把重力/角速度轉到<strong>IMU 實際安裝的座標系</strong>(<code>IMU_MOUNT_QUAT</code>),不是理想機身系</td><td>感測器歪著裝,策略看到的方向要和真機一致</td></tr>
+        <tr><td><strong>舵機模型(BAM)</strong></td><td>用電壓/電流/扭矩常數建模 XL330,把 P 增益對應成模擬扭矩;真機也切到同一增益</td><td>讓「同一個命令」在模擬和真機產生相近的力</td></tr>
+        <tr><td><strong>本體感覺-only</strong></td><td>觀測只用 IMU + 關節,<strong>不依賴任何全域資訊</strong>(位置、攝影機)</td><td>真機拿不到全域真值;只用真機也有的訊號</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><strong>心法:</strong>sim-to-real 的核心不是「把模擬做到完美」,而是「<strong>讓策略對『模擬和真實的差異』免疫</strong>」。與其精確建模每個細節,不如<strong>隨機化到策略不敢賭任何細節</strong>,再把真機一定有的東西(延遲、雜訊、歪掉的感測器)老實建進模擬。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="build">
+    <h2><span class="num">⑥</span> 動手做:從刷機到走路的最短路徑</h2>
+    <p>作者提供了預構建映像,幾乎是「刷卡即走」:</p>
+    <ol>
+      <li><strong>列印 + 組裝:</strong>用專案的 3D 檔列印結構件,裝上 14 顆 XL330,先用 Dynamixel Wizard 把每顆舵機的 <strong>ID / 協定 2.0 / 1Mbps</strong> 設好。</li>
+      <li><strong>刷映像:</strong>用 Raspberry Pi Imager 把 <code>microduck.img.xz</code> 寫進 microSD(內含系統、虛擬環境、<code>walk.onnx</code>、手柄服務)。</li>
+      <li><strong>設 Wi-Fi:</strong>編輯開機分區的 <code>network-config</code>(Pi Zero 2 W <strong>只支援 2.4GHz</strong>),或用 <code>nmcli</code> 連線。</li>
+      <li><strong>SSH 登入並跑:</strong><code>ssh user@microduck.local</code> → <code>cd ~/microduck</code> → <code>PYTHONPATH=src .venv/bin/python src/main.py</code>。程式會開扭矩、平滑回預設姿勢、載入 <code>walk.onnx</code>,然後聽鍵盤/手柄。</li>
+      <li><strong>走起來:</strong>按 <code>v</code> 開走、方向鍵前後/轉向、<code>x</code> 歸零、<code>q</code> 停止。安全起見先扶著或放穩再啟動。</li>
+    </ol>
+    <div class="callout info"><strong>安全:</strong>內建<strong>過流保護</strong>(全機電流持續超標數個 tick 就緊急斷扭矩,防跌倒時電流尖峰觸發 BMS);別直接斷電,先 <code>sudo shutdown -h now</code> 再關開關。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="steal">
+    <h2><span class="num">⑦</span> 值得偷師的思路(不做機器人也用得到)</h2>
+    <ol>
+      <li><strong>訓練與部署解耦成「一個檔案」。</strong>重運算(訓練)離線做、輕運算(推理)在便宜裝置上跑,中間用一個帶元資料的凍結模型(ONNX)交接——這是所有「模擬/離線學,線上用」系統的通用骨架。</li>
+      <li><strong>把「真實一定有的爛東西」建進訓練。</strong>延遲、雜訊、歪掉的感測器、外部擾動——與其假裝沒有,不如隨機化進去,策略才會對現實免疫。這條原則遠超機器人,任何「訓練分佈 vs 部署分佈」的落差都適用。</li>
+      <li><strong>只用「部署時也拿得到」的輸入。</strong>模擬裡有全域真值很誘人,但策略一旦依賴它,上真機就瞎了。介面要用兩邊都有的訊號。</li>
+      <li><strong>用獎勵塑形「你要的行為」,而非寫死步驟。</strong>跟上速度、站直、抬腳、別滑步——把目標拆成可加權的獎勵,讓策略自己找路徑,呼應站內 <a href="./evoagentx.html">把試錯變成可搜尋的優化</a>。</li>
+      <li><strong>邊界要有安全網。</strong>過流保護、跌倒凍結、平滑啟動——學習型控制器一定要配上確定性的護欄,這與 <a href="./agent-verification-mindset.html">把驗證當第一公民</a> 同源。</li>
+    </ol>
+  </section>
+
+  <!-- 8 -->
+  <section id="sources">
+    <h2><span class="num">⑧</span> 來源與致謝</h2>
+    <ul>
+      <li>專案:<a href="https://github.com/AI-FanGe/Microduck-build-tutorial" target="_blank" rel="noopener">GitHub · AI-FanGe/Microduck-build-tutorial</a>(裝機教學 + 預構建映像 + 3D 檔;教學倉庫為 MIT,內含 <code>microduck/</code> 部署碼為 GPL-3.0)。影片教學見專案 README。</li>
+      <li>本頁依 repo 原始碼整理:<code>microduck/src/moves/walk.py</code>(ONNX 推理與觀測組裝)、<code>observer.py</code> / <code>constants.py</code>(感測、KP、關節順序)、<code>scheduler.py</code>(50Hz 迴圈)、<code>mjlab_microduck/tasks/*</code>(訓練環境的觀測/獎勵/域隨機化)。</li>
+      <li>致謝(專案自述):機械結構、部署思路、仿真訓練與實機行走流程受益於開源專案 <a href="https://github.com/Rhoban/microban" target="_blank" rel="noopener">Rhoban/microban</a> 與 <a href="https://github.com/pollen-robotics/microduck" target="_blank" rel="noopener">pollen-robotics/microduck</a>。</li>
+      <li>關聯技術:MuJoCo / MjLab、ONNX Runtime、Dynamixel XL330 / OpenRB-150、BNO08x IMU、Raspberry Pi Zero 2 W。</li>
+    </ul>
+    <div class="related">
+      <a href="./agent-verification-mindset.html">
+        <div class="rel-title">🔬 把驗證當第一公民</div>
+        <div class="rel-sub">學習型控制器的安全網</div>
+      </a>
+      <a href="./evoagentx.html">
+        <div class="rel-title">🧬 EvoAgentX</div>
+        <div class="rel-sub">把試錯變成可搜尋的優化</div>
+      </a>
+      <a href="./chartool.html">
+        <div class="rel-title">📊 CharTool</div>
+        <div class="rel-sub">另一個 RL + 工具的以小博大</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      本頁依 repo 當前原始碼與 README 整理,非官方文件;硬體、映像、訓練細節會隨版本變動,實際以官方 repo 最新內容為準。組裝涉及鋰電/舵機,請注意電氣安全。未列 star 數。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
