@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>K2 Horizon 0.9B:能塞進手錶的全開源小模型(2026)· JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>⌚ K2 Horizon 0.9B:能塞進手錶的「全開源」小模型</h1>
+    <p class="sub">2026/09 · IFM(MBZUAI · LLM360 血統)推出的六模型艦隊裡最小的一員 · 主打「小到能跑在手錶/眼鏡上」的端側推理 · Apache 2.0 連訓練資料與方法全開 —— 但「跑在手錶」目前是定位語,不是實測 demo</p>
+    <div>
+      <span class="badge green">Apache 2.0 · 全開源</span>
+      <span class="badge blue">~0.9B 稠密 · 128K context</span>
+      <span class="badge orange">GGUF Q4 ≈ 633MB · 端側</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#why">① 為什麼「端側小模型」重要</a>
+      <a href="#what">② K2 Horizon 是什麼</a>
+      <a href="#recipe">③ 小而強的關鍵:多師蒸餾</a>
+      <a href="#device">④ 怎麼塞進小裝置</a>
+      <a href="#setup">⑤ 本地安裝路徑</a>
+      <a href="#reality">⑥ 行銷 vs 實測的落差</a>
+      <a href="#compare">⑦ 定位:與同級小模型比</a>
+      <a href="#steal">⑧ 值得偷師 / ⑨ 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>K2-Horizon-0.9B 是一個約 0.9B 參數、稠密解碼器的小型語言模型,主打「端側/穿戴裝置」上的本地推理。</strong>它出自 <strong>IFM(MBZUAI 的基礎模型研究院,也就是 LLM360 開源血統的團隊)</strong>,是 2026/09 一次發布的<strong>六模型艦隊</strong>(0.9B → 375B)裡最小的一員。最大賣點有兩個:<strong>(1) 徹底開放</strong>——Apache 2.0,連權重、程式碼、訓練資料與方法都公開;<strong>(2) 小到量化後約 633MB</strong>,理論上能塞進手機甚至手錶。</p>
+    <div class="callout warn"><strong>先說清楚一個誠實的落差:</strong>「跑在手錶上」是官方的<strong>定位宣稱</strong>(0.9B 針對手錶/眼鏡、3.7B/7B 針對手機),不是一個已被公開驗證的實機 demo——查不到任何真正在手錶上跑的 tok/s 數據。而且發布當下它<strong>還不能</strong>直接在 Ollama / LM Studio 載入,得用 IFM 自家的 llama.cpp 分支或 vLLM;獨立實測也發現首發權重有 bug。所以本頁會把「很棒的地方」和「別被行銷帶跑的地方」都講清楚。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="why">
+    <h2><span class="num">①</span> 為什麼「0.9B 端側小模型」重要</h2>
+    <p>把一個能推理、會用工具的模型縮到能在<strong>手機、手錶、眼鏡</strong>上本地跑,好處是直接的:</p>
+    <ul>
+      <li><strong>零延遲、零網路:</strong>不必往返雲端,離線也能用。</li>
+      <li><strong>隱私:</strong>資料不出裝置。</li>
+      <li><strong>零 token 費:</strong>推理成本從「每次呼叫付費」變成「一次性算力」。</li>
+    </ul>
+    <p>難點也很直接:<strong>穿戴裝置的記憶體與算力極小</strong>。要塞得進去,模型本身要夠小(參數少)、還要靠<strong>量化</strong>把每個權重從 16-bit 壓到 4-bit,把足跡壓到幾百 MB。K2 Horizon 0.9B 就是衝著這個目標設計的——它是 2024–2026「<strong>能幹活的 sub-1B 端側模型</strong>」這股浪潮裡的一員(見 <a href="#compare">⑦ 對照</a>)。</p>
+  </section>
+
+  <!-- 2 -->
+  <section id="what">
+    <h2><span class="num">②</span> K2 Horizon 是什麼</h2>
+    <p>K2 Horizon 是一次發布的<strong>六個模型</strong>,從能塞進手錶的 0.9B,到號稱「史上最大全開源」的 375B,共用同一套訓練配方。0.9B 是最小、最端側的那個。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 210" role="img" aria-label="K2 Horizon 六模型艦隊，依大小對應目標裝置：0.9B 手錶/眼鏡、3.7B 與 7B 手機、32B 與 36B-A4B 筆電/工作站、375B-A23B 伺服器">
+        <g font-family="sans-serif">
+          <text x="20" y="26" font-size="12.5" font-weight="800" fill="#1a1a1a">同一套配方,六個尺寸 —— 越小越端側</text>
+          <!-- ladder -->
+          <rect x="18" y="70" width="112" height="90" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="74" y="92" text-anchor="middle" font-size="13" font-weight="800" fill="#3a2a99">0.9B</text>
+          <text x="74" y="110" text-anchor="middle" font-size="9" fill="#4a3a8a">稠密</text>
+          <text x="74" y="134" text-anchor="middle" font-size="16">⌚👓</text>
+          <text x="74" y="152" text-anchor="middle" font-size="8.5" fill="#4a3a8a">手錶 / 眼鏡</text>
+
+          <rect x="140" y="82" width="90" height="66" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.2"/>
+          <text x="185" y="104" text-anchor="middle" font-size="12" font-weight="700" fill="#005bb0">3.7B</text>
+          <text x="185" y="126" text-anchor="middle" font-size="14">📱</text>
+          <text x="185" y="140" text-anchor="middle" font-size="8" fill="#0a4f8a">手機</text>
+
+          <rect x="240" y="82" width="90" height="66" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.2"/>
+          <text x="285" y="104" text-anchor="middle" font-size="12" font-weight="700" fill="#005bb0">7B</text>
+          <text x="285" y="126" text-anchor="middle" font-size="14">📱💻</text>
+          <text x="285" y="140" text-anchor="middle" font-size="8" fill="#0a4f8a">手機 / 筆電</text>
+
+          <rect x="340" y="82" width="90" height="66" rx="9" fill="#f6f5f4" stroke="#a4a097" stroke-width="1.2"/>
+          <text x="385" y="104" text-anchor="middle" font-size="12" font-weight="700" fill="#5d5b54">32B</text>
+          <text x="385" y="126" text-anchor="middle" font-size="14">💻</text>
+          <text x="385" y="140" text-anchor="middle" font-size="8" fill="#787671">工作站</text>
+
+          <rect x="440" y="82" width="120" height="66" rx="9" fill="#f6f5f4" stroke="#a4a097" stroke-width="1.2"/>
+          <text x="500" y="102" text-anchor="middle" font-size="11.5" font-weight="700" fill="#5d5b54">36B-A4B</text>
+          <text x="500" y="120" text-anchor="middle" font-size="8" fill="#787671">MoVA(MoE 在注意力)</text>
+          <text x="500" y="138" text-anchor="middle" font-size="8" fill="#787671">總 36B / 活躍 ~4B</text>
+
+          <rect x="570" y="82" width="132" height="66" rx="9" fill="#0a1530"/>
+          <text x="636" y="104" text-anchor="middle" font-size="11.5" font-weight="800" fill="#fff">375B-A23B</text>
+          <text x="636" y="122" text-anchor="middle" font-size="8" fill="#9fb0d0">號稱史上最大全開源</text>
+          <text x="636" y="138" text-anchor="middle" font-size="8" fill="#9fb0d0">伺服器 · 前沿</text>
+
+          <text x="360" y="188" text-anchor="middle" font-size="9" fill="#a4a097">← 端側 / 本地(本頁主角)　　　　　　　　　　　　　　　　　雲端 / 前沿 →</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 0.9B 是稠密模型;較大的 36B-A4B 等用 <strong>MoVA(Mixture-of-Value Attention,把 MoE 路由推進注意力)</strong>。本頁只談 0.9B。</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>項目</th><th>K2-Horizon-0.9B</th></tr></thead>
+      <tbody>
+        <tr><td><strong>出處</strong></td><td>IFM(MBZUAI 基礎模型研究院,LLM360 開源血統);2026/09/03 發布</td></tr>
+        <tr><td><strong>授權</strong></td><td>Apache 2.0(權重 + 程式碼 + 訓練資料 + 方法全開)</td></tr>
+        <tr><td><strong>架構</strong></td><td>稠密解碼器 Transformer;含 embedding 約 1.08B 參數(以官方卡為準)</td></tr>
+        <tr><td><strong>脈絡長度</strong></td><td>128K(131,072),用 YaRN RoPE 外推</td></tr>
+        <tr><td><strong>定位</strong></td><td>instruct / 推理 / 工具呼叫(agentic),非純 base 模型</td></tr>
+        <tr><td><strong>加速選項</strong></td><td>Uno:一個「擴散蒸餾」LoRA 轉接器,加並行分塊解碼,約 3× 生成加速</td></tr>
+      </tbody>
+    </table></div>
+    <p class="figcap" style="text-align:left;">註:層數/隱藏維/詞表大小、以及「~1.08B 參數、~10T 訓練 token」等數字來自檢索摘要,未能直接核對官方模型卡,以原始出處為準。</p>
+  </section>
+
+  <!-- 3 -->
+  <section id="recipe">
+    <h2><span class="num">③</span> 小而強的關鍵:多師 on-policy 蒸餾</h2>
+    <p>一個 0.9B 要在數學、程式、工具呼叫上打得動,靠的不是硬堆資料,而是<strong>向更強的「老師模型」學</strong>。K2 Horizon 的主要槓桿是 <strong>mOPD(multi-teacher on-policy distillation,多師在線蒸餾)</strong>:針對不同領域,用各自的<strong>專科老師</strong>來教這個小學生。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 210" role="img" aria-label="多師蒸餾：數學/程式老師、STEM 老師、指令遵循老師，各自把能力蒸餾進 K2-Horizon-0.9B 學生模型">
+        <defs><marker id="dm" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif" text-anchor="middle">
+          <rect x="20" y="28" width="180" height="42" rx="9" fill="#fff" stroke="#dd5b00" stroke-width="1.4"/>
+          <text x="110" y="46" font-size="10.5" font-weight="700" fill="#1a1a1a">👩‍🏫 數學 / 程式 老師</text>
+          <text x="110" y="62" font-size="8.5" fill="#8a4a1a">強模型,專攻 math / code</text>
+
+          <rect x="20" y="84" width="180" height="42" rx="9" fill="#fff" stroke="#2a9d99" stroke-width="1.4"/>
+          <text x="110" y="102" font-size="10.5" font-weight="700" fill="#1a1a1a">🔬 STEM 老師</text>
+          <text x="110" y="118" font-size="8.5" fill="#1f6f6b">專攻科學知識推理</text>
+
+          <rect x="20" y="140" width="180" height="42" rx="9" fill="#fff" stroke="#7b3ff2" stroke-width="1.4"/>
+          <text x="110" y="158" font-size="10.5" font-weight="700" fill="#1a1a1a">📝 指令遵循 老師</text>
+          <text x="110" y="174" font-size="8.5" fill="#4a3a8a">專攻對話 / 照規則做</text>
+
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#dm)">
+            <path d="M200,49 C300,55 320,95 400,102"/>
+            <path d="M200,105 L398,105"/>
+            <path d="M200,161 C300,155 320,115 400,108"/>
+          </g>
+
+          <rect x="404" y="70" width="180" height="76" rx="12" fill="#5645d4"/>
+          <text x="494" y="98" font-size="13" font-weight="800" fill="#fff">學生</text>
+          <text x="494" y="116" font-size="11" font-weight="700" fill="#e5e0fb">K2-Horizon-0.9B</text>
+          <text x="494" y="134" font-size="8.5" fill="#c7bff2">同時吸收多位專科老師</text>
+
+          <rect x="614" y="80" width="90" height="56" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.3"/>
+          <text x="659" y="102" font-size="10" font-weight="800" fill="#137a29">會多科</text>
+          <text x="659" y="120" font-size="8.5" fill="#2f6b40">的小模型</text>
+          <path d="M584,108 L612,108" stroke="#1aae39" stroke-width="1.8" fill="none" marker-end="url(#dm)"/>
+        </g>
+      </svg>
+      <div class="figcap">▲ 「on-policy」= 讓學生自己先產生答案,再用老師的訊號去修正它<em>實際會走的路徑</em>(而非只背老師的標準答案)。多位專科老師分別把各自的強項蒸給同一個小學生。</div>
+    </div>
+    <div class="callout tip"><strong>可偷師的一點:</strong>當你要一個小模型「樣樣通」,與其找一個全能大老師,不如<strong>用一組專科老師分頭蒸餾</strong>——每科由最強的那個教。這和站內 <a href="./train-slm-single-task.html">訓練小模型做單一任務</a>、<a href="./chartool.html">CharTool 的以小博大</a> 是同一種「不靠參數量、靠訓練配方」的思路。</div>
+  </section>
+
+  <!-- 4 -->
+  <section id="device">
+    <h2><span class="num">④</span> 怎麼塞進小裝置:量化足跡</h2>
+    <p>0.9B 的原始 16-bit 權重約 2GB;要塞進端側,靠 <strong>4-bit 量化</strong>把足跡壓到幾百 MB。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 180" role="img" aria-label="足跡對比：BF16 GGUF 約 2057 MiB，Q4_K_M 約 633 MiB；執行期 RAM 約 2GB 起；CPU 雙核約 14 到 16 tokens 每秒">
+        <g font-family="sans-serif">
+          <text x="20" y="24" font-size="12" font-weight="800" fill="#1a1a1a">檔案足跡(GGUF)</text>
+          <text x="20" y="56" font-size="10.5" font-weight="700" fill="#5d5b54">BF16(全精度)</text>
+          <rect x="150" y="42" width="500" height="24" rx="5" fill="#c8c4be"/>
+          <text x="660" y="59" font-size="10" font-weight="700" fill="#5d5b54">≈ 2057 MiB</text>
+
+          <text x="20" y="94" font-size="10.5" font-weight="700" fill="#3a2a99">Q4_K_M(4-bit)</text>
+          <rect x="150" y="80" width="154" height="24" rx="5" fill="#5645d4"/>
+          <text x="314" y="97" font-size="10" font-weight="800" fill="#3a2a99">≈ 633 MiB</text>
+
+          <line x1="150" y1="120" x2="150" y2="34" stroke="#e5e3df" stroke-width="1"/>
+          <rect x="18" y="128" width="684" height="40" rx="10" fill="#f6f5f4" stroke="#e5e3df"/>
+          <text x="34" y="146" font-size="10" fill="#5d5b54">執行期 RAM ≈ <tspan font-weight="700" fill="#1a1a1a">2GB 起</tspan>(含 KV cache);獨立測試 CPU 雙核 ≈ <tspan font-weight="700" fill="#1a1a1a">14–16 tokens/秒</tspan>。</text>
+          <text x="34" y="162" font-size="9" fill="#a4a097">未見經核實的樹莓派 / 手機 / 手錶實測吞吐;某目錄另列 BF16 版最低 8GB(高精度非 Q4)。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ Q4_K_M 把 0.9B 壓到約 633MB,這是「理論上能進手機/手錶」的依據。但「檔案小」不等於「手錶上跑得順」——見下面的執行期現實。</div>
+    </div>
+    <p>官方另提供 <strong>Uno</strong> 轉接器(擴散蒸餾 LoRA),在凍結的自回歸模型上加「並行分塊解碼」,號稱約 <strong>3× 生成加速</strong>——對算力吃緊的端側是有意義的方向。</p>
+  </section>
+
+  <!-- 5 -->
+  <section id="setup">
+    <h2><span class="num">⑤</span> 本地安裝路徑(Local Setup)</h2>
+    <p>影片標題的「Local Setup」,實際可行的路徑按「發布當下真的能跑」排序:</p>
+    <h3>① llama.cpp + GGUF(最貼近端側的路)</h3>
+    <pre><code><span class="cm"># 從 IFM/K2-Horizon-0.9B-GGUF 下載一個 4-bit 量化檔(約 633MB)</span>
+<span class="cm"># 例如 K2-Horizon-0.9B-Q4_K_M.gguf</span>
+./llama-cli -m K2-Horizon-0.9B-Q4_K_M.gguf -p <span class="kw">"你的問題"</span>
+<span class="cm"># 或起一個本地伺服器</span>
+./llama-server -m K2-Horizon-0.9B-Q4_K_M.gguf
+<span class="cm"># ⚠️ 發布當下需要 IFM 自家的 llama.cpp 分支(架構/工具解析尚未併回上游)</span></code></pre>
+    <h3>② vLLM(伺服器 / GPU)</h3>
+    <pre><code>vllm serve IFM/K2-Horizon-0.9B --trust-remote-code \
+    --dtype bfloat16 --tool-call-parser k2_horizon</code></pre>
+    <h3>③ Ollama / LM Studio(最想要、但發布當下不 work)</h3>
+    <p>這兩個「下載即用」的 App <strong>發布當下並不能直接載入</strong> K2-Horizon-0.9B(架構未被上游支援;早期低位元 GGUF 也被回報不相容 LM Studio)。若影片示範用 Ollama,很可能是靠自訂 Modelfile / 更新版建置,或稍嫌理想化。</p>
+    <div class="callout info"><strong>務實建議:</strong>要真的在小裝置上動手,現階段最可靠的是 <strong>GGUF + llama.cpp(IFM 分支)</strong>,跑在手機或一台 CPU 小機上;等上游 llama.cpp 併入支援後,Ollama/LM Studio 的「一鍵」體驗才會到位。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="reality">
+    <h2><span class="num">⑥</span> 行銷 vs 實測:誠實的落差</h2>
+    <p>K2 Horizon 0.9B 有真本事,但發布敘事和實測之間有幾道要提醒的縫:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>宣稱 / 亮點</th><th>實測 / 需保留</th></tr></thead>
+      <tbody>
+        <tr><td>「跑在手錶上」</td><td>是<strong>定位語</strong>;查無真正在手錶上跑的公開 demo 或 tok/s。Q4 約 633MB 讓它「有機會」,但未被驗證</td></tr>
+        <tr><td>「同尺寸最佳,數學/推理/工具」</td><td>可查證:<strong>AIME 2026 ≈ 48.5</strong>(官方自述 AIME 僅 30 題、變異大)、<strong>HumanEval+ ≈ 79.9</strong>、BFCL 工具呼叫同級領先。強是真的強——<em>就其尺寸而言</em></td></tr>
+        <tr><td>「下載即用」</td><td>發布當下<strong>不能</strong>在 stock Ollama / LM Studio 載入,需 IFM 的 llama.cpp 分支或 vLLM recipe</td></tr>
+        <tr><td>「前沿表現」</td><td>獨立實測(如 MindStudio)發現首發權重有 bug:從零產生 HTML/CSS/JS 會壞、vLLM 的工具呼叫解析器未真正執行呼叫。有明顯「跑分到實用」的落差</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><strong>結論:</strong>K2 Horizon 0.9B 最扎實的價值是「<strong>徹底開放</strong>(連資料與方法都給)+ <strong>用蒸餾把 0.9B 的數學/工具能力拉滿</strong>」。把它當成「一個很開放、很小、數學/工具導向的研究級模型」來看最準確;「手錶上的前沿 AI」這種標語,保留三分。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="compare">
+    <h2><span class="num">⑦</span> 定位:與同級 sub-1B 小模型比</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>模型</th><th>出處</th><th>特點</th></tr></thead>
+      <tbody>
+        <tr><td><strong>K2-Horizon-0.9B</strong></td><td>IFM / MBZUAI</td><td>徹底開放(含資料+方法)、推理/工具導向、多師蒸餾;代價是生態成熟度(發布當下要自訂 runtime)</td></tr>
+        <tr><td>SmolLM2(135M/360M/1.7B)</td><td>Hugging Face</td><td>資料工程取向的小模型標竿</td></tr>
+        <tr><td>Qwen2.5-0.5B / 1.5B</td><td>阿里</td><td>很強的小型稠密基線,生態成熟</td></tr>
+        <tr><td>Llama-3.2-1B</td><td>Meta</td><td>端側 1B 的參考點</td></tr>
+        <tr><td>Gemma 3 270M / 1B</td><td>Google</td><td>極小、明確面向端側</td></tr>
+        <tr><td>MobileLLM / MobileLLM-R1</td><td>Meta</td><td>專為手機設計的 sub-1B(含推理版)</td></tr>
+      </tbody>
+    </table></div>
+    <p>相對於 Gemma/Qwen/Llama「在 Ollama 秒載」,K2 Horizon 的差異化在<strong>開放程度(Apache 2.0 + 資料 + 方法)</strong>與<strong>推理/工具的取向</strong>;而它的短板正是<strong>生態成熟度</strong>。</p>
+  </section>
+
+  <!-- 8 -->
+  <section id="steal">
+    <h2><span class="num">⑧</span> 值得偷師的思路 / <span style="color:var(--stone);font-weight:700">⑨ 來源</span></h2>
+    <ol>
+      <li><strong>尺寸效率靠訓練配方,不靠參數量。</strong>多師 on-policy 蒸餾:每科用最強的專科老師教一個小學生——這是把小模型拉到「同級最佳」的關鍵槓桿。</li>
+      <li><strong>量化是端側的入場券。</strong>16-bit → 4-bit 把 2GB 壓到 ~633MB;沒有量化,就沒有「進手機/手錶」的對話。</li>
+      <li><strong>「檔案小」≠「跑得順」≠「生態就緒」。</strong>足跡、執行期 RAM、runtime 支援是三件事;評估端側模型要三個一起看。</li>
+      <li><strong>對行銷語保留判斷。</strong>「跑在手錶」是定位、「同級最佳」限定於尺寸、「前沿」有跑分到實用的落差——這正是 <a href="./llm-skill-forgetting.html">看穿宣稱、以證據為準</a> 的實例。</li>
+    </ol>
+    <h3>來源</h3>
+    <ul>
+      <li>模型:<a href="https://huggingface.co/IFM/K2-Horizon-0.9B" target="_blank" rel="noopener">IFM/K2-Horizon-0.9B</a>、<a href="https://huggingface.co/IFM/K2-Horizon-0.9B-GGUF" target="_blank" rel="noopener">-GGUF</a>、<a href="https://huggingface.co/IFM/K2-Horizon-0.9B-Uno" target="_blank" rel="noopener">-Uno</a>;<a href="https://recipes.vllm.ai/IFM/K2-Horizon-0.9B" target="_blank" rel="noopener">vLLM recipe</a>。</li>
+      <li>官方:<a href="https://ifm.ai/blog/k2/" target="_blank" rel="noopener">IFM blog · Introducing K2 Horizon</a>;<a href="https://mbzuai.ac.ae/news/mbzuais-institute-of-foundation-models-launches-k2-horizon-the-worlds-largest-fully-open-ai-models-in-history/" target="_blank" rel="noopener">MBZUAI 新聞</a>。</li>
+      <li>報導/實測:<a href="https://www.marktechpost.com/2026/09/06/ifm-releases-k2-horizon-six-apache-2-0-models-from-0-9b-to-375b/" target="_blank" rel="noopener">MarkTechPost</a>、<a href="https://www.testingcatalog.com/ifm-releases-k2-horizon-6-models-with-full-training-record/" target="_blank" rel="noopener">TestingCatalog</a>、<a href="https://www.mindstudio.ai/blog/k2-horizon-local-models-tested" target="_blank" rel="noopener">MindStudio 實測(Results Are Rough)</a>。</li>
+      <li>血統/釐清:LLM360 <a href="https://arxiv.org/pdf/2501.07124" target="_blank" rel="noopener">K2-65B(arXiv 2501.07124)</a>。勿與 Moonshot Kimi-K2 或 K2 山峰混淆。</li>
+    </ul>
+    <div class="related">
+      <a href="./train-slm-single-task.html">
+        <div class="rel-title">🧠 訓練小模型做單一任務</div>
+        <div class="rel-sub">以小博大的另一條路</div>
+      </a>
+      <a href="./chartool.html">
+        <div class="rel-title">📊 CharTool</div>
+        <div class="rel-sub">7B 以工具打贏大模型</div>
+      </a>
+      <a href="./microduck-biped-rl.html">
+        <div class="rel-title">🦆 Microduck</div>
+        <div class="rel-sub">端側 ONNX 推理的另一例</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      影片本身(YouTube)因網路取用限制無法讀取,本頁依「模型的可查證公開資料 + 第三方報導/實測」整理,非官方文件;因取用限制未能直接讀取 HuggingFace/官方頁,部分規格(層數、~1.08B 參數、~10T token、MMLU/GSM8K)與「手錶」宣稱屬未完全查證項,以官方 arXiv/模型卡最新內容為準。未列下載數。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
