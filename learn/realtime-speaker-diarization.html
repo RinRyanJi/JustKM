@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>即時語者分離:本地串流「誰在說話」的辨識管線 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🗣️ 即時語者分離:本地串流「誰在說話」的辨識管線</h1>
+    <p class="sub">一份把「即時語者分離(streaming speaker diarization)」落地的技術規格拆解 · 從模型選型(CAM++ / Pyannote / NeMo Sortformer)到五階段端到端資料流 · 主打全本地、低延遲、CPU 也能跑 · 並把它推進到<strong>可衡量可行性</strong>:量化的延遲/精度/資源目標、DER 量測法、分階段 POC 的 Go/No-Go 關卡與計分卡</p>
+    <div>
+      <span class="badge green">全本地 · 串流</span>
+      <span class="badge blue">Silero VAD + CAM++ (ONNX) + 線上餘弦比對</span>
+      <span class="badge orange">端到端 &lt; 1s · RTF &lt; 1 · DER 可量測</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#why">① 語者分離是什麼、即時為何難</a>
+      <a href="#models">② 三種模型選型</a>
+      <a href="#combo">③ 推薦組合與取捨</a>
+      <a href="#pipeline">④ 端到端五階段資料流</a>
+      <a href="#tracking">⑤ 語者追蹤:餘弦 + EMA + 門檻</a>
+      <a href="#asr">⑥ ASR 對齊:文字 × 語者合流</a>
+      <a href="#llm">⑦ 條件觸發本地 LLM</a>
+      <a href="#budget">⑧ 延遲預算與資源足跡</a>
+      <a href="#accuracy">⑨ 精度怎麼量:DER / JER</a>
+      <a href="#poc">⑩ 可行性驗證計畫:POC + 關卡</a>
+      <a href="#scorecard">⑪ 可行性計分卡與風險登記</a>
+      <a href="#evidence">⑫ 證據基準:真實串流系統三角驗證</a>
+      <a href="#assumptions">⑬ 假設登記 + 敏感度分析</a>
+      <a href="#decision">⑭ 依場景選路線的決策樹</a>
+      <a href="#steal">⑮ 值得偷師 / 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>「即時語者分離」要在音訊還在串流進來時,同步回答兩個問題:現在<em>有沒有人</em>在說話(VAD)、以及<em>是誰</em>在說話(diarization)。</strong>離線做這件事已經很成熟;難的是把它壓進<strong>幾百毫秒的延遲</strong>、還要能在 CPU 或輕量 GPU 上全本地跑。</p>
+    <p>這份規格給的答案是一條務實的管線:<strong>Silero VAD 過濾靜音 → CAM++(ONNX Runtime)抽語音特徵向量 → 線上餘弦相似度 + EMA 做分群 → Faster-Whisper 轉文字 → 按時間戳把「文字」和「語者編號」對齊 → 條件觸發本地小 LLM 做摘要</strong>。核心取捨是:<strong>不追求離線等級的重疊語音精度,換取超低延遲與極小資源佔用</strong>。</p>
+    <div class="callout info"><strong>誰會需要這個:</strong>會議即時字幕與紀錄、客服/銷售通話的即時分軌、直播逐字稿、本地語音助手要區分「主人 vs 其他人」。凡是「邊聽邊要知道誰在講什麼」、又不想把音訊送上雲端的場景。</div>
+    <div class="callout tip"><strong>這則知識怎麼讀:</strong>本頁有兩層可帶走的東西。<strong>領域層(①–⑦)</strong>——一條全本地、低延遲的即時語者分離管線怎麼設計。<strong>方法層(⑧–⑭)</strong>——當你<em>沒有條件實作</em>時,如何只在規劃上把可行性分析做到最可靠:量化目標(⑧⑨)、POC 關卡(⑩)、計分卡與風險(⑪)、拿真實系統與中文基準三角驗證(⑫)、假設登記+敏感度(⑬)、依場景選路線(⑭)。後半這套「證據 + 假設分級 + 敏感度」的做法,可套用到任何「不能馬上動手、但要負責任地評估可行性」的技術題。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="why">
+    <h2><span class="num">①</span> 語者分離是什麼、即時為何難</h2>
+    <p><strong>語者分離(Speaker Diarization)</strong>回答的是「<strong>誰在什麼時候說話</strong>(who spoke when)」——它不認識你是張三還是李四(那是<em>語者辨識</em>),只負責把同一段錄音切成「說話者 1、說話者 2……」並標出各自的時間區段。它和<strong>語音轉文字(ASR)</strong>是兩件正交的事:ASR 給你「說了什麼」,分離給你「這句是誰說的」,兩者對齊後才是完整的對話紀錄。</p>
+    <p>離線批次做很好辦:可以拿到整段音訊、來回掃描、全域分群。<strong>即時(串流)</strong>則同時被三個約束夾住:</p>
+    <ul>
+      <li><strong>看不到未來:</strong>只能靠「到目前為止」的音訊做決定,不能等整段講完再回頭修正。</li>
+      <li><strong>語者數未知且會增長:</strong>不能預設「就兩個人」,得能在第 3 個人插話時當場註冊一個新語者。</li>
+      <li><strong>延遲預算極緊:</strong>從「聲音進來」到「標好是誰」若超過 1 秒,體感就不即時了;而重疊語音、短句、背景雜訊都在跟你搶這點時間。</li>
+    </ul>
+    <div class="callout warn"><strong>最難的一塊是「重疊語音(overlap speech)」——</strong>兩人同時講話。離線模型可以用大模型硬解,串流下多數輕量方案會退讓:先把它當成主要語者,精度換延遲。這是選型時要睜大眼睛看的地方(見 <a href="#models">②</a>)。</div>
+  </section>
+
+  <!-- 2 -->
+  <section id="models">
+    <h2><span class="num">②</span> 三種即時語者分離模型選型</h2>
+    <p>規格裡把候選收斂到三條路線,分別代表「<strong>極致輕量</strong>、<strong>極致精度</strong>、<strong>原生串流</strong>」三種取向:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>模型 / 架構</th><th>特性</th><th>ONNX / 串流</th><th>適用場景</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>CAM++</strong><br>(3D-Speaker 開源)</td>
+          <td>模型極小(參數僅數百萬)、運算極快,單次向量擷取在一般 CPU 上約數十毫秒</td>
+          <td>結構單純,匯出 ONNX 很順,ONNX Runtime 可做極致推論最佳化。<strong>只負責抽特徵向量(embedding)</strong>,分群要另配本地演算法(移動平均 + 餘弦比對)</td>
+          <td>追求超低延遲、資源受限的 <strong>CPU 或輕量 GPU 本地環境</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Pyannote.audio</strong><br>(3.x)</td>
+          <td>語者分割精度極高,處理<strong>兩人互相插話、聲音重疊</strong>的場景表現最好</td>
+          <td>分割與特徵模型皆可轉 ONNX,但串流推論需要較大的<strong>滑動視窗(約 1–2 秒)</strong>,延遲較高</td>
+          <td>對<strong>精準度與重疊語音分離</strong>要求極高的會議紀錄</td>
+        </tr>
+        <tr>
+          <td><strong>NVIDIA NeMo</strong><br>(Streaming Sortformer)</td>
+          <td>原生支援串流端到端語者分離,能在 <strong>500ms–1s 的音訊塊內直接輸出分離結果</strong></td>
+          <td>依賴較重的 NeMo 工具鏈與環境;轉成純 ONNX 推論管線的成本較高</td>
+          <td>有充足 <strong>NVIDIA GPU</strong> 且直接用官方 SDK 開發的專案</td>
+        </tr>
+      </tbody>
+    </table></div>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 240" role="img" aria-label="三種語者分離模型在「延遲/資源」與「精度/重疊處理」兩軸上的定位：CAM++ 偏低延遲低資源、Pyannote 偏高精度、NeMo Sortformer 原生串流但依賴 GPU">
+        <g font-family="sans-serif">
+          <text x="20" y="24" font-size="12.5" font-weight="800" fill="#1a1a1a">三條路線的取捨:輕量 vs 精度 vs 原生串流</text>
+          <!-- axes -->
+          <line x1="70" y1="200" x2="690" y2="200" stroke="#c8c4be" stroke-width="1.4"/>
+          <line x1="70" y1="200" x2="70" y2="52" stroke="#c8c4be" stroke-width="1.4"/>
+          <text x="380" y="224" text-anchor="middle" font-size="9.5" fill="#787671">← 資源 / 延遲 越低　　　　　　越高 →</text>
+          <text x="58" y="58" text-anchor="end" font-size="9.5" fill="#787671" transform="rotate(-90 58 128)">精度 / 重疊處理 越高 →</text>
+
+          <!-- CAM++ -->
+          <g>
+            <circle cx="180" cy="168" r="42" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+            <text x="180" y="162" text-anchor="middle" font-size="12" font-weight="800" fill="#3a2a99">CAM++</text>
+            <text x="180" y="178" text-anchor="middle" font-size="8" fill="#4a3a8a">輕量 · CPU 友善</text>
+          </g>
+          <!-- Pyannote -->
+          <g>
+            <circle cx="300" cy="90" r="42" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.8"/>
+            <text x="300" y="84" text-anchor="middle" font-size="12" font-weight="800" fill="#137a29">Pyannote</text>
+            <text x="300" y="100" text-anchor="middle" font-size="8" fill="#2f6b40">精度 / 重疊最佳</text>
+          </g>
+          <!-- NeMo -->
+          <g>
+            <circle cx="560" cy="120" r="48" fill="#dcecfa" stroke="#0075de" stroke-width="1.8"/>
+            <text x="560" y="110" text-anchor="middle" font-size="11.5" font-weight="800" fill="#005bb0">NeMo</text>
+            <text x="560" y="126" text-anchor="middle" font-size="9" fill="#0a4f8a">Sortformer</text>
+            <text x="560" y="140" text-anchor="middle" font-size="8" fill="#0a4f8a">原生串流 · 需 GPU</text>
+          </g>
+          <text x="180" y="224" text-anchor="middle" font-size="8" fill="#a4a097">本頁推薦核心</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ CAM++ 落在「低資源低延遲」角(但精度靠外掛分群補);Pyannote 拉滿精度但滑動視窗使延遲上升;NeMo Sortformer 原生串流、塊內出結果,代價是重工具鏈與 GPU 依賴。</div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section id="combo">
+    <h2><span class="num">③</span> 推薦組合與為什麼這樣配</h2>
+    <p>規格的最終建議是把它拼成一條可組裝的本地管線,而不是賭單一大模型:</p>
+    <div class="callout tip"><strong>推薦核心組合:</strong><br><strong>Silero VAD</strong>(靜音過濾)<strong> + CAM++ / ONNX Runtime</strong>(特徵向量)<strong> + 線上餘弦距離比對</strong>(分群)。<br>——在<strong>資源消耗、實作複雜度、延遲</strong>三者之間取得最佳平衡。</div>
+    <p>為什麼不是直接上 Pyannote 或 NeMo?</p>
+    <ul>
+      <li><strong>VAD 先擋掉靜音:</strong>真實對話裡靜音佔比很高。用一個極小的 Silero VAD 先把沒人講話的訊框丟掉,後面昂貴的特徵擷取與 ASR 就只在「真的有聲音」時才跑——這是最划算的一刀。</li>
+      <li><strong>CAM++ 只做它最擅長的一件事:</strong>把一段語音壓成一個定長向量(embedding)。它不做分群,所以你可以用自己完全可控、可調門檻的<strong>線上演算法</strong>來決定「這是舊語者還是新語者」。</li>
+      <li><strong>分群留在本地程式碼裡:</strong>用餘弦相似度 + 指數移動平均(EMA)維護一個「語者向量庫」,不需要額外的重模型。這讓整條管線在 CPU 上也能即時。</li>
+    </ul>
+    <div class="callout warn"><strong>代價要講清楚:</strong>這條路犧牲的是<strong>重疊語音的精度</strong>。若你的場景是高頻互相插話、且對「誰壓過誰」要求極高的會議存證,Pyannote 的滑動視窗方案會更穩;若你有 NVIDIA GPU 且能吃 NeMo 工具鏈,Sortformer 的原生串流會更省心。<strong>先確定你的延遲/精度/硬體約束,再選路線。</strong></div>
+  </section>
+
+  <!-- 4 -->
+  <section id="pipeline">
+    <h2><span class="num">④</span> 端到端五階段資料流</h2>
+    <p>整套系統由五個階段串成一條非同步管線。每一個訊框(frame)/區塊(chunk)像水一樣往下流,前一段的輸出就是後一段的輸入:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 300" role="img" aria-label="五階段資料流：音訊擷取 30ms 訊框 → VAD 過濾靜音累積成 500-1000ms 區塊 → CAM++ 抽 512 維向量做語者比對 → Faster-Whisper 轉文字含字詞時間戳 → 依時間戳合流成結構化對話 → 條件觸發本地 LLM 摘要">
+        <defs><marker id="af" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">音訊像水一樣流過五個階段</text>
+
+          <!-- Stage 1 -->
+          <rect x="18" y="44" width="130" height="70" rx="10" fill="#fff" stroke="#0075de" stroke-width="1.5"/>
+          <text x="83" y="64" text-anchor="middle" font-size="10.5" font-weight="800" fill="#005bb0">① 音訊擷取</text>
+          <text x="83" y="80" text-anchor="middle" font-size="8" fill="#0a4f8a">WASAPI Loopback</text>
+          <text x="83" y="93" text-anchor="middle" font-size="8" fill="#5d5b54">16kHz/mono/f32</text>
+          <text x="83" y="106" text-anchor="middle" font-size="8" fill="#5d5b54">每 30ms 一訊框</text>
+
+          <!-- Stage 2 -->
+          <rect x="168" y="44" width="130" height="70" rx="10" fill="#fff" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="233" y="64" text-anchor="middle" font-size="10.5" font-weight="800" fill="#a8460a">② VAD</text>
+          <text x="233" y="80" text-anchor="middle" font-size="8" fill="#8a4a1a">Silero(ONNX)</text>
+          <text x="233" y="93" text-anchor="middle" font-size="8" fill="#5d5b54">丟靜音、累積成</text>
+          <text x="233" y="106" text-anchor="middle" font-size="8" fill="#5d5b54">500–1000ms 區塊</text>
+
+          <!-- Stage 3 -->
+          <rect x="318" y="44" width="130" height="70" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="383" y="64" text-anchor="middle" font-size="10.5" font-weight="800" fill="#3a2a99">③ 語者分離</text>
+          <text x="383" y="80" text-anchor="middle" font-size="8" fill="#4a3a8a">CAM++ → 512 維</text>
+          <text x="383" y="93" text-anchor="middle" font-size="8" fill="#4a3a8a">餘弦比對 + EMA</text>
+          <text x="383" y="106" text-anchor="middle" font-size="8" fill="#5d5b54">→ Speaker N</text>
+
+          <!-- Stage 4 -->
+          <rect x="468" y="44" width="130" height="70" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="533" y="64" text-anchor="middle" font-size="10.5" font-weight="800" fill="#137a29">④ ASR 對齊</text>
+          <text x="533" y="80" text-anchor="middle" font-size="8" fill="#2f6b40">Faster-Whisper</text>
+          <text x="533" y="93" text-anchor="middle" font-size="8" fill="#2f6b40">字詞時間戳</text>
+          <text x="533" y="106" text-anchor="middle" font-size="8" fill="#5d5b54">文字 × 語者合流</text>
+
+          <!-- Stage 5 -->
+          <rect x="618" y="44" width="86" height="70" rx="10" fill="#0a1530"/>
+          <text x="661" y="64" text-anchor="middle" font-size="10" font-weight="800" fill="#fff">⑤ LLM</text>
+          <text x="661" y="80" text-anchor="middle" font-size="7.5" fill="#9fb0d0">本地小模型</text>
+          <text x="661" y="92" text-anchor="middle" font-size="7.5" fill="#9fb0d0">條件觸發</text>
+          <text x="661" y="104" text-anchor="middle" font-size="7.5" fill="#9fb0d0">摘要 / 提示</text>
+
+          <!-- arrows -->
+          <g stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#af)">
+            <path d="M148,79 L166,79"/>
+            <path d="M298,79 L316,79"/>
+            <path d="M448,79 L466,79"/>
+            <path d="M598,79 L616,79"/>
+          </g>
+
+          <!-- non-blocking queue note -->
+          <rect x="18" y="140" width="686" height="40" rx="10" fill="#f6f5f4" stroke="#e5e3df"/>
+          <text x="34" y="158" font-size="9.5" fill="#5d5b54">各階段之間用<tspan font-weight="700" fill="#1a1a1a">非同步佇列</tspan>解耦:上游只管把資料推進佇列,下游各自照自己的節奏消化,避免任一段卡住整條管線。</text>
+          <text x="34" y="173" font-size="9" fill="#a4a097">③ 語者分離 與 ④ ASR 可<tspan font-weight="700" fill="#5645d4">平行</tspan>處理同一個區塊,最後在 ④ 依時間戳合流。</text>
+
+          <!-- structured output -->
+          <text x="20" y="206" font-size="10.5" font-weight="800" fill="#1a1a1a">合流後的結構化輸出(每句一列):</text>
+          <rect x="18" y="216" width="686" height="66" rx="10" fill="#0d1526" stroke="#22304e"/>
+          <text x="34" y="238" font-size="9.5" font-family="monospace" fill="#d7deee">{ speaker: <tspan fill="#b6f0c4">"Speaker 1"</tspan>, start: <tspan fill="#ffcf9e">12.30</tspan>, end: <tspan fill="#ffcf9e">14.85</tspan>, text: <tspan fill="#b6f0c4">"這季的目標是…"</tspan> }</text>
+          <text x="34" y="258" font-size="9.5" font-family="monospace" fill="#d7deee">{ speaker: <tspan fill="#b6f0c4">"Speaker 2"</tspan>, start: <tspan fill="#ffcf9e">14.90</tspan>, end: <tspan fill="#ffcf9e">16.20</tspan>, text: <tspan fill="#b6f0c4">"那預算呢?"</tspan> }</text>
+          <text x="34" y="275" font-size="8" fill="#7f8db0">↑ 語者編號來自 ③、文字與時間戳來自 ④,兩者對齊成一條可讀對話</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 五階段管線。關鍵設計是「非同步佇列解耦」+「③④ 平行、依時間戳合流」,讓昂貴的步驟不阻塞音訊擷取。</div>
+    </div>
+
+    <h3>第一階段 · 系統音訊擷取(Audio Capture)</h3>
+    <ul>
+      <li>透過系統底層 API(如 Windows <strong>WASAPI Loopback</strong>)擷取<strong>系統正在播放</strong>的聲音串流——這讓你能錄下線上會議/影片的對方聲音,而不只是麥克風。</li>
+      <li>統一格式化為 <strong>16kHz 取樣率、16-bit 單聲道(mono)、float32 陣列</strong>——這是語音模型的通用輸入格式。</li>
+      <li>以每 <strong>30ms 一個訊框(frame)</strong>持續推入內部<strong>非同步佇列</strong>。</li>
+    </ul>
+
+    <h3>第二階段 · 語音活動檢測(VAD)</h3>
+    <ul>
+      <li>用 <strong>Silero VAD(ONNX 加速)</strong>對 30ms 訊框做過濾:無人說話的靜音區段<strong>直接丟棄</strong>,不浪費算力。</li>
+      <li>偵測到持續聲音時,把音訊累積成 <strong>500ms–1000ms 的區塊(chunk)</strong>。</li>
+      <li>若<strong>靜音超過 500ms</strong>,就標記「這句話結束」,把區塊往下送。</li>
+    </ul>
+
+    <h3>第三階段 · 語者分離與特徵比對(Speaker Tracking)</h3>
+    <ul>
+      <li>把有聲區塊送進 <strong>CAM++ ONNX 模型</strong>,萃取 <strong>512 維語音特徵向量</strong>並做 <strong>L2 正規化</strong>。</li>
+      <li>在記憶體維護一個「<strong>已知語者向量庫</strong>」,用<strong>餘弦相似度</strong>比對新向量與各已知語者的距離(細節見 <a href="#tracking">⑤</a>)。</li>
+    </ul>
+
+    <h3>第四階段 · 語音轉文字與時間戳對齊(ASR Alignment)</h3>
+    <ul>
+      <li>把同一個音訊區塊<strong>平行</strong>送進 <strong>Faster-Whisper 或 Whisper.cpp</strong> 即時解碼,並開啟<strong>字詞時間戳(word timestamps)</strong>。</li>
+      <li>合流模組依時間戳,把「<strong>文字內容</strong>」與第三階段的「<strong>語者編號</strong>」結合成結構化資料(語者、起訖時間、文字)。</li>
+    </ul>
+
+    <h3>第五階段 · 本地大型語言模型分析(LLM Inference)</h3>
+    <p>對齊後的對話推入<strong>上下文緩衝區(context buffer)</strong>,用<strong>條件觸發</strong>驅動本地小模型(見 <a href="#llm">⑦</a>),不是每次辨識都硬跑,避免佔滿 CPU/GPU。</p>
+  </section>
+
+  <!-- 5 -->
+  <section id="tracking">
+    <h2><span class="num">⑤</span> 語者追蹤:餘弦相似度 + EMA + 門檻</h2>
+    <p>這是整條管線裡「不靠大模型、靠一小段演算法」的關鍵。CAM++ 只給你一個向量,「這是誰」的判斷全在這裡:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 250" role="img" aria-label="語者追蹤決策流程：新區塊抽出 512 維向量後與語者庫逐一算餘弦相似度，最高相似度若高於門檻 0.65 則判為該語者並用 EMA 更新中心向量，否則註冊為新語者">
+        <defs><marker id="tk" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">「這是舊語者還是新語者?」的線上決策</text>
+
+          <!-- new embedding -->
+          <rect x="18" y="46" width="120" height="52" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.6"/>
+          <text x="78" y="68" text-anchor="middle" font-size="10" font-weight="800" fill="#3a2a99">新區塊向量</text>
+          <text x="78" y="84" text-anchor="middle" font-size="8" fill="#4a3a8a">512 維 · L2 正規化</text>
+
+          <!-- compare -->
+          <path d="M138,72 L166,72" stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#tk)"/>
+          <rect x="168" y="40" width="150" height="64" rx="10" fill="#fff" stroke="#787671" stroke-width="1.4"/>
+          <text x="243" y="60" text-anchor="middle" font-size="9.5" font-weight="800" fill="#1a1a1a">與語者庫逐一比對</text>
+          <text x="243" y="76" text-anchor="middle" font-size="8" fill="#5d5b54">cos(new, Sₖ) 取最高</text>
+          <text x="243" y="91" text-anchor="middle" font-size="8" fill="#5d5b54">= best_sim</text>
+
+          <!-- decision -->
+          <path d="M318,72 L346,72" stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#tk)"/>
+          <polygon points="348,72 400,44 452,72 400,100" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="400" y="70" text-anchor="middle" font-size="9" font-weight="800" fill="#a8460a">best_sim</text>
+          <text x="400" y="83" text-anchor="middle" font-size="9" font-weight="800" fill="#a8460a">≥ 0.65 ?</text>
+
+          <!-- yes -->
+          <path d="M452,72 L500,72" stroke="#1aae39" stroke-width="2" fill="none" marker-end="url(#tk)"/>
+          <text x="476" y="64" text-anchor="middle" font-size="8" font-weight="700" fill="#137a29">是</text>
+          <rect x="502" y="42" width="200" height="60" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="602" y="62" text-anchor="middle" font-size="9.5" font-weight="800" fill="#137a29">判為該語者</text>
+          <text x="602" y="78" text-anchor="middle" font-size="8" fill="#2f6b40">EMA 更新其中心向量:</text>
+          <text x="602" y="92" text-anchor="middle" font-size="8" font-family="monospace" fill="#2f6b40">Sₖ ← α·Sₖ + (1−α)·new</text>
+
+          <!-- no -->
+          <path d="M400,100 L400,150" stroke="#e03131" stroke-width="2" fill="none" marker-end="url(#tk)"/>
+          <text x="412" y="128" text-anchor="middle" font-size="8" font-weight="700" fill="#c92a2a">否(低於門檻)</text>
+          <rect x="300" y="152" width="200" height="56" rx="10" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.5"/>
+          <text x="400" y="174" text-anchor="middle" font-size="9.5" font-weight="800" fill="#a11a6b">註冊為新語者</text>
+          <text x="400" y="190" text-anchor="middle" font-size="8" fill="#8a1a5b">Speaker N+1,把此向量當初始中心</text>
+
+          <!-- speaker bank -->
+          <rect x="18" y="150" width="240" height="80" rx="10" fill="#f6f5f4" stroke="#e5e3df"/>
+          <text x="34" y="170" font-size="9.5" font-weight="800" fill="#1a1a1a">語者向量庫(記憶體)</text>
+          <text x="34" y="188" font-size="8.5" font-family="monospace" fill="#5d5b54">Speaker 1 → [512d center]</text>
+          <text x="34" y="203" font-size="8.5" font-family="monospace" fill="#5d5b54">Speaker 2 → [512d center]</text>
+          <text x="34" y="218" font-size="8.5" font-family="monospace" fill="#a4a097">…隨對話動態增長</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 餘弦相似度落在門檻(例:0.65)之上→歸為舊語者、用 EMA 平滑更新中心;之下→動態註冊新語者。門檻與 EMA 係數 α 是這套方法最關鍵的兩個旋鈕。</div>
+    </div>
+    <h4>為什麼用「餘弦 + EMA」而不是重跑分群</h4>
+    <ul>
+      <li><strong>餘弦相似度</strong>只看向量方向、不看長度,對音量變化穩健;配上 L2 正規化,比對變成一次點積,快到可忽略。</li>
+      <li><strong>指數移動平均(EMA)</strong>讓每個語者的「中心向量」隨新樣本緩慢漂移,吸收語調、距離麥克風遠近的自然變化,又不會被單一雜訊區塊帶歪。</li>
+      <li><strong>門檻決定靈敏度:</strong>調高→更容易把相近的人拆成兩個(over-split);調低→更容易把兩個人併成一個(under-cluster)。這個值要按你的麥克風與場景實測校準,沒有萬用數字。</li>
+    </ul>
+    <div class="callout warn"><strong>已知弱點:</strong>這套線上分群<strong>不回頭修正</strong>。一旦早期把 A、B 誤併,後面很難自動拆開;短區塊(&lt;0.5s)抽出的向量也較不穩。若場景要求高,可用較長區塊、或定期對緩衝做一次小範圍離線再分群來校正。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="asr">
+    <h2><span class="num">⑥</span> ASR 對齊:文字 × 語者怎麼合流</h2>
+    <p>第三階段給出「這個區塊是 Speaker K」,第四階段給出「這個區塊的字詞各自落在哪個時間點」。合流就是把兩條時間軸<strong>對齊</strong>:</p>
+    <pre><code><span class="cm"># 概念示意:依時間重疊把語者標籤貼到每個字/句上</span>
+<span class="kw">for</span> seg <span class="kw">in</span> asr_segments:            <span class="cm"># Faster-Whisper 的字詞/句段(含 start/end)</span>
+    spk = speaker_at(seg.start, seg.end)  <span class="cm"># 查該時間區間屬於哪個 Speaker</span>
+    emit({
+        <span class="st">"speaker"</span>: spk,             <span class="cm"># 來自 ③ 的語者編號</span>
+        <span class="st">"start"</span>: seg.start,
+        <span class="st">"end"</span>:   seg.end,
+        <span class="st">"text"</span>:  seg.text,        <span class="cm"># 來自 ④ 的文字</span>
+    })</code></pre>
+    <p>實務上兩件事要留意:</p>
+    <ul>
+      <li><strong>時間戳要同源:</strong>VAD 切塊時就要記下每個區塊在總時間軸上的絕對起點,ASR 的相對時間戳才能加回去對齊,否則語者與文字會錯位。</li>
+      <li><strong>邊界歸屬:</strong>一句話橫跨語者切換點時,按「字詞時間戳落在誰的區間較多」來歸屬;短促的「嗯/對」很容易被錯貼,可設最小時長門檻過濾。</li>
+    </ul>
+    <p>Faster-Whisper 與 Whisper.cpp 都是 Whisper 的高效本地實作,能在 CPU/GPU 上串流解碼並輸出字詞時間戳——這也是站內 <a href="./voxemw-realtime.html">VoxEMW 即時對話工程</a> 裡同一類「串流 STT」的技術族。</p>
+  </section>
+
+  <!-- 7 -->
+  <section id="llm">
+    <h2><span class="num">⑦</span> 條件觸發本地 LLM:不要每句都燒算力</h2>
+    <p>最後一段把對話餵給本地小模型(如 <strong>Qwen2.5-1.5B/3B</strong> 或 tiny LLaMA)。重點是<strong>「條件觸發」而非「每次都跑」</strong>——即時管線的 CPU/GPU 已經被 VAD/CAM++/ASR 佔著,LLM 只在划算的時機出手:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>觸發模式</th><th>條件</th><th>做什麼</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>週期摘要觸發</strong></td>
+          <td>文字累積達一定長度(例:<strong>150 字</strong>)<strong>或</strong> 對話切換語者<strong>超過 4 次</strong></td>
+          <td>在背景自動<strong>總結重點</strong>,滾動更新會議摘要</td>
+        </tr>
+        <tr>
+          <td><strong>關鍵字主動觸發</strong></td>
+          <td>ASR 辨識到特定觸發詞(如「<strong>總結一下</strong>」「<strong>待辦事項有哪些</strong>」)</td>
+          <td>立即擷取前段對話送模型,輸出<strong>即時提示與摘要</strong></td>
+        </tr>
+      </tbody>
+    </table></div>
+    <div class="callout tip"><strong>為什麼這樣設計:</strong>把 LLM 從「串流管線的一環」降級成「<strong>被事件喚醒的背景服務</strong>」,它就不再和即時辨識搶延遲預算。摘要晚個一兩秒沒關係,但字幕不能卡——優先級要分清楚。</div>
+    <p>這條「用小模型 + 條件觸發做本地摘要」的思路,和站內 <a href="./train-slm-single-task.html">訓練小模型做單一任務</a>、<a href="./k2-horizon.html">端側小模型 K2 Horizon</a> 是同一種「把合適大小的模型放在合適的位置」的工程取向。</p>
+  </section>
+
+  <!-- 8 -->
+  <section id="budget">
+    <h2><span class="num">⑧</span> 延遲預算與資源足跡:先把數字釘死</h2>
+    <p>要「衡量可行性」,第一步是把模糊的「低延遲、CPU 也能跑」翻譯成<strong>可驗收的數字</strong>。以下是這條管線的<strong>延遲預算</strong>——量測對象是「從一句話講完,到字幕+語者標籤出現」的時間:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="延遲預算橫條：判停靜音 500ms 為固有延遲，CAM++ 約 30ms、ASR 約 150ms、合流約 20ms 為處理延遲，合計約 700ms，仍在端到端 1 秒目標線之內，留有約 280ms 餘裕">
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">延遲預算:一句話講完 → 字幕+語者出現(目標 &lt; 1s)</text>
+          <!-- axis -->
+          <line x1="120" y1="120" x2="660" y2="120" stroke="#c8c4be" stroke-width="1.2"/>
+          <g font-size="8" fill="#a4a097" text-anchor="middle">
+            <text x="120" y="136">0</text><text x="255" y="136">250ms</text><text x="390" y="136">500ms</text><text x="525" y="136">750ms</text><text x="660" y="136">1000ms</text>
+          </g>
+          <!-- segments -->
+          <rect x="120" y="70" width="270" height="34" rx="4" fill="#dd5b00"/>
+          <text x="255" y="92" text-anchor="middle" font-size="9.5" font-weight="800" fill="#fff">判停靜音 ~500ms(固有)</text>
+          <rect x="390" y="70" width="16" height="34" fill="#5645d4"/>
+          <rect x="406" y="70" width="81" height="34" fill="#1aae39"/>
+          <text x="446" y="92" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff">ASR ~150</text>
+          <rect x="487" y="70" width="11" height="34" fill="#0075de"/>
+          <!-- headroom -->
+          <rect x="498" y="70" width="162" height="34" rx="4" fill="none" stroke="#a4a097" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <text x="579" y="92" text-anchor="middle" font-size="8.5" fill="#787671">餘裕 ~280ms</text>
+          <!-- target line -->
+          <line x1="660" y1="56" x2="660" y2="120" stroke="#e03131" stroke-width="1.6" stroke-dasharray="3 2"/>
+          <text x="660" y="50" text-anchor="middle" font-size="8.5" font-weight="800" fill="#c92a2a">目標 1s</text>
+          <!-- legend -->
+          <g font-size="8.5">
+            <rect x="120" y="158" width="11" height="11" fill="#5645d4"/><text x="136" y="167" fill="#5d5b54">CAM++ ~30ms</text>
+            <rect x="230" y="158" width="11" height="11" fill="#1aae39"/><text x="246" y="167" fill="#5d5b54">Faster-Whisper ~150ms(CPU small)</text>
+            <rect x="470" y="158" width="11" height="11" fill="#0075de"/><text x="486" y="167" fill="#5d5b54">VAD+合流 ~20ms</text>
+          </g>
+          <text x="120" y="186" font-size="8" fill="#a4a097">※ 數字為<tspan font-weight="700" fill="#5d5b54">預算目標</tspan>,非實測;判停靜音是可調的固有延遲(調短→更即時但易誤切)。GPU 下 ASR 可壓到數十毫秒。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 把延遲拆成「固有(判停靜音)」與「處理(模型推論)」兩塊。處理只吃約 200ms,主導項是你自己設定的判停靜音——這代表延遲/即時感是一個<strong>可調、可量測</strong>的旋鈕,不是黑盒。</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>階段</th><th>延遲預算(目標)</th><th>資源足跡(目標)</th><th>怎麼量</th></tr></thead>
+      <tbody>
+        <tr><td>音訊擷取(30ms 訊框)</td><td>≤ 30ms 緩衝</td><td>~0(系統 API)</td><td>訊框時間戳間隔</td></tr>
+        <tr><td>Silero VAD / 訊框</td><td>≤ 2ms(<strong>實測 ~0.19ms</strong>)</td><td>模型 ~1–2MB</td><td>單訊框 inference 計時</td></tr>
+        <tr><td>判停靜音(固有)</td><td>500ms(可調 300–800)</td><td>—</td><td>參數,直接設定</td></tr>
+        <tr><td>CAM++ 抽向量 / 區塊</td><td>≤ 50ms(CPU)</td><td>模型 ~7M 參數,檔 ~28MB</td><td>單區塊 embedding 計時</td></tr>
+        <tr><td>餘弦比對 + EMA</td><td>&lt; 1ms(N&lt;50 語者)</td><td>N×512×4B ≈ 忽略</td><td>迴圈計時</td></tr>
+        <tr><td>Faster-Whisper / 區塊</td><td>≤ 300ms(<strong>small int8 CPU 實測 RTF ~0.13–0.5</strong>)</td><td>模型 75–460MB</td><td>RTF = 處理秒 / 音訊秒</td></tr>
+        <tr><td>合流對齊</td><td>&lt; 1ms</td><td>忽略</td><td>迴圈計時</td></tr>
+        <tr><td><strong>端到端(講完→輸出)</strong></td><td><strong>≤ 1000ms(CPU)/ ≤ 500ms(GPU)</strong></td><td><strong>串流管線 RAM ≤ 4GB(不含 LLM)</strong></td><td><strong>p50 / p95 延遲分佈</strong></td></tr>
+        <tr><td>本地 LLM(條件觸發,背景)</td><td>不進即時預算(可秒級)</td><td>Qwen2.5-1.5B Q4 ~1GB / 3B ~2GB</td><td>觸發到摘要出現的時間</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout info"><strong>關鍵可行性指標 — 即時因子 RTF(Real-Time Factor)= 處理耗時 ÷ 音訊時長。</strong>整條管線在目標硬體上必須<strong>持續 RTF &lt; 1</strong>(否則會越積越慢、追不上串流);要留餘裕,目標<strong>RTF ≤ 0.5</strong>。這一個數字就能一票否決或放行「CPU 能不能跑」。</div>
+    <p style="font-size:0.78rem;color:var(--stone);">已查證的元件數字:Silero VAD v5(ONNX)單一 31.25ms 訊框約 <strong>189µs</strong>、sub-ms 延遲〔silero-vad wiki〕;CAM++ 屬輕量網路,較 ECAPA-TDNN <strong>少約 51% 參數</strong>〔CAM++ 論文〕;Faster-Whisper small/int8 在 8 執行緒桌機 CPU 上 13 分鐘音訊約 <strong>1m42s</strong>(RTF≈0.13)〔公開速度測試〕。判停 500ms、端到端&lt;1s、RAM≤4GB 仍屬<strong>本提案設定的預算目標</strong>,須在目標硬體實測(見 ⑫⑬)。</p>
+  </section>
+
+  <!-- 9 -->
+  <section id="accuracy">
+    <h2><span class="num">⑨</span> 精度怎麼量:DER / JER + 基準資料集</h2>
+    <p>「準不準」不能靠感覺。語者分離的業界標準指標是 <strong>DER(Diarization Error Rate,分離錯誤率)</strong>,越低越好:</p>
+    <pre><code><span class="cm"># DER = 三種錯誤時長總和 ÷ 參考語音總時長</span>
+DER = (<span class="kw">False Alarm</span> + <span class="kw">Missed Detection</span> + <span class="kw">Speaker Confusion</span>) / <span class="st">Total_ref_speech</span>
+
+<span class="cm"># False Alarm      = 沒人講卻判成有人講(把靜音/雜訊當語音)</span>
+<span class="cm"># Missed Detection = 有人講卻沒抓到</span>
+<span class="cm"># Speaker Confusion= 抓到語音但貼錯語者(分離特有的錯)</span></code></pre>
+    <p>量測時有幾個<strong>會大幅左右數字的旋鈕,報告時必須一起講清楚</strong>,否則兩個 DER 不可比:</p>
+    <ul>
+      <li><strong>Collar(寬容邊界):</strong>常設 0.25s——語者切換點前後 0.25s 不計分,吸收人工標註的邊界誤差。DIHARD 則用 0 collar(更嚴)。</li>
+      <li><strong>是否計入重疊語音:</strong>寬鬆評分排除 overlap,嚴格評分(DIHARD)計入。這一項對本方案影響最大(它正是弱項)。</li>
+      <li><strong>JER(Jaccard Error Rate):</strong>逐語者平均,避免「講很多的人」主導分數,和 DER 併看更公允。</li>
+    </ul>
+    <div class="table-wrap"><table>
+      <thead><tr><th>基準資料集</th><th>場景</th><th>離線參考 DER(pyannote 3.1)*</th><th>串流參考 DER**</th><th>本方案建議門檻***</th></tr></thead>
+      <tbody>
+        <tr><td>VoxConverse</td><td>野生/媒體</td><td>~9–11%</td><td>diart 500ms 有量測曲線</td><td>≤ 18%(單語者區,collar 0.25)</td></tr>
+        <tr><td>AMI(會議,英)</td><td>多人會議</td><td>IHM 17.0% / SDM 19.9%</td><td>diart 500ms–5s 曲線</td><td>≤ 30%</td></tr>
+        <tr><td>AliMeeting / AISHELL-4</td><td>多人會議(中)</td><td>訓練集含此二者,以官方為準</td><td>—</td><td>中文場景主驗集,設對照基線</td></tr>
+        <tr><td>DIHARD III</td><td>困難/含重疊</td><td>20.2%</td><td>Sortformer 0.32s:19.32%</td><td>僅作壓力測試,不設硬門檻</td></tr>
+        <tr><td>CALLHOME</td><td>電話兩人/多人</td><td>—</td><td>Sortformer 0.32s:11.50%</td><td>≤ 15%(兩人通話是甜蜜點)</td></tr>
+      </tbody>
+    </table></div>
+    <p style="font-size:0.78rem;color:var(--stone);">* pyannote 3.1 官方 benchmark(collar 0s、計 overlap):AMI-IHM 17.0%、AMI-SDM 19.9%、DIHARD3 20.2%;VoxConverse 約 9–11%〔pyannote 模型卡〕。** diart 論文提供 500ms/1s/2s/3s/4s/5s 六種延遲的完整 DER 曲線;NVIDIA Streaming Sortformer 在 0.32s 塊長下 CALLHOME 11.50%、DIHARD 19.32%〔見 ⑫〕。*** 門檻為本提案建議的 Go 值,是「相對參考系統退化可接受」的操作定義,需在自家測試集重新標定。</p>
+    <h4>量測工具鏈(可直接跑)</h4>
+    <ul>
+      <li><strong>ground truth 格式:</strong>RTTM(NIST 標準),每列一段「檔名/起點/時長/語者」。</li>
+      <li><strong>算分:</strong><code>pyannote.metrics</code>(Python,給 DER/JER/component 分解)、<code>dscore</code> 或 NIST <code>md-eval.pl</code>(對齊論文口徑)。</li>
+      <li><strong>可行性判準:</strong>同一測試集,先跑<strong>離線基線</strong>(pyannote)拿到參照 DER,再跑<strong>本串流方案</strong>,看<strong>退化幅度(Δ DER)</strong>與<strong>絕對門檻</strong>是否雙雙達標。</li>
+    </ul>
+    <div class="callout warn"><strong>把弱點也變成可量測:</strong>重疊語音是本方案的短板——就<strong>分別報告「含 overlap」與「不含 overlap」兩個 DER</strong>,讓決策者看到差距有多大,而不是藏起來。這正是「衡量可行性」的誠實做法。</div>
+  </section>
+
+  <!-- 10 -->
+  <section id="poc">
+    <h2><span class="num">⑩</span> 可行性驗證計畫:分階段 POC + Go/No-Go 關卡</h2>
+    <p>有了目標數字(⑧)和量測法(⑨),就能排一條<strong>兩到三週、每階段都有明確過關條件</strong>的 POC。每個關卡「達標才往下、不達標就回頭調或止損」:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 210" role="img" aria-label="五階段 POC 流程：P0 資料準備、P1 元件基準、P2 端到端串流、P3 調參壓測、P4 決策，每階段下方標出 Go 門檻">
+        <defs><marker id="pc" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">每一關都有可量測的 Go 門檻</text>
+          <g>
+            <rect x="18" y="44" width="118" height="46" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/>
+            <text x="77" y="63" text-anchor="middle" font-size="10" font-weight="800" fill="#005bb0">P0 資料</text>
+            <text x="77" y="79" text-anchor="middle" font-size="7.5" fill="#0a4f8a">30 分鐘標註集(RTTM)</text>
+            <rect x="150" y="44" width="118" height="46" rx="9" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.4"/>
+            <text x="209" y="63" text-anchor="middle" font-size="10" font-weight="800" fill="#3a2a99">P1 元件基準</text>
+            <text x="209" y="79" text-anchor="middle" font-size="7.5" fill="#4a3a8a">各模型延遲/精度</text>
+            <rect x="282" y="44" width="118" height="46" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+            <text x="341" y="63" text-anchor="middle" font-size="10" font-weight="800" fill="#137a29">P2 端到端</text>
+            <text x="341" y="79" text-anchor="middle" font-size="7.5" fill="#2f6b40">串流延遲+DER</text>
+            <rect x="414" y="44" width="118" height="46" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/>
+            <text x="473" y="63" text-anchor="middle" font-size="10" font-weight="800" fill="#a8460a">P3 調參壓測</text>
+            <text x="473" y="79" text-anchor="middle" font-size="7.5" fill="#8a4a1a">門檻/塊長 sweep</text>
+            <rect x="546" y="44" width="118" height="46" rx="9" fill="#0a1530"/>
+            <text x="605" y="63" text-anchor="middle" font-size="10" font-weight="800" fill="#fff">P4 決策</text>
+            <text x="605" y="79" text-anchor="middle" font-size="7.5" fill="#9fb0d0">對計分卡定案</text>
+          </g>
+          <g stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#pc)">
+            <path d="M136,67 L148,67"/><path d="M268,67 L280,67"/><path d="M400,67 L412,67"/><path d="M532,67 L544,67"/>
+          </g>
+          <!-- gates -->
+          <g font-size="7.8" fill="#5d5b54">
+            <rect x="18" y="104" width="118" height="86" rx="8" fill="#f6f5f4" stroke="#e5e3df"/>
+            <text x="26" y="120" font-weight="800" fill="#005bb0">Go 門檻</text>
+            <text x="26" y="134">✓ 2–3 個代表場景</text>
+            <text x="26" y="147">✓ 兩人/多人/吵雜</text>
+            <text x="26" y="160">✓ ground truth</text>
+            <text x="26" y="173">　 對齊完成</text>
+
+            <rect x="150" y="104" width="118" height="86" rx="8" fill="#f6f5f4" stroke="#e5e3df"/>
+            <text x="158" y="120" font-weight="800" fill="#3a2a99">Go 門檻</text>
+            <text x="158" y="134">✓ 各元件延遲</text>
+            <text x="158" y="147">　 達 ⑧ 預算</text>
+            <text x="158" y="160">✓ CAM++ EER 探針</text>
+            <text x="158" y="173">✓ Whisper WER 可接受</text>
+
+            <rect x="282" y="104" width="118" height="86" rx="8" fill="#f6f5f4" stroke="#e5e3df"/>
+            <text x="290" y="120" font-weight="800" fill="#137a29">Go 門檻</text>
+            <text x="290" y="134">✓ RTF &lt; 1 持續</text>
+            <text x="290" y="147">✓ p95 延遲 &lt; 1s</text>
+            <text x="290" y="160">✓ DER ≤ 場景門檻</text>
+            <text x="290" y="173">✓ 無記憶體漏</text>
+
+            <rect x="414" y="104" width="118" height="86" rx="8" fill="#f6f5f4" stroke="#e5e3df"/>
+            <text x="422" y="120" font-weight="800" fill="#a8460a">Go 門檻</text>
+            <text x="422" y="134">✓ 找到操作點:</text>
+            <text x="422" y="147">　 DER×延遲同時達標</text>
+            <text x="422" y="160">✓ 6+ 人不崩</text>
+            <text x="422" y="173">✓ overlap 退化已量化</text>
+
+            <rect x="546" y="104" width="118" height="86" rx="8" fill="#f6f5f4" stroke="#e5e3df"/>
+            <text x="554" y="120" font-weight="800" fill="#1a1a1a">產出</text>
+            <text x="554" y="134">• 計分卡填值</text>
+            <text x="554" y="147">• Go / 有條件 Go</text>
+            <text x="554" y="160">　 / No-Go</text>
+            <text x="554" y="173">• 風險與緩解</text>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ POC 不是「做做看」,而是每關綁一組可量測門檻;任一關的門檻就是一個可執行的 pass/fail 判斷,讓「可行性」變成一連串客觀勾選。</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>階段</th><th>產出</th><th>量測指標</th><th>Go 門檻</th></tr></thead>
+      <tbody>
+        <tr><td><strong>P0 資料</strong></td><td>2–3 個代表場景各 ~10 分鐘、附 RTTM 標註</td><td>標註覆蓋率、場景代表性</td><td>三場景就緒且可算分</td></tr>
+        <tr><td><strong>P1 元件基準</strong></td><td>VAD / CAM++ / Whisper 各自獨立量測</td><td>單元延遲、CAM++ 語者驗證 EER、WER</td><td>各元件延遲達 ⑧ 預算</td></tr>
+        <tr><td><strong>P2 端到端</strong></td><td>串起管線,連續跑測試集</td><td>RTF、p50/p95 延遲、串流 DER</td><td>RTF&lt;1 且 p95&lt;1s 且 DER≤門檻</td></tr>
+        <tr><td><strong>P3 調參壓測</strong></td><td>門檻/塊長 sweep,畫 DER-延遲曲線;加壓 overlap 與 6+ 人</td><td>操作點、退化幅度、崩潰點</td><td>存在同時滿足延遲與 DER 的操作點</td></tr>
+        <tr><td><strong>P4 決策</strong></td><td>填計分卡、出可行性結論</td><td>加權總分、風險等級</td><td>Go / 有條件 Go / No-Go 明確</td></tr>
+      </tbody>
+    </table></div>
+    <h3>量測骨架(可直接跑)</h3>
+    <p>把上面的門檻變成幾行可執行的量測——三個核心數字(延遲分佈、RTF、DER)都能自動吐出:</p>
+    <pre><code><span class="cm"># pip install pyannote.metrics numpy</span>
+<span class="kw">import</span> time, numpy <span class="kw">as</span> np
+<span class="kw">from</span> pyannote.metrics.diarization <span class="kw">import</span> DiarizationErrorRate
+<span class="kw">from</span> pyannote.core <span class="kw">import</span> Annotation, Segment
+
+<span class="cm"># ── 1) 端到端延遲:記錄每一句「講完 → 輸出」的毫秒數 ──</span>
+lat_ms = []                              <span class="cm"># 在合流輸出的那一刻 append</span>
+<span class="cm"># lat_ms.append((t_emit - t_utterance_end) * 1000)</span>
+p50, p95 = np.percentile(lat_ms, [<span class="kw">50</span>, <span class="kw">95</span>])
+<span class="cm"># Go 門檻:p95 &lt; 1000ms</span>
+
+<span class="cm"># ── 2) RTF(即時因子):整段測試集的處理耗時 ÷ 音訊時長 ──</span>
+rtf = total_processing_sec / total_audio_sec
+<span class="cm"># Go 門檻:rtf &lt; 1(理想 ≤ 0.5)</span>
+
+<span class="cm"># ── 3) DER:把系統輸出與 RTTM ground truth 丟給 pyannote.metrics ──</span>
+metric = DiarizationErrorRate(collar=<span class="kw">0.25</span>, skip_overlap=<span class="kw">True</span>)   <span class="cm"># 寬鬆版</span>
+der = metric(reference, hypothesis)      <span class="cm"># 兩者皆 pyannote Annotation</span>
+detail = metric[<span class="st">'confusion'</span>], metric[<span class="st">'missed detection'</span>], metric[<span class="st">'false alarm'</span>]
+<span class="cm"># 再跑一次 skip_overlap=False → 得到「含 overlap」DER,兩者一起報</span>
+
+<span class="cm"># reference / hypothesis 由 RTTM 載入,或手動組:</span>
+<span class="cm"># ann = Annotation(); ann[Segment(12.3, 14.85)] = "Speaker 1"</span></code></pre>
+    <div class="callout tip"><strong>有了這段,P1–P3 的每個 Go 門檻都變成一次 <code>assert</code>。</strong>把 <code>p95 &lt; 1000</code>、<code>rtf &lt; 1</code>、<code>der &lt;= 門檻</code> 寫進測試,POC 從「跑跑看」變成 CI 能跑的<strong>可複現量測</strong>——這就是「可衡量」最實際的形態。</div>
+  </section>
+
+  <!-- 11 -->
+  <section id="scorecard">
+    <h2><span class="num">⑪</span> 可行性計分卡與風險登記</h2>
+    <p>最後把一切收斂成<strong>一張可打分的卡</strong>。POC 跑完就能把「目前信心」欄換成實測值,加權後得到一個可討論的總分——這就是「可衡量的可行性」的落點:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 260" role="img" aria-label="可行性雷達圖：延遲、單語者精度、重疊語音、資源足跡、中文支援、生態成熟度六軸，本方案在延遲與資源軸強、重疊語音軸弱">
+        <g font-family="sans-serif">
+          <text x="360" y="20" text-anchor="middle" font-size="12" font-weight="800" fill="#1a1a1a">推薦組合的可行性輪廓(外圈=越好)</text>
+          <!-- grid hexagons -->
+          <polygon points="360,54 430,90 411,159 360,184 329,148 298,94" fill="none" stroke="#c8c4be" stroke-width="1" opacity="0.35"/>
+          <polygon points="360,70 412,100 412,160 360,190 308,160 308,100" fill="none" stroke="#e5e3df" stroke-width="1"/>
+          <polygon points="360,100 386,115 386,145 360,160 334,145 334,115" fill="none" stroke="#e5e3df" stroke-width="1"/>
+          <line x1="360" y1="130" x2="360" y2="40" stroke="#e5e3df"/>
+          <line x1="360" y1="130" x2="438" y2="85" stroke="#e5e3df"/>
+          <line x1="360" y1="130" x2="438" y2="175" stroke="#e5e3df"/>
+          <line x1="360" y1="130" x2="360" y2="220" stroke="#e5e3df"/>
+          <line x1="360" y1="130" x2="282" y2="175" stroke="#e5e3df"/>
+          <line x1="360" y1="130" x2="282" y2="85" stroke="#e5e3df"/>
+          <!-- data polygon -->
+          <polygon points="360,54 430,90 411,159 360,184 329,148 298,94" fill="#5645d4" fill-opacity="0.18" stroke="#5645d4" stroke-width="2"/>
+          <g fill="#5645d4"><circle cx="360" cy="54" r="3"/><circle cx="430" cy="90" r="3"/><circle cx="411" cy="159" r="3"/><circle cx="360" cy="184" r="3"/><circle cx="329" cy="148" r="3"/><circle cx="298" cy="94" r="3"/></g>
+          <!-- axis labels -->
+          <g font-size="9" font-weight="700" fill="#37352f" text-anchor="middle">
+            <text x="360" y="34">延遲低 ●強</text>
+            <text x="470" y="80">資源省 ●強</text>
+            <text x="470" y="182">中文支援 ○中</text>
+            <text x="360" y="236">生態成熟 ○中</text>
+            <text x="250" y="182">重疊語音 △弱</text>
+            <text x="250" y="80">單語者精度 ●強</text>
+          </g>
+          <text x="360" y="252" text-anchor="middle" font-size="8" fill="#a4a097">▲ 形狀偏「延遲/資源/單語者精度」強、「重疊語音」明顯內縮——正是選型時要盯的取捨</text>
+        </g>
+      </svg>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>維度</th><th>權重</th><th>可行性目標</th><th>量測方式</th><th>目前信心</th></tr></thead>
+      <tbody>
+        <tr><td>端到端延遲</td><td>20%</td><td>p95 &lt; 1s(CPU)</td><td>P2 延遲分佈</td><td>高(處理僅 ~200ms)</td></tr>
+        <tr><td>即時吞吐 RTF</td><td>20%</td><td>持續 &lt; 1(理想 ≤ 0.5)</td><td>P2 長跑</td><td>中高(待目標機驗)</td></tr>
+        <tr><td>單語者 DER</td><td>20%</td><td>≤ 場景門檻(⑨)</td><td>P2/P3 算分</td><td>中(依門檻校準)</td></tr>
+        <tr><td>重疊語音 DER</td><td>10%</td><td>量化退化、不設硬門檻</td><td>P3 壓測</td><td>低(已知弱項)</td></tr>
+        <tr><td>資源足跡</td><td>15%</td><td>RAM ≤ 4GB(不含 LLM)</td><td>P1/P2 監控</td><td>高(模型都很小)</td></tr>
+        <tr><td>中文/生態成熟度</td><td>15%</td><td>中文測試集達基線、可維運</td><td>P1/P3</td><td>中</td></tr>
+      </tbody>
+    </table></div>
+    <h3>風險登記(Risk Register)</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>風險</th><th>機率</th><th>衝擊</th><th>緩解</th><th>要盯的量測訊號</th></tr></thead>
+      <tbody>
+        <tr><td>重疊語音精度不足</td><td>高</td><td>高</td><td>可切 Pyannote 分割;或接受並標註限制</td><td>含 vs 不含 overlap 的 Δ DER</td></tr>
+        <tr><td>線上分群漂移/誤併(不回頭修正)</td><td>中高</td><td>高</td><td>調門檻、加長區塊、定期小範圍再分群</td><td>Speaker Confusion 佔比、語者數穩定度</td></tr>
+        <tr><td>CPU 吞吐不足(RTF≥1)</td><td>中</td><td>高</td><td>換更小 Whisper、量化、降取樣、必要時 GPU</td><td>RTF 長跑趨勢、佇列積壓</td></tr>
+        <tr><td>中文短語向量不穩</td><td>中</td><td>中</td><td>提高最小區塊時長、換中文強化的 embedding</td><td>短區塊 DER 對比長區塊</td></tr>
+        <tr><td>WASAPI/系統擷取相容性</td><td>中</td><td>中</td><td>跨裝置測試、退回麥克風擷取</td><td>擷取掉幀率、格式一致性</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout tip"><strong>怎麼算「可行」:</strong>把各維度實測值換算 0–1 分、乘權重加總。建議判準——<strong>總分 ≥ 0.75 且無「高機率×高衝擊」未緩解項 → Go</strong>;<strong>0.6–0.75 或關鍵項待驗 → 有條件 Go(先做 P3 調參)</strong>;<strong>&lt; 0.6 或延遲/RTF 硬指標破線 → No-Go(改走 Pyannote/NeMo 或重新界定場景)</strong>。至此,「可行性」已從形容詞變成一個可計算、可爭論的數字。</div>
+    <h4>試算一次(兩人客服通話場景,示意數字)</h4>
+    <p>假設 P2/P3 量到:p95 延遲 720ms、RTF 0.42、單語者 DER 13%、重疊 DER 退化 +18pt、RAM 2.6GB、中文基線達標但生態普通。換算成 0–1 分再加權:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>維度</th><th>權重</th><th>實測</th><th>換算分</th><th>加權</th></tr></thead>
+      <tbody>
+        <tr><td>端到端延遲</td><td>0.20</td><td>p95 720ms(門檻 1s)</td><td>0.90</td><td>0.180</td></tr>
+        <tr><td>即時吞吐 RTF</td><td>0.20</td><td>0.42(理想 ≤0.5)</td><td>0.95</td><td>0.190</td></tr>
+        <tr><td>單語者 DER</td><td>0.20</td><td>13%(門檻 ≤15%)</td><td>0.85</td><td>0.170</td></tr>
+        <tr><td>重疊語音 DER</td><td>0.10</td><td>退化 +18pt</td><td>0.40</td><td>0.040</td></tr>
+        <tr><td>資源足跡</td><td>0.15</td><td>2.6GB(門檻 ≤4GB)</td><td>0.90</td><td>0.135</td></tr>
+        <tr><td>中文/生態成熟度</td><td>0.15</td><td>基線達標、生態普通</td><td>0.65</td><td>0.098</td></tr>
+        <tr><td><strong>總分</strong></td><td>1.00</td><td>—</td><td>—</td><td><strong>0.81</strong></td></tr>
+      </tbody>
+    </table></div>
+    <p><strong>結論:0.81 ≥ 0.75、且無高機率×高衝擊未緩解項 → Go(兩人通話)。</strong>但重疊語音那一格(0.40)點出:同樣一套系統套到「多人高頻插話會議」時,該維度權重與退化都會放大,總分可能掉到有條件 Go——<strong>可行性是「對某個場景」而言,不是絕對的</strong>。換個場景,就把實測數字重填一次。</p>
+  </section>
+
+  <!-- 12 -->
+  <section id="evidence">
+    <h2><span class="num">⑫</span> 證據基準:拿真實串流系統三角驗證</h2>
+    <p>既然此處無法真的實作,<strong>「可靠」就得靠證據</strong>——把本提案的假設,對照<strong>已公開發表、已被量測</strong>的真實串流語者分離系統。好消息是:即時語者分離<strong>不是願景,而是已被驗證可行的類別</strong>,且有明確的延遲-精度數字可當標尺。</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>系統</th><th>方法</th><th>延遲 / RTF(實測)</th><th>DER(實測)</th><th>限制</th></tr></thead>
+      <tbody>
+        <tr><td><strong>diart</strong>(Coria 2021)</td><td>pyannote 分割 + 增量分群,500ms 滾動緩衝、<strong>overlap-aware</strong></td><td>延遲可調 <strong>500ms–5s</strong>;主打輕量、CPU 可即時</td><td>AMI/DIHARD/VoxConverse 附<strong>六種延遲的完整 DER 曲線</strong></td><td>延遲越低 DER 越高(有系統性曲線)</td></tr>
+        <tr><td><strong>Streaming Sortformer</strong>(NVIDIA, Interspeech 2025)</td><td>端到端 + Arrival-Order Speaker Cache</td><td><strong>0.32s @ RTF 0.180</strong> / 1.04s @ 0.093 / 10s @ 0.005</td><td><strong>0.32s:CALLHOME 11.50%、DIHARD 19.32%</strong>;AOSC CALLHOME 13.32%</td><td>v2 <strong>上限 4 語者</strong>、依賴 GPU + NeMo</td></tr>
+        <tr><td><strong>pyannote 3.1</strong>(離線頂線)</td><td>離線分割+分群(對照上限)</td><td>非即時(批次)</td><td>AMI-IHM 17.0% / SDM 19.9% / DIHARD3 20.2% / VoxConverse ~9–11%</td><td>不能串流,只當 DER 天花板參照</td></tr>
+        <tr><td><strong>本提案</strong>(CAM++ + 線上餘弦)</td><td>VAD + embedding + 線上分群(<strong>非 overlap-aware</strong>)</td><td>預算 &lt;1s;元件延遲已查證很小</td><td><strong>尚無公開數字,須量測</strong></td><td>不處理重疊、不回頭修正</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><strong>三角驗證得到的三個誠實結論:</strong>
+      <ol style="margin-top:8px;margin-bottom:0;">
+        <li><strong>可行性的「下限」有真實錨點:</strong>Sortformer 已證明<strong>sub-second(0.32s)串流下 DER 只小幅退化</strong>(CALLHOME 11.5%),diart 也證明 <strong>500ms 級 CPU 串流可行</strong>。所以「即時、本地」這件事本身<strong>不是風險項</strong>——它已被別人做出來。</li>
+        <li><strong>本提案其實比參考系統「更陽春」:</strong>diart 用的是 pyannote 分割且 <strong>overlap-aware</strong>;本提案用 CAM++ embedding + 餘弦,是更接近 VBx 的傳統分群,<strong>預期 DER 會略差於 diart、且完全不處理重疊</strong>。這不是缺陷隱藏,而是取捨——換來的是更小、更好掌控的管線。</li>
+        <li><strong>最可靠的 POC 起手式:先把 diart 當基線。</strong>diart 是開源、可直接跑、且有官方 DER 曲線的最接近參照。<strong>先量 diart 在你資料上的 DER-延遲曲線,再看 CAM++ 自組方案能否逼近它</strong>——這讓「本方案好不好」有一個真實、可複現的對照,而不是憑空門檻。</li>
+      </ol>
+    </div>
+    <p>換句話說:延遲/資源這條軸,證據強烈支持可行;<strong>真正待驗證的只剩「CAM++ 自組分群的 DER,離 diart 有多遠、離重疊需求有多痛」</strong>——這就是應該優先花量測預算的地方。</p>
+    <h3>中文會議場景:AliMeeting / AISHELL-4 的真實 DER</h3>
+    <p>中文會議有專門的公開資料集與 benchmark(M2MeT 挑戰賽),可直接當中文場景的標尺:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>資料集</th><th>通道</th><th>系統</th><th>DER(實測)</th></tr></thead>
+      <tbody>
+        <tr><td>AliMeeting(M2MeT)</td><td>8-mic 陣列(多通道)</td><td>VBx 基線(ResNet d-vec + AHC+VBx)</td><td><strong>15.24% eval / 15.60% test</strong>(collar 0.25)</td></tr>
+        <tr><td>AliMeeting</td><td>多通道</td><td>SOTA 神經(PSE + SOND)</td><td><strong>2.70% eval / 4.46% test</strong></td></tr>
+        <tr><td>AISHELL-4</td><td>單通道</td><td>VBx / X-vector + VB-HMM</td><td><strong>~11–18%</strong>(collar 0.25 約 11.1%、無 collar 約 16.8%)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><strong>一個對本方案很關鍵的「通道數」警訊:</strong>AliMeeting 那些漂亮的低 DER(2.7–15.6%)<strong>多半來自 8 麥克風陣列的多通道系統</strong>;加入 DOA 空間資訊還能再降約 <strong>4.2%(線上)/ 7.4%(離線)</strong>。而本方案是<strong>單通道</strong>(系統 loopback、單軌 mono),等於少了空間線索——中文<strong>遠場</strong>多人會議的單通道 DER 會明顯高於上面那些陣列數字(單通道 AISHELL-4 的 VBx 已在 ~11–18%,遠場更差)。<strong>規劃啟示:</strong>若你的中文場景是遠場、多人、對 DER 要求高,就該把「加裝麥克風陣列 + 多通道分離」列為選項,而不是硬撐單通道;若是<strong>近場兩人</strong>(客服耳機、通話),單通道就落在甜蜜點。</div>
+  </section>
+
+  <!-- 13 -->
+  <section id="assumptions">
+    <h2><span class="num">⑬</span> 假設登記 + 敏感度分析:結論穩不穩</h2>
+    <p>可靠的規劃,重點不在「假裝有數字」,而在<strong>把每個數字的來源與信心攤開</strong>,並檢查「就算猜錯,結論會不會翻盤」。</p>
+    <h3>假設登記(每個數字都標來源與信心)</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>項目</th><th>採用值</th><th>來源等級</th><th>信心</th></tr></thead>
+      <tbody>
+        <tr><td>Silero VAD 訊框延遲</td><td>~0.19ms</td><td>✅ 已查證(官方 wiki)</td><td>高</td></tr>
+        <tr><td>Faster-Whisper small CPU RTF</td><td>~0.13–0.5</td><td>✅ 已查證(公開速度測試)</td><td>中高(隨 CPU 變動)</td></tr>
+        <tr><td>CAM++ 輕量/EER 強</td><td>Vox1-O EER 0.65%、少 51% 參數</td><td>✅ 已查證(論文)</td><td>高(但那是<em>驗證</em>非<em>串流分離</em>)</td></tr>
+        <tr><td>串流可 sub-second 且 DER 小幅退化</td><td>0.32s→CALLHOME 11.5%</td><td>✅ 已查證(Sortformer,他系統)</td><td>高(佐證類別可行)</td></tr>
+        <tr><td>CAM++ + 餘弦的實際 DER</td><td>單語者 ≤15% 甜蜜點</td><td>⚠️ 推估(比類 diart/VBx)</td><td>低—中(<strong>核心未知</strong>)</td></tr>
+        <tr><td>重疊語音退化幅度</td><td>+10~20pt</td><td>⚠️ 推估</td><td>低(已知弱項)</td></tr>
+        <tr><td>判停 500ms / 端到端 &lt;1s</td><td>目標值</td><td>🎯 設計目標</td><td>中高(元件延遲支持)</td></tr>
+        <tr><td>目標硬體 RTF &lt;1</td><td>成立</td><td>🎯 目標(待該機驗)</td><td>中高(小模型佐證)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout info"><strong>一眼看懂:</strong>延遲、資源、元件效能都是 <strong>✅ 已查證</strong> 或有強佐證;真正 <strong>⚠️ 低信心的只有兩項——CAM++ 自組分群的實際 DER、以及重疊語音退化</strong>。可靠規劃的價值,就是把不確定性<strong>收斂到這兩個點</strong>,而不是散在全案。</div>
+    <h3>敏感度分析:三種情境下,計分卡總分會怎麼動</h3>
+    <p>固定 ✅ 已查證項(延遲、RTF、資源、中文/生態沿用 ⑪ 預期值,合計 0.603),只讓兩個低信心 DER 項在樂觀/預期/悲觀間變動,看 ⑪ 計分卡總分與結論(兩人通話場景):</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>情境</th><th>單語者 DER(分)</th><th>重疊退化(分)</th><th>計分卡總分*</th><th>結論</th></tr></thead>
+      <tbody>
+        <tr><td><strong>樂觀</strong>(逼近 diart)</td><td>~11%(0.93)</td><td>+10pt(0.62)</td><td>0.603+0.186+0.062 ≈ <strong>0.85</strong></td><td>Go</td></tr>
+        <tr><td><strong>預期</strong>(略差 diart)</td><td>~14%(0.85)</td><td>+18pt(0.40)</td><td>0.603+0.170+0.040 ≈ <strong>0.81</strong></td><td>Go</td></tr>
+        <tr><td><strong>悲觀</strong>(自組分群失準)</td><td>~22%(0.28)</td><td>+30pt(0.12)</td><td>0.603+0.056+0.012 ≈ <strong>0.67</strong></td><td>有條件 Go</td></tr>
+      </tbody>
+    </table></div>
+    <p style="font-size:0.78rem;color:var(--stone);">* 沿用 ⑪ 權重與該節「預期」情境的非 DER 分數(延遲0.180 + RTF0.190 + 資源0.135 + 中文/生態0.098 = 0.603),只變動單語者 DER(權重 0.20)與重疊退化(0.10)兩項的 0–1 換算分。0–1 對應為示意映射。</p>
+    <div class="callout tip"><strong>結論的穩健性:</strong>在<strong>兩人通話</strong>場景,即使落到悲觀情境也只是「有條件 Go」——<strong>不會翻成 No-Go</strong>,因為延遲/資源這半壁已被證據釘死。這代表:<strong>對兩人/低重疊場景,本方案的可行性結論是穩健的</strong>;真正會讓它翻盤的是「高頻重疊的多人會議」——那時就該切到 diart(overlap-aware)或 Sortformer。<strong>可靠的規劃結論不是「行或不行」,而是「在哪個場景行、卡在哪個未知、下一步該量什麼」——這三點現在都有答案。</strong></div>
+  </section>
+
+  <!-- 14 -->
+  <section id="decision">
+    <h2><span class="num">⑭</span> 依場景選路線的決策樹</h2>
+    <p>把前面的證據收斂成一個<strong>可直接照著走的選路指南</strong>。關鍵洞見:整條前處理(VAD + ASR 對齊)不變,<strong>差別只在「分離引擎」選哪個</strong>——而選哪個,由「重疊多寡 × 語者數 × 算力 × 通道數」決定:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 322" role="img" aria-label="決策樹：依場景分三路。兩人低重疊用本方案 CAM++ 加餘弦；多人高頻重疊依算力選 Streaming Sortformer 或 diart；中文遠場會議加麥克風陣列用多通道神經分離。共同前處理不變。">
+        <defs><marker id="dt" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <!-- start -->
+          <rect x="280" y="14" width="160" height="36" rx="10" fill="#0a1530"/>
+          <text x="360" y="37" text-anchor="middle" font-size="10.5" font-weight="800" fill="#fff">你的即時語者分離場景?</text>
+          <!-- arrows to branches -->
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#dt)">
+            <path d="M360,50 C200,64 119,68 119,82"/>
+            <path d="M360,50 L360,82"/>
+            <path d="M360,50 C520,64 601,68 601,82"/>
+          </g>
+          <!-- branch boxes -->
+          <rect x="14" y="84" width="210" height="48" rx="9" fill="#f6f5f4" stroke="#787671" stroke-width="1.3"/>
+          <text x="119" y="105" text-anchor="middle" font-size="10" font-weight="800" fill="#1a1a1a">① 兩人 / 低重疊</text>
+          <text x="119" y="122" text-anchor="middle" font-size="8.5" fill="#5d5b54">通話、訪談、客服(近場)</text>
+          <rect x="255" y="84" width="210" height="48" rx="9" fill="#f6f5f4" stroke="#787671" stroke-width="1.3"/>
+          <text x="360" y="105" text-anchor="middle" font-size="10" font-weight="800" fill="#1a1a1a">② 多人 + 高頻重疊</text>
+          <text x="360" y="122" text-anchor="middle" font-size="8.5" fill="#5d5b54">會議、圓桌討論</text>
+          <rect x="496" y="84" width="210" height="48" rx="9" fill="#f6f5f4" stroke="#787671" stroke-width="1.3"/>
+          <text x="601" y="105" text-anchor="middle" font-size="10" font-weight="800" fill="#1a1a1a">③ 中文遠場會議</text>
+          <text x="601" y="122" text-anchor="middle" font-size="8.5" fill="#5d5b54">且可裝麥克風陣列</text>
+          <!-- arrows to outcomes -->
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#dt)">
+            <path d="M119,132 L119,168"/>
+            <path d="M360,132 L360,168"/>
+            <path d="M601,132 L601,168"/>
+          </g>
+          <!-- outcomes -->
+          <rect x="14" y="170" width="210" height="124" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="119" y="190" text-anchor="middle" font-size="10" font-weight="800" fill="#137a29">✅ 本方案(甜蜜點)</text>
+          <text x="119" y="209" text-anchor="middle" font-size="8.5" fill="#2f6b40">CAM++ + 線上餘弦</text>
+          <text x="119" y="225" text-anchor="middle" font-size="8.5" fill="#2f6b40">或 diart-lite</text>
+          <text x="119" y="244" text-anchor="middle" font-size="8.5" fill="#5d5b54">CPU 即時、實作最簡</text>
+          <text x="119" y="266" text-anchor="middle" font-size="8" fill="#787671">參照 DER:AISHELL-4/</text>
+          <text x="119" y="279" text-anchor="middle" font-size="8" fill="#787671">CALLHOME VBx 類 ~11–18%</text>
+
+          <rect x="255" y="170" width="210" height="124" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="360" y="190" text-anchor="middle" font-size="10" font-weight="800" fill="#3a2a99">依算力二選一</text>
+          <text x="360" y="210" text-anchor="middle" font-size="8.5" fill="#4a3a8a">有 GPU、≤4 人 →</text>
+          <text x="360" y="225" text-anchor="middle" font-size="8.5" font-weight="700" fill="#3a2a99">Streaming Sortformer</text>
+          <text x="360" y="239" text-anchor="middle" font-size="8" fill="#5d5b54">(0.32s、CALLHOME 11.5%)</text>
+          <text x="360" y="261" text-anchor="middle" font-size="8.5" fill="#4a3a8a">無 GPU / &gt;4 人 →</text>
+          <text x="360" y="276" text-anchor="middle" font-size="8.5" font-weight="700" fill="#3a2a99">diart(overlap-aware)</text>
+          <text x="360" y="289" text-anchor="middle" font-size="8" fill="#5d5b54">500ms、CPU 可即時</text>
+
+          <rect x="496" y="170" width="210" height="124" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="601" y="190" text-anchor="middle" font-size="10" font-weight="800" fill="#005bb0">多通道神經分離</text>
+          <text x="601" y="209" text-anchor="middle" font-size="8.5" fill="#0a4f8a">SOND / SA-EEND + DOA</text>
+          <text x="601" y="228" text-anchor="middle" font-size="8" fill="#5d5b54">AliMeeting 多通道:</text>
+          <text x="601" y="242" text-anchor="middle" font-size="8" fill="#5d5b54">VBx ~15.6% / SOTA ~2.7–4.5%</text>
+          <text x="601" y="264" text-anchor="middle" font-size="8.5" font-weight="700" fill="#c92a2a">⚠️ 單通道 loopback</text>
+          <text x="601" y="278" text-anchor="middle" font-size="8.5" fill="#c92a2a">會明顯較差</text>
+
+          <text x="360" y="312" text-anchor="middle" font-size="8.5" fill="#787671">共同前處理不變:Silero VAD + Faster-Whisper 對齊;三條路只換「分離引擎」。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 選路指南:先問重疊/人數、再問算力、最後問通道數。本提案(CAM+++餘弦)明確落在「①兩人低重疊、單通道、CPU」這一格;離開這格,證據就指向 diart / Sortformer / 多通道。</div>
+    </div>
+    <div class="callout tip"><strong>一句話用法:</strong>把你的場景往三格對——落在①就用本方案(最省、最好掌控);落在②先看有沒有 GPU(有→Sortformer 拿 SOTA、無→diart 保 overlap);落在③就別跟單通道硬拚,加陣列走多通道。<strong>這張表讓「選型」從口味之爭變成一條可追溯的判斷路徑。</strong></div>
+  </section>
+
+  <!-- 15 -->
+  <section id="steal">
+    <h2><span class="num">⑮</span> 值得偷師的思路 / <span style="color:var(--stone);font-weight:700">來源</span></h2>
+    <ol>
+      <li><strong>把「有沒有人說話」和「是誰說話」拆開。</strong>VAD 是最便宜的一刀,先擋掉靜音,昂貴的模型只在有聲時跑——這是即時管線省算力的第一原則。</li>
+      <li><strong>讓大模型只做它最擅長的一件事。</strong>CAM++ 只抽向量、不做分群;分群留在可控的本地演算法裡。這種「特徵擷取 vs 決策邏輯」分離,讓你能單獨調門檻而不動模型。</li>
+      <li><strong>ONNX Runtime 是把研究模型變產品的橋。</strong>結構單純的模型(CAM++、Silero VAD)匯出 ONNX 後能做極致推論最佳化,是「CPU 也即時」的關鍵。</li>
+      <li><strong>非同步佇列 + 平行 + 依時間戳合流。</strong>不讓任一段阻塞音訊擷取;分離與 ASR 平行跑、最後用同源時間戳對齊——這是串流系統的通用骨架。</li>
+      <li><strong>把 LLM 降級成事件驅動的背景服務。</strong>條件觸發(長度/語者切換/關鍵字)取代「每句都跑」,讓摘要不和即時字幕搶延遲。</li>
+      <li><strong>誠實面對取捨。</strong>這條輕量路線換來的是超低延遲與 CPU 可跑,代價是重疊語音精度與「不回頭修正」——選型前先量好你的延遲/精度/硬體約束。</li>
+      <li><strong>把「可行性」從形容詞變成數字。</strong>先釘死目標(端到端&lt;1s、RTF&lt;1、DER≤場景門檻),再用標準指標(DER/JER + RTTM + pyannote.metrics)在自家測試集量測,最後用分階段 POC 的 Go/No-Go 關卡與加權計分卡定案——這樣「能不能上」就不再靠嘴,而是一票可討論、可複現的證據。</li>
+      <li><strong>不能實作時,靠「證據 + 假設登記 + 敏感度」讓分析可靠。</strong>用真實已量測的系統(diart、Sortformer)當標尺三角驗證、把每個數字標「已查證/推估/待量測」、再檢查結論在樂觀—悲觀區間會不會翻盤。可靠的規劃輸出不是一個拍板,而是「哪個場景行、卡在哪個未知、下一步先量什麼」。</li>
+      <li><strong>「可行性」是對場景而言,不是對技術而言。</strong>同一套前處理,分離引擎按「重疊×人數×算力×通道數」路由:兩人近場單通道→自組最省;多人重疊→diart/Sortformer;中文遠場→加陣列走多通道。先定場景,選型才有對錯。</li>
+    </ol>
+    <h3>來源與延伸</h3>
+    <p>本頁依一份「即時語者分離」的技術規格整理,並<strong>對照已公開發表、已被量測的真實系統</strong>做三角驗證;文中標「✅ 已查證」的數字附出處如下,標「⚠️ 推估 / 🎯 目標」者仍需在目標環境實測,各模型實際數字以官方為準。</p>
+    <ul>
+      <li>語者特徵/嵌入:<a href="https://github.com/modelscope/3D-Speaker" target="_blank" rel="noopener">3D-Speaker(CAM++)</a>;論文 <a href="https://arxiv.org/abs/2303.00332" target="_blank" rel="noopener">CAM++(arXiv 2303.00332)</a>(Vox1-O EER 0.65%、少 51% 參數)。</li>
+      <li>離線分割/分群(DER 頂線):<a href="https://github.com/pyannote/pyannote-audio" target="_blank" rel="noopener">pyannote.audio</a>;<a href="https://huggingface.co/pyannote/speaker-diarization-3.1" target="_blank" rel="noopener">speaker-diarization-3.1 模型卡</a>(AMI/DIHARD benchmark)。</li>
+      <li>串流基線(overlap-aware):<a href="https://github.com/juanmc2005/diart" target="_blank" rel="noopener">diart</a>;論文 <a href="https://arxiv.org/abs/2109.06483" target="_blank" rel="noopener">Coria et al. 2021(arXiv 2109.06483)</a>(500ms–5s 延遲-DER 曲線)。</li>
+      <li>SOTA 串流:<a href="https://github.com/NVIDIA/NeMo" target="_blank" rel="noopener">NVIDIA NeMo</a> Streaming Sortformer;論文 <a href="https://arxiv.org/abs/2507.18446" target="_blank" rel="noopener">arXiv 2507.18446(Interspeech 2025)</a>(0.32s@RTF0.18、CALLHOME 11.5%、4 語者上限)。</li>
+      <li>VAD:<a href="https://github.com/snakers4/silero-vad" target="_blank" rel="noopener">Silero VAD</a>(<a href="https://github.com/snakers4/silero-vad/wiki/Performance-Metrics" target="_blank" rel="noopener">Performance wiki</a>:31.25ms 訊框 ~189µs)。</li>
+      <li>串流 ASR:<a href="https://github.com/SYSTRAN/faster-whisper" target="_blank" rel="noopener">Faster-Whisper</a>(small/int8 CPU RTF~0.13–0.5)、<a href="https://github.com/ggml-org/whisper.cpp" target="_blank" rel="noopener">whisper.cpp</a>。</li>
+      <li>中文會議資料集/基準:<a href="https://github.com/yufan-aslp/AliMeeting" target="_blank" rel="noopener">AliMeeting</a> · <a href="https://arxiv.org/abs/2110.07393" target="_blank" rel="noopener">M2MeT(ICASSP 2022)</a>(VBx 基線 ~15.6% DER);<a href="https://arxiv.org/abs/2104.03603" target="_blank" rel="noopener">AISHELL-4(arXiv 2104.03603)</a>(單通道 VBx 類 ~11–18%)。</li>
+      <li>線上分離延遲研究:<a href="https://arxiv.org/abs/2407.04293" target="_blank" rel="noopener">Systematic Evaluation of Online Speaker Diarization Latency(arXiv 2407.04293)</a>;推論最佳化:<a href="https://onnxruntime.ai/" target="_blank" rel="noopener">ONNX Runtime</a>。</li>
+    </ul>
+    <div class="related">
+      <a href="./voxemw-realtime.html">
+        <div class="rel-title">⏱️ VoxEMW 即時對話工程深潛</div>
+        <div class="rel-sub">同一族的串流 VAD/STT/判停</div>
+      </a>
+      <a href="./voxemw.html">
+        <div class="rel-title">🎙️ VoxEMW:1.3 秒本地語音數字人</div>
+        <div class="rel-sub">延遲預算工程的完整案例</div>
+      </a>
+      <a href="./train-slm-single-task.html">
+        <div class="rel-title">🧠 訓練小模型做單一任務</div>
+        <div class="rel-sub">把合適大小的模型放對位置</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      本頁是對一份系統規格的工程拆解,並在<strong>無法實作的前提下,盡量把分析建立在可查證證據上</strong>:元件延遲/效能與參考系統 DER 均附出處(標「✅ 已查證」),其餘標「⚠️ 推估 / 🎯 目標」者皆為待實測。門檻(0.65)、區塊長度(0.5–1s)、觸發條件(150 字 / 4 次語者切換)、計分卡權重與情境分數等為<strong>示例/建議參數</strong>,實務上都需按你的麥克風、場景與硬體實測校準。非任何專案的官方文件。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

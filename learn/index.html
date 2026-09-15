@@ -338,6 +338,12 @@
       <div class="mt">9 節 · 語義判停 · 串流管線 · 打斷時序</div>
       <div class="ds">從原始碼拆解 VoxEMW 的即時對話工程:兩階段語義判停(Silero+SmartTurn)的模型原理、串流管線怎麼一段段接與 MTP 推測解碼、以及「打斷」發生時的毫秒級時序與 heard_prefix 記憶回寫。</div>
     </a>
+    <a class="card" href="./realtime-speaker-diarization.html">
+      <div class="ic">🗣️</div>
+      <div class="nm">即時語者分離:本地串流「誰在說話」的管線<span class="status ok">已建立</span></div>
+      <div class="mt">16 節 + 7 SVG · 選型/資料流 · 延遲/DER 量測 · 證據三角驗證 · 敏感度 · 決策樹</div>
+      <div class="ds">把「即時 speaker diarization」從架構論述推進到「可衡量、可靠的可行性分析」:選型取捨、五階段資料流、語者追蹤與合流;量化延遲/資源預算(端到端&lt;1s、RTF&lt;1)、DER/JER 量測法、POC 關卡與計分卡;在「無法實作」前提下用真實系統(diart、Streaming Sortformer、pyannote 3.1)與中文會議基準(AliMeeting VBx ~15.6% / AISHELL-4 ~11–18%)三角驗證,附假設登記、敏感度分析,與依場景(重疊×人數×算力×通道數)選路線的決策樹。</div>
+    </a>
     <a class="card" href="./codex-taskboard.html">
       <div class="ic">🗂️</div>
       <div class="nm">Codex Taskboard:議題生命週期 = Agent 協定<span class="status ok">已建立</span></div>
