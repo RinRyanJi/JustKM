@@ -163,7 +163,9 @@
       <a href="#accuracy">⑨ 精度怎麼量:DER / JER</a>
       <a href="#poc">⑩ 可行性驗證計畫:POC + 關卡</a>
       <a href="#scorecard">⑪ 可行性計分卡與風險登記</a>
-      <a href="#steal">⑫ 值得偷師 / 來源</a>
+      <a href="#evidence">⑫ 證據基準:真實串流系統三角驗證</a>
+      <a href="#assumptions">⑬ 假設登記 + 敏感度分析</a>
+      <a href="#steal">⑭ 值得偷師 / 來源</a>
     </div>
   </nav>
 
@@ -515,17 +517,18 @@
       <thead><tr><th>階段</th><th>延遲預算(目標)</th><th>資源足跡(目標)</th><th>怎麼量</th></tr></thead>
       <tbody>
         <tr><td>音訊擷取(30ms 訊框)</td><td>≤ 30ms 緩衝</td><td>~0(系統 API)</td><td>訊框時間戳間隔</td></tr>
-        <tr><td>Silero VAD / 訊框</td><td>≤ 2ms</td><td>模型 &lt; 2MB</td><td>單訊框 inference 計時</td></tr>
+        <tr><td>Silero VAD / 訊框</td><td>≤ 2ms(<strong>實測 ~0.19ms</strong>)</td><td>模型 ~1–2MB</td><td>單訊框 inference 計時</td></tr>
         <tr><td>判停靜音(固有)</td><td>500ms(可調 300–800)</td><td>—</td><td>參數,直接設定</td></tr>
-        <tr><td>CAM++ 抽向量 / 區塊</td><td>≤ 50ms(CPU)</td><td>模型 ~7–28MB</td><td>單區塊 embedding 計時</td></tr>
+        <tr><td>CAM++ 抽向量 / 區塊</td><td>≤ 50ms(CPU)</td><td>模型 ~7M 參數,檔 ~28MB</td><td>單區塊 embedding 計時</td></tr>
         <tr><td>餘弦比對 + EMA</td><td>&lt; 1ms(N&lt;50 語者)</td><td>N×512×4B ≈ 忽略</td><td>迴圈計時</td></tr>
-        <tr><td>Faster-Whisper / 區塊</td><td>≤ 300ms(CPU small)</td><td>模型 75–460MB</td><td>RTF = 處理秒 / 音訊秒</td></tr>
+        <tr><td>Faster-Whisper / 區塊</td><td>≤ 300ms(<strong>small int8 CPU 實測 RTF ~0.13–0.5</strong>)</td><td>模型 75–460MB</td><td>RTF = 處理秒 / 音訊秒</td></tr>
         <tr><td>合流對齊</td><td>&lt; 1ms</td><td>忽略</td><td>迴圈計時</td></tr>
         <tr><td><strong>端到端(講完→輸出)</strong></td><td><strong>≤ 1000ms(CPU)/ ≤ 500ms(GPU)</strong></td><td><strong>串流管線 RAM ≤ 4GB(不含 LLM)</strong></td><td><strong>p50 / p95 延遲分佈</strong></td></tr>
         <tr><td>本地 LLM(條件觸發,背景)</td><td>不進即時預算(可秒級)</td><td>Qwen2.5-1.5B Q4 ~1GB / 3B ~2GB</td><td>觸發到摘要出現的時間</td></tr>
       </tbody>
     </table></div>
     <div class="callout info"><strong>關鍵可行性指標 — 即時因子 RTF(Real-Time Factor)= 處理耗時 ÷ 音訊時長。</strong>整條管線在目標硬體上必須<strong>持續 RTF &lt; 1</strong>(否則會越積越慢、追不上串流);要留餘裕,目標<strong>RTF ≤ 0.5</strong>。這一個數字就能一票否決或放行「CPU 能不能跑」。</div>
+    <p style="font-size:0.78rem;color:var(--stone);">已查證的元件數字:Silero VAD v5(ONNX)單一 31.25ms 訊框約 <strong>189µs</strong>、sub-ms 延遲〔silero-vad wiki〕;CAM++ 屬輕量網路,較 ECAPA-TDNN <strong>少約 51% 參數</strong>〔CAM++ 論文〕;Faster-Whisper small/int8 在 8 執行緒桌機 CPU 上 13 分鐘音訊約 <strong>1m42s</strong>(RTF≈0.13)〔公開速度測試〕。判停 500ms、端到端&lt;1s、RAM≤4GB 仍屬<strong>本提案設定的預算目標</strong>,須在目標硬體實測(見 ⑫⑬)。</p>
   </section>
 
   <!-- 9 -->
@@ -545,16 +548,16 @@ DER = (<span class="kw">False Alarm</span> + <span class="kw">Missed Detection</
       <li><strong>JER(Jaccard Error Rate):</strong>逐語者平均,避免「講很多的人」主導分數,和 DER 併看更公允。</li>
     </ul>
     <div class="table-wrap"><table>
-      <thead><tr><th>基準資料集</th><th>場景</th><th>離線系統參考 DER*</th><th>本方案(串流)可行性門檻**</th></tr></thead>
+      <thead><tr><th>基準資料集</th><th>場景</th><th>離線參考 DER(pyannote 3.1)*</th><th>串流參考 DER**</th><th>本方案建議門檻***</th></tr></thead>
       <tbody>
-        <tr><td>VoxConverse</td><td>野生/媒體</td><td>~10–12%</td><td>≤ 20%(單語者區,collar 0.25)</td></tr>
-        <tr><td>AMI(會議,英)</td><td>多人會議</td><td>~20–22%</td><td>≤ 30%</td></tr>
-        <tr><td>AliMeeting / AISHELL-4</td><td>多人會議(中)</td><td>依官方</td><td>中文場景主驗集,設對照基線</td></tr>
-        <tr><td>DIHARD III</td><td>困難/含重疊</td><td>~21–27%</td><td>僅作壓力測試,不設硬門檻</td></tr>
-        <tr><td>CALLHOME</td><td>電話兩人</td><td>~ 個位數–15%</td><td>≤ 15%(兩人通話是本方案甜蜜點)</td></tr>
+        <tr><td>VoxConverse</td><td>野生/媒體</td><td>~9–11%</td><td>diart 500ms 有量測曲線</td><td>≤ 18%(單語者區,collar 0.25)</td></tr>
+        <tr><td>AMI(會議,英)</td><td>多人會議</td><td>IHM 17.0% / SDM 19.9%</td><td>diart 500ms–5s 曲線</td><td>≤ 30%</td></tr>
+        <tr><td>AliMeeting / AISHELL-4</td><td>多人會議(中)</td><td>訓練集含此二者,以官方為準</td><td>—</td><td>中文場景主驗集,設對照基線</td></tr>
+        <tr><td>DIHARD III</td><td>困難/含重疊</td><td>20.2%</td><td>Sortformer 0.32s:19.32%</td><td>僅作壓力測試,不設硬門檻</td></tr>
+        <tr><td>CALLHOME</td><td>電話兩人/多人</td><td>—</td><td>Sortformer 0.32s:11.50%</td><td>≤ 15%(兩人通話是甜蜜點)</td></tr>
       </tbody>
     </table></div>
-    <p style="font-size:0.78rem;color:var(--stone);">* 離線參考來自各系統(如 pyannote 3.1)公開報告的量級,<strong>依資料集/collar/是否計重疊差異極大,務必以官方數字為準</strong>。** 門檻為本提案建議的 Go 值,是「相對離線基線退化可接受」的操作定義,需在自家測試集重新標定。</p>
+    <p style="font-size:0.78rem;color:var(--stone);">* pyannote 3.1 官方 benchmark(collar 0s、計 overlap):AMI-IHM 17.0%、AMI-SDM 19.9%、DIHARD3 20.2%;VoxConverse 約 9–11%〔pyannote 模型卡〕。** diart 論文提供 500ms/1s/2s/3s/4s/5s 六種延遲的完整 DER 曲線;NVIDIA Streaming Sortformer 在 0.32s 塊長下 CALLHOME 11.50%、DIHARD 19.32%〔見 ⑫〕。*** 門檻為本提案建議的 Go 值,是「相對參考系統退化可接受」的操作定義,需在自家測試集重新標定。</p>
     <h4>量測工具鏈(可直接跑)</h4>
     <ul>
       <li><strong>ground truth 格式:</strong>RTTM(NIST 標準),每列一段「檔名/起點/時長/語者」。</li>
@@ -749,8 +752,64 @@ detail = metric[<span class="st">'confusion'</span>], metric[<span class="st">'m
   </section>
 
   <!-- 12 -->
+  <section id="evidence">
+    <h2><span class="num">⑫</span> 證據基準:拿真實串流系統三角驗證</h2>
+    <p>既然此處無法真的實作,<strong>「可靠」就得靠證據</strong>——把本提案的假設,對照<strong>已公開發表、已被量測</strong>的真實串流語者分離系統。好消息是:即時語者分離<strong>不是願景,而是已被驗證可行的類別</strong>,且有明確的延遲-精度數字可當標尺。</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>系統</th><th>方法</th><th>延遲 / RTF(實測)</th><th>DER(實測)</th><th>限制</th></tr></thead>
+      <tbody>
+        <tr><td><strong>diart</strong>(Coria 2021)</td><td>pyannote 分割 + 增量分群,500ms 滾動緩衝、<strong>overlap-aware</strong></td><td>延遲可調 <strong>500ms–5s</strong>;主打輕量、CPU 可即時</td><td>AMI/DIHARD/VoxConverse 附<strong>六種延遲的完整 DER 曲線</strong></td><td>延遲越低 DER 越高(有系統性曲線)</td></tr>
+        <tr><td><strong>Streaming Sortformer</strong>(NVIDIA, Interspeech 2025)</td><td>端到端 + Arrival-Order Speaker Cache</td><td><strong>0.32s @ RTF 0.180</strong> / 1.04s @ 0.093 / 10s @ 0.005</td><td><strong>0.32s:CALLHOME 11.50%、DIHARD 19.32%</strong>;AOSC CALLHOME 13.32%</td><td>v2 <strong>上限 4 語者</strong>、依賴 GPU + NeMo</td></tr>
+        <tr><td><strong>pyannote 3.1</strong>(離線頂線)</td><td>離線分割+分群(對照上限)</td><td>非即時(批次)</td><td>AMI-IHM 17.0% / SDM 19.9% / DIHARD3 20.2% / VoxConverse ~9–11%</td><td>不能串流,只當 DER 天花板參照</td></tr>
+        <tr><td><strong>本提案</strong>(CAM++ + 線上餘弦)</td><td>VAD + embedding + 線上分群(<strong>非 overlap-aware</strong>)</td><td>預算 &lt;1s;元件延遲已查證很小</td><td><strong>尚無公開數字,須量測</strong></td><td>不處理重疊、不回頭修正</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><strong>三角驗證得到的三個誠實結論:</strong>
+      <ol style="margin-top:8px;margin-bottom:0;">
+        <li><strong>可行性的「下限」有真實錨點:</strong>Sortformer 已證明<strong>sub-second(0.32s)串流下 DER 只小幅退化</strong>(CALLHOME 11.5%),diart 也證明 <strong>500ms 級 CPU 串流可行</strong>。所以「即時、本地」這件事本身<strong>不是風險項</strong>——它已被別人做出來。</li>
+        <li><strong>本提案其實比參考系統「更陽春」:</strong>diart 用的是 pyannote 分割且 <strong>overlap-aware</strong>;本提案用 CAM++ embedding + 餘弦,是更接近 VBx 的傳統分群,<strong>預期 DER 會略差於 diart、且完全不處理重疊</strong>。這不是缺陷隱藏,而是取捨——換來的是更小、更好掌控的管線。</li>
+        <li><strong>最可靠的 POC 起手式:先把 diart 當基線。</strong>diart 是開源、可直接跑、且有官方 DER 曲線的最接近參照。<strong>先量 diart 在你資料上的 DER-延遲曲線,再看 CAM++ 自組方案能否逼近它</strong>——這讓「本方案好不好」有一個真實、可複現的對照,而不是憑空門檻。</li>
+      </ol>
+    </div>
+    <p>換句話說:延遲/資源這條軸,證據強烈支持可行;<strong>真正待驗證的只剩「CAM++ 自組分群的 DER,離 diart 有多遠、離重疊需求有多痛」</strong>——這就是應該優先花量測預算的地方。</p>
+  </section>
+
+  <!-- 13 -->
+  <section id="assumptions">
+    <h2><span class="num">⑬</span> 假設登記 + 敏感度分析:結論穩不穩</h2>
+    <p>可靠的規劃,重點不在「假裝有數字」,而在<strong>把每個數字的來源與信心攤開</strong>,並檢查「就算猜錯,結論會不會翻盤」。</p>
+    <h3>假設登記(每個數字都標來源與信心)</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>項目</th><th>採用值</th><th>來源等級</th><th>信心</th></tr></thead>
+      <tbody>
+        <tr><td>Silero VAD 訊框延遲</td><td>~0.19ms</td><td>✅ 已查證(官方 wiki)</td><td>高</td></tr>
+        <tr><td>Faster-Whisper small CPU RTF</td><td>~0.13–0.5</td><td>✅ 已查證(公開速度測試)</td><td>中高(隨 CPU 變動)</td></tr>
+        <tr><td>CAM++ 輕量/EER 強</td><td>Vox1-O EER 0.65%、少 51% 參數</td><td>✅ 已查證(論文)</td><td>高(但那是<em>驗證</em>非<em>串流分離</em>)</td></tr>
+        <tr><td>串流可 sub-second 且 DER 小幅退化</td><td>0.32s→CALLHOME 11.5%</td><td>✅ 已查證(Sortformer,他系統)</td><td>高(佐證類別可行)</td></tr>
+        <tr><td>CAM++ + 餘弦的實際 DER</td><td>單語者 ≤15% 甜蜜點</td><td>⚠️ 推估(比類 diart/VBx)</td><td>低—中(<strong>核心未知</strong>)</td></tr>
+        <tr><td>重疊語音退化幅度</td><td>+10~20pt</td><td>⚠️ 推估</td><td>低(已知弱項)</td></tr>
+        <tr><td>判停 500ms / 端到端 &lt;1s</td><td>目標值</td><td>🎯 設計目標</td><td>中高(元件延遲支持)</td></tr>
+        <tr><td>目標硬體 RTF &lt;1</td><td>成立</td><td>🎯 目標(待該機驗)</td><td>中高(小模型佐證)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout info"><strong>一眼看懂:</strong>延遲、資源、元件效能都是 <strong>✅ 已查證</strong> 或有強佐證;真正 <strong>⚠️ 低信心的只有兩項——CAM++ 自組分群的實際 DER、以及重疊語音退化</strong>。可靠規劃的價值,就是把不確定性<strong>收斂到這兩個點</strong>,而不是散在全案。</div>
+    <h3>敏感度分析:三種情境下,計分卡總分會怎麼動</h3>
+    <p>固定 ✅ 已查證項(延遲、RTF、資源、中文/生態沿用 ⑪ 預期值,合計 0.603),只讓兩個低信心 DER 項在樂觀/預期/悲觀間變動,看 ⑪ 計分卡總分與結論(兩人通話場景):</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>情境</th><th>單語者 DER(分)</th><th>重疊退化(分)</th><th>計分卡總分*</th><th>結論</th></tr></thead>
+      <tbody>
+        <tr><td><strong>樂觀</strong>(逼近 diart)</td><td>~11%(0.93)</td><td>+10pt(0.62)</td><td>0.603+0.186+0.062 ≈ <strong>0.85</strong></td><td>Go</td></tr>
+        <tr><td><strong>預期</strong>(略差 diart)</td><td>~14%(0.85)</td><td>+18pt(0.40)</td><td>0.603+0.170+0.040 ≈ <strong>0.81</strong></td><td>Go</td></tr>
+        <tr><td><strong>悲觀</strong>(自組分群失準)</td><td>~22%(0.28)</td><td>+30pt(0.12)</td><td>0.603+0.056+0.012 ≈ <strong>0.67</strong></td><td>有條件 Go</td></tr>
+      </tbody>
+    </table></div>
+    <p style="font-size:0.78rem;color:var(--stone);">* 沿用 ⑪ 權重與該節「預期」情境的非 DER 分數(延遲0.180 + RTF0.190 + 資源0.135 + 中文/生態0.098 = 0.603),只變動單語者 DER(權重 0.20)與重疊退化(0.10)兩項的 0–1 換算分。0–1 對應為示意映射。</p>
+    <div class="callout tip"><strong>結論的穩健性:</strong>在<strong>兩人通話</strong>場景,即使落到悲觀情境也只是「有條件 Go」——<strong>不會翻成 No-Go</strong>,因為延遲/資源這半壁已被證據釘死。這代表:<strong>對兩人/低重疊場景,本方案的可行性結論是穩健的</strong>;真正會讓它翻盤的是「高頻重疊的多人會議」——那時就該切到 diart(overlap-aware)或 Sortformer。<strong>可靠的規劃結論不是「行或不行」,而是「在哪個場景行、卡在哪個未知、下一步該量什麼」——這三點現在都有答案。</strong></div>
+  </section>
+
+  <!-- 14 -->
   <section id="steal">
-    <h2><span class="num">⑫</span> 值得偷師的思路 / <span style="color:var(--stone);font-weight:700">來源</span></h2>
+    <h2><span class="num">⑭</span> 值得偷師的思路 / <span style="color:var(--stone);font-weight:700">來源</span></h2>
     <ol>
       <li><strong>把「有沒有人說話」和「是誰說話」拆開。</strong>VAD 是最便宜的一刀,先擋掉靜音,昂貴的模型只在有聲時跑——這是即時管線省算力的第一原則。</li>
       <li><strong>讓大模型只做它最擅長的一件事。</strong>CAM++ 只抽向量、不做分群;分群留在可控的本地演算法裡。這種「特徵擷取 vs 決策邏輯」分離,讓你能單獨調門檻而不動模型。</li>
@@ -759,16 +818,18 @@ detail = metric[<span class="st">'confusion'</span>], metric[<span class="st">'m
       <li><strong>把 LLM 降級成事件驅動的背景服務。</strong>條件觸發(長度/語者切換/關鍵字)取代「每句都跑」,讓摘要不和即時字幕搶延遲。</li>
       <li><strong>誠實面對取捨。</strong>這條輕量路線換來的是超低延遲與 CPU 可跑,代價是重疊語音精度與「不回頭修正」——選型前先量好你的延遲/精度/硬體約束。</li>
       <li><strong>把「可行性」從形容詞變成數字。</strong>先釘死目標(端到端&lt;1s、RTF&lt;1、DER≤場景門檻),再用標準指標(DER/JER + RTTM + pyannote.metrics)在自家測試集量測,最後用分階段 POC 的 Go/No-Go 關卡與加權計分卡定案——這樣「能不能上」就不再靠嘴,而是一票可討論、可複現的證據。</li>
+      <li><strong>不能實作時,靠「證據 + 假設登記 + 敏感度」讓分析可靠。</strong>用真實已量測的系統(diart、Sortformer)當標尺三角驗證、把每個數字標「已查證/推估/待量測」、再檢查結論在樂觀—悲觀區間會不會翻盤。可靠的規劃輸出不是一個拍板,而是「哪個場景行、卡在哪個未知、下一步先量什麼」。</li>
     </ol>
     <h3>來源與延伸</h3>
-    <p>本頁依一份「即時語者分離」的技術規格整理,並對照各開源專案的公開定位;各模型的實際數字請以官方為準。</p>
+    <p>本頁依一份「即時語者分離」的技術規格整理,並<strong>對照已公開發表、已被量測的真實系統</strong>做三角驗證;文中標「✅ 已查證」的數字附出處如下,標「⚠️ 推估 / 🎯 目標」者仍需在目標環境實測,各模型實際數字以官方為準。</p>
     <ul>
-      <li>語者特徵:<a href="https://github.com/modelscope/3D-Speaker" target="_blank" rel="noopener">3D-Speaker(CAM++)</a>。</li>
-      <li>語者分割:<a href="https://github.com/pyannote/pyannote-audio" target="_blank" rel="noopener">pyannote.audio</a>。</li>
-      <li>原生串流分離:<a href="https://github.com/NVIDIA/NeMo" target="_blank" rel="noopener">NVIDIA NeMo</a>(Streaming Sortformer)。</li>
-      <li>VAD:<a href="https://github.com/snakers4/silero-vad" target="_blank" rel="noopener">Silero VAD</a>。</li>
-      <li>串流 ASR:<a href="https://github.com/SYSTRAN/faster-whisper" target="_blank" rel="noopener">Faster-Whisper</a>、<a href="https://github.com/ggml-org/whisper.cpp" target="_blank" rel="noopener">whisper.cpp</a>。</li>
-      <li>推論最佳化:<a href="https://onnxruntime.ai/" target="_blank" rel="noopener">ONNX Runtime</a>。</li>
+      <li>語者特徵/嵌入:<a href="https://github.com/modelscope/3D-Speaker" target="_blank" rel="noopener">3D-Speaker(CAM++)</a>;論文 <a href="https://arxiv.org/abs/2303.00332" target="_blank" rel="noopener">CAM++(arXiv 2303.00332)</a>(Vox1-O EER 0.65%、少 51% 參數)。</li>
+      <li>離線分割/分群(DER 頂線):<a href="https://github.com/pyannote/pyannote-audio" target="_blank" rel="noopener">pyannote.audio</a>;<a href="https://huggingface.co/pyannote/speaker-diarization-3.1" target="_blank" rel="noopener">speaker-diarization-3.1 模型卡</a>(AMI/DIHARD benchmark)。</li>
+      <li>串流基線(overlap-aware):<a href="https://github.com/juanmc2005/diart" target="_blank" rel="noopener">diart</a>;論文 <a href="https://arxiv.org/abs/2109.06483" target="_blank" rel="noopener">Coria et al. 2021(arXiv 2109.06483)</a>(500ms–5s 延遲-DER 曲線)。</li>
+      <li>SOTA 串流:<a href="https://github.com/NVIDIA/NeMo" target="_blank" rel="noopener">NVIDIA NeMo</a> Streaming Sortformer;論文 <a href="https://arxiv.org/abs/2507.18446" target="_blank" rel="noopener">arXiv 2507.18446(Interspeech 2025)</a>(0.32s@RTF0.18、CALLHOME 11.5%、4 語者上限)。</li>
+      <li>VAD:<a href="https://github.com/snakers4/silero-vad" target="_blank" rel="noopener">Silero VAD</a>(<a href="https://github.com/snakers4/silero-vad/wiki/Performance-Metrics" target="_blank" rel="noopener">Performance wiki</a>:31.25ms 訊框 ~189µs)。</li>
+      <li>串流 ASR:<a href="https://github.com/SYSTRAN/faster-whisper" target="_blank" rel="noopener">Faster-Whisper</a>(small/int8 CPU RTF~0.13–0.5)、<a href="https://github.com/ggml-org/whisper.cpp" target="_blank" rel="noopener">whisper.cpp</a>。</li>
+      <li>線上分離延遲研究:<a href="https://arxiv.org/abs/2407.04293" target="_blank" rel="noopener">Systematic Evaluation of Online Speaker Diarization Latency(arXiv 2407.04293)</a>;推論最佳化:<a href="https://onnxruntime.ai/" target="_blank" rel="noopener">ONNX Runtime</a>。</li>
     </ul>
     <div class="related">
       <a href="./voxemw-realtime.html">
@@ -789,7 +850,7 @@ detail = metric[<span class="st">'confusion'</span>], metric[<span class="st">'m
       </a>
     </div>
     <div class="callout info" style="margin-top:14px;">
-      本頁是對一份系統規格的工程拆解與整理,非任何專案的官方文件。門檻(0.65)、區塊長度(0.5–1s)、觸發條件(150 字 / 4 次語者切換)等數字為規格中的<strong>示例參數</strong>,實務上都需按你的麥克風、場景與硬體實測校準。
+      本頁是對一份系統規格的工程拆解,並在<strong>無法實作的前提下,盡量把分析建立在可查證證據上</strong>:元件延遲/效能與參考系統 DER 均附出處(標「✅ 已查證」),其餘標「⚠️ 推估 / 🎯 目標」者皆為待實測。門檻(0.65)、區塊長度(0.5–1s)、觸發條件(150 字 / 4 次語者切換)、計分卡權重與情境分數等為<strong>示例/建議參數</strong>,實務上都需按你的麥克風、場景與硬體實測校準。非任何專案的官方文件。
     </div>
   </section>
 
