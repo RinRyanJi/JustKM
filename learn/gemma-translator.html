@@ -306,6 +306,44 @@
     <h3>LiteRT-LM = Google 的端側執行期</h3>
     <p><strong>LiteRT</strong> 是 Google 端側推論執行期(TensorFlow Lite 的新名),<strong>LiteRT-LM</strong> 是其專門跑大語言模型的版本。Google 透過 LiteRT-LM 直接發佈 Gemma 的端側包(E2B 檔約 <strong>2.58GB</strong>、E4B 約 <strong>3.65GB</strong>),讓它在 CPU/邊緣裝置上就能載入。</p>
     <div class="callout info"><strong>翻譯為什麼用 LLM 而不是傳統 NMT?</strong>因為 LLM 能一併吃下「語氣、上下文、口語」,而且<strong>一個模型涵蓋多語對</strong>(這裡 6 種語言互譯),不必為每個語言對各養一個翻譯模型。代價是它比專用 NMT 大——所以才需要 E2B 這種「有效參數」設計 + LiteRT-LM 這種端側執行期來配平。</div>
+    <h3>8GB 怎麼分:各模型的 RAM 佔用(估算預算)</h3>
+    <p>把整台裝置的記憶體攤開來看,就懂「<strong>為什麼是 8GB、而不是 4GB</strong>」——三個模型加上 OS 與 kiosk 瀏覽器,已經吃掉約 5GB:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 210" role="img" aria-label="Pi 5 8GB 記憶體預算估算：OS 約 0.6GB、Chromium kiosk 約 0.6GB、Moonshine STT加TTS 約 0.8GB、Gemma E2B 約 2.6GB、Python 後端約 0.2GB，合計約 4.8GB，餘裕約 3.2GB；4GB 機型會爆掉">
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">Pi 5 8GB 記憶體預算(估算):三模型 + OS + kiosk</text>
+          <!-- axis -->
+          <line x1="100" y1="104" x2="680" y2="104" stroke="#c8c4be" stroke-width="1.2"/>
+          <g font-size="8" fill="#a4a097" text-anchor="middle">
+            <text x="100" y="120">0</text><text x="245" y="120">2GB</text><text x="390" y="120">4GB</text><text x="535" y="120">6GB</text><text x="680" y="120">8GB</text>
+          </g>
+          <!-- 4GB line -->
+          <line x1="390" y1="44" x2="390" y2="104" stroke="#e03131" stroke-width="1.4" stroke-dasharray="3 2"/>
+          <text x="390" y="40" text-anchor="middle" font-size="8" font-weight="800" fill="#c92a2a">4GB 機型天花板</text>
+          <!-- segments -->
+          <rect x="100" y="58" width="43.5" height="34" fill="#a4a097"/>
+          <rect x="143.5" y="58" width="43.5" height="34" fill="#787671"/>
+          <rect x="187" y="58" width="58" height="34" fill="#0075de"/>
+          <text x="216" y="79" text-anchor="middle" font-size="8" font-weight="700" fill="#fff">Moonshine</text>
+          <rect x="245" y="58" width="188.5" height="34" fill="#5645d4"/>
+          <text x="339" y="79" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">Gemma E2B ~2.6GB</text>
+          <rect x="433.5" y="58" width="14.5" height="34" fill="#2a9d99"/>
+          <!-- headroom -->
+          <rect x="448" y="58" width="232" height="34" rx="3" fill="none" stroke="#a4a097" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <text x="564" y="79" text-anchor="middle" font-size="9" fill="#787671">餘裕 ~3.2GB</text>
+          <!-- legend -->
+          <g font-size="8.5">
+            <rect x="100" y="150" width="11" height="11" fill="#a4a097"/><text x="116" y="159" fill="#5d5b54">OS(Raspberry Pi OS)~0.6GB</text>
+            <rect x="300" y="150" width="11" height="11" fill="#787671"/><text x="316" y="159" fill="#5d5b54">Chromium kiosk + 前端 ~0.6GB</text>
+            <rect x="100" y="168" width="11" height="11" fill="#0075de"/><text x="116" y="177" fill="#5d5b54">Moonshine STT+TTS(預載中英、快取2份)~0.8GB</text>
+            <rect x="440" y="168" width="11" height="11" fill="#2a9d99"/><text x="456" y="177" fill="#5d5b54">Python 後端 ~0.2GB</text>
+            <rect x="100" y="186" width="11" height="11" fill="#5645d4"/><text x="116" y="195" fill="#5d5b54">Gemma E2B(LiteRT-LM,檔 2.58GB + KV cache)~2.6GB</text>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ <strong>估算</strong>預算,非實測;僅 Gemma E2B(檔 2.58GB、RAM 2GB 等級)與 Moonshine(Base 400MB / Tiny 190MB)為已查證錨點,OS/Chromium 為典型值。重點:光 Gemma + OS + Chromium 就逼近 4GB,<strong>所以 8GB 是門檻、4GB 會 OOM/狂 swap</strong>。</div>
+    </div>
   </section>
 
   <!-- 7 -->
