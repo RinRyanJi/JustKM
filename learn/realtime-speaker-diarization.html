@@ -165,7 +165,8 @@
       <a href="#scorecard">⑪ 可行性計分卡與風險登記</a>
       <a href="#evidence">⑫ 證據基準:真實串流系統三角驗證</a>
       <a href="#assumptions">⑬ 假設登記 + 敏感度分析</a>
-      <a href="#steal">⑭ 值得偷師 / 來源</a>
+      <a href="#decision">⑭ 依場景選路線的決策樹</a>
+      <a href="#steal">⑮ 值得偷師 / 來源</a>
     </div>
   </nav>
 
@@ -772,6 +773,17 @@ detail = metric[<span class="st">'confusion'</span>], metric[<span class="st">'m
       </ol>
     </div>
     <p>換句話說:延遲/資源這條軸,證據強烈支持可行;<strong>真正待驗證的只剩「CAM++ 自組分群的 DER,離 diart 有多遠、離重疊需求有多痛」</strong>——這就是應該優先花量測預算的地方。</p>
+    <h3>中文會議場景:AliMeeting / AISHELL-4 的真實 DER</h3>
+    <p>中文會議有專門的公開資料集與 benchmark(M2MeT 挑戰賽),可直接當中文場景的標尺:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>資料集</th><th>通道</th><th>系統</th><th>DER(實測)</th></tr></thead>
+      <tbody>
+        <tr><td>AliMeeting(M2MeT)</td><td>8-mic 陣列(多通道)</td><td>VBx 基線(ResNet d-vec + AHC+VBx)</td><td><strong>15.24% eval / 15.60% test</strong>(collar 0.25)</td></tr>
+        <tr><td>AliMeeting</td><td>多通道</td><td>SOTA 神經(PSE + SOND)</td><td><strong>2.70% eval / 4.46% test</strong></td></tr>
+        <tr><td>AISHELL-4</td><td>單通道</td><td>VBx / X-vector + VB-HMM</td><td><strong>~11–18%</strong>(collar 0.25 約 11.1%、無 collar 約 16.8%)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><strong>一個對本方案很關鍵的「通道數」警訊:</strong>AliMeeting 那些漂亮的低 DER(2.7–15.6%)<strong>多半來自 8 麥克風陣列的多通道系統</strong>;加入 DOA 空間資訊還能再降約 <strong>4.2%(線上)/ 7.4%(離線)</strong>。而本方案是<strong>單通道</strong>(系統 loopback、單軌 mono),等於少了空間線索——中文<strong>遠場</strong>多人會議的單通道 DER 會明顯高於上面那些陣列數字(單通道 AISHELL-4 的 VBx 已在 ~11–18%,遠場更差)。<strong>規劃啟示:</strong>若你的中文場景是遠場、多人、對 DER 要求高,就該把「加裝麥克風陣列 + 多通道分離」列為選項,而不是硬撐單通道;若是<strong>近場兩人</strong>(客服耳機、通話),單通道就落在甜蜜點。</div>
   </section>
 
   <!-- 13 -->
@@ -808,8 +820,76 @@ detail = metric[<span class="st">'confusion'</span>], metric[<span class="st">'m
   </section>
 
   <!-- 14 -->
+  <section id="decision">
+    <h2><span class="num">⑭</span> 依場景選路線的決策樹</h2>
+    <p>把前面的證據收斂成一個<strong>可直接照著走的選路指南</strong>。關鍵洞見:整條前處理(VAD + ASR 對齊)不變,<strong>差別只在「分離引擎」選哪個</strong>——而選哪個,由「重疊多寡 × 語者數 × 算力 × 通道數」決定:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 322" role="img" aria-label="決策樹：依場景分三路。兩人低重疊用本方案 CAM++ 加餘弦；多人高頻重疊依算力選 Streaming Sortformer 或 diart；中文遠場會議加麥克風陣列用多通道神經分離。共同前處理不變。">
+        <defs><marker id="dt" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <!-- start -->
+          <rect x="280" y="14" width="160" height="36" rx="10" fill="#0a1530"/>
+          <text x="360" y="37" text-anchor="middle" font-size="10.5" font-weight="800" fill="#fff">你的即時語者分離場景?</text>
+          <!-- arrows to branches -->
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#dt)">
+            <path d="M360,50 C200,64 119,68 119,82"/>
+            <path d="M360,50 L360,82"/>
+            <path d="M360,50 C520,64 601,68 601,82"/>
+          </g>
+          <!-- branch boxes -->
+          <rect x="14" y="84" width="210" height="48" rx="9" fill="#f6f5f4" stroke="#787671" stroke-width="1.3"/>
+          <text x="119" y="105" text-anchor="middle" font-size="10" font-weight="800" fill="#1a1a1a">① 兩人 / 低重疊</text>
+          <text x="119" y="122" text-anchor="middle" font-size="8.5" fill="#5d5b54">通話、訪談、客服(近場)</text>
+          <rect x="255" y="84" width="210" height="48" rx="9" fill="#f6f5f4" stroke="#787671" stroke-width="1.3"/>
+          <text x="360" y="105" text-anchor="middle" font-size="10" font-weight="800" fill="#1a1a1a">② 多人 + 高頻重疊</text>
+          <text x="360" y="122" text-anchor="middle" font-size="8.5" fill="#5d5b54">會議、圓桌討論</text>
+          <rect x="496" y="84" width="210" height="48" rx="9" fill="#f6f5f4" stroke="#787671" stroke-width="1.3"/>
+          <text x="601" y="105" text-anchor="middle" font-size="10" font-weight="800" fill="#1a1a1a">③ 中文遠場會議</text>
+          <text x="601" y="122" text-anchor="middle" font-size="8.5" fill="#5d5b54">且可裝麥克風陣列</text>
+          <!-- arrows to outcomes -->
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#dt)">
+            <path d="M119,132 L119,168"/>
+            <path d="M360,132 L360,168"/>
+            <path d="M601,132 L601,168"/>
+          </g>
+          <!-- outcomes -->
+          <rect x="14" y="170" width="210" height="124" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="119" y="190" text-anchor="middle" font-size="10" font-weight="800" fill="#137a29">✅ 本方案(甜蜜點)</text>
+          <text x="119" y="209" text-anchor="middle" font-size="8.5" fill="#2f6b40">CAM++ + 線上餘弦</text>
+          <text x="119" y="225" text-anchor="middle" font-size="8.5" fill="#2f6b40">或 diart-lite</text>
+          <text x="119" y="244" text-anchor="middle" font-size="8.5" fill="#5d5b54">CPU 即時、實作最簡</text>
+          <text x="119" y="266" text-anchor="middle" font-size="8" fill="#787671">參照 DER:AISHELL-4/</text>
+          <text x="119" y="279" text-anchor="middle" font-size="8" fill="#787671">CALLHOME VBx 類 ~11–18%</text>
+
+          <rect x="255" y="170" width="210" height="124" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="360" y="190" text-anchor="middle" font-size="10" font-weight="800" fill="#3a2a99">依算力二選一</text>
+          <text x="360" y="210" text-anchor="middle" font-size="8.5" fill="#4a3a8a">有 GPU、≤4 人 →</text>
+          <text x="360" y="225" text-anchor="middle" font-size="8.5" font-weight="700" fill="#3a2a99">Streaming Sortformer</text>
+          <text x="360" y="239" text-anchor="middle" font-size="8" fill="#5d5b54">(0.32s、CALLHOME 11.5%)</text>
+          <text x="360" y="261" text-anchor="middle" font-size="8.5" fill="#4a3a8a">無 GPU / &gt;4 人 →</text>
+          <text x="360" y="276" text-anchor="middle" font-size="8.5" font-weight="700" fill="#3a2a99">diart(overlap-aware)</text>
+          <text x="360" y="289" text-anchor="middle" font-size="8" fill="#5d5b54">500ms、CPU 可即時</text>
+
+          <rect x="496" y="170" width="210" height="124" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="601" y="190" text-anchor="middle" font-size="10" font-weight="800" fill="#005bb0">多通道神經分離</text>
+          <text x="601" y="209" text-anchor="middle" font-size="8.5" fill="#0a4f8a">SOND / SA-EEND + DOA</text>
+          <text x="601" y="228" text-anchor="middle" font-size="8" fill="#5d5b54">AliMeeting 多通道:</text>
+          <text x="601" y="242" text-anchor="middle" font-size="8" fill="#5d5b54">VBx ~15.6% / SOTA ~2.7–4.5%</text>
+          <text x="601" y="264" text-anchor="middle" font-size="8.5" font-weight="700" fill="#c92a2a">⚠️ 單通道 loopback</text>
+          <text x="601" y="278" text-anchor="middle" font-size="8.5" fill="#c92a2a">會明顯較差</text>
+
+          <text x="360" y="312" text-anchor="middle" font-size="8.5" fill="#787671">共同前處理不變:Silero VAD + Faster-Whisper 對齊;三條路只換「分離引擎」。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 選路指南:先問重疊/人數、再問算力、最後問通道數。本提案(CAM+++餘弦)明確落在「①兩人低重疊、單通道、CPU」這一格;離開這格,證據就指向 diart / Sortformer / 多通道。</div>
+    </div>
+    <div class="callout tip"><strong>一句話用法:</strong>把你的場景往三格對——落在①就用本方案(最省、最好掌控);落在②先看有沒有 GPU(有→Sortformer 拿 SOTA、無→diart 保 overlap);落在③就別跟單通道硬拚,加陣列走多通道。<strong>這張表讓「選型」從口味之爭變成一條可追溯的判斷路徑。</strong></div>
+  </section>
+
+  <!-- 15 -->
   <section id="steal">
-    <h2><span class="num">⑭</span> 值得偷師的思路 / <span style="color:var(--stone);font-weight:700">來源</span></h2>
+    <h2><span class="num">⑮</span> 值得偷師的思路 / <span style="color:var(--stone);font-weight:700">來源</span></h2>
     <ol>
       <li><strong>把「有沒有人說話」和「是誰說話」拆開。</strong>VAD 是最便宜的一刀,先擋掉靜音,昂貴的模型只在有聲時跑——這是即時管線省算力的第一原則。</li>
       <li><strong>讓大模型只做它最擅長的一件事。</strong>CAM++ 只抽向量、不做分群;分群留在可控的本地演算法裡。這種「特徵擷取 vs 決策邏輯」分離,讓你能單獨調門檻而不動模型。</li>
@@ -819,6 +899,7 @@ detail = metric[<span class="st">'confusion'</span>], metric[<span class="st">'m
       <li><strong>誠實面對取捨。</strong>這條輕量路線換來的是超低延遲與 CPU 可跑,代價是重疊語音精度與「不回頭修正」——選型前先量好你的延遲/精度/硬體約束。</li>
       <li><strong>把「可行性」從形容詞變成數字。</strong>先釘死目標(端到端&lt;1s、RTF&lt;1、DER≤場景門檻),再用標準指標(DER/JER + RTTM + pyannote.metrics)在自家測試集量測,最後用分階段 POC 的 Go/No-Go 關卡與加權計分卡定案——這樣「能不能上」就不再靠嘴,而是一票可討論、可複現的證據。</li>
       <li><strong>不能實作時,靠「證據 + 假設登記 + 敏感度」讓分析可靠。</strong>用真實已量測的系統(diart、Sortformer)當標尺三角驗證、把每個數字標「已查證/推估/待量測」、再檢查結論在樂觀—悲觀區間會不會翻盤。可靠的規劃輸出不是一個拍板,而是「哪個場景行、卡在哪個未知、下一步先量什麼」。</li>
+      <li><strong>「可行性」是對場景而言,不是對技術而言。</strong>同一套前處理,分離引擎按「重疊×人數×算力×通道數」路由:兩人近場單通道→自組最省;多人重疊→diart/Sortformer;中文遠場→加陣列走多通道。先定場景,選型才有對錯。</li>
     </ol>
     <h3>來源與延伸</h3>
     <p>本頁依一份「即時語者分離」的技術規格整理,並<strong>對照已公開發表、已被量測的真實系統</strong>做三角驗證;文中標「✅ 已查證」的數字附出處如下,標「⚠️ 推估 / 🎯 目標」者仍需在目標環境實測,各模型實際數字以官方為準。</p>
@@ -829,6 +910,7 @@ detail = metric[<span class="st">'confusion'</span>], metric[<span class="st">'m
       <li>SOTA 串流:<a href="https://github.com/NVIDIA/NeMo" target="_blank" rel="noopener">NVIDIA NeMo</a> Streaming Sortformer;論文 <a href="https://arxiv.org/abs/2507.18446" target="_blank" rel="noopener">arXiv 2507.18446(Interspeech 2025)</a>(0.32s@RTF0.18、CALLHOME 11.5%、4 語者上限)。</li>
       <li>VAD:<a href="https://github.com/snakers4/silero-vad" target="_blank" rel="noopener">Silero VAD</a>(<a href="https://github.com/snakers4/silero-vad/wiki/Performance-Metrics" target="_blank" rel="noopener">Performance wiki</a>:31.25ms 訊框 ~189µs)。</li>
       <li>串流 ASR:<a href="https://github.com/SYSTRAN/faster-whisper" target="_blank" rel="noopener">Faster-Whisper</a>(small/int8 CPU RTF~0.13–0.5)、<a href="https://github.com/ggml-org/whisper.cpp" target="_blank" rel="noopener">whisper.cpp</a>。</li>
+      <li>中文會議資料集/基準:<a href="https://github.com/yufan-aslp/AliMeeting" target="_blank" rel="noopener">AliMeeting</a> · <a href="https://arxiv.org/abs/2110.07393" target="_blank" rel="noopener">M2MeT(ICASSP 2022)</a>(VBx 基線 ~15.6% DER);<a href="https://arxiv.org/abs/2104.03603" target="_blank" rel="noopener">AISHELL-4(arXiv 2104.03603)</a>(單通道 VBx 類 ~11–18%)。</li>
       <li>線上分離延遲研究:<a href="https://arxiv.org/abs/2407.04293" target="_blank" rel="noopener">Systematic Evaluation of Online Speaker Diarization Latency(arXiv 2407.04293)</a>;推論最佳化:<a href="https://onnxruntime.ai/" target="_blank" rel="noopener">ONNX Runtime</a>。</li>
     </ul>
     <div class="related">
