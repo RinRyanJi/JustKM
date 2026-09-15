@@ -645,6 +645,32 @@ DER = (<span class="kw">False Alarm</span> + <span class="kw">Missed Detection</
         <tr><td><strong>P4 決策</strong></td><td>填計分卡、出可行性結論</td><td>加權總分、風險等級</td><td>Go / 有條件 Go / No-Go 明確</td></tr>
       </tbody>
     </table></div>
+    <h3>量測骨架(可直接跑)</h3>
+    <p>把上面的門檻變成幾行可執行的量測——三個核心數字(延遲分佈、RTF、DER)都能自動吐出:</p>
+    <pre><code><span class="cm"># pip install pyannote.metrics numpy</span>
+<span class="kw">import</span> time, numpy <span class="kw">as</span> np
+<span class="kw">from</span> pyannote.metrics.diarization <span class="kw">import</span> DiarizationErrorRate
+<span class="kw">from</span> pyannote.core <span class="kw">import</span> Annotation, Segment
+
+<span class="cm"># ── 1) 端到端延遲:記錄每一句「講完 → 輸出」的毫秒數 ──</span>
+lat_ms = []                              <span class="cm"># 在合流輸出的那一刻 append</span>
+<span class="cm"># lat_ms.append((t_emit - t_utterance_end) * 1000)</span>
+p50, p95 = np.percentile(lat_ms, [<span class="kw">50</span>, <span class="kw">95</span>])
+<span class="cm"># Go 門檻:p95 &lt; 1000ms</span>
+
+<span class="cm"># ── 2) RTF(即時因子):整段測試集的處理耗時 ÷ 音訊時長 ──</span>
+rtf = total_processing_sec / total_audio_sec
+<span class="cm"># Go 門檻:rtf &lt; 1(理想 ≤ 0.5)</span>
+
+<span class="cm"># ── 3) DER:把系統輸出與 RTTM ground truth 丟給 pyannote.metrics ──</span>
+metric = DiarizationErrorRate(collar=<span class="kw">0.25</span>, skip_overlap=<span class="kw">True</span>)   <span class="cm"># 寬鬆版</span>
+der = metric(reference, hypothesis)      <span class="cm"># 兩者皆 pyannote Annotation</span>
+detail = metric[<span class="st">'confusion'</span>], metric[<span class="st">'missed detection'</span>], metric[<span class="st">'false alarm'</span>]
+<span class="cm"># 再跑一次 skip_overlap=False → 得到「含 overlap」DER,兩者一起報</span>
+
+<span class="cm"># reference / hypothesis 由 RTTM 載入,或手動組:</span>
+<span class="cm"># ann = Annotation(); ann[Segment(12.3, 14.85)] = "Speaker 1"</span></code></pre>
+    <div class="callout tip"><strong>有了這段,P1–P3 的每個 Go 門檻都變成一次 <code>assert</code>。</strong>把 <code>p95 &lt; 1000</code>、<code>rtf &lt; 1</code>、<code>der &lt;= 門檻</code> 寫進測試,POC 從「跑跑看」變成 CI 能跑的<strong>可複現量測</strong>——這就是「可衡量」最實際的形態。</div>
   </section>
 
   <!-- 11 -->
@@ -705,6 +731,21 @@ DER = (<span class="kw">False Alarm</span> + <span class="kw">Missed Detection</
       </tbody>
     </table></div>
     <div class="callout tip"><strong>怎麼算「可行」:</strong>把各維度實測值換算 0–1 分、乘權重加總。建議判準——<strong>總分 ≥ 0.75 且無「高機率×高衝擊」未緩解項 → Go</strong>;<strong>0.6–0.75 或關鍵項待驗 → 有條件 Go(先做 P3 調參)</strong>;<strong>&lt; 0.6 或延遲/RTF 硬指標破線 → No-Go(改走 Pyannote/NeMo 或重新界定場景)</strong>。至此,「可行性」已從形容詞變成一個可計算、可爭論的數字。</div>
+    <h4>試算一次(兩人客服通話場景,示意數字)</h4>
+    <p>假設 P2/P3 量到:p95 延遲 720ms、RTF 0.42、單語者 DER 13%、重疊 DER 退化 +18pt、RAM 2.6GB、中文基線達標但生態普通。換算成 0–1 分再加權:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>維度</th><th>權重</th><th>實測</th><th>換算分</th><th>加權</th></tr></thead>
+      <tbody>
+        <tr><td>端到端延遲</td><td>0.20</td><td>p95 720ms(門檻 1s)</td><td>0.90</td><td>0.180</td></tr>
+        <tr><td>即時吞吐 RTF</td><td>0.20</td><td>0.42(理想 ≤0.5)</td><td>0.95</td><td>0.190</td></tr>
+        <tr><td>單語者 DER</td><td>0.20</td><td>13%(門檻 ≤15%)</td><td>0.85</td><td>0.170</td></tr>
+        <tr><td>重疊語音 DER</td><td>0.10</td><td>退化 +18pt</td><td>0.40</td><td>0.040</td></tr>
+        <tr><td>資源足跡</td><td>0.15</td><td>2.6GB(門檻 ≤4GB)</td><td>0.90</td><td>0.135</td></tr>
+        <tr><td>中文/生態成熟度</td><td>0.15</td><td>基線達標、生態普通</td><td>0.65</td><td>0.098</td></tr>
+        <tr><td><strong>總分</strong></td><td>1.00</td><td>—</td><td>—</td><td><strong>0.81</strong></td></tr>
+      </tbody>
+    </table></div>
+    <p><strong>結論:0.81 ≥ 0.75、且無高機率×高衝擊未緩解項 → Go(兩人通話)。</strong>但重疊語音那一格(0.40)點出:同樣一套系統套到「多人高頻插話會議」時,該維度權重與退化都會放大,總分可能掉到有條件 Go——<strong>可行性是「對某個場景」而言,不是絕對的</strong>。換個場景,就把實測數字重填一次。</p>
   </section>
 
   <!-- 12 -->
