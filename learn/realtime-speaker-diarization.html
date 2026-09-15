@@ -140,11 +140,11 @@
 
   <div class="hero">
     <h1>🗣️ 即時語者分離:本地串流「誰在說話」的辨識管線</h1>
-    <p class="sub">一份把「即時語者分離(streaming speaker diarization)」落地的技術規格拆解 · 從模型選型(CAM++ / Pyannote / NeMo Sortformer)到五階段端到端資料流 · 主打全本地、低延遲、CPU 也能跑 · 附語者追蹤與 LLM 條件觸發的工程細節</p>
+    <p class="sub">一份把「即時語者分離(streaming speaker diarization)」落地的技術規格拆解 · 從模型選型(CAM++ / Pyannote / NeMo Sortformer)到五階段端到端資料流 · 主打全本地、低延遲、CPU 也能跑 · 並把它推進到<strong>可衡量可行性</strong>:量化的延遲/精度/資源目標、DER 量測法、分階段 POC 的 Go/No-Go 關卡與計分卡</p>
     <div>
       <span class="badge green">全本地 · 串流</span>
       <span class="badge blue">Silero VAD + CAM++ (ONNX) + 線上餘弦比對</span>
-      <span class="badge orange">VAD→分離→ASR 對齊→LLM</span>
+      <span class="badge orange">端到端 &lt; 1s · RTF &lt; 1 · DER 可量測</span>
     </div>
   </div>
 
@@ -159,7 +159,11 @@
       <a href="#tracking">⑤ 語者追蹤:餘弦 + EMA + 門檻</a>
       <a href="#asr">⑥ ASR 對齊:文字 × 語者合流</a>
       <a href="#llm">⑦ 條件觸發本地 LLM</a>
-      <a href="#steal">⑧ 值得偷師 / 來源</a>
+      <a href="#budget">⑧ 延遲預算與資源足跡</a>
+      <a href="#accuracy">⑨ 精度怎麼量:DER / JER</a>
+      <a href="#poc">⑩ 可行性驗證計畫:POC + 關卡</a>
+      <a href="#scorecard">⑪ 可行性計分卡與風險登記</a>
+      <a href="#steal">⑫ 值得偷師 / 來源</a>
     </div>
   </nav>
 
@@ -252,7 +256,7 @@
   <section id="combo">
     <h2><span class="num">③</span> 推薦組合與為什麼這樣配</h2>
     <p>規格的最終建議是把它拼成一條可組裝的本地管線,而不是賭單一大模型:</p>
-    <div class="callout tip"><strong>推薦核心組合:</strong><br><strong>Silero VAD</strong>(靜音過濾)<strong> + CAM++ / ONNX Runtime</strong>(特徵向量)<strong> + 線上餘弦距離比對</strong>(分群)。<br>——在<strong>資源消耗、實作複雜度、延遲</strong>三者之間取得最佳平衡。</p>
+    <div class="callout tip"><strong>推薦核心組合:</strong><br><strong>Silero VAD</strong>(靜音過濾)<strong> + CAM++ / ONNX Runtime</strong>(特徵向量)<strong> + 線上餘弦距離比對</strong>(分群)。<br>——在<strong>資源消耗、實作複雜度、延遲</strong>三者之間取得最佳平衡。</div>
     <p>為什麼不是直接上 Pyannote 或 NeMo?</p>
     <ul>
       <li><strong>VAD 先擋掉靜音:</strong>真實對話裡靜音佔比很高。用一個極小的 Silero VAD 先把沒人講話的訊框丟掉,後面昂貴的特徵擷取與 ASR 就只在「真的有聲音」時才跑——這是最划算的一刀。</li>
@@ -470,8 +474,242 @@
   </section>
 
   <!-- 8 -->
+  <section id="budget">
+    <h2><span class="num">⑧</span> 延遲預算與資源足跡:先把數字釘死</h2>
+    <p>要「衡量可行性」,第一步是把模糊的「低延遲、CPU 也能跑」翻譯成<strong>可驗收的數字</strong>。以下是這條管線的<strong>延遲預算</strong>——量測對象是「從一句話講完,到字幕+語者標籤出現」的時間:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="延遲預算橫條：判停靜音 500ms 為固有延遲，CAM++ 約 30ms、ASR 約 150ms、合流約 20ms 為處理延遲，合計約 700ms，仍在端到端 1 秒目標線之內，留有約 280ms 餘裕">
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">延遲預算:一句話講完 → 字幕+語者出現(目標 &lt; 1s)</text>
+          <!-- axis -->
+          <line x1="120" y1="120" x2="660" y2="120" stroke="#c8c4be" stroke-width="1.2"/>
+          <g font-size="8" fill="#a4a097" text-anchor="middle">
+            <text x="120" y="136">0</text><text x="255" y="136">250ms</text><text x="390" y="136">500ms</text><text x="525" y="136">750ms</text><text x="660" y="136">1000ms</text>
+          </g>
+          <!-- segments -->
+          <rect x="120" y="70" width="270" height="34" rx="4" fill="#dd5b00"/>
+          <text x="255" y="92" text-anchor="middle" font-size="9.5" font-weight="800" fill="#fff">判停靜音 ~500ms(固有)</text>
+          <rect x="390" y="70" width="16" height="34" fill="#5645d4"/>
+          <rect x="406" y="70" width="81" height="34" fill="#1aae39"/>
+          <text x="446" y="92" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff">ASR ~150</text>
+          <rect x="487" y="70" width="11" height="34" fill="#0075de"/>
+          <!-- headroom -->
+          <rect x="498" y="70" width="162" height="34" rx="4" fill="none" stroke="#a4a097" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <text x="579" y="92" text-anchor="middle" font-size="8.5" fill="#787671">餘裕 ~280ms</text>
+          <!-- target line -->
+          <line x1="660" y1="56" x2="660" y2="120" stroke="#e03131" stroke-width="1.6" stroke-dasharray="3 2"/>
+          <text x="660" y="50" text-anchor="middle" font-size="8.5" font-weight="800" fill="#c92a2a">目標 1s</text>
+          <!-- legend -->
+          <g font-size="8.5">
+            <rect x="120" y="158" width="11" height="11" fill="#5645d4"/><text x="136" y="167" fill="#5d5b54">CAM++ ~30ms</text>
+            <rect x="230" y="158" width="11" height="11" fill="#1aae39"/><text x="246" y="167" fill="#5d5b54">Faster-Whisper ~150ms(CPU small)</text>
+            <rect x="470" y="158" width="11" height="11" fill="#0075de"/><text x="486" y="167" fill="#5d5b54">VAD+合流 ~20ms</text>
+          </g>
+          <text x="120" y="186" font-size="8" fill="#a4a097">※ 數字為<tspan font-weight="700" fill="#5d5b54">預算目標</tspan>,非實測;判停靜音是可調的固有延遲(調短→更即時但易誤切)。GPU 下 ASR 可壓到數十毫秒。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 把延遲拆成「固有(判停靜音)」與「處理(模型推論)」兩塊。處理只吃約 200ms,主導項是你自己設定的判停靜音——這代表延遲/即時感是一個<strong>可調、可量測</strong>的旋鈕,不是黑盒。</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>階段</th><th>延遲預算(目標)</th><th>資源足跡(目標)</th><th>怎麼量</th></tr></thead>
+      <tbody>
+        <tr><td>音訊擷取(30ms 訊框)</td><td>≤ 30ms 緩衝</td><td>~0(系統 API)</td><td>訊框時間戳間隔</td></tr>
+        <tr><td>Silero VAD / 訊框</td><td>≤ 2ms</td><td>模型 &lt; 2MB</td><td>單訊框 inference 計時</td></tr>
+        <tr><td>判停靜音(固有)</td><td>500ms(可調 300–800)</td><td>—</td><td>參數,直接設定</td></tr>
+        <tr><td>CAM++ 抽向量 / 區塊</td><td>≤ 50ms(CPU)</td><td>模型 ~7–28MB</td><td>單區塊 embedding 計時</td></tr>
+        <tr><td>餘弦比對 + EMA</td><td>&lt; 1ms(N&lt;50 語者)</td><td>N×512×4B ≈ 忽略</td><td>迴圈計時</td></tr>
+        <tr><td>Faster-Whisper / 區塊</td><td>≤ 300ms(CPU small)</td><td>模型 75–460MB</td><td>RTF = 處理秒 / 音訊秒</td></tr>
+        <tr><td>合流對齊</td><td>&lt; 1ms</td><td>忽略</td><td>迴圈計時</td></tr>
+        <tr><td><strong>端到端(講完→輸出)</strong></td><td><strong>≤ 1000ms(CPU)/ ≤ 500ms(GPU)</strong></td><td><strong>串流管線 RAM ≤ 4GB(不含 LLM)</strong></td><td><strong>p50 / p95 延遲分佈</strong></td></tr>
+        <tr><td>本地 LLM(條件觸發,背景)</td><td>不進即時預算(可秒級)</td><td>Qwen2.5-1.5B Q4 ~1GB / 3B ~2GB</td><td>觸發到摘要出現的時間</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout info"><strong>關鍵可行性指標 — 即時因子 RTF(Real-Time Factor)= 處理耗時 ÷ 音訊時長。</strong>整條管線在目標硬體上必須<strong>持續 RTF &lt; 1</strong>(否則會越積越慢、追不上串流);要留餘裕,目標<strong>RTF ≤ 0.5</strong>。這一個數字就能一票否決或放行「CPU 能不能跑」。</div>
+  </section>
+
+  <!-- 9 -->
+  <section id="accuracy">
+    <h2><span class="num">⑨</span> 精度怎麼量:DER / JER + 基準資料集</h2>
+    <p>「準不準」不能靠感覺。語者分離的業界標準指標是 <strong>DER(Diarization Error Rate,分離錯誤率)</strong>,越低越好:</p>
+    <pre><code><span class="cm"># DER = 三種錯誤時長總和 ÷ 參考語音總時長</span>
+DER = (<span class="kw">False Alarm</span> + <span class="kw">Missed Detection</span> + <span class="kw">Speaker Confusion</span>) / <span class="st">Total_ref_speech</span>
+
+<span class="cm"># False Alarm      = 沒人講卻判成有人講(把靜音/雜訊當語音)</span>
+<span class="cm"># Missed Detection = 有人講卻沒抓到</span>
+<span class="cm"># Speaker Confusion= 抓到語音但貼錯語者(分離特有的錯)</span></code></pre>
+    <p>量測時有幾個<strong>會大幅左右數字的旋鈕,報告時必須一起講清楚</strong>,否則兩個 DER 不可比:</p>
+    <ul>
+      <li><strong>Collar(寬容邊界):</strong>常設 0.25s——語者切換點前後 0.25s 不計分,吸收人工標註的邊界誤差。DIHARD 則用 0 collar(更嚴)。</li>
+      <li><strong>是否計入重疊語音:</strong>寬鬆評分排除 overlap,嚴格評分(DIHARD)計入。這一項對本方案影響最大(它正是弱項)。</li>
+      <li><strong>JER(Jaccard Error Rate):</strong>逐語者平均,避免「講很多的人」主導分數,和 DER 併看更公允。</li>
+    </ul>
+    <div class="table-wrap"><table>
+      <thead><tr><th>基準資料集</th><th>場景</th><th>離線系統參考 DER*</th><th>本方案(串流)可行性門檻**</th></tr></thead>
+      <tbody>
+        <tr><td>VoxConverse</td><td>野生/媒體</td><td>~10–12%</td><td>≤ 20%(單語者區,collar 0.25)</td></tr>
+        <tr><td>AMI(會議,英)</td><td>多人會議</td><td>~20–22%</td><td>≤ 30%</td></tr>
+        <tr><td>AliMeeting / AISHELL-4</td><td>多人會議(中)</td><td>依官方</td><td>中文場景主驗集,設對照基線</td></tr>
+        <tr><td>DIHARD III</td><td>困難/含重疊</td><td>~21–27%</td><td>僅作壓力測試,不設硬門檻</td></tr>
+        <tr><td>CALLHOME</td><td>電話兩人</td><td>~ 個位數–15%</td><td>≤ 15%(兩人通話是本方案甜蜜點)</td></tr>
+      </tbody>
+    </table></div>
+    <p style="font-size:0.78rem;color:var(--stone);">* 離線參考來自各系統(如 pyannote 3.1)公開報告的量級,<strong>依資料集/collar/是否計重疊差異極大,務必以官方數字為準</strong>。** 門檻為本提案建議的 Go 值,是「相對離線基線退化可接受」的操作定義,需在自家測試集重新標定。</p>
+    <h4>量測工具鏈(可直接跑)</h4>
+    <ul>
+      <li><strong>ground truth 格式:</strong>RTTM(NIST 標準),每列一段「檔名/起點/時長/語者」。</li>
+      <li><strong>算分:</strong><code>pyannote.metrics</code>(Python,給 DER/JER/component 分解)、<code>dscore</code> 或 NIST <code>md-eval.pl</code>(對齊論文口徑)。</li>
+      <li><strong>可行性判準:</strong>同一測試集,先跑<strong>離線基線</strong>(pyannote)拿到參照 DER,再跑<strong>本串流方案</strong>,看<strong>退化幅度(Δ DER)</strong>與<strong>絕對門檻</strong>是否雙雙達標。</li>
+    </ul>
+    <div class="callout warn"><strong>把弱點也變成可量測:</strong>重疊語音是本方案的短板——就<strong>分別報告「含 overlap」與「不含 overlap」兩個 DER</strong>,讓決策者看到差距有多大,而不是藏起來。這正是「衡量可行性」的誠實做法。</div>
+  </section>
+
+  <!-- 10 -->
+  <section id="poc">
+    <h2><span class="num">⑩</span> 可行性驗證計畫:分階段 POC + Go/No-Go 關卡</h2>
+    <p>有了目標數字(⑧)和量測法(⑨),就能排一條<strong>兩到三週、每階段都有明確過關條件</strong>的 POC。每個關卡「達標才往下、不達標就回頭調或止損」:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 210" role="img" aria-label="五階段 POC 流程：P0 資料準備、P1 元件基準、P2 端到端串流、P3 調參壓測、P4 決策，每階段下方標出 Go 門檻">
+        <defs><marker id="pc" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">每一關都有可量測的 Go 門檻</text>
+          <g>
+            <rect x="18" y="44" width="118" height="46" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/>
+            <text x="77" y="63" text-anchor="middle" font-size="10" font-weight="800" fill="#005bb0">P0 資料</text>
+            <text x="77" y="79" text-anchor="middle" font-size="7.5" fill="#0a4f8a">30 分鐘標註集(RTTM)</text>
+            <rect x="150" y="44" width="118" height="46" rx="9" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.4"/>
+            <text x="209" y="63" text-anchor="middle" font-size="10" font-weight="800" fill="#3a2a99">P1 元件基準</text>
+            <text x="209" y="79" text-anchor="middle" font-size="7.5" fill="#4a3a8a">各模型延遲/精度</text>
+            <rect x="282" y="44" width="118" height="46" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+            <text x="341" y="63" text-anchor="middle" font-size="10" font-weight="800" fill="#137a29">P2 端到端</text>
+            <text x="341" y="79" text-anchor="middle" font-size="7.5" fill="#2f6b40">串流延遲+DER</text>
+            <rect x="414" y="44" width="118" height="46" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/>
+            <text x="473" y="63" text-anchor="middle" font-size="10" font-weight="800" fill="#a8460a">P3 調參壓測</text>
+            <text x="473" y="79" text-anchor="middle" font-size="7.5" fill="#8a4a1a">門檻/塊長 sweep</text>
+            <rect x="546" y="44" width="118" height="46" rx="9" fill="#0a1530"/>
+            <text x="605" y="63" text-anchor="middle" font-size="10" font-weight="800" fill="#fff">P4 決策</text>
+            <text x="605" y="79" text-anchor="middle" font-size="7.5" fill="#9fb0d0">對計分卡定案</text>
+          </g>
+          <g stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#pc)">
+            <path d="M136,67 L148,67"/><path d="M268,67 L280,67"/><path d="M400,67 L412,67"/><path d="M532,67 L544,67"/>
+          </g>
+          <!-- gates -->
+          <g font-size="7.8" fill="#5d5b54">
+            <rect x="18" y="104" width="118" height="86" rx="8" fill="#f6f5f4" stroke="#e5e3df"/>
+            <text x="26" y="120" font-weight="800" fill="#005bb0">Go 門檻</text>
+            <text x="26" y="134">✓ 2–3 個代表場景</text>
+            <text x="26" y="147">✓ 兩人/多人/吵雜</text>
+            <text x="26" y="160">✓ ground truth</text>
+            <text x="26" y="173">　 對齊完成</text>
+
+            <rect x="150" y="104" width="118" height="86" rx="8" fill="#f6f5f4" stroke="#e5e3df"/>
+            <text x="158" y="120" font-weight="800" fill="#3a2a99">Go 門檻</text>
+            <text x="158" y="134">✓ 各元件延遲</text>
+            <text x="158" y="147">　 達 ⑧ 預算</text>
+            <text x="158" y="160">✓ CAM++ EER 探針</text>
+            <text x="158" y="173">✓ Whisper WER 可接受</text>
+
+            <rect x="282" y="104" width="118" height="86" rx="8" fill="#f6f5f4" stroke="#e5e3df"/>
+            <text x="290" y="120" font-weight="800" fill="#137a29">Go 門檻</text>
+            <text x="290" y="134">✓ RTF &lt; 1 持續</text>
+            <text x="290" y="147">✓ p95 延遲 &lt; 1s</text>
+            <text x="290" y="160">✓ DER ≤ 場景門檻</text>
+            <text x="290" y="173">✓ 無記憶體漏</text>
+
+            <rect x="414" y="104" width="118" height="86" rx="8" fill="#f6f5f4" stroke="#e5e3df"/>
+            <text x="422" y="120" font-weight="800" fill="#a8460a">Go 門檻</text>
+            <text x="422" y="134">✓ 找到操作點:</text>
+            <text x="422" y="147">　 DER×延遲同時達標</text>
+            <text x="422" y="160">✓ 6+ 人不崩</text>
+            <text x="422" y="173">✓ overlap 退化已量化</text>
+
+            <rect x="546" y="104" width="118" height="86" rx="8" fill="#f6f5f4" stroke="#e5e3df"/>
+            <text x="554" y="120" font-weight="800" fill="#1a1a1a">產出</text>
+            <text x="554" y="134">• 計分卡填值</text>
+            <text x="554" y="147">• Go / 有條件 Go</text>
+            <text x="554" y="160">　 / No-Go</text>
+            <text x="554" y="173">• 風險與緩解</text>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ POC 不是「做做看」,而是每關綁一組可量測門檻;任一關的門檻就是一個可執行的 pass/fail 判斷,讓「可行性」變成一連串客觀勾選。</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>階段</th><th>產出</th><th>量測指標</th><th>Go 門檻</th></tr></thead>
+      <tbody>
+        <tr><td><strong>P0 資料</strong></td><td>2–3 個代表場景各 ~10 分鐘、附 RTTM 標註</td><td>標註覆蓋率、場景代表性</td><td>三場景就緒且可算分</td></tr>
+        <tr><td><strong>P1 元件基準</strong></td><td>VAD / CAM++ / Whisper 各自獨立量測</td><td>單元延遲、CAM++ 語者驗證 EER、WER</td><td>各元件延遲達 ⑧ 預算</td></tr>
+        <tr><td><strong>P2 端到端</strong></td><td>串起管線,連續跑測試集</td><td>RTF、p50/p95 延遲、串流 DER</td><td>RTF&lt;1 且 p95&lt;1s 且 DER≤門檻</td></tr>
+        <tr><td><strong>P3 調參壓測</strong></td><td>門檻/塊長 sweep,畫 DER-延遲曲線;加壓 overlap 與 6+ 人</td><td>操作點、退化幅度、崩潰點</td><td>存在同時滿足延遲與 DER 的操作點</td></tr>
+        <tr><td><strong>P4 決策</strong></td><td>填計分卡、出可行性結論</td><td>加權總分、風險等級</td><td>Go / 有條件 Go / No-Go 明確</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 11 -->
+  <section id="scorecard">
+    <h2><span class="num">⑪</span> 可行性計分卡與風險登記</h2>
+    <p>最後把一切收斂成<strong>一張可打分的卡</strong>。POC 跑完就能把「目前信心」欄換成實測值,加權後得到一個可討論的總分——這就是「可衡量的可行性」的落點:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 260" role="img" aria-label="可行性雷達圖：延遲、單語者精度、重疊語音、資源足跡、中文支援、生態成熟度六軸，本方案在延遲與資源軸強、重疊語音軸弱">
+        <g font-family="sans-serif">
+          <text x="360" y="20" text-anchor="middle" font-size="12" font-weight="800" fill="#1a1a1a">推薦組合的可行性輪廓(外圈=越好)</text>
+          <!-- grid hexagons -->
+          <polygon points="360,54 430,90 411,159 360,184 329,148 298,94" fill="none" stroke="#c8c4be" stroke-width="1" opacity="0.35"/>
+          <polygon points="360,70 412,100 412,160 360,190 308,160 308,100" fill="none" stroke="#e5e3df" stroke-width="1"/>
+          <polygon points="360,100 386,115 386,145 360,160 334,145 334,115" fill="none" stroke="#e5e3df" stroke-width="1"/>
+          <line x1="360" y1="130" x2="360" y2="40" stroke="#e5e3df"/>
+          <line x1="360" y1="130" x2="438" y2="85" stroke="#e5e3df"/>
+          <line x1="360" y1="130" x2="438" y2="175" stroke="#e5e3df"/>
+          <line x1="360" y1="130" x2="360" y2="220" stroke="#e5e3df"/>
+          <line x1="360" y1="130" x2="282" y2="175" stroke="#e5e3df"/>
+          <line x1="360" y1="130" x2="282" y2="85" stroke="#e5e3df"/>
+          <!-- data polygon -->
+          <polygon points="360,54 430,90 411,159 360,184 329,148 298,94" fill="#5645d4" fill-opacity="0.18" stroke="#5645d4" stroke-width="2"/>
+          <g fill="#5645d4"><circle cx="360" cy="54" r="3"/><circle cx="430" cy="90" r="3"/><circle cx="411" cy="159" r="3"/><circle cx="360" cy="184" r="3"/><circle cx="329" cy="148" r="3"/><circle cx="298" cy="94" r="3"/></g>
+          <!-- axis labels -->
+          <g font-size="9" font-weight="700" fill="#37352f" text-anchor="middle">
+            <text x="360" y="34">延遲低 ●強</text>
+            <text x="470" y="80">資源省 ●強</text>
+            <text x="470" y="182">中文支援 ○中</text>
+            <text x="360" y="236">生態成熟 ○中</text>
+            <text x="250" y="182">重疊語音 △弱</text>
+            <text x="250" y="80">單語者精度 ●強</text>
+          </g>
+          <text x="360" y="252" text-anchor="middle" font-size="8" fill="#a4a097">▲ 形狀偏「延遲/資源/單語者精度」強、「重疊語音」明顯內縮——正是選型時要盯的取捨</text>
+        </g>
+      </svg>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>維度</th><th>權重</th><th>可行性目標</th><th>量測方式</th><th>目前信心</th></tr></thead>
+      <tbody>
+        <tr><td>端到端延遲</td><td>20%</td><td>p95 &lt; 1s(CPU)</td><td>P2 延遲分佈</td><td>高(處理僅 ~200ms)</td></tr>
+        <tr><td>即時吞吐 RTF</td><td>20%</td><td>持續 &lt; 1(理想 ≤ 0.5)</td><td>P2 長跑</td><td>中高(待目標機驗)</td></tr>
+        <tr><td>單語者 DER</td><td>20%</td><td>≤ 場景門檻(⑨)</td><td>P2/P3 算分</td><td>中(依門檻校準)</td></tr>
+        <tr><td>重疊語音 DER</td><td>10%</td><td>量化退化、不設硬門檻</td><td>P3 壓測</td><td>低(已知弱項)</td></tr>
+        <tr><td>資源足跡</td><td>15%</td><td>RAM ≤ 4GB(不含 LLM)</td><td>P1/P2 監控</td><td>高(模型都很小)</td></tr>
+        <tr><td>中文/生態成熟度</td><td>15%</td><td>中文測試集達基線、可維運</td><td>P1/P3</td><td>中</td></tr>
+      </tbody>
+    </table></div>
+    <h3>風險登記(Risk Register)</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>風險</th><th>機率</th><th>衝擊</th><th>緩解</th><th>要盯的量測訊號</th></tr></thead>
+      <tbody>
+        <tr><td>重疊語音精度不足</td><td>高</td><td>高</td><td>可切 Pyannote 分割;或接受並標註限制</td><td>含 vs 不含 overlap 的 Δ DER</td></tr>
+        <tr><td>線上分群漂移/誤併(不回頭修正)</td><td>中高</td><td>高</td><td>調門檻、加長區塊、定期小範圍再分群</td><td>Speaker Confusion 佔比、語者數穩定度</td></tr>
+        <tr><td>CPU 吞吐不足(RTF≥1)</td><td>中</td><td>高</td><td>換更小 Whisper、量化、降取樣、必要時 GPU</td><td>RTF 長跑趨勢、佇列積壓</td></tr>
+        <tr><td>中文短語向量不穩</td><td>中</td><td>中</td><td>提高最小區塊時長、換中文強化的 embedding</td><td>短區塊 DER 對比長區塊</td></tr>
+        <tr><td>WASAPI/系統擷取相容性</td><td>中</td><td>中</td><td>跨裝置測試、退回麥克風擷取</td><td>擷取掉幀率、格式一致性</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout tip"><strong>怎麼算「可行」:</strong>把各維度實測值換算 0–1 分、乘權重加總。建議判準——<strong>總分 ≥ 0.75 且無「高機率×高衝擊」未緩解項 → Go</strong>;<strong>0.6–0.75 或關鍵項待驗 → 有條件 Go(先做 P3 調參)</strong>;<strong>&lt; 0.6 或延遲/RTF 硬指標破線 → No-Go(改走 Pyannote/NeMo 或重新界定場景)</strong>。至此,「可行性」已從形容詞變成一個可計算、可爭論的數字。</div>
+  </section>
+
+  <!-- 12 -->
   <section id="steal">
-    <h2><span class="num">⑧</span> 值得偷師的思路 / <span style="color:var(--stone);font-weight:700">來源</span></h2>
+    <h2><span class="num">⑫</span> 值得偷師的思路 / <span style="color:var(--stone);font-weight:700">來源</span></h2>
     <ol>
       <li><strong>把「有沒有人說話」和「是誰說話」拆開。</strong>VAD 是最便宜的一刀,先擋掉靜音,昂貴的模型只在有聲時跑——這是即時管線省算力的第一原則。</li>
       <li><strong>讓大模型只做它最擅長的一件事。</strong>CAM++ 只抽向量、不做分群;分群留在可控的本地演算法裡。這種「特徵擷取 vs 決策邏輯」分離,讓你能單獨調門檻而不動模型。</li>
@@ -479,6 +717,7 @@
       <li><strong>非同步佇列 + 平行 + 依時間戳合流。</strong>不讓任一段阻塞音訊擷取;分離與 ASR 平行跑、最後用同源時間戳對齊——這是串流系統的通用骨架。</li>
       <li><strong>把 LLM 降級成事件驅動的背景服務。</strong>條件觸發(長度/語者切換/關鍵字)取代「每句都跑」,讓摘要不和即時字幕搶延遲。</li>
       <li><strong>誠實面對取捨。</strong>這條輕量路線換來的是超低延遲與 CPU 可跑,代價是重疊語音精度與「不回頭修正」——選型前先量好你的延遲/精度/硬體約束。</li>
+      <li><strong>把「可行性」從形容詞變成數字。</strong>先釘死目標(端到端&lt;1s、RTF&lt;1、DER≤場景門檻),再用標準指標(DER/JER + RTTM + pyannote.metrics)在自家測試集量測,最後用分階段 POC 的 Go/No-Go 關卡與加權計分卡定案——這樣「能不能上」就不再靠嘴,而是一票可討論、可複現的證據。</li>
     </ol>
     <h3>來源與延伸</h3>
     <p>本頁依一份「即時語者分離」的技術規格整理,並對照各開源專案的公開定位;各模型的實際數字請以官方為準。</p>
