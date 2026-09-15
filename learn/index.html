@@ -338,6 +338,12 @@
       <div class="mt">9 節 · 語義判停 · 串流管線 · 打斷時序</div>
       <div class="ds">從原始碼拆解 VoxEMW 的即時對話工程:兩階段語義判停(Silero+SmartTurn)的模型原理、串流管線怎麼一段段接與 MTP 推測解碼、以及「打斷」發生時的毫秒級時序與 heard_prefix 記憶回寫。</div>
     </a>
+    <a class="card" href="./gemma-translator.html">
+      <div class="ic">💬</div>
+      <div class="nm">Gemma Translator on Whisplay:離線語音翻譯機<span class="status ok">已建立</span></div>
+      <div class="mt">9 節 + 2 SVG · Pi 5 端側 · Moonshine + Gemma E2B · LiteRT-LM</div>
+      <div class="ds">把 Google 開源 Gemma Translator 簡化成「Pi 5 + Whisplay HAT+」兩板式離線口譯機(PiSugar / Jdaie Lin),全程不連網、支援 6 語言互譯。拆解聽(Moonshine STT)→翻(Gemma E2B 經 LiteRT-LM)→說(Moonshine TTS)三模型串流管線、為何用 Moonshine 而非 Whisper(變長輸入省掉 30 秒補零、sub-200ms)、E2B「有效參數」如何塞進 8GB,與 systemd + Chromium kiosk 的家電式部署。</div>
+    </a>
     <a class="card" href="./realtime-speaker-diarization.html">
       <div class="ic">🗣️</div>
       <div class="nm">即時語者分離:本地串流「誰在說話」的管線<span class="status ok">已建立</span></div>
