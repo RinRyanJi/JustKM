@@ -592,6 +592,68 @@ output:
       <li><strong>三層逾時</strong>：橋接上游 stall（預設 300s）；DOM 健康寬限窗（缺回應 60s、空回應 10s、完成鍵 60s、multipart 180s，且被證實的 MCP 進度會暫停缺回應窗）；每 stage 預算（還會<strong>退還系統睡眠時間</strong>再重新計時）。</li>
       <li><strong>取消</strong>：每個 await 都串 AbortSignal；取消時按下 Stop 鍵再丟 AbortError。錯誤分類含分頁關閉(499)、被取代(499)、stopped-thinking(502)、以及壓縮 handoff 被接受這種「良性中止」。</li>
     </ul>
+
+    <h3>把 ChatGPT 的輸出弄進「你自己的執行器」有幾條路？</h3>
+    <p>常見的疑問：既然 ChatGPT 的回答就是網頁上的一段文字，我要自製一個 HITL 終端，<strong>怎麼把那段文字餵進來</strong>？實務上只有三條路，代價各不同——本工具刻意選了最後一條（真實有頭、已登入的瀏覽器 + CDP），不是因為它最簡單，而是因為前兩條在「登入態、反機器人、節流」上會踩雷。</p>
+    <div class="svg-fig">
+      <svg viewBox="0 0 760 300" role="img" aria-label="三條把 ChatGPT DOM 讀進自製 HITL 執行器的路線對照：手動複製貼上、瀏覽器擴充監看、Playwright/CDP 連既有分頁，以及各自在登入態、反機器人、節流、脆弱性上的取捨">
+        <defs>
+          <marker id="ahR" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#9aa3b8"></path></marker>
+        </defs>
+        <text x="20" y="22" font-family="sans-serif" font-size="13" font-weight="700" fill="#e8ecf4">三條讀取路線：把網頁 ChatGPT 的答案送進你自己的執行器</text>
+
+        <rect x="20" y="40" width="230" height="86" rx="10" fill="#1a2138" stroke="#4f9eff"></rect>
+        <text x="135" y="62" text-anchor="middle" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#4f9eff">① 手動複製貼上</text>
+        <text x="135" y="82" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#9aa3b8">你當人肉管道：讀答案、</text>
+        <text x="135" y="96" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#9aa3b8">貼進終端、把結果貼回對話框</text>
+        <text x="135" y="114" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#00d68f">✓ 最穩、零指紋、天然守門人</text>
+
+        <rect x="265" y="40" width="230" height="86" rx="10" fill="#1a2138" stroke="#ff9f43"></rect>
+        <text x="380" y="62" text-anchor="middle" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#ff9f43">② 瀏覽器擴充監看</text>
+        <text x="380" y="82" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#9aa3b8">content script 讀同一分頁 DOM，</text>
+        <text x="380" y="96" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#9aa3b8">用你的登入態、走本機 socket 出去</text>
+        <text x="380" y="114" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#ff9f43">△ 借真登入，但前端改版就壞</text>
+
+        <rect x="510" y="40" width="230" height="86" rx="10" fill="#1a2138" stroke="#00d68f"></rect>
+        <text x="625" y="62" text-anchor="middle" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#00d68f">③ Playwright / CDP</text>
+        <text x="625" y="82" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#9aa3b8">connectOverCDP 連「既有有頭分頁」，</text>
+        <text x="625" y="96" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#9aa3b8">程式化讀 data-turn-id 節點</text>
+        <text x="625" y="114" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#00d68f">✓ 本工具採用（自動 + 過反機器人）</text>
+
+        <line x1="135" y1="126" x2="135" y2="150" stroke="#9aa3b8" stroke-width="1.4" marker-end="url(#ahR)"></line>
+        <line x1="380" y1="126" x2="380" y2="150" stroke="#9aa3b8" stroke-width="1.4" marker-end="url(#ahR)"></line>
+        <line x1="625" y1="126" x2="625" y2="150" stroke="#9aa3b8" stroke-width="1.4" marker-end="url(#ahR)"></line>
+        <rect x="20" y="150" width="720" height="40" rx="8" fill="#131a2e" stroke="#2a3454"></rect>
+        <text x="380" y="167" text-anchor="middle" font-family="sans-serif" font-size="10.5" font-weight="700" fill="#e8ecf4">你自己的 HITL 執行器（讀到 [EXEC_REQUEST] → 你核准 → 跑 → 回 [EXEC_RESULT]）</text>
+        <text x="380" y="183" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#9aa3b8">三條路只是「怎麼把 DOM 文字搬進來」不同；核准、執行、注回那段是共用的</text>
+
+        <text x="20" y="216" font-family="sans-serif" font-size="11" font-weight="700" fill="#e8ecf4">四個踩雷點（越往右自動化程度越高，代價是越吃這四項）</text>
+        <g font-family="sans-serif" font-size="9.5">
+          <text x="20" y="238" fill="#4f9eff" font-weight="700">登入態</text>
+          <text x="120" y="238" fill="#9aa3b8">ChatGPT 要登入 cookie/session；擴充與 CDP 都靠「借用你真瀏覽器的既有登入」才不用重登。</text>
+          <text x="20" y="256" fill="#4f9eff" font-weight="700">反機器人</text>
+          <text x="120" y="256" fill="#9aa3b8">前面有 Cloudflare + bot 檢測；headless / 明顯自動化指紋容易被擋，真實有頭 + 真人 profile 通過率高很多。</text>
+          <text x="20" y="274" fill="#4f9eff" font-weight="700">背景節流</text>
+          <text x="120" y="274" fill="#9aa3b8">分頁切到背景會被 Page Visibility 節流（timer/串流變慢）；連「既有前景分頁」可避開，不必真的靠貼上。</text>
+          <text x="20" y="292" fill="#4f9eff" font-weight="700">脆弱性</text>
+          <text x="120" y="292" fill="#9aa3b8">②③ 都貼著私有前端 DOM 走，ChatGPT 改版或 Cloudflare 收緊就會壞——這是自動化的固有代價，只有①免疫。</text>
+        </g>
+      </svg>
+    </div>
+    <table>
+      <tr><th>路線</th><th>登入態</th><th>反機器人</th><th>背景節流</th><th>脆弱性</th><th>自動化</th></tr>
+      <tr><td><strong>① 手動貼上</strong></td><td>你人在登入態</td><td>免疫（你是真人）</td><td>無關</td><td class="ok">幾乎不會壞</td><td>零（全靠你）</td></tr>
+      <tr><td><strong>② 擴充監看</strong></td><td>借你的真登入</td><td>中（跑在真瀏覽器內較不易被擋）</td><td>看它跑在哪個分頁</td><td>高（前端改版即壞）</td><td>半自動</td></tr>
+      <tr><td><strong>③ Playwright/CDP</strong></td><td>連既有已登入分頁</td><td>用真實有頭瀏覽器繞過</td><td>連前景分頁避開</td><td>高（改版 / Cloudflare 收緊即壞）</td><td>全自動（本工具）</td></tr>
+    </table>
+    <div class="callout info">
+      <strong>回到那個常見誤解：「非要維持前景、非要複製貼上嗎？」</strong>
+      <ul style="margin-top:8px;margin-bottom:0;">
+        <li><strong>技術上不必</strong>：CDP/Playwright 能讀背景甚至 headless 分頁的 DOM，所以「前景」不是硬性需求，複製貼上也只是三條路裡最保守的一條。</li>
+        <li><strong>但本工具刻意用「真實有頭、已登入、連進既有分頁」</strong>——為的是同時吃下<strong>登入態</strong>（不用重登）、<strong>反機器人</strong>（headless 易被 Cloudflare 擋，你的直覺沒錯）、<strong>背景節流</strong>（連前景分頁最省事）三件事，代價是綁死私有前端、隨改版脆弱。</li>
+        <li>所以「自製終端」完全可行，差別只在你願意吃多少脆弱性：要最穩就①手貼；要自動就得像③一樣接受「ChatGPT 一改版就要修 selector」。</li>
+      </ul>
+    </div>
   </section>
 
   <!-- ⑧ -->
