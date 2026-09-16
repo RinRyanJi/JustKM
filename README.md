@@ -23,6 +23,7 @@
     - 📘 **NEW · Sesshu 使用手冊（繁中 HTML 原檔）**：<https://rinryanji.github.io/JustKM/learn/sesshu/manual.html>
   - 🤝 **NEW · 為什麼他們總在「刁難」（跨部門溝通 · 龍文說書上・下集）**：<https://rinryanji.github.io/JustKM/learn/workplace/cross-dept-communication.html>
   - 🧭 **NEW · 跨部門專案怎麼不散掉（決策權 · 依賴 · 升級路徑）**：<https://rinryanji.github.io/JustKM/learn/workplace/cross-dept-projects.html>
+  - 🌱 **NEW · 焦點解決教練取向（主管別再當救火員 · JCoachLIFE）**：<https://rinryanji.github.io/JustKM/learn/workplace/solution-focused-coaching.html>
 - 🌳 **NEW · Git Worktree 觀念與實務**：<https://rinryanji.github.io/JustKM/learn/git-worktree.html>
 - 🌐 網路小白入門（REST / WebSocket）：<https://rinryanji.github.io/JustKM/learn/network-basics.html>
 - 🎨 74 品牌設計系統圖鑑：<https://rinryanji.github.io/JustKM/design-md/>
@@ -69,6 +70,7 @@ JustKM/
 | 📚 Sesshu 知識區 | [`learn/sesshu/_index.md`](learn/sesshu/_index.md) | ✅ 已建立 | session 歷史壓縮 hook 套件（Claude Code/Codex/Gemini/Copilot CLI）· 7 份中文導覽 + [官方 HTML 原檔](learn/sesshu/sesshu-architecture-and-usage-guide.html) + [壓縮技術說明](learn/sesshu/sesshu-compression-explained.html) + [使用手冊](learn/sesshu/manual.html) |
 | 🤝 為什麼他們總在「刁難」（跨部門溝通） | [`learn/workplace/cross-dept-communication.html`](learn/workplace/cross-dept-communication.html) | ✅ 已建立 | 職場軟技能 · 整理自「龍文說書」上・下集＋企業培訓框架 · 衝突根源 + 六部門翻譯表 + 對話模板作戰地圖 + 穀倉效應/ABC + Thomas-Kilmann 五種衝突模式 + 化解衝突 3 步驟 + 降溫金句 + 綜合案例 + 3 張 SVG · 從對立受害者變協調指揮者 |
 | 🧭 跨部門專案怎麼不散掉（決策權·依賴·升級） | [`learn/workplace/cross-dept-projects.html`](learn/workplace/cross-dept-projects.html) | ✅ 已建立 | 職場結構面 · 跨部門溝通的姊妹頁 · 專案章程 + 單一負責人(DRI) + RACI vs Bain RAPID 決策權 + Mendelow 權力-利益矩陣 + 依賴地圖/介面契約/康威定律/Scrum of Scrums·PI Planning + 節奏與三級升級路徑 + 失敗模式速查表 + 3 張 SVG |
+| 🌱 焦點解決教練取向（主管別再當救火員） | [`learn/workplace/solution-focused-coaching.html`](learn/workplace/solution-focused-coaching.html) | ✅ 已建立 | 職場管理 · 整理自 JCoachLIFE 影片 · 教練式領導 · 問題式vs解決式對話 + 教練角色(潛能開發者)對比 + 三核心信念(有資源/改變可能/專注小改變) + 四語言工具(未知性/賦能性但是→而且/量尺/Why→How) + 1% 複利年37倍 + 四步引導路徑 + 3 張 SVG |
 
 ---
 
