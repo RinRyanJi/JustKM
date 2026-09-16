@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>教練式領導總整合:從救火員到啟發自覺的教練 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>👑 教練式領導總整合:從救火員到啟發自覺的教練</h1>
+    <p class="sub">把四套教練式領導框架整併成一頁的完整手冊 —— 焦點解決、深度教練、IDEAS+GROWTH 表達、OKR×PHDI 績效。一條龍走完:換心態 → 會提問 → 走輔導流程 → 建績效系統 → 落地成習慣。(每個主題另有深入單頁,見文末)</p>
+    <div>
+      <span class="badge green">教練式領導 · 完整整合</span>
+      <span class="badge blue">心態 → 提問 → 輔導 → 績效 → 習慣</span>
+      <span class="badge orange">4 套框架一頁全</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#paradigm">① 範式轉移:別當救火員</a>
+      <a href="#mindset">② 心態地基:三信念 + 教練角色</a>
+      <a href="#brakes">③ 破解自動化思考:三層煞車</a>
+      <a href="#language">④ 對話與提問:語言工具</a>
+      <a href="#ideas">⑤ 說服表達:IDEAS 框架</a>
+      <a href="#flow">⑥ 輔導流程:四步驟</a>
+      <a href="#phdi">⑦ 績效是設計的:OKR × PHDI</a>
+      <a href="#growth">⑧ 從思考到行動:GROWTH + 習慣</a>
+      <a href="#summary">⑨ 主管反思 / 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>好主管的槓桿,不是「給出多少完美答案」,而是「啟發多少人相信自己能找出答案」。</strong>本頁把四支教練式領導主題整併成一條龍:從<strong>換掉「我來解決」的心態</strong>、<strong>學會用提問代替給答案</strong>、<strong>走一套不跳關的輔導流程</strong>、<strong>把績效當系統來設計</strong>、到<strong>把想清楚的事落地成每日習慣</strong>。</p>
+    <p>共通的一句話:<strong>把「為什麼(Why / 追責)」換成「如何(How / 下一步)」</strong>——無論是化解衝突、輔導挫折、推動績效還是溝通提案,都是同一個轉向。</p>
+    <div class="callout info"><strong>這頁是什麼:</strong>四套框架的<strong>整合手冊</strong>,可從頭讀到尾當一套完整方法,也可用目錄跳到需要的段落。每個主題都有更細的深入單頁(見 <a href="#summary">⑨ 文末</a>)。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="paradigm">
+    <h2><span class="num">①</span> 範式轉移:別當救火員 / 保姆,當教練</h2>
+    <p>主管最常見的兩個慣性:<strong>反射性給解法</strong>(員工一求救就丟「多拜訪、增名單、再努力」),與<strong>盯結果審問</strong>(「為什麼沒達標?」)。方法可能正確,卻常無效——因為真正卡住員工的,往往不是方法對不對,而是<strong>他如何看待他自己</strong>。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="兩種對話對比:問題式對話焦點在過去、追究為什麼失敗,引發防衛;解決式對話焦點在未來、下一步怎麼做,調動員工資源">
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">同一件事,兩種問法,兩種結果</text>
+          <rect x="16" y="40" width="330" height="140" rx="12" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.6"/>
+          <text x="181" y="63" text-anchor="middle" font-size="11" font-weight="800" fill="#a11a6b">❌ 問題式 / 審問(救火員)</text>
+          <text x="34" y="86" font-size="9" fill="#8a1a5b">焦點:<tspan font-weight="700">過去</tspan></text>
+          <text x="34" y="106" font-size="9" fill="#5d5b54">「為什麼會失敗?這是誰的問題?」</text>
+          <text x="34" y="124" font-size="9" fill="#5d5b54">「是不是不夠努力?」</text>
+          <text x="34" y="148" font-size="9" fill="#8a1a5b">→ 挫折、防衛、自我否定</text>
+          <text x="34" y="166" font-size="9" fill="#8a1a5b">→ 對解決現狀幫助有限</text>
+          <rect x="374" y="40" width="330" height="140" rx="12" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.6"/>
+          <text x="539" y="63" text-anchor="middle" font-size="11" font-weight="800" fill="#137a29">✅ 解決式 / 教練</text>
+          <text x="392" y="86" font-size="9" fill="#2f6b40">焦點:<tspan font-weight="700">未來</tspan></text>
+          <text x="392" y="106" font-size="9" fill="#5d5b54">「接下來該如何邁出下一步?」</text>
+          <text x="392" y="124" font-size="9" fill="#5d5b54">「什麼時候情況比較順利?」</text>
+          <text x="392" y="148" font-size="9" fill="#137a29">→ 看見可能性、調動資源</text>
+          <text x="392" y="166" font-size="9" fill="#137a29">→ 長出自己解決的能力</text>
+          <text x="360" y="194" text-anchor="middle" font-size="8" fill="#a4a097">de Shazer:卡住團隊的不是問題本身,而是「談論問題的方式」</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 三個轉向合而為一:焦點從<strong>過去→未來</strong>、從<strong>追責→下一步</strong>、從<strong>結果→系統</strong>。不是忽視問題,而是不停在問題裡。</div>
+    </div>
+    <div class="callout tip"><strong>還有第三個慣性要破:盯數字。</strong>績效不如預期時只會問「為什麼沒達標」,如同盯著儀表板抱怨車太慢卻不掀引擎蓋。<strong>績效不是逼出來的,是設計出來的</strong>(引擎 = 習慣、內驅力、阻礙,見 <a href="#phdi">⑦</a>)。</div>
+  </section>
+
+  <!-- 2 -->
+  <section id="mindset">
+    <h2><span class="num">②</span> 心態地基:三信念 + 教練角色</h2>
+    <p>技巧沒有靈魂會變成話術。先內化教練的三個信念:</p>
+    <ol>
+      <li><strong>相信每個人都是有資源的。</strong>表現不如預期,不是能力不足,而是<strong>還沒找到合適的方法</strong>。</li>
+      <li><strong>改變永遠是可能的。</strong>停止問「為什麼總做不好」,改找<strong>例外經驗</strong>:「什麼時候情況比較順利?那次你做了什麼不一樣的?」</li>
+      <li><strong>專注在小改變上。</strong>放棄一夜脫胎換骨的期待,微小步調的累積才是長期變革的發動機。</li>
+    </ol>
+    <p>再認清「教練」和其他角色的差別——它完全聚焦<strong>未來、目標與潛能</strong>:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>角色</th><th>焦點放在</th></tr></thead>
+      <tbody>
+        <tr><td>心理諮商師</td><td>過去的療癒與修復</td></tr>
+        <tr><td>培訓師 / 講師</td><td>傳授特定專業技能</td></tr>
+        <tr><td>企業導師(Mentor)</td><td>傳承自己過往的實務經驗</td></tr>
+        <tr><td><strong>教練(Coach)</strong></td><td><strong>未來、目標與潛能</strong></td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout info"><strong>核心假設 + 終極目的:</strong>員工身上早已具備解決問題的資源;主管是<strong>平等的合作夥伴</strong>,任務是把它挖出來。深度輔導真正在做的,是<strong>升級員工的「內在作業系統」</strong>——改寫他面對挫折與解讀資訊的心智程式,而不是替他解掉這一次。</div>
+  </section>
+
+  <!-- 3 -->
+  <section id="brakes">
+    <h2><span class="num">③</span> 破解自動化思考:三層思考煞車</h2>
+    <p>人為什麼急著下結論?因為大腦有一條省力路徑,而它<strong>跳過了「客觀分析」</strong>:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="自動化思考:接收資訊直接跳到形成結論再行動,遺漏客觀分析;加入客觀分析這個煞車,中性事實才不會被自動掛鉤成自我否定">
+        <defs><marker id="au" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">大腦的慣性:少了「客觀分析」這一步</text>
+          <text x="20" y="52" font-size="9.5" font-weight="700" fill="#a11a6b">❌ 自動化思考(跳步)</text>
+          <rect x="20" y="60" width="120" height="34" rx="8" fill="#dcecfa" stroke="#0075de"/>
+          <text x="80" y="81" text-anchor="middle" font-size="8.5" fill="#005bb0">接收資訊</text>
+          <rect x="300" y="60" width="120" height="34" rx="8" fill="#fde0ec" stroke="#ff64c8"/>
+          <text x="360" y="81" text-anchor="middle" font-size="8.5" fill="#a11a6b">形成結論</text>
+          <rect x="470" y="60" width="120" height="34" rx="8" fill="#f6f5f4" stroke="#787671"/>
+          <text x="530" y="81" text-anchor="middle" font-size="8.5" fill="#5d5b54">採取行動</text>
+          <path d="M140,77 L298,77" stroke="#e03131" stroke-width="2" stroke-dasharray="5 3" fill="none" marker-end="url(#au)"/>
+          <text x="219" y="70" text-anchor="middle" font-size="7.5" fill="#c92a2a">直接跳過</text>
+          <path d="M420,77 L468,77" stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#au)"/>
+          <text x="20" y="128" font-size="9.5" font-weight="700" fill="#137a29">✅ 加上煞車(客觀分析)</text>
+          <rect x="20" y="136" width="120" height="34" rx="8" fill="#dcecfa" stroke="#0075de"/>
+          <text x="80" y="157" text-anchor="middle" font-size="8.5" fill="#005bb0">接收資訊</text>
+          <rect x="170" y="136" width="120" height="34" rx="8" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.8"/>
+          <text x="230" y="153" text-anchor="middle" font-size="8.5" font-weight="800" fill="#137a29">客觀分析</text>
+          <text x="230" y="165" text-anchor="middle" font-size="7" fill="#2f6b40">(被遺漏的一步)</text>
+          <rect x="320" y="136" width="120" height="34" rx="8" fill="#e6e0f5" stroke="#5645d4"/>
+          <text x="380" y="157" text-anchor="middle" font-size="8.5" fill="#3a2a99">形成結論</text>
+          <rect x="470" y="136" width="120" height="34" rx="8" fill="#f6f5f4" stroke="#787671"/>
+          <text x="530" y="157" text-anchor="middle" font-size="8.5" fill="#5d5b54">採取行動</text>
+          <g stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#au)">
+            <path d="M140,153 L168,153"/><path d="M290,153 L318,153"/><path d="M440,153 L468,153"/>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ 實例:主管說「你這月拜訪不夠」(中性事實)→ 員工瞬間跳到「我不適合這工作」(自我否定)。教練的工作,就是把「客觀分析」這個煞車裝回去。</div>
+    </div>
+    <p>幫員工踩煞車的三層視角,各抓不同的東西:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>層次</th><th>核心提問</th><th>抓什麼</th></tr></thead>
+      <tbody>
+        <tr><td><strong>① 理性論證</strong></td><td>「這想法合理嗎?有客觀事實支撐嗎?」</td><td><strong>結論</strong>對不對(近似 REBT/認知行為的觀點檢驗)</td></tr>
+        <tr><td><strong>② 後設認知</strong></td><td>「我是怎麼得出這結論的?是否被情緒綁架?」</td><td><strong>思考過程</strong>哪裡漏了(系統思考、跳出來看自己)</td></tr>
+        <tr><td><strong>③ 知彼解己</strong></td><td>「我是不是用自己的經驗替他揣測?他真正的顧慮是什麼?」</td><td><strong>主管自己的預設</strong>(《與成功有約》習慣五)</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 4 -->
+  <section id="language">
+    <h2><span class="num">④</span> 對話與提問:語言工具 + 三大目標</h2>
+    <p>心態要落地成語言。四個立刻能用的工具:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="三個語言替換:把為什麼Why換成如何How;把但是換成而且;用0到10量尺問只進步一分會是什麼樣子">
+        <defs><marker id="sw" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1aae39"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">換掉幾個字,對話就從對立變合作</text>
+          <rect x="16" y="40" width="150" height="40" rx="8" fill="#fde0ec" stroke="#ff64c8"/>
+          <text x="91" y="65" text-anchor="middle" font-size="12" font-weight="800" fill="#a11a6b">為什麼 Why</text>
+          <path d="M172,60 L214,60" stroke="#1aae39" stroke-width="2.2" fill="none" marker-end="url(#sw)"/>
+          <rect x="220" y="40" width="150" height="40" rx="8" fill="#d9f3e1" stroke="#1aae39"/>
+          <text x="295" y="65" text-anchor="middle" font-size="12" font-weight="800" fill="#137a29">如何 How</text>
+          <text x="392" y="58" font-size="8.5" fill="#5d5b54">最強作弊碼:討論問題只引出</text>
+          <text x="392" y="72" font-size="8.5" fill="#5d5b54">更多問題;討論「如何」才長出行動</text>
+          <rect x="16" y="96" width="150" height="40" rx="8" fill="#fef7d6" stroke="#dd5b00"/>
+          <text x="91" y="121" text-anchor="middle" font-size="12" font-weight="800" fill="#a8460a">但是</text>
+          <path d="M172,116 L214,116" stroke="#1aae39" stroke-width="2.2" fill="none" marker-end="url(#sw)"/>
+          <rect x="220" y="96" width="150" height="40" rx="8" fill="#d9f3e1" stroke="#1aae39"/>
+          <text x="295" y="121" text-anchor="middle" font-size="12" font-weight="800" fill="#137a29">而且</text>
+          <text x="392" y="114" font-size="8.5" fill="#5d5b54">賦能性語言:肯定努力,</text>
+          <text x="392" y="128" font-size="8.5" fill="#5d5b54">降低對立與防衛</text>
+          <text x="34" y="164" font-size="9" font-weight="700" fill="#3a2a99">拓展性語言(量尺):</text>
+          <line x1="180" y1="172" x2="560" y2="172" stroke="#c8c4be" stroke-width="2"/>
+          <g font-size="8" fill="#787671" text-anchor="middle"><text x="180" y="188">0</text><text x="560" y="188">10</text></g>
+          <circle cx="290" cy="172" r="5" fill="#5645d4"/>
+          <path d="M290,172 L328,172" stroke="#5645d4" stroke-width="2.4" fill="none" marker-end="url(#sw)"/>
+          <text x="600" y="170" font-size="8.5" fill="#5d5b54">「只進步<tspan font-weight="700" fill="#3a2a99">一分</tspan>,</text>
+          <text x="600" y="184" font-size="8.5" fill="#5d5b54">會是什麼樣子?」</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 第四個工具是「未知性語言」——保持好奇、把對方當專家:「我很好奇,這件事你怎麼看?」邀請他自己思考。</div>
+    </div>
+    <p>但別忘了:<strong>不是隨時都在提案或說服</strong>。開口前先辨識這場對話的目的:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>溝通目標</th><th>用什麼</th></tr></thead>
+      <tbody>
+        <tr><td><strong>說服</strong></td><td>用 <strong>IDEAS</strong> 做有結構的表達(見 ⑤)</td></tr>
+        <tr><td><strong>澄清</strong></td><td>確保理解一致、頻率對齊(主動定義關鍵詞)</td></tr>
+        <tr><td><strong>收集情報(教練提問)</strong></td><td>用<strong>漏斗式提問</strong>引導員工自己理清思緒,常比長篇大論更有影響力</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 5 -->
+  <section id="ideas">
+    <h2><span class="num">⑤</span> 說服表達:IDEAS 框架</h2>
+    <p>要「說服」時,溝通無效多半不是口條差,而是<strong>開口前的思考沒結構</strong>(表達是下游、反思是上游;沒反思的「十年經驗」可能只是一年抄十次)。IDEAS 幫你在開口前把思緒打包:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="IDEAS 五要素:Idea 核心主張、Definition 定義澄清、Example 具體實例、Argument 有力論證、Significance 意義與行動">
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">IDEAS:開口前的五步打包</text>
+          <rect x="14" y="44" width="136" height="130" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="82" y="68" text-anchor="middle" font-size="15" font-weight="800" fill="#005bb0">I</text>
+          <text x="82" y="86" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0a4f8a">Idea 核心主張</text>
+          <text x="82" y="104" text-anchor="middle" font-size="7.5" fill="#5d5b54">30 字內講完</text>
+          <text x="82" y="118" text-anchor="middle" font-size="7.5" fill="#5d5b54">否則是資訊轟炸</text>
+          <text x="82" y="140" text-anchor="middle" font-size="7" fill="#787671">「每天為您省</text>
+          <text x="82" y="152" text-anchor="middle" font-size="7" fill="#787671">下兩小時白工」</text>
+          <rect x="158" y="44" width="136" height="130" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="226" y="68" text-anchor="middle" font-size="15" font-weight="800" fill="#3a2a99">D</text>
+          <text x="226" y="86" text-anchor="middle" font-size="8.5" font-weight="700" fill="#4a3a8a">Definition 定義</text>
+          <text x="226" y="104" text-anchor="middle" font-size="7.5" fill="#5d5b54">主動定義關鍵詞</text>
+          <text x="226" y="124" text-anchor="middle" font-size="7" fill="#787671">「緊急」= 今天下班前</text>
+          <text x="226" y="136" text-anchor="middle" font-size="7" fill="#787671">還是週五?先講清楚</text>
+          <rect x="302" y="44" width="136" height="130" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="370" y="68" text-anchor="middle" font-size="15" font-weight="800" fill="#137a29">E</text>
+          <text x="370" y="86" text-anchor="middle" font-size="8.5" font-weight="700" fill="#2f6b40">Example 實例</text>
+          <text x="370" y="104" text-anchor="middle" font-size="7.5" fill="#5d5b54">大腦需要「錨點」</text>
+          <text x="370" y="124" text-anchor="middle" font-size="7" fill="#787671">抽象概念配</text>
+          <text x="370" y="136" text-anchor="middle" font-size="7" fill="#787671">真實故事才秒懂</text>
+          <rect x="446" y="44" width="136" height="130" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="514" y="68" text-anchor="middle" font-size="15" font-weight="800" fill="#a8460a">A</text>
+          <text x="514" y="86" text-anchor="middle" font-size="8.5" font-weight="700" fill="#8a4a1a">Argument 論證</text>
+          <text x="514" y="104" text-anchor="middle" font-size="7.5" fill="#5d5b54">數據/理論/邏輯</text>
+          <text x="514" y="124" text-anchor="middle" font-size="7" fill="#787671">不能靠「我是老闆」</text>
+          <text x="514" y="136" text-anchor="middle" font-size="7" fill="#787671">回答「為什麼」</text>
+          <rect x="590" y="44" width="116" height="130" rx="10" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.5"/>
+          <text x="648" y="68" text-anchor="middle" font-size="15" font-weight="800" fill="#a11a6b">S</text>
+          <text x="648" y="86" text-anchor="middle" font-size="8" font-weight="700" fill="#8a1a5b">Significance</text>
+          <text x="648" y="100" text-anchor="middle" font-size="8" font-weight="700" fill="#8a1a5b">意義與行動</text>
+          <text x="648" y="120" text-anchor="middle" font-size="7" fill="#787671">回答「所以呢?</text>
+          <text x="648" y="132" text-anchor="middle" font-size="7" fill="#787671">跟我有關係?」</text>
+          <text x="648" y="150" text-anchor="middle" font-size="7" fill="#787671">+ 下一步行動</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 實戰(壽險增員):I「增員比衝個人業績更重要」→ D「增員=建可複製的組織系統」→ E「A 主任單打 5 年 ≈2500 萬 vs B 主任建團隊 ≈7500 萬,3 倍」→ A「人才槓桿/組織新陳代謝/被動收入」→ S「每週 3 次增員面談」。</div>
+    </div>
+    <div class="callout tip"><strong>金句(S 的威力):</strong>「你今天的成交決定你現在的收入,但你今天的增員決定你未來的事業。」——一個具體、可算的對比,勝過十句「這很重要」。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="flow">
+    <h2><span class="num">⑥</span> 輔導流程:四步驟深度教練(不可跳關)</h2>
+    <p>把心態與提問接成一場實際的輔導對話。鐵律:<strong>情緒一定放最前</strong>,沒接住情緒就往下走一定失敗:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 160" role="img" aria-label="四步驟輔導流程:知彼解己同理接納情緒、理性論證檢驗信念與事實、後設認知覺察思考慣性、行動承諾邁出新行為">
+        <defs><marker id="fl" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">先接情緒,再動思考,最後落到行動</text>
+          <rect x="12" y="46" width="160" height="74" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="92" y="68" text-anchor="middle" font-size="10" font-weight="800" fill="#005bb0">① 知彼解己</text>
+          <text x="92" y="85" text-anchor="middle" font-size="7.5" fill="#0a4f8a">同理接納情緒</text>
+          <text x="92" y="100" text-anchor="middle" font-size="7" fill="#5d5b54">放慢、深呼吸、不給方案</text>
+          <text x="92" y="112" text-anchor="middle" font-size="7" fill="#5d5b54">「發生什麼事了?」</text>
+          <rect x="192" y="46" width="160" height="74" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="272" y="68" text-anchor="middle" font-size="10" font-weight="800" fill="#a8460a">② 理性論證</text>
+          <text x="272" y="85" text-anchor="middle" font-size="7.5" fill="#8a4a1a">檢驗信念與事實</text>
+          <text x="272" y="100" text-anchor="middle" font-size="7" fill="#5d5b54">當蘇格拉底:「有什麼證據</text>
+          <text x="272" y="112" text-anchor="middle" font-size="7" fill="#5d5b54">支持?又有什麼反對?」</text>
+          <rect x="372" y="46" width="160" height="74" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="452" y="68" text-anchor="middle" font-size="10" font-weight="800" fill="#3a2a99">③ 後設認知</text>
+          <text x="452" y="85" text-anchor="middle" font-size="7.5" fill="#4a3a8a">覺察思考慣性</text>
+          <text x="452" y="100" text-anchor="middle" font-size="7" fill="#5d5b54">「每次挫折都解讀成</text>
+          <text x="452" y="112" text-anchor="middle" font-size="7" fill="#5d5b54">能力不足?以前也這樣?」</text>
+          <rect x="552" y="46" width="156" height="74" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="630" y="68" text-anchor="middle" font-size="10" font-weight="800" fill="#137a29">④ 行動承諾</text>
+          <text x="630" y="85" text-anchor="middle" font-size="7.5" fill="#2f6b40">邁出全新行為</text>
+          <text x="630" y="100" text-anchor="middle" font-size="7" fill="#5d5b54">盲區鬆動後,引導他</text>
+          <text x="630" y="112" text-anchor="middle" font-size="7" fill="#5d5b54">自主承諾下一步</text>
+          <g stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#fl)">
+            <path d="M172,83 L190,83"/><path d="M352,83 L370,83"/><path d="M532,83 L550,83"/>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ 這條流程對應 ③ 的三層煞車(知彼解己→理性論證→後設認知),最後收束到行動承諾。跳關的代價:直接講道理只覺得被說教;直接逼行動,承諾撐不久。</div>
+    </div>
+    <div class="callout info"><strong>另一種視角:焦點解決的四步引導路徑</strong>——<strong>理解現狀</strong>(同理,不久留)→ <strong>描繪願景</strong>(理想未來)→ <strong>盤點籌碼</strong>(過往成功經驗與資源)→ <strong>鋪設階梯</strong>(可一步步走的具體行動)。兩條流程精神一致:先安頓、再看未來、找已有資源、落到小步驟。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="phdi">
+    <h2><span class="num">⑦</span> 績效是設計出來的:OKR × PHDI</h2>
+    <p>輔導個人之外,主管還要建「績效系統」。核心公式把績效引擎拆開,讓你能像工程師一樣診斷:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 180" role="img" aria-label="PHDI 公式:績效P 等於 好習慣H 乘以 內驅力D 減去 阻礙I。H乘D是相乘關係,I是要減去的隱形摩擦力">
+        <g font-family="sans-serif" text-anchor="middle">
+          <text x="360" y="24" font-size="12.5" font-weight="800" fill="#1a1a1a">績效引擎:相乘的動力,減去的摩擦</text>
+          <rect x="30" y="56" width="120" height="60" rx="12" fill="#0a1530"/>
+          <text x="90" y="82" font-size="14" font-weight="800" fill="#fff">P</text>
+          <text x="90" y="100" font-size="8" fill="#9fb0d0">績效 Performance</text>
+          <text x="172" y="92" font-size="20" font-weight="800" fill="#5d5b54">=</text>
+          <text x="205" y="92" font-size="18" font-weight="800" fill="#5d5b54">(</text>
+          <rect x="222" y="56" width="120" height="60" rx="12" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.6"/>
+          <text x="282" y="82" font-size="14" font-weight="800" fill="#137a29">H</text>
+          <text x="282" y="100" font-size="8" fill="#2f6b40">好習慣 Habit</text>
+          <text x="360" y="92" font-size="18" font-weight="800" fill="#5d5b54">×</text>
+          <rect x="378" y="56" width="120" height="60" rx="12" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.6"/>
+          <text x="438" y="82" font-size="14" font-weight="800" fill="#3a2a99">D</text>
+          <text x="438" y="100" font-size="8" fill="#4a3a8a">內驅力 Drive</text>
+          <text x="512" y="92" font-size="18" font-weight="800" fill="#5d5b54">)</text>
+          <text x="536" y="92" font-size="20" font-weight="800" fill="#dd5b00">−</text>
+          <rect x="562" y="56" width="120" height="60" rx="12" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.6"/>
+          <text x="622" y="82" font-size="14" font-weight="800" fill="#a8460a">I</text>
+          <text x="622" y="100" font-size="8" fill="#8a4a1a">阻礙 Inhibition</text>
+          <text x="360" y="146" font-size="9" fill="#5d5b54">H 與 D <tspan font-weight="700" fill="#137a29">相乘</tspan>:任一趨近 0,績效就崩(有 SOP 沒動機、有幹勁沒方法,都不行)</text>
+          <text x="360" y="163" font-size="9" fill="#5d5b54">I 是<tspan font-weight="700" fill="#a8460a">要減去</tspan>的隱形摩擦力 —— 常是真兇卻最被忽略;排除它常比硬加動力更快</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ H(好習慣)= 活動量 × 技術品質,對應主管的「活動管理」與「技術管理」;D 對應「動機管理」。阻礙 I 分四類:心理 / 能力 / 系統 / 環境,對症才能排除。</div>
+    </div>
+    <p>PHDI 再和 <strong>OKR</strong> 對接:OKR 定義「要達成什麼」,PHDI 解釋「績效如何形成」:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>OKR 元素</th><th>對應 PHDI</th><th>意思</th></tr></thead>
+      <tbody>
+        <tr><td><strong>O</strong> 目標</td><td>= P 績效</td><td>希望創造的績效</td></tr>
+        <tr><td><strong>OB</strong> 目標價值</td><td>= D 內驅力</td><td>賦予目標的意義</td></tr>
+        <tr><td><strong>S</strong> 策略</td><td>= 習慣「品質」</td><td>確立執行方法</td></tr>
+        <tr><td><strong>KR</strong> 關鍵成果</td><td>= 習慣「數量」</td><td>追蹤每天累積</td></tr>
+        <tr><td><strong>CFR</strong> 對話/回饋/認可</td><td>= 排除 I 阻礙</td><td>定期檢視,清掉摩擦力</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><strong>紅燈的正確用法:</strong>KR 進度亮紅燈只代表<strong>流程斷裂</strong>,是提問的起點、不是審判的終點。該問「遇到什麼阻礙?要不要重新設計 SOP?」——<strong>而不是</strong>「為什麼沒做到?」。內驅力靠意義感 + 約 <strong>5:1 的正向:修正回饋</strong>比例來養。</div>
+  </section>
+
+  <!-- 8 -->
+  <section id="growth">
+    <h2><span class="num">⑧</span> 從思考到行動:GROWTH + 習慣複利</h2>
+    <p>想清楚、講清楚都還不夠——終極目的是<strong>促成改變</strong>。GROWTH 把承諾一路推到每日習慣:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 150" role="img" aria-label="GROWTH 落地路徑:Goal 目標、Reality 現況、Options 選項、Will 承諾、Tactics 拆解戰術、Habit 每日習慣">
+        <defs><marker id="gr" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif" text-anchor="middle">
+          <text x="360" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">GROWTH:把承諾拆到「每天做得到」</text>
+          <g font-size="8.5" font-weight="700">
+            <rect x="12" y="44" width="106" height="44" rx="9" fill="#dcecfa" stroke="#0075de"/>
+            <text x="65" y="64" fill="#005bb0">G · Goal</text><text x="65" y="79" font-size="7.5" font-weight="400" fill="#5d5b54">釐清目標</text>
+            <rect x="130" y="44" width="106" height="44" rx="9" fill="#dcecfa" stroke="#0075de"/>
+            <text x="183" y="64" fill="#005bb0">R · Reality</text><text x="183" y="79" font-size="7.5" font-weight="400" fill="#5d5b54">掌握現況</text>
+            <rect x="248" y="44" width="106" height="44" rx="9" fill="#e6e0f5" stroke="#5645d4"/>
+            <text x="301" y="64" fill="#3a2a99">O · Options</text><text x="301" y="79" font-size="7.5" font-weight="400" fill="#5d5b54">探索選項</text>
+            <rect x="366" y="44" width="106" height="44" rx="9" fill="#e6e0f5" stroke="#5645d4"/>
+            <text x="419" y="64" fill="#3a2a99">W · Will</text><text x="419" y="79" font-size="7.5" font-weight="400" fill="#5d5b54">給出承諾</text>
+            <rect x="484" y="44" width="106" height="44" rx="9" fill="#fef7d6" stroke="#dd5b00"/>
+            <text x="537" y="64" fill="#a8460a">T · Tactics</text><text x="537" y="79" font-size="7.5" font-weight="400" fill="#5d5b54">拆解戰術</text>
+            <rect x="602" y="44" width="106" height="44" rx="9" fill="#d9f3e1" stroke="#1aae39"/>
+            <text x="655" y="64" fill="#137a29">H · Habit</text><text x="655" y="79" font-size="7.5" font-weight="400" fill="#5d5b54">每日習慣</text>
+          </g>
+          <g stroke="#8a93ad" stroke-width="1.6" fill="none" marker-end="url(#gr)">
+            <path d="M118,66 L128,66"/><path d="M236,66 L246,66"/><path d="M354,66 L364,66"/><path d="M472,66 L482,66"/><path d="M590,66 L600,66"/>
+          </g>
+          <text x="360" y="118" font-size="9" fill="#5d5b54">習慣的<tspan font-weight="700" fill="#137a29">複利</tspan>:每天進步 1%,一年 ≈ <tspan font-weight="800" fill="#137a29">37 倍</tspan>(1.01³⁶⁵≈37.8)。</text>
+          <text x="360" y="136" font-size="8" fill="#a4a097">GROW(Goal-Reality-Options-Will)是經典教練模型,延伸出 Tactics 與 Habit 收尾。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 這裡的「每日習慣」正好接回 ⑦ 的 H(好習慣):想清楚只是起點,固化成習慣、靠複利累積,才變成真正的績效。</div>
+    </div>
+    <div class="callout tip"><strong>整條龍收束在這:</strong>心態(②)給方向、提問與煞車(③④)鬆動舊模式、IDEAS(⑤)講清楚、輔導流程(⑥)促成承諾、PHDI(⑦)建系統、GROWTH(⑧)落成習慣。<strong>再好的點子沒變成日常習慣,終究只是空想。</strong></div>
+  </section>
+
+  <!-- 9 -->
+  <section id="summary">
+    <h2><span class="num">⑨</span> 主管的反思 / 值得偷師 / <span style="color:var(--stone);font-weight:700">來源</span></h2>
+    <div class="callout info"><strong>最後留一個反思:</strong>下次準備發言或與員工深談前,先問自己——「我現在只是在<strong>發出聲音</strong>,還是真正運用清晰思維在<strong>領導與賦能</strong>?」</div>
+    <h3>八條可偷走的心法</h3>
+    <ol>
+      <li><strong>把「為什麼」換成「如何」。</strong>追責只引出防衛與更多問題;問下一步才長出行動。</li>
+      <li><strong>先處理心情,再處理事情。</strong>沒接住情緒,再正確的方法都彈回來。</li>
+      <li><strong>相信員工有資源、找例外、專注小改變。</strong>教練的三個信念是所有技巧的靈魂。</li>
+      <li><strong>把「客觀分析」的煞車裝回去。</strong>中性事實 ≠ 自我否定;三層煞車抓結論/過程/自己的預設。</li>
+      <li><strong>說服用 IDEAS、辨識溝通目標。</strong>30 字主張 + 定義 + 實例 + 論證 + 意義;不是隨時都在說服。</li>
+      <li><strong>輔導不可跳關。</strong>同理 → 檢驗 → 覺察 → 承諾。</li>
+      <li><strong>績效是設計的:P=(H×D)−I。</strong>H、D 相乘,先減 I 常最快;紅燈是提問起點。</li>
+      <li><strong>落到每日習慣、靠複利。</strong>GROWTH 把承諾拆成戰術與習慣;每天 1%,一年 37 倍。</li>
+    </ol>
+    <h3>深入單頁(本頁為整合,細節見各單元)</h3>
+    <div class="related">
+      <a href="./solution-focused-coaching.html">
+        <div class="rel-title">🌱 焦點解決教練取向</div>
+        <div class="rel-sub">問題式vs解決式 · 三信念 · 語言工具</div>
+      </a>
+      <a href="./deep-coaching-mindset.html">
+        <div class="rel-title">🪞 深度教練</div>
+        <div class="rel-sub">自動化思考 · 三層煞車 · 四步輔導</div>
+      </a>
+      <a href="./ideas-growth-leadership-communication.html">
+        <div class="rel-title">💡 IDEAS + GROWTH</div>
+        <div class="rel-sub">表達框架 + 落地成習慣</div>
+      </a>
+      <a href="./okr-phdi-performance-coaching.html">
+        <div class="rel-title">📈 OKR × PHDI</div>
+        <div class="rel-sub">P=(H×D)−I 績效系統</div>
+      </a>
+    </div>
+    <h4>相關 workplace 頁</h4>
+    <div class="related">
+      <a href="./cross-dept-communication.html">
+        <div class="rel-title">🤝 跨部門溝通</div>
+        <div class="rel-sub">把對立翻譯成合作</div>
+      </a>
+      <a href="./cross-dept-projects.html">
+        <div class="rel-title">🧭 跨部門專案</div>
+        <div class="rel-sub">決策權與依賴管理</div>
+      </a>
+    </div>
+    <h3>來源</h3>
+    <ul>
+      <li>整理自 YouTube 頻道 <strong>JCoachLIFE</strong> 的教練式領導系列影片(焦點解決教練取向、OKR×PHDI、IDEAS+GROWTH)及一部主管深度教練主題影片的內容梳理。</li>
+      <li>框架背景:焦點解決短期治療(SFBT,Steve de Shazer &amp; Insoo Kim Berg)、GROW 模型(John Whitmore)、OKR/CFR、知彼解己(Stephen Covey《與成功有約》習慣五)、理性情緒行為(REBT)與系統思考。IDEAS、PHDI 為影片提出的框架。</li>
+    </ul>
+    <div class="callout info" style="margin-top:14px;">
+      本頁為四支影片內容的<strong>整合手冊</strong>,並補充相關理論背景,非影片或任一機構的官方文件。數字(1% 複利、5:1、壽險增員 2500/7500 萬)與框架命名為影片示範/框架化說法;理論歸屬為概念對應。實務套用請按你的團隊情境調整。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="../index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

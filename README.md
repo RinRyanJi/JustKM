@@ -23,6 +23,7 @@
     - 📘 **NEW · Sesshu 使用手冊（繁中 HTML 原檔）**：<https://rinryanji.github.io/JustKM/learn/sesshu/manual.html>
   - 🤝 **NEW · 為什麼他們總在「刁難」（跨部門溝通 · 龍文說書上・下集）**：<https://rinryanji.github.io/JustKM/learn/workplace/cross-dept-communication.html>
   - 🧭 **NEW · 跨部門專案怎麼不散掉（決策權 · 依賴 · 升級路徑）**：<https://rinryanji.github.io/JustKM/learn/workplace/cross-dept-projects.html>
+  - 👑 **NEW · 教練式領導總整合（一頁全:心態→提問→輔導→績效→習慣）**：<https://rinryanji.github.io/JustKM/learn/workplace/leadership-coaching.html>
   - 🌱 **NEW · 焦點解決教練取向（主管別再當救火員 · JCoachLIFE）**：<https://rinryanji.github.io/JustKM/learn/workplace/solution-focused-coaching.html>
   - 📈 **NEW · OKR × PHDI：績效是設計出來的（績效教練 · JCoachLIFE）**：<https://rinryanji.github.io/JustKM/learn/workplace/okr-phdi-performance-coaching.html>
   - 💡 **NEW · IDEAS + GROWTH：先深度思考再高效溝通（領導力 · JCoachLIFE）**：<https://rinryanji.github.io/JustKM/learn/workplace/ideas-growth-leadership-communication.html>
@@ -73,6 +74,7 @@ JustKM/
 | 📚 Sesshu 知識區 | [`learn/sesshu/_index.md`](learn/sesshu/_index.md) | ✅ 已建立 | session 歷史壓縮 hook 套件（Claude Code/Codex/Gemini/Copilot CLI）· 7 份中文導覽 + [官方 HTML 原檔](learn/sesshu/sesshu-architecture-and-usage-guide.html) + [壓縮技術說明](learn/sesshu/sesshu-compression-explained.html) + [使用手冊](learn/sesshu/manual.html) |
 | 🤝 為什麼他們總在「刁難」（跨部門溝通） | [`learn/workplace/cross-dept-communication.html`](learn/workplace/cross-dept-communication.html) | ✅ 已建立 | 職場軟技能 · 整理自「龍文說書」上・下集＋企業培訓框架 · 衝突根源 + 六部門翻譯表 + 對話模板作戰地圖 + 穀倉效應/ABC + Thomas-Kilmann 五種衝突模式 + 化解衝突 3 步驟 + 降溫金句 + 綜合案例 + 3 張 SVG · 從對立受害者變協調指揮者 |
 | 🧭 跨部門專案怎麼不散掉（決策權·依賴·升級） | [`learn/workplace/cross-dept-projects.html`](learn/workplace/cross-dept-projects.html) | ✅ 已建立 | 職場結構面 · 跨部門溝通的姊妹頁 · 專案章程 + 單一負責人(DRI) + RACI vs Bain RAPID 決策權 + Mendelow 權力-利益矩陣 + 依賴地圖/介面契約/康威定律/Scrum of Scrums·PI Planning + 節奏與三級升級路徑 + 失敗模式速查表 + 3 張 SVG |
+| 👑 教練式領導總整合（一頁全） | [`learn/workplace/leadership-coaching.html`](learn/workplace/leadership-coaching.html) | ✅ 已建立 | 職場領導 · 四套教練框架整併成一頁的完整手冊(心態→提問→輔導→績效→習慣)· 範式轉移 + 教練三信念/角色 + 三層思考煞車 + 語言工具/溝通三目標 + IDEAS 表達 + 四步驟輔導 + OKR×PHDI(P=(H×D)−I) + GROWTH/習慣複利 · 整合焦點解決/深度教練/IDEAS+GROWTH/OKR×PHDI 四頁 · 7 SVG |
 | 🌱 焦點解決教練取向（主管別再當救火員） | [`learn/workplace/solution-focused-coaching.html`](learn/workplace/solution-focused-coaching.html) | ✅ 已建立 | 職場管理 · 整理自 JCoachLIFE 影片 · 教練式領導 · 問題式vs解決式對話 + 教練角色(潛能開發者)對比 + 三核心信念(有資源/改變可能/專注小改變) + 四語言工具(未知性/賦能性但是→而且/量尺/Why→How) + 1% 複利年37倍 + 四步引導路徑 + 3 張 SVG |
 | 📈 OKR × PHDI：績效是設計出來的 | [`learn/workplace/okr-phdi-performance-coaching.html`](learn/workplace/okr-phdi-performance-coaching.html) | ✅ 已建立 | 職場管理 · 整理自 JCoachLIFE 影片 · 績效教練 · 公式 P=(H×D)−I(好習慣×內驅力−阻礙) + 好習慣=微型系統 + 內驅力/5:1 回饋 + 阻礙四類 + 三環管理(H=活動量×技術品質) + OKR↔PHDI 對照(O/OB/S/KR/CFR) + 紅燈是提問起點 + PHDI 教練提問 + 3 張 SVG |
 | 💡 IDEAS + GROWTH：先深度思考再高效溝通 | [`learn/workplace/ideas-growth-leadership-communication.html`](learn/workplace/ideas-growth-leadership-communication.html) | ✅ 已建立 | 職場領導 · 整理自 JCoachLIFE 影片 · 溝通無效源於缺結構化思考 · IDEAS 表達框架(Idea 30字/Definition/Example/Argument/Significance) + 壽險增員實戰(2500萬 vs 7500萬) + 溝通三目標(說服/澄清/教練提問) + GROWTH 落地(Goal-Reality-Options-Will-Tactics-Habit)+習慣複利 + 3 張 SVG |
