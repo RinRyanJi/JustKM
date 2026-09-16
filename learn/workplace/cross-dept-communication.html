@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>為什麼他們總在「刁難」：跨部門溝通的衝突真相與協作解方 · JustKM</title>
+  <style>
+    :root {
+      /* Notion-inspired bright palette (from design-md/library/notion) */
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    /* Notion signature: deep navy hero band */
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.25; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 5px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; }
+    tr:hover td { background: #fbfbfa; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.danger { border-left-color: var(--error); background: var(--tint-rose); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .quote { border-left: 3px solid var(--stone); background: var(--tint-gray); padding: 12px 18px; border-radius: 0 10px 10px 0; margin: 10px 0 16px;
+      font-size: 0.9rem; color: var(--slate); font-style: italic; }
+    .quote strong { color: var(--ink); font-style: normal; }
+
+    .svgwrap { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px; margin: 10px 0 6px; overflow-x: auto; }
+    .svgwrap svg { display: block; width: 100%; height: auto; min-width: 480px; }
+    .svgcap { font-size: 0.72rem; color: var(--stone); text-align: center; margin: 6px 0 14px; }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-family: monospace; font-weight: 700; }
+    .pill-yes { background: var(--tint-mint); color: #157a2b; }
+    .pill-no  { background: var(--tint-rose); color: #b02454; }
+
+    .lvl { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 12px 0 6px; }
+    .lvl .card2 { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 18px; }
+    .lvl .card2 .k { font-size: 0.72rem; font-weight: 700; color: var(--primary); letter-spacing: 0.5px; margin-bottom: 4px; }
+    .lvl .card2 .t { font-size: 0.95rem; font-weight: 800; color: var(--ink); margin-bottom: 6px; }
+    .lvl .card2 .d { font-size: 0.82rem; color: var(--slate); }
+
+    @media (max-width: 640px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../../index.html">← 回到 JustKM 首頁</a>
+
+  <div class="hero">
+    <h1>🤝 為什麼他們總在「刁難」：跨部門溝通的衝突真相與協作解方</h1>
+    <p class="sub">整理自 YouTube 頻道「龍文說書」《為什麼他們總在「刁難」》上・下集 · 把對抗轉化為合作</p>
+    <div>
+      <span class="badge green">職場軟技能</span>
+      <span class="badge blue">跨部門溝通</span>
+      <span class="badge orange">含部門翻譯表 + 對話模板</span>
+      <span class="badge">基層 / 中階 / 高階都適用</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#war">① 為什麼合作總像戰爭</a>
+      <a href="#translate">② 部門翻譯表</a>
+      <a href="#tools">③ 破壁的三大工具</a>
+      <a href="#templates">④ 對話模板 / 作戰地圖</a>
+      <a href="#deescalate">⑤ 化解火藥味的話術</a>
+      <a href="#roles">⑥ 不同職級怎麼用</a>
+      <a href="#summary">⑦ 總結：從受害者到指揮者</a>
+      <a href="#sources">⑧ 來源與延伸</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p>會議裡各部門看似刻意的「刁難」或拉鋸，<strong>本質上不是針對你這個人</strong>，而是源於<strong>各部門的職責使命與思考邏輯不同</strong>。財務先說「不」是在把關預算、法務說「有風險」是在守合規、技術說「做不到」是在保穩定——他們只是站在自己被賦予的位置上盡責。</p>
+    <div class="callout info">
+      <strong>📌 核心轉念：</strong>當你不再把對方的反對讀成「找碴」，而是讀成「他在守護什麼」，衝突的火花就有機會被翻譯成合作的推力。這兩集影片給的，就是一套<strong>把「對立的受害者」變成「協調全場的指揮者」</strong>的結構化方法。
+    </div>
+  </section>
+
+  <!-- ① -->
+  <section id="war">
+    <h2><span class="num">①</span> 為什麼跨部門合作總像一場戰爭</h2>
+    <p>同一個提案丟到會議桌上，每個部門都往自己的方向拉——不是因為誰壞，而是因為每個部門<strong>被公司賦予的使命與 KPI 本來就不一樣</strong>。你看到的是阻力，對方看到的是自己的職責。</p>
+    <div class="svgwrap">
+      <svg viewBox="0 0 820 380" role="img" aria-label="一個提案被六個部門往不同方向拉扯">
+        <!-- center proposal -->
+        <circle cx="410" cy="190" r="52" fill="#e6e0f5" stroke="#5645d4" stroke-width="2"/>
+        <text x="410" y="185" text-anchor="middle" font-size="14" font-weight="800" fill="#3a2a99">一個提案</text>
+        <text x="410" y="203" text-anchor="middle" font-size="10" fill="#5d5b54">同一件事</text>
+        <!-- pull arrows + dept nodes -->
+        <g font-family="inherit">
+          <!-- 行銷 top-left -->
+          <line x1="368" y1="158" x2="150" y2="70" stroke="#ff64c8" stroke-width="2"/>
+          <rect x="30" y="40" width="150" height="52" rx="10" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.3"/>
+          <text x="105" y="62" text-anchor="middle" font-size="12" font-weight="800" fill="#b02454">📣 行銷</text>
+          <text x="105" y="80" text-anchor="middle" font-size="10" fill="#5d5b54">影響力・大願景</text>
+          <!-- 財務 top-right -->
+          <line x1="452" y1="158" x2="670" y2="70" stroke="#1aae39" stroke-width="2"/>
+          <rect x="640" y="40" width="150" height="52" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.3"/>
+          <text x="715" y="62" text-anchor="middle" font-size="12" font-weight="800" fill="#157a2b">💰 財務</text>
+          <text x="715" y="80" text-anchor="middle" font-size="10" fill="#5d5b54">風險・成本效益</text>
+          <!-- 法務 left -->
+          <line x1="358" y1="190" x2="150" y2="190" stroke="#dd5b00" stroke-width="2"/>
+          <rect x="30" y="164" width="150" height="52" rx="10" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.3"/>
+          <text x="105" y="186" text-anchor="middle" font-size="12" font-weight="800" fill="#9a4400">⚖️ 法務</text>
+          <text x="105" y="204" text-anchor="middle" font-size="10" fill="#5d5b54">合規・降低責任</text>
+          <!-- 技術 right -->
+          <line x1="462" y1="190" x2="670" y2="190" stroke="#7b3ff2" stroke-width="2"/>
+          <rect x="640" y="164" width="150" height="52" rx="10" fill="#e6e0f5" stroke="#7b3ff2" stroke-width="1.3"/>
+          <text x="715" y="186" text-anchor="middle" font-size="12" font-weight="800" fill="#5b28c0">🔧 研發／技術</text>
+          <text x="715" y="204" text-anchor="middle" font-size="10" fill="#5d5b54">穩定・可行性</text>
+          <!-- 品管 bottom-left -->
+          <line x1="368" y1="222" x2="150" y2="310" stroke="#0075de" stroke-width="2"/>
+          <rect x="30" y="292" width="150" height="52" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.3"/>
+          <text x="105" y="314" text-anchor="middle" font-size="12" font-weight="800" fill="#005bab">🔎 品管</text>
+          <text x="105" y="332" text-anchor="middle" font-size="10" fill="#5d5b54">嚴格標準・品質</text>
+          <!-- 策略/高層 bottom-right -->
+          <line x1="452" y1="222" x2="670" y2="310" stroke="#2a9d99" stroke-width="2"/>
+          <rect x="640" y="292" width="150" height="52" rx="10" fill="#d9f3e1" stroke="#2a9d99" stroke-width="1.3"/>
+          <text x="715" y="314" text-anchor="middle" font-size="12" font-weight="800" fill="#1f7370">🎯 策略／高層</text>
+          <text x="715" y="332" text-anchor="middle" font-size="10" fill="#5d5b54">宏觀・臨時調整</text>
+        </g>
+        <text x="410" y="366" text-anchor="middle" font-size="11.5" fill="#787671">六股力量往六個方向拉——衝突不是針對人，是「使命不同」的必然結果</text>
+      </svg>
+    </div>
+    <div class="svgcap">圖 1 · 同一個提案，六個部門各自往自己的使命方向拉。看懂「他在守護什麼」，是化解的第一步</div>
+    <div class="callout tip">
+      <strong>💡 換位起手式：</strong>下次覺得被刁難時，先在心裡問一句——<strong>「他這麼說，是在保護公司的哪一塊？」</strong>財務保錢、法務保責任、技術保系統、品管保品質。找到他守護的東西，你就找到了說服他的鑰匙。
+    </div>
+  </section>
+
+  <!-- ② -->
+  <section id="translate">
+    <h2><span class="num">②</span> 部門翻譯表：讀懂每個部門的真實需求</h2>
+    <p>各部門都有自己的「行話」與慣性反應。把這些話翻譯成<strong>通俗共通的語言</strong>，你就能快速讀懂對方的<strong>真實需求與潛在壓力</strong>，而不是被表面的「不」擋在門外。</p>
+    <table>
+      <thead>
+        <tr><th>部門</th><th>核心使命</th><th>表面常說的話</th><th>真正在意的</th><th>你該遞給他的</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>📣 行銷</strong></td>
+          <td>品牌影響力・宏大願景</td>
+          <td>「這能打造話題！」（易被嫌畫大餅）</td>
+          <td>曝光、聲量、市場定位</td>
+          <td>把願景接回<strong>可量測的成效與里程碑</strong></td>
+        </tr>
+        <tr>
+          <td><strong>💰 財務</strong></td>
+          <td>風險控管・成本效益</td>
+          <td>習慣性先說「不」／「預算呢？」</td>
+          <td>ROI、現金流、把關不超支</td>
+          <td><strong>數據、投報試算、分階段預算</strong></td>
+        </tr>
+        <tr>
+          <td><strong>⚖️ 法務</strong></td>
+          <td>合規・降低法律責任</td>
+          <td>「凡事都有風險。」（企劃因此延宕）</td>
+          <td>合約漏洞、責任歸屬、可辯護性</td>
+          <td><strong>風險分級 + 對應的降險方案</strong></td>
+        </tr>
+        <tr>
+          <td><strong>🔧 研發／技術</strong></td>
+          <td>系統穩定・架構可行</td>
+          <td>「技術上做不到／要長期評估。」</td>
+          <td>可維護性、技術債、排程真實性</td>
+          <td><strong>分步實施、先做 MVP 的路線圖</strong></td>
+        </tr>
+        <tr>
+          <td><strong>🔎 品管</strong></td>
+          <td>嚴格標準・產品品質</td>
+          <td>面對急單「這不能退讓」</td>
+          <td>不良率、退貨、長期口碑</td>
+          <td><strong>明確驗收標準 + 不犧牲品質的折衷</strong></td>
+        </tr>
+        <tr>
+          <td><strong>🎯 策略部／高層</strong></td>
+          <td>宏觀戰略・臨時調整</td>
+          <td>反覆的細節要求，讓基層摸不著頭緒</td>
+          <td>整體布局、對董事會交代</td>
+          <td><strong>把細節收斂成 2–3 個決策選項</strong></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout info">
+      <strong>📌 這張表怎麼用：</strong>開會前先對照——你要說服誰？他的「真正在意的」是哪一欄？把你的提案<strong>翻譯成他那一欄的語言</strong>再開口。對財務講聲量沒用，對行銷講技術債也沒用。
+    </div>
+  </section>
+
+  <!-- ③ -->
+  <section id="tools">
+    <h2><span class="num">③</span> 破除思維壁壘的三大實戰工具</h2>
+    <p>影片把跨部門的認知落差，收斂成一套高度實用、可直接套用的溝通方法。核心是三件工具：</p>
+    <h3>1️⃣ 部門翻譯表</h3>
+    <p>把各單位的專業術語，轉化為<strong>通俗共通的語言</strong>（見上一節）。目的是幫團隊成員<strong>快速讀懂對方的真實需求與潛在壓力</strong>——先聽懂，才談得下去。</p>
+    <h3>2️⃣ 對話模板與作戰地圖</h3>
+    <p>針對不同性格與立場的部門，套用<strong>相對應的說服邏輯</strong>。例如「用數據說服財務與策略部門」「用分步實施說服技術部門」，甚至能妥善應對高層反覆的決策與細節要求。（見下一節的完整地圖。）</p>
+    <h3>3️⃣ 化解火藥味的話術</h3>
+    <p>學會<strong>換位思考</strong>，在會議衝突升溫時，用精準的話語化解僵局、促成共識，而不是把場面推向對立。</p>
+    <div class="callout tip">
+      <strong>💡 三者的關係：</strong>翻譯表讓你<strong>聽懂</strong>，對話模板讓你<strong>說對</strong>，化解話術讓你在氣氛緊繃時<strong>守住合作</strong>。三步串起來，就是把衝突轉為協作的完整動作。
+    </div>
+  </section>
+
+  <!-- ④ -->
+  <section id="templates">
+    <h2><span class="num">④</span> 對話模板與作戰地圖：對誰用什麼邏輯</h2>
+    <p>同一個提案，對不同部門要換不同的「開口方式」。這張作戰地圖把「說服邏輯」對上「說服對象」：</p>
+    <table>
+      <thead>
+        <tr><th>說服對象</th><th>該用的說服邏輯</th><th>開場句範例</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>💰 財務 / 🎯 策略</strong></td>
+          <td><strong>用數據說話</strong>：投報試算、成本效益、風險量化</td>
+          <td>「這案先做小規模驗證，預估投入 X、預期回收 Y，最壞情況的曝險是 Z。」</td>
+        </tr>
+        <tr>
+          <td><strong>🔧 研發 / 技術</strong></td>
+          <td><strong>分步實施</strong>：先 MVP、再迭代，降低一次到位的風險</td>
+          <td>「不用一次做全套。第一階段先驗證核心可行性，穩了再擴充，你評估第一步要多久？」</td>
+        </tr>
+        <tr>
+          <td><strong>⚖️ 法務</strong></td>
+          <td><strong>風險分級 + 降險方案</strong>：不問「有沒有風險」，問「哪些風險、怎麼降」</td>
+          <td>「我知道有風險。我把風險分成高／中／低三級，高風險的這兩點我想聽你怎麼設防。」</td>
+        </tr>
+        <tr>
+          <td><strong>📣 行銷</strong></td>
+          <td><strong>把願景接回成效</strong>：肯定聲量，同時綁上可量測指標</td>
+          <td>「這個聲量點子很好，我們定一個能追蹤的目標，讓它的價值被看見。」</td>
+        </tr>
+        <tr>
+          <td><strong>🔎 品管</strong></td>
+          <td><strong>共訂驗收標準</strong>：把品質底線講在前面，再談彈性</td>
+          <td>「品質底線我完全同意不能破。我們先把驗收標準寫死，再看時程能怎麼配。」</td>
+        </tr>
+        <tr>
+          <td><strong>🎯 高層（反覆調整）</strong></td>
+          <td><strong>收斂選項</strong>：把發散的細節整理成 2–3 個決策方案</td>
+          <td>「我把您提的方向整理成 A／B／C 三個方案與各自取捨，您拍板哪個，我們就往那走。」</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout warn">
+      <strong>⚠️ 常見錯誤：</strong>用同一套說法打天下。對財務噴願景、對行銷丟技術規格、對高層一次倒出所有細節——都會被擋。<strong>先分辨對象，再選邏輯。</strong>
+    </div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="deescalate">
+    <h2><span class="num">⑤</span> 化解火藥味的話術：換位思考怎麼落地</h2>
+    <p>會議升溫時，決定成敗的往往不是誰的論點更強，而是<strong>有沒有人先把氣氛從對立拉回合作</strong>。換位思考不是心法口號，而是幾句能立刻用的話：</p>
+    <ul>
+      <li><strong>先承認對方守護的東西：</strong>「你會擔心成本，這完全合理。」——先讓對方覺得被聽懂，防禦心才會放下。</li>
+      <li><strong>把「你 vs 我」換成「我們 vs 問題」：</strong>「我們一起看看怎麼讓這件事又安全又能上。」</li>
+      <li><strong>把否定翻成條件：</strong>不要停在「做不到」，追問「在什麼條件下就做得到？」把死路變成可談的門檻。</li>
+      <li><strong>幫對方把話說完：</strong>「你是不是擔心排程被壓縮？」——替對方點出潛在壓力，比逼他讓步更有效。</li>
+      <li><strong>留台階：</strong>衝突升溫時給對方一個不失面子的退路，共識才生得出來。</li>
+    </ul>
+    <div class="quote">
+      「他們不是在針對你，他們是在守護自己被賦予的職責。」<br>
+      <strong>—— 把這句話放在心裡，火藥味自然少一半。</strong>
+    </div>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="roles">
+    <h2><span class="num">⑥</span> 不同職級怎麼用這套方法</h2>
+    <p>同一套工具，在不同職級手上是不同的價值：</p>
+    <div class="lvl">
+      <div class="card2">
+        <div class="k">基層員工・職場新人</div>
+        <div class="t">🛡️ 避雷的自保與成長指南</div>
+        <div class="d">看懂各部門的雷區與慣性，減少溝通誤解、少踩坑，讓提案更容易被接住。</div>
+      </div>
+      <div class="card2">
+        <div class="k">中階管理者</div>
+        <div class="t">🤝 化阻力為助力的談判利器</div>
+        <div class="d">跨部門協調資源時，用翻譯表 + 對話模板把對方的反對轉成可談的條件。</div>
+      </div>
+      <div class="card2">
+        <div class="k">高階領導者</div>
+        <div class="t">🏛️ 打造高效協作團隊的藍圖</div>
+        <div class="d">從制度面建立共通語言與和諧工作流，讓部門間的摩擦內建被吸收的機制。</div>
+      </div>
+    </div>
+    <div class="callout info">
+      <strong>📌 一句話：</strong>基層用它<strong>自保</strong>、中階用它<strong>談判</strong>、高階用它<strong>建制度</strong>。同一把鑰匙，開的是不同層的門。
+    </div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="summary">
+    <h2><span class="num">⑦</span> 總結：從「對立的受害者」到「協調全場的指揮者」</h2>
+    <p>職場各部門，就像交響樂團裡不同的樂器——各自有獨立的節奏與職責。缺乏理解時容易失調走音；一旦有人讀懂每種樂器的性格、給對拍子，雜音就能合成樂章。</p>
+    <div class="svgwrap">
+      <svg viewBox="0 0 820 250" role="img" aria-label="從對立受害者轉變為協調指揮者">
+        <!-- left: chaos -->
+        <rect x="24" y="40" width="300" height="170" rx="14" fill="#fde0ec" stroke="#e03131" stroke-width="1.3"/>
+        <text x="174" y="66" text-anchor="middle" font-size="13" font-weight="800" fill="#b02454">對立的受害者</text>
+        <g stroke="#e03131" stroke-width="2" fill="none" opacity="0.8">
+          <path d="M70 110 L120 150"/><path d="M130 100 L90 155"/>
+          <path d="M170 95 L210 150"/><path d="M240 105 L190 150"/>
+          <path d="M260 120 L230 160"/><path d="M80 170 L140 130"/>
+        </g>
+        <text x="174" y="196" text-anchor="middle" font-size="10.5" fill="#5d5b54">雜音四射・各拉各的・被刁難的感覺</text>
+        <!-- arrow -->
+        <g>
+          <line x1="336" y1="125" x2="486" y2="125" stroke="#5645d4" stroke-width="3"/>
+          <path d="M486 125 l-14 -8 v16 z" fill="#5645d4"/>
+          <text x="411" y="112" text-anchor="middle" font-size="10.5" font-weight="700" fill="#3a2a99">翻譯表・對話模板</text>
+          <text x="411" y="148" text-anchor="middle" font-size="10.5" fill="#5d5b54">＋換位思考</text>
+        </g>
+        <!-- right: orchestra order -->
+        <rect x="498" y="40" width="300" height="170" rx="14" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.3"/>
+        <text x="648" y="66" text-anchor="middle" font-size="13" font-weight="800" fill="#157a2b">協調全場的指揮者</text>
+        <g stroke="#1aae39" stroke-width="2.4" fill="none">
+          <path d="M540 155 C 600 95, 696 95, 756 155"/>
+        </g>
+        <g fill="#1aae39">
+          <circle cx="540" cy="155" r="4"/><circle cx="588" cy="120" r="4"/><circle cx="648" cy="108" r="4"/><circle cx="708" cy="120" r="4"/><circle cx="756" cy="155" r="4"/>
+        </g>
+        <text x="648" y="196" text-anchor="middle" font-size="10.5" fill="#5d5b54">各就各位・合成樂章・衝突變推力</text>
+      </svg>
+    </div>
+    <div class="svgcap">圖 2 · 掌握跨部門溝通的密碼，就能把衝突的火花，轉化為合作的推動力</div>
+    <div class="callout tip">
+      <strong>💡 帶走這一句：</strong>你的目標不是「贏過」哪個部門，而是<strong>當那個聽得懂每種樂器、把全場帶進同一個拍子的人</strong>。看懂使命 → 翻譯語言 → 對症說服 → 化解火藥味，你就從受害者變成了指揮者。
+    </div>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="sources">
+    <h2><span class="num">⑧</span> 來源與延伸</h2>
+    <h3>🔗 內容來源</h3>
+    <ul>
+      <li><strong>YouTube 頻道「龍文說書」</strong> ——《為什麼他們總在「刁難」（上）》與《（下）》。本頁為兩集內容的重點彙整與結構化整理。</li>
+    </ul>
+    <h3>🔗 站內延伸</h3>
+    <div class="related">
+      <a href="../index.html"><div class="rel-title">🎓 AI 學習總目錄</div><div class="rel-sub">學習區入口</div></a>
+      <a href="../multi-persona-prompting.html"><div class="rel-title">🎭 多角色 AI 腦力激盪</div><div class="rel-sub">用不同視角互補——與換位思考相通</div></a>
+    </div>
+    <div class="callout info">
+      <strong>📌 一頁帶走：</strong>「刁難」多半是使命不同的必然摩擦。備好<strong>部門翻譯表</strong>（聽懂）、<strong>對話模板</strong>（說對）、<strong>化解話術</strong>（守住合作），你就能把每一場拉鋸，變成把事情推上去的合力。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · 為什麼他們總在「刁難」：跨部門溝通的衝突真相與協作解方</p>
+    <p style="margin-top:4px;">整理自 YouTube「龍文說書」上・下集 · 明亮版配色參考 design-md/notion · 建立於 2026-09-16 · 字級調整器在右上角</p>
+    <p style="margin-top:4px;"><a href="../../index.html">← 回到 JustKM 首頁</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
