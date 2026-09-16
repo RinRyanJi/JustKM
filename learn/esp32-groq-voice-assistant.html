@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>ESP32-S3 + Groq 語音助手:一顆 MCU 靠雲端 AI · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🔊 ESP32-S3 + Groq 語音助手:一顆 MCU 靠雲端 AI</h1>
+    <p class="sub">techiesms 的開源專案:整個語音助手跑在單顆 ESP32-S3——按住按鈕說話、聽它答。所有 AI(聽/想/說)都走 Groq 雲端、一把免費 key 搞定:Whisper STT + gpt-oss-120b + Orpheus TTS,端到端約 2.2 秒。和站內「全本地」的路線正好相反——MCU 只管音訊 I/O 與串流。</p>
+    <div>
+      <span class="badge green">開源 · 嵌入式語音</span>
+      <span class="badge blue">Groq: Whisper + gpt-oss-120b + Orpheus</span>
+      <span class="badge orange">ESP32-S3 · INMP441 · MAX98357A</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#what">① 是什麼 · 為什麼有意思</a>
+      <a href="#hardware">② 硬體與接線</a>
+      <a href="#pipeline">③ 三模型雲端管線與延遲</a>
+      <a href="#memory">④ 關鍵限制:記憶體逼你串流</a>
+      <a href="#cost">⑤ 免費額度與成本</a>
+      <a href="#setup">⑥ 軟體設定與控制</a>
+      <a href="#steal">⑦ 值得偷師 / 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>一顆 ESP32-S3 + 一顆 I2S 麥克風 + 一顆 I2S 擴大機,就是一台完整語音助手:按住 BOOT 鍵說話、放開,答案就念出來。</strong>MCU 本身不跑任何 AI——它負責錄音、把音訊<strong>串流</strong>上 Groq 雲、再把回傳的語音<strong>串流</strong>播出。三個模型都在 Groq:<strong>whisper-large-v3-turbo</strong>(聽)、<strong>openai/gpt-oss-120b</strong>(想)、<strong>orpheus-v1-english</strong>(說)。</p>
+    <p>端到端實測約 <strong>2221ms</strong>(STT 297 + LLM 1119 + TTS 805),一把 Groq 免費 key 即可。這是「端側裝置 + 雲端 AI」的極簡範例——和站內 <a href="./gemma-translator.html">Gemma Translator</a>、<a href="./voxemw.html">VoxEMW</a>「全本地」的取向剛好對照。</p>
+    <div class="callout info"><strong>為什麼有意思:</strong>把「聽→想→說」整條鏈全丟雲端,MCU 只做它擅長的<strong>即時音訊 I/O + 串流</strong>。因為 ESP32-S3 記憶體極小(WiFi/TLS 後只剩 ~130KB heap),這個專案最精彩的工程,其實是<strong>「絕不緩衝整段音訊、只能邊錄邊傳邊播」</strong>——限制逼出漂亮的串流設計。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="what">
+    <h2><span class="num">①</span> 是什麼、為什麼有意思</h2>
+    <p>市面上多數「本地語音助手」把模型塞進強力硬體(見站內 VoxEMW/4090、Gemma Translator/Pi 5)。這個專案走相反路線:<strong>硬體極廉價(一顆 MCU),智慧全外包給雲端</strong>。ESP32-S3 的角色只有兩個:</p>
+    <ul>
+      <li><strong>即時音訊 I/O:</strong>用 I2S 收麥克風(INMP441)、推擴大機(MAX98357A)。</li>
+      <li><strong>串流搬運:</strong>錄音時邊上傳到 Groq,回話時邊接收邊播——因為記憶體根本放不下整段音訊(見 ④)。</li>
+    </ul>
+    <div class="callout tip"><strong>兩條路線的取捨:</strong>雲端路線<strong>硬體便宜、模型隨時最新、能跑 120B 大模型</strong>,代價是<strong>要連網、要 API key、有額度限制、延遲吃網路</strong>;本地路線反之(隱私、離線、零 token 費,但硬體貴)。這個專案是「雲端路線」把成本壓到極致的示範。</div>
+  </section>
+
+  <!-- 2 -->
+  <section id="hardware">
+    <h2><span class="num">②</span> 硬體與接線</h2>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 220" role="img" aria-label="硬體方塊圖:INMP441 麥克風經 I2S 進 ESP32-S3;BOOT 按鈕 GPIO0 當按住說話;ESP32-S3 經 WiFi 連 Groq 雲;MAX98357A 擴大機經 I2S 出到喇叭">
+        <defs><marker id="hw" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">三顆料 + 一顆喇叭 = 一台語音助手</text>
+          <!-- mic -->
+          <rect x="14" y="52" width="132" height="52" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/>
+          <text x="80" y="72" text-anchor="middle" font-size="9.5" font-weight="800" fill="#005bb0">🎤 INMP441</text>
+          <text x="80" y="88" text-anchor="middle" font-size="7.5" fill="#5d5b54">I2S MEMS 麥(3.3V)</text>
+          <text x="80" y="99" text-anchor="middle" font-size="7" fill="#787671">SD4 · SCK5 · WS6</text>
+          <!-- button -->
+          <rect x="14" y="120" width="132" height="44" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/>
+          <text x="80" y="140" text-anchor="middle" font-size="9.5" font-weight="800" fill="#a8460a">🔘 BOOT 鍵</text>
+          <text x="80" y="155" text-anchor="middle" font-size="7.5" fill="#8a4a1a">GPIO0 · 按住說話</text>
+          <!-- ESP32 -->
+          <rect x="200" y="66" width="150" height="88" rx="11" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="275" y="94" text-anchor="middle" font-size="11" font-weight="800" fill="#3a2a99">ESP32-S3</text>
+          <text x="275" y="112" text-anchor="middle" font-size="7.5" fill="#4a3a8a">PSRAM 停用</text>
+          <text x="275" y="126" text-anchor="middle" font-size="7.5" fill="#5d5b54">音訊 I/O + 串流</text>
+          <text x="275" y="140" text-anchor="middle" font-size="7.5" fill="#5d5b54">WiFi + TLS</text>
+          <!-- cloud -->
+          <rect x="404" y="66" width="150" height="88" rx="11" fill="#0a1530"/>
+          <text x="479" y="92" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">☁️ Groq 雲</text>
+          <text x="479" y="110" text-anchor="middle" font-size="7.5" fill="#9fb0d0">Whisper · gpt-oss-120b</text>
+          <text x="479" y="124" text-anchor="middle" font-size="7.5" fill="#9fb0d0">· Orpheus</text>
+          <text x="479" y="140" text-anchor="middle" font-size="7.5" fill="#b6f0c4">一把免費 API key</text>
+          <!-- amp+spk -->
+          <rect x="592" y="66" width="114" height="88" rx="11" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+          <text x="649" y="90" text-anchor="middle" font-size="9" font-weight="800" fill="#137a29">🔊 MAX98357A</text>
+          <text x="649" y="106" text-anchor="middle" font-size="7.5" fill="#2f6b40">I2S D 類擴大(5V)</text>
+          <text x="649" y="120" text-anchor="middle" font-size="7" fill="#787671">BCLK16·LRC17·DIN15</text>
+          <text x="649" y="136" text-anchor="middle" font-size="7.5" fill="#2f6b40">+ 4Ω/8Ω 喇叭</text>
+          <!-- arrows -->
+          <g stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#hw)">
+            <path d="M146,78 L198,88"/>
+            <path d="M146,142 L198,128"/>
+            <path d="M350,110 L402,110"/>
+            <path d="M554,110 L590,110"/>
+          </g>
+          <text x="172" y="74" font-size="7" fill="#787671">I2S in</text>
+          <text x="378" y="104" font-size="7" fill="#787671">WiFi</text>
+          <text x="572" y="104" font-size="7" fill="#787671">I2S out</text>
+          <text x="20" y="196" font-size="8.5" fill="#a4a097">任何 ESP32-S3 變體皆可,但務必<tspan font-weight="700" fill="#5d5b54">停用 PSRAM</tspan>(否則 I2S 初始化失敗)。INMP441 只吃 3.3V;MAX98357A 是 5V 件。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ INMP441 的 L/R 接 GND、SD→GPIO4、SCK→GPIO5、WS→GPIO6;MAX98357A 的 BCLK→GPIO16、LRC→GPIO17、DIN→GPIO15,GAIN 腳浮接=9dB。喇叭 4Ω 比 8Ω 大聲。</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>元件</th><th>角色 / 注意</th></tr></thead>
+      <tbody>
+        <tr><td><strong>ESP32-S3 開發板</strong></td><td>主機;任何 S3 變體,<strong>PSRAM 必須停用</strong>。</td></tr>
+        <tr><td><strong>INMP441</strong></td><td>I2S MEMS 麥克風,<strong>只接 3.3V</strong>(接 5V 會壞)。</td></tr>
+        <tr><td><strong>MAX98357A</strong></td><td>I2S D 類擴大機(5V);喇叭負極<strong>不可接地</strong>。</td></tr>
+        <tr><td><strong>喇叭</strong></td><td>4Ω 或 8Ω;4Ω 明顯較大聲。</td></tr>
+        <tr><td><strong>BOOT 鍵(GPIO0)</strong></td><td>當「按住說話(push-to-talk)」按鈕。</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 3 -->
+  <section id="pipeline">
+    <h2><span class="num">③</span> 三模型雲端管線與延遲</h2>
+    <p>一個回合走完五步,三個 Groq 模型接力:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="雲端管線:16kHz 錄音邊串流上傳 Whisper STT 約 297ms,gpt-oss-120b LLM 約 1119ms,Orpheus TTS 約 805ms,串流播放,端到端約 2221ms">
+        <defs><marker id="pp" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">聽 → 想 → 說,都在 Groq;端到端 ~2.2 秒</text>
+          <rect x="14" y="46" width="112" height="60" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/>
+          <text x="70" y="68" text-anchor="middle" font-size="14">🎤</text>
+          <text x="70" y="86" text-anchor="middle" font-size="8" font-weight="700" fill="#005bb0">錄音 16kHz</text>
+          <text x="70" y="99" text-anchor="middle" font-size="7" fill="#5d5b54">邊錄邊上傳</text>
+          <rect x="150" y="46" width="128" height="60" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="214" y="66" text-anchor="middle" font-size="9" font-weight="800" fill="#3a2a99">STT 聽</text>
+          <text x="214" y="82" text-anchor="middle" font-size="7.5" fill="#4a3a8a">whisper-large-v3-turbo</text>
+          <text x="214" y="97" text-anchor="middle" font-size="8" font-weight="700" fill="#3a2a99">~297 ms</text>
+          <rect x="302" y="46" width="128" height="60" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="366" y="66" text-anchor="middle" font-size="9" font-weight="800" fill="#a8460a">LLM 想</text>
+          <text x="366" y="82" text-anchor="middle" font-size="7.5" fill="#8a4a1a">openai/gpt-oss-120b</text>
+          <text x="366" y="97" text-anchor="middle" font-size="8" font-weight="700" fill="#a8460a">~1119 ms</text>
+          <rect x="454" y="46" width="128" height="60" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="518" y="66" text-anchor="middle" font-size="9" font-weight="800" fill="#137a29">TTS 說</text>
+          <text x="518" y="82" text-anchor="middle" font-size="7.5" fill="#2f6b40">orpheus-v1-english</text>
+          <text x="518" y="97" text-anchor="middle" font-size="8" font-weight="700" fill="#137a29">~805 ms</text>
+          <rect x="606" y="46" width="100" height="60" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/>
+          <text x="656" y="68" text-anchor="middle" font-size="14">🔊</text>
+          <text x="656" y="86" text-anchor="middle" font-size="8" font-weight="700" fill="#005bb0">串流播放</text>
+          <text x="656" y="99" text-anchor="middle" font-size="7" fill="#5d5b54">邊收邊播</text>
+          <g stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#pp)">
+            <path d="M126,76 L148,76"/><path d="M278,76 L300,76"/><path d="M430,76 L452,76"/><path d="M582,76 L604,76"/>
+          </g>
+          <rect x="14" y="128" width="692" height="52" rx="10" fill="#f6f5f4" stroke="#e5e3df"/>
+          <text x="30" y="150" font-size="9.5" fill="#5d5b54">實測「What is the capital of Japan?」→「Tokyo is the capital of Japan.」端到端 <tspan font-weight="800" fill="#1a1a1a">2221 ms</tspan>(含網路)。</text>
+          <text x="30" y="168" font-size="8.5" fill="#a4a097">錄音時用 chunked transfer encoding(未知長度標頭)邊錄邊送給 Whisper;回話音訊塊從 socket 收到後略作緩衝,直送 I2S 輸出。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 三個模型都在 Groq;延遲主要吃 LLM 與網路。錄音與播放都用「串流」而非「先存整段」——這是被記憶體逼出來的(見 ④)。</div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section id="memory">
+    <h2><span class="num">④</span> 關鍵工程限制:記憶體逼你「只能串流」</h2>
+    <p>這個專案最漂亮的工程,不在雲端,而在 MCU 端一個殘酷的算術:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 150" role="img" aria-label="記憶體對比:WiFi/TLS 後只剩約 130KB heap,但 10 秒 16kHz 音訊要 320KB,放不下,所以只能 chunked streaming 不緩衝整段">
+        <g font-family="sans-serif">
+          <text x="20" y="24" font-size="12.5" font-weight="800" fill="#1a1a1a">放不下:130KB 可用 vs 320KB 音訊</text>
+          <text x="20" y="54" font-size="10" font-weight="700" fill="#137a29">可用 heap(WiFi/TLS 後)</text>
+          <rect x="230" y="42" width="86" height="22" rx="5" fill="#1aae39"/>
+          <text x="326" y="59" font-size="9.5" font-weight="700" fill="#137a29">~130 KB</text>
+          <text x="20" y="92" font-size="10" font-weight="700" fill="#c92a2a">10 秒 16kHz 音訊</text>
+          <rect x="230" y="80" width="430" height="22" rx="5" fill="#e03131"/>
+          <text x="666" y="97" font-size="9.5" font-weight="800" fill="#c92a2a">320 KB</text>
+          <rect x="18" y="116" width="688" height="26" rx="8" fill="#fef7d6" stroke="#e5e3df"/>
+          <text x="32" y="133" font-size="9" fill="#5d5b54">結論:<tspan font-weight="700" fill="#1a1a1a">絕不緩衝整段音訊</tspan> —— 錄音時 chunked 邊傳、回話時邊收邊播,才塞得進這顆 MCU。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 上傳用 HTTP <strong>chunked transfer encoding</strong>(不預先知道長度)把音訊邊錄邊送;下行音訊塊從 socket 收到、略緩衝就直送 I2S。整條鏈沒有一次持有完整音訊。</div>
+    </div>
+    <div class="callout tip"><strong>可偷師:</strong>在資源極小的裝置上,<strong>「串流」不是效能優化,而是可行性前提</strong>。當一次性資料量超過記憶體,就得把「先收完再處理」改成「邊收邊處理邊丟」——這和站內即時語音/語者分離的串流管線是同一種思路,只是被逼得更徹底。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="cost">
+    <h2><span class="num">⑤</span> 免費額度與成本</h2>
+    <ul>
+      <li><strong>一把免費 Groq key</strong>(<code>console.groq.com/keys</code>)就能跑全部三個模型。</li>
+      <li>免費層總額 <strong>2000 requests</strong>;<strong>每個對話回合吃 3 個請求</strong>(STT/LLM/TTS 各一)→ 約可用 <strong>666 回合</strong>。</li>
+      <li>即時剩餘額度會回在<strong>回應標頭</strong>裡;超額回 <strong>HTTP 429</strong>,依錯誤訊息等待。</li>
+      <li>Orpheus TTS 首次使用要在 Groq playground <strong>接受一次條款</strong>(否則回 HTTP 400)。</li>
+    </ul>
+    <div class="callout info"><strong>成本觀點:</strong>硬體約幾百元台幣、AI 免費起步——這是它相對「本地大模型」最大的優勢:<strong>入門成本極低</strong>。代價是規模化後要付 Groq 費用、且離線就不能用。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="setup">
+    <h2><span class="num">⑥</span> 軟體設定與控制</h2>
+    <h3>環境與依賴</h3>
+    <ul>
+      <li><strong>板子套件:</strong>「esp32 by Espressif」<strong>3.x</strong>(README 用 3.3.11);<strong>2.x 不相容</strong>(缺 <code>ESP_I2S.h</code>)。</li>
+      <li><strong>函式庫:</strong>ArduinoJson 7.x;<code>WiFi.h / WiFiClientSecure.h / ESP_I2S.h</code> 隨板子套件附帶。</li>
+      <li><strong>設定:</strong>把 <code>secrets.h.example</code> 複製成 <code>secrets.h</code>,填 WiFi 與 Groq key;Tools 設 Board=ESP32S3 Dev Module、<strong>PSRAM=Disabled</strong>、USB CDC On Boot 依連接埠類型。</li>
+      <li>草稿頂端有單一「設定區」:帳號/網路、模型選擇(含 reasoning effort / temperature / token 上限 / system prompt)、音量與 pre-buffer、麥克風(取樣率/時長/靜音門檻)、對話記憶深度、腳位對應。</li>
+    </ul>
+    <h3>操作與序列埠(115200)</h3>
+    <pre><code><span class="cm"># 主要操作:按住 BOOT 說話,放開,聽答案</span>
+r   <span class="cm"># 錄固定 5 秒的一回合</span>
+c   <span class="cm"># 清除對話記憶</span>
+4 5 6   <span class="cm"># 不重燒,直接改麥克風 SD/SCK/WS 腳位</span></code></pre>
+    <h4>疑難排解(節選)</h4>
+    <div class="table-wrap"><table>
+      <thead><tr><th>症狀</th><th>對策</th></tr></thead>
+      <tbody>
+        <tr><td>逐字稿老是 “Thank you.”</td><td>檢查麥克風供電(3V3)、L/R 接 GND、SD 腳連接</td></tr>
+        <tr><td>I2S 初始化失敗</td><td>Tools 裡<strong>停用 PSRAM</strong></td></tr>
+        <tr><td><code>ESP_I2S.h</code> 找不到</td><td>板子套件升到 3.x</td></tr>
+        <tr><td>播放爆音/斷斷續續</td><td>調高 <code>TTS_PREBUFFER</code></td></tr>
+        <tr><td>失真</td><td><code>VOLUME</code> ≤100,改用擴大機 GAIN 腳調音量</td></tr>
+        <tr><td>Model not found(404)</td><td>核對模型名(console.groq.com/docs/models)</td></tr>
+        <tr><td>被限流(429)</td><td>依錯誤訊息等待</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 7 -->
+  <section id="steal">
+    <h2><span class="num">⑦</span> 值得偷師的思路 / <span style="color:var(--stone);font-weight:700">來源</span></h2>
+    <ol>
+      <li><strong>把智慧外包、讓 MCU 只做 I/O。</strong>端側裝置不必自己跑模型;它最擅長的是即時音訊搬運,AI 交給雲端,硬體就能壓到極廉價。</li>
+      <li><strong>在小記憶體上,串流是可行性前提。</strong>130KB heap 放不下 320KB 音訊 → 只能 chunked 邊錄邊傳、邊收邊播;沒有「先存整段」的選項。</li>
+      <li><strong>用 OpenAI 相容/單一供應商把三模型串起來。</strong>STT+LLM+TTS 都在 Groq、一把 key,大幅簡化嵌入式端的實作與憑證管理。</li>
+      <li><strong>把限制當設計指南。</strong>PSRAM 停用、逐腳位串流、pre-buffer 調音——這台的每個設計幾乎都是被 MCU 資源逼出來的,反而乾淨。</li>
+      <li><strong>雲端 vs 本地是取捨,不是對錯。</strong>雲端=便宜/最新/大模型,但要網路與額度;本地=隱私/離線/零 token 費,但硬體貴。按場景選(對照站內 Gemma Translator / VoxEMW)。</li>
+    </ol>
+    <h3>來源</h3>
+    <ul>
+      <li>專案:<a href="https://github.com/techiesms/ESP32-S3-GROQ-Voice-Assistant" target="_blank" rel="noopener">techiesms/ESP32-S3-GROQ-Voice-Assistant</a>(README)。</li>
+      <li>雲端:<a href="https://console.groq.com/keys" target="_blank" rel="noopener">Groq</a>——whisper-large-v3-turbo(STT)、openai/gpt-oss-120b(LLM)、orpheus-v1-english(Canopy Labs,TTS)。</li>
+      <li>硬體:ESP32-S3、INMP441(I2S MEMS 麥)、MAX98357A(I2S D 類擴大機)。</li>
+    </ul>
+    <div class="related">
+      <a href="./gemma-translator.html">
+        <div class="rel-title">💬 Gemma Translator</div>
+        <div class="rel-sub">對照:全本地端側語音(Pi 5)</div>
+      </a>
+      <a href="./voxemw.html">
+        <div class="rel-title">🎙️ VoxEMW</div>
+        <div class="rel-sub">對照:全本地語音數字人(4090)</div>
+      </a>
+      <a href="./microduck-biped-rl.html">
+        <div class="rel-title">🦆 Microduck</div>
+        <div class="rel-sub">另一個 DIY 端側硬體專案</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      本頁依 repo README 整理,非官方文件。腳位、模型名(whisper-large-v3-turbo / openai/gpt-oss-120b / orpheus-v1-english)、延遲數字(~2221ms)、免費額度(2000 requests)等以專案與 Groq 最新資料為準;實作可能隨版本演進。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
