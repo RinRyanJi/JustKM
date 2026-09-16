@@ -26,6 +26,7 @@
   - 🌱 **NEW · 焦點解決教練取向（主管別再當救火員 · JCoachLIFE）**：<https://rinryanji.github.io/JustKM/learn/workplace/solution-focused-coaching.html>
   - 📈 **NEW · OKR × PHDI：績效是設計出來的（績效教練 · JCoachLIFE）**：<https://rinryanji.github.io/JustKM/learn/workplace/okr-phdi-performance-coaching.html>
   - 💡 **NEW · IDEAS + GROWTH：先深度思考再高效溝通（領導力 · JCoachLIFE）**：<https://rinryanji.github.io/JustKM/learn/workplace/ideas-growth-leadership-communication.html>
+  - 🪞 **NEW · 深度教練：別當給答案的保姆（主管輔導 · 升級內在作業系統）**：<https://rinryanji.github.io/JustKM/learn/workplace/deep-coaching-mindset.html>
 - 🌳 **NEW · Git Worktree 觀念與實務**：<https://rinryanji.github.io/JustKM/learn/git-worktree.html>
 - 🌐 網路小白入門（REST / WebSocket）：<https://rinryanji.github.io/JustKM/learn/network-basics.html>
 - 🎨 74 品牌設計系統圖鑑：<https://rinryanji.github.io/JustKM/design-md/>
@@ -75,6 +76,7 @@ JustKM/
 | 🌱 焦點解決教練取向（主管別再當救火員） | [`learn/workplace/solution-focused-coaching.html`](learn/workplace/solution-focused-coaching.html) | ✅ 已建立 | 職場管理 · 整理自 JCoachLIFE 影片 · 教練式領導 · 問題式vs解決式對話 + 教練角色(潛能開發者)對比 + 三核心信念(有資源/改變可能/專注小改變) + 四語言工具(未知性/賦能性但是→而且/量尺/Why→How) + 1% 複利年37倍 + 四步引導路徑 + 3 張 SVG |
 | 📈 OKR × PHDI：績效是設計出來的 | [`learn/workplace/okr-phdi-performance-coaching.html`](learn/workplace/okr-phdi-performance-coaching.html) | ✅ 已建立 | 職場管理 · 整理自 JCoachLIFE 影片 · 績效教練 · 公式 P=(H×D)−I(好習慣×內驅力−阻礙) + 好習慣=微型系統 + 內驅力/5:1 回饋 + 阻礙四類 + 三環管理(H=活動量×技術品質) + OKR↔PHDI 對照(O/OB/S/KR/CFR) + 紅燈是提問起點 + PHDI 教練提問 + 3 張 SVG |
 | 💡 IDEAS + GROWTH：先深度思考再高效溝通 | [`learn/workplace/ideas-growth-leadership-communication.html`](learn/workplace/ideas-growth-leadership-communication.html) | ✅ 已建立 | 職場領導 · 整理自 JCoachLIFE 影片 · 溝通無效源於缺結構化思考 · IDEAS 表達框架(Idea 30字/Definition/Example/Argument/Significance) + 壽險增員實戰(2500萬 vs 7500萬) + 溝通三目標(說服/澄清/教練提問) + GROWTH 落地(Goal-Reality-Options-Will-Tactics-Habit)+習慣複利 + 3 張 SVG |
+| 🪞 深度教練：別當給答案的保姆 | [`learn/workplace/deep-coaching-mindset.html`](learn/workplace/deep-coaching-mindset.html) | ✅ 已建立 | 職場領導 · 主管教練輔導 · 反射性給答案的盲點(先接情緒再處理事情) + 破解自動化思考(接收→跳過客觀分析→結論) + 三層思考煞車(理性論證/後設認知/知彼解己·七習慣) + 四步驟輔導(同理→檢驗→覺察→承諾,不可跳關) + 升級員工內在作業系統 + 2 張 SVG |
 
 ---
 
