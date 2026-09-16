@@ -66,7 +66,7 @@ JustKM/
 | 🏭 Matt Pocock AI 程式開發流程 | [`learn/matt-pocock-dev-workflow.html`](learn/matt-pocock-dev-workflow.html) | ✅ 已建立 | grill→spec→tickets→implement(TDD)→review 生產線 · 17 個工程 Skill · 含手動版 |
 | 🌳 Git Worktree 觀念與實務 | [`learn/git-worktree.html`](learn/git-worktree.html) | ✅ 已建立 | 一個 repo 多工作目錄 · 心智模型/指令速查/實務場景/優缺點/vs clone |
 | 📚 Sesshu 知識區 | [`learn/sesshu/_index.md`](learn/sesshu/_index.md) | ✅ 已建立 | session 歷史壓縮 hook 套件（Claude Code/Codex/Gemini/Copilot CLI）· 7 份中文導覽 + [官方 HTML 原檔](learn/sesshu/sesshu-architecture-and-usage-guide.html) + [壓縮技術說明](learn/sesshu/sesshu-compression-explained.html) + [使用手冊](learn/sesshu/manual.html) |
-| 🤝 為什麼他們總在「刁難」（跨部門溝通） | [`learn/workplace/cross-dept-communication.html`](learn/workplace/cross-dept-communication.html) | ✅ 已建立 | 職場軟技能 · 整理自「龍文說書」上・下集 · 衝突根源 + 六部門翻譯表 + 對話模板作戰地圖 + 化解火藥味話術 + 2 張 SVG · 從對立受害者變協調指揮者 |
+| 🤝 為什麼他們總在「刁難」（跨部門溝通） | [`learn/workplace/cross-dept-communication.html`](learn/workplace/cross-dept-communication.html) | ✅ 已建立 | 職場軟技能 · 整理自「龍文說書」上・下集＋企業培訓框架 · 衝突根源 + 六部門翻譯表 + 對話模板作戰地圖 + 穀倉效應/ABC + Thomas-Kilmann 五種衝突模式 + 化解衝突 3 步驟 + 降溫金句 + 綜合案例 + 3 張 SVG · 從對立受害者變協調指揮者 |
 
 ---
 
@@ -88,4 +88,4 @@ JustKM/
 
 ---
 
-最後更新：2026-09-16（新增 learn/workplace/cross-dept-communication.html — 為什麼他們總在「刁難」：跨部門溝通的衝突真相與協作解方，整理自「龍文說書」上・下集）
+最後更新：2026-09-16（充實 learn/workplace/cross-dept-communication.html 核心工具區 — 補充穀倉效應/ABC 共識、Thomas-Kilmann 五種衝突模式、化解衝突 3 步驟、降溫金句與綜合案例，來源含太毅國際・胡修遠專欄與言果學習）
