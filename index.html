@@ -486,6 +486,13 @@
       <div class="topic-desc">把 Google 開源 Gemma Translator 簡化成「Pi 5 + Whisplay HAT+」兩板式離線口譯機(PiSugar)。拆解聽(Moonshine)→翻(Gemma E2B/LiteRT-LM)→說(Moonshine)三模型管線、為何用 Moonshine 而非 Whisper(變長輸入省 30 秒補零)、E2B 有效參數如何塞進 8GB,與家電式部署。</div>
     </a>
 
+    <a class="topic-card" data-tags="gemma translator internals 原始碼 source code 拆解 深入分析 backend litert_session_server server.py python http.server threadingtcp openai 相容 api /v1/chat/completions 9379 3000 5173 proxy read1 sse 串流 token 不緩衝 flush persistent conversation kv cache 重用 reset 3200 4096 system_prompt moonshine stt tts ordereddict lru 快取 preload 語言 gemma-4-e2b-it litertlm litert-community huggingface litert-lm import start.sh download_model.sh vite react 埠 埠健康等待 pisugar whisplay 端側 內幕 svg ai 語音" href="./learn/gemma-translator-internals.html">
+      <div class="topic-icon">⚙️</div>
+      <div class="topic-name">Gemma Translator 原始碼拆解:兩個行程怎麼接</div>
+      <div class="topic-meta">8 節 + 2 SVG · 讀原始碼 · internals · SSE/KV/LRU</div>
+      <div class="topic-desc">概覽頁的深潛版:讀 backend 原始碼拆解。兩個 Python 行程(LiteRT-LM 常駐翻譯器 :9379 OpenAI 相容 + stdlib http.server 閘道 :3000)如何分工、常駐 conversation 怎麼跨句重用 KV cache 並在 3200 token 重置、SSE 為何用 read1() 不緩衝直通、Moonshine 的 LRU 模型快取,與啟動編排(等埠 180s)。</div>
+    </a>
+
     <a class="topic-card" data-tags="即時 語者分離 speaker diarization 說話者 誰在說話 who spoke when 串流 streaming 本地 離線 cpu onnx onnx runtime cam++ 3d-speaker embedding 特徵向量 512維 餘弦 cosine 相似度 ema 移動平均 分群 clustering 門檻 pyannote nemo sortformer nvidia silero vad 語音活動檢測 faster-whisper whisper.cpp asr 語音轉文字 時間戳 word timestamp 對齊 alignment wasapi loopback 16khz 會議紀錄 逐字稿 重疊語音 overlap qwen2.5 小模型 slm 摘要 條件觸發 svg ai 語音" href="./learn/realtime-speaker-diarization.html">
       <div class="topic-icon">🗣️</div>
       <div class="topic-name">即時語者分離:本地串流「誰在說話」的管線</div>
