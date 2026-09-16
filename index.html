@@ -500,6 +500,13 @@
       <div class="topic-desc">概覽頁的深潛版:讀 backend 原始碼拆解。兩個 Python 行程(LiteRT-LM 常駐翻譯器 :9379 OpenAI 相容 + stdlib http.server 閘道 :3000)如何分工、常駐 conversation 怎麼跨句重用 KV cache 並在 3200 token 重置、SSE 為何用 read1() 不緩衝直通、Moonshine 的 LRU 模型快取,與啟動編排(等埠 180s)。</div>
     </a>
 
+    <a class="topic-card" data-tags="esp32 esp32-s3 groq 語音助手 voice assistant 嵌入式 embedded microcontroller mcu 端側 iot techiesms inmp441 i2s mems 麥克風 max98357a 擴大機 amplifier 喇叭 boot 按鈕 push-to-talk whisper-large-v3-turbo stt gpt-oss-120b llm orpheus tts canopy labs 雲端 cloud api key 免費 rate limit 429 chunked transfer 串流 streaming 記憶體 heap psram arduino esp_i2s arduinojson secrets 延遲 2221ms 聽 想 說 svg ai 語音 diy 硬體" href="./learn/esp32-groq-voice-assistant.html">
+      <div class="topic-icon">🔊</div>
+      <div class="topic-name">ESP32-S3 + Groq 語音助手:一顆 MCU 靠雲端 AI</div>
+      <div class="topic-meta">8 節 + 3 SVG · 嵌入式語音 · Groq 三模型 · 串流被記憶體逼出來</div>
+      <div class="topic-desc">techiesms 開源:整台語音助手跑在單顆 ESP32-S3,按住說話、聽它答。AI 全走 Groq 雲(whisper-large-v3-turbo + gpt-oss-120b + orpheus-v1-english),一把免費 key,端到端 ~2.2s。和站內全本地(VoxEMW/Gemma)相反——MCU 只做音訊 I/O。最精彩的工程:130KB heap 放不下 320KB 音訊,只能 chunked 邊錄邊傳邊播。含接線、延遲、免費額度與疑難排解。</div>
+    </a>
+
     <a class="topic-card" data-tags="即時 語者分離 speaker diarization 說話者 誰在說話 who spoke when 串流 streaming 本地 離線 cpu onnx onnx runtime cam++ 3d-speaker embedding 特徵向量 512維 餘弦 cosine 相似度 ema 移動平均 分群 clustering 門檻 pyannote nemo sortformer nvidia silero vad 語音活動檢測 faster-whisper whisper.cpp asr 語音轉文字 時間戳 word timestamp 對齊 alignment wasapi loopback 16khz 會議紀錄 逐字稿 重疊語音 overlap qwen2.5 小模型 slm 摘要 條件觸發 svg ai 語音" href="./learn/realtime-speaker-diarization.html">
       <div class="topic-icon">🗣️</div>
       <div class="topic-name">即時語者分離:本地串流「誰在說話」的管線</div>
