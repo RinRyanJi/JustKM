@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Gemma Translator 原始碼拆解:兩個行程怎麼接 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>⚙️ Gemma Translator 原始碼拆解:兩個行程怎麼接</h1>
+    <p class="sub">clone 原始碼、讀進 backend 之後的內幕拆解——兩個 Python 行程(LiteRT-LM 常駐翻譯器 + stdlib HTTP 代理)如何分工、KV cache 怎麼跨句重用、SSE token 怎麼「不緩衝」直通瀏覽器、Moonshine 模型怎麼 LRU 快取。是 <a href="./gemma-translator.html" style="color:#bcd8ff;">概覽頁</a>的深潛版。</p>
+    <div>
+      <span class="badge green">讀原始碼 · internals</span>
+      <span class="badge blue">litert_session_server.py + server.py</span>
+      <span class="badge orange">OpenAI 相容 API · SSE · LRU 快取</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#topology">① 三個行程的拓撲</a>
+      <a href="#litert">② LiteRT-LM 常駐翻譯器</a>
+      <a href="#sse">③ SSE 為何「不緩衝」直通</a>
+      <a href="#moonshine">④ Moonshine 的 LRU 模型快取</a>
+      <a href="#model">⑤ 模型與啟動編排</a>
+      <a href="#frontend">⑥ 前端與 /proxy 的設計</a>
+      <a href="#steal">⑦ 值得偷師 / 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p>讀進原始碼後,這台翻譯機的後端其實是<strong>兩個各司其職的 Python 行程</strong>,不是一個大程式:</p>
+    <ul>
+      <li><strong><code>backend/litert_session_server.py</code></strong> —— 常駐的翻譯引擎。把 LiteRT-LM <strong>當函式庫</strong>載入(<code>litert_lm.Engine</code>),維持<strong>一個長生命週期的對話</strong>、把 KV cache 跨句重用,對外開一個 <strong>OpenAI 相容的 HTTP API(<code>127.0.0.1:9379</code>)</strong>。</li>
+      <li><strong><code>backend/server.py</code></strong> —— 對前端的閘道。用 Python <strong>標準庫 <code>http.server</code></strong>(不是 Flask)自己寫路由:靜態檔、Moonshine STT/TTS、系統音量/GPIO/kiosk,以及一個 <code>/proxy</code> 把 LLM 請求轉發到 9379。</li>
+    </ul>
+    <div class="callout info"><strong>一句話抓住設計精神:</strong>把「重的模型」關進各自的常駐行程、對外只露 <strong>HTTP + SSE</strong>,前端與膠水層完全不碰模型 SDK。這讓 LLM 可被任何 <strong>OpenAI 相容</strong>後端替換、STT/TTS 可獨立快取與熱載——是很乾淨的「行程邊界即介面」設計。</p></div>
+    <p style="font-size:0.78rem;color:var(--stone);">本頁依 repo <code>main</code> 分支原始碼(<code>backend/*.py</code>、<code>start.sh</code>、<code>download_model.sh</code>、<code>frontend/package.json</code>)整理;函式/變數名以原始碼為準,若日後改版以最新程式碼為準。</p>
+  </section>
+
+  <!-- 1 -->
+  <section id="topology">
+    <h2><span class="num">①</span> 三個行程的拓撲:埠與邊界</h2>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 260" role="img" aria-label="拓撲圖：瀏覽器連 server.py(3000);server.py 提供靜態檔與 /api/stt /api/tts(Moonshine),並用 /proxy 轉發到 litert_session_server(9379,OpenAI 相容);開發時 Vite 在 5173">
+        <defs><marker id="af" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">行程邊界即介面:三個行程,只用 HTTP 相連</text>
+
+          <!-- browser -->
+          <rect x="16" y="96" width="128" height="70" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="80" y="120" text-anchor="middle" font-size="15">🖥️</text>
+          <text x="80" y="140" text-anchor="middle" font-size="9.5" font-weight="700" fill="#005bb0">瀏覽器 / kiosk</text>
+          <text x="80" y="154" text-anchor="middle" font-size="7.5" fill="#5d5b54">React(dist)</text>
+
+          <!-- server.py -->
+          <rect x="230" y="70" width="200" height="124" rx="12" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.9"/>
+          <text x="330" y="92" text-anchor="middle" font-size="10.5" font-weight="800" fill="#3a2a99">server.py(:3000)</text>
+          <text x="330" y="107" text-anchor="middle" font-size="7.5" fill="#4a3a8a">stdlib http.server · ThreadingTCP</text>
+          <rect x="244" y="118" width="172" height="20" rx="5" fill="#fff" stroke="#c9c0f0"/>
+          <text x="330" y="132" text-anchor="middle" font-size="8" fill="#3a2a99">/  靜態檔 ← frontend/dist</text>
+          <rect x="244" y="142" width="172" height="20" rx="5" fill="#fff" stroke="#c9c0f0"/>
+          <text x="330" y="156" text-anchor="middle" font-size="8" fill="#3a2a99">/api/stt · /api/tts(Moonshine)</text>
+          <rect x="244" y="166" width="172" height="20" rx="5" fill="#fff" stroke="#c9c0f0"/>
+          <text x="330" y="180" text-anchor="middle" font-size="8" fill="#3a2a99">/proxy → 轉發到 9379</text>
+
+          <!-- litert -->
+          <rect x="500" y="86" width="204" height="92" rx="12" fill="#0a1530"/>
+          <text x="602" y="108" text-anchor="middle" font-size="10.5" font-weight="800" fill="#fff">litert_session_server.py</text>
+          <text x="602" y="123" text-anchor="middle" font-size="8.5" fill="#9fb0d0">(:9379,OpenAI 相容)</text>
+          <text x="602" y="141" text-anchor="middle" font-size="8" fill="#b6f0c4">litert_lm.Engine(函式庫)</text>
+          <text x="602" y="157" text-anchor="middle" font-size="8" fill="#9fb0d0">單一常駐 conversation + KV</text>
+          <text x="602" y="171" text-anchor="middle" font-size="8" fill="#9fb0d0">/v1/chat/completions</text>
+
+          <g stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#af)">
+            <path d="M144,131 L228,131"/>
+            <path d="M430,176 C460,176 470,150 498,140"/>
+          </g>
+          <text x="186" y="124" text-anchor="middle" font-size="7.5" fill="#787671">HTTP :3000</text>
+          <text x="466" y="196" text-anchor="middle" font-size="7.5" fill="#787671">HTTP :9379(僅 localhost)</text>
+
+          <!-- moonshine badge -->
+          <rect x="244" y="210" width="172" height="34" rx="8" fill="#d9f3e1" stroke="#1aae39"/>
+          <text x="330" y="225" text-anchor="middle" font-size="8" font-weight="700" fill="#137a29">Moonshine STT / TTS</text>
+          <text x="330" y="238" text-anchor="middle" font-size="7.5" fill="#2f6b40">LRU OrderedDict 模型快取</text>
+          <path d="M330,194 L330,208" stroke="#1aae39" stroke-width="1.6" fill="none" marker-end="url(#af)"/>
+
+          <text x="520" y="214" font-size="8" fill="#a4a097">開發模式另有 Vite :5173(HMR);</text>
+          <text x="520" y="228" font-size="8" fill="#a4a097">正式模式由 server.py 直接送 dist。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 前端只認識 <code>server.py</code>(:3000);LLM 引擎躲在 <code>:9379</code> 且只綁 localhost。三個埠:9379 LiteRT-LM、3000 API/正式 UI、5173 Vite 開發。</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>行程 / 檔案</th><th>埠</th><th>技術</th><th>職責</th></tr></thead>
+      <tbody>
+        <tr><td><code>litert_session_server.py</code></td><td>9379</td><td>litert_lm 函式庫 + 自寫 HTTP</td><td>Gemma 翻譯、KV cache、OpenAI 相容 API</td></tr>
+        <tr><td><code>server.py</code></td><td>3000</td><td>stdlib <code>http.server</code> + ThreadingTCP</td><td>靜態檔、STT/TTS、/proxy、音量/GPIO/kiosk</td></tr>
+        <tr><td>Vite(<code>npm run dev</code>)</td><td>5173</td><td>Vite 5 · React 18</td><td>僅開發模式;正式改由 server.py 送 <code>frontend/dist</code></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 2 -->
+  <section id="litert">
+    <h2><span class="num">②</span> LiteRT-LM 常駐翻譯器:把 KV cache 跨句重用</h2>
+    <p>核心類別是 <code>PersistentTranslator</code>。它做的兩個關鍵決定,是這台在樹莓派上還能即時的原因:</p>
+    <h3>(1) LiteRT-LM 當「函式庫」而非子行程</h3>
+    <p>它 <code>import litert_lm</code> 並建立 <code>litert_lm.Engine</code>(帶模型路徑、backend=CPU、token 上限),引擎在 <code>__init__</code> 就常駐、整個 server 生命週期不重載——避免每次翻譯都冷啟模型。</p>
+    <h3>(2) 單一長生命週期 conversation + 系統提示只預填一次</h3>
+    <p><code>PersistentTranslator</code> 全程只維持<strong>一個</strong> <code>self.conversation</code>,用 <code>threading.Lock()</code> 保護。系統提示來自 <code>SYSTEM_PROMPT</code> 環境變數,透過 <code>engine.create_conversation(system_message=SYSTEM_PROMPT)</code> 在建立對話時就<strong>預填進 KV cache</strong>(指示模型「每次收到 來源語言/目標語言/文字 就翻譯」)。之後每句翻譯都<strong>重用同一份 KV</strong>,不必每次重吃系統提示。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 180" role="img" aria-label="KV cache 生命週期：建立對話時預填系統提示;每句翻譯累加 token;達 3200 門檻或發生推論錯誤時 reset_conversation,重建並重新預填系統提示">
+        <defs><marker id="kv" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">一個常駐對話,到門檻就重置</text>
+          <rect x="16" y="52" width="150" height="46" rx="9" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="91" y="72" text-anchor="middle" font-size="9" font-weight="800" fill="#3a2a99">create_conversation</text>
+          <text x="91" y="88" text-anchor="middle" font-size="8" fill="#4a3a8a">預填 SYSTEM_PROMPT</text>
+
+          <rect x="210" y="52" width="150" height="46" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="285" y="72" text-anchor="middle" font-size="9" font-weight="800" fill="#005bb0">每句翻譯</text>
+          <text x="285" y="88" text-anchor="middle" font-size="8" fill="#0a4f8a">token_count 累加</text>
+
+          <polygon points="404,50 470,75 404,100 338,75" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4" transform="translate(60,0)"/>
+          <text x="464" y="72" text-anchor="middle" font-size="8.5" font-weight="800" fill="#a8460a">≥ 3200 ?</text>
+          <text x="464" y="86" text-anchor="middle" font-size="7.5" fill="#a8460a">或推論錯誤</text>
+
+          <rect x="560" y="52" width="146" height="46" rx="9" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.5"/>
+          <text x="633" y="72" text-anchor="middle" font-size="9" font-weight="800" fill="#a11a6b">reset_conversation</text>
+          <text x="633" y="88" text-anchor="middle" font-size="7.5" fill="#8a1a5b">關舊的、重建 + 重填提示</text>
+
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#kv)">
+            <path d="M166,75 L208,75"/>
+            <path d="M360,75 L396,75"/>
+            <path d="M524,75 L558,75"/>
+          </g>
+          <text x="524" y="66" font-size="7.5" fill="#137a29">否 → 繼續</text>
+          <path d="M285,98 C285,140 200,140 120,100" stroke="#1aae39" stroke-width="1.4" fill="none" marker-end="url(#kv)"/>
+          <path d="M633,98 C633,150 350,155 285,100" stroke="#a11a6b" stroke-width="1.4" fill="none" stroke-dasharray="4 3" marker-end="url(#kv)"/>
+          <text x="360" y="150" text-anchor="middle" font-size="7.5" fill="#a4a097">重置後回到「乾淨的常駐對話」,系統提示已重新在 KV 裡</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ <code>LITERT_RESET_AT_TOKENS</code>(預設 3200)在每次推論前檢查;超過就 <code>reset_conversation()</code>。<code>LITERT_MAX_NUM_TOKENS</code>(4096)是引擎能處理的硬上限——3200 留了緩衝,避免撞到 4096。</div>
+    </div>
+    <h3>(3) 串流:<code>send_message_async</code> → SSE</h3>
+    <p><code>stream(prompt)</code> 迭代 <code>self.conversation.send_message_async(prompt)</code>,用 <code>_text_from_chunk()</code> 從每個 chunk 取出 <code>text</code> 欄位;<code>Handler.do_POST()</code> 把每塊用 <code>emit()</code> 包成 <code>data: {json}\n\n</code> 的 SSE,最後送 <code>[DONE]</code>。對外長得就跟 OpenAI 的 <code>/v1/chat/completions</code>(<code>stream=true</code>)一模一樣。</p>
+    <div class="callout tip"><strong>可偷師:</strong>「一個常駐對話 + 系統提示只預填一次 + 到門檻才重置」是端側 LLM 服務的省算力範式——把重複的前綴留在 KV 裡,把記憶體/延遲用 token 門檻夾住,還順手做了「推論出錯就重置恢復」的韌性設計。</div>
+  </section>
+
+  <!-- 3 -->
+  <section id="sse">
+    <h2><span class="num">③</span> SSE 為何能「不緩衝」直通瀏覽器</h2>
+    <p><code>server.py</code> 的 <code>/proxy</code> 把前端的 LLM 請求轉發到 <code>9379</code>。串流的關鍵只有一行選擇——<strong>用 <code>read1()</code> 而不是 <code>read()</code></strong>:</p>
+    <pre><code><span class="cm"># server.py:handle_proxy() 轉發回應時</span>
+read_chunk = getattr(response, <span class="st">'read1'</span>, response.read)
+<span class="kw">while</span> True:
+    res_body = read_chunk(<span class="kw">4096</span>)
+    <span class="kw">if</span> <span class="kw">not</span> res_body:
+        <span class="kw">break</span>
+    self.wfile.write(res_body)
+    self.wfile.flush()          <span class="cm"># 立刻沖出,不等整包</span></code></pre>
+    <p><code>read()</code> 會<strong>等到湊滿要求的位元組</strong>才回傳,會把一串 token「攢起來」再送,體感就一頓一頓;<code>read1()</code> 是<strong>「有多少先給多少」</strong>(底層一次 read),配合每塊都 <code>flush()</code>,LiteRT-LM 產一個 token、就幾乎立刻推到瀏覽器——原始碼註解稱這是「保留 LiteRT-LM 的 SSE token timing」。</p>
+    <div class="callout info"><strong>為什麼要多一層 <code>/proxy</code> 而不讓前端直連 9379?</strong>因為 9379 <strong>只綁 localhost</strong>(引擎不對外),而前端可能從區網其他裝置連進 <code>:3000</code>。<code>/proxy</code> 還<strong>白名單只准轉發到 <code>localhost:9379</code></strong>、統一補 CORS、優雅處理 broken pipe / 連線重置——是個把「內部引擎」安全地暴露給前端的薄閘道。</div>
+  </section>
+
+  <!-- 4 -->
+  <section id="moonshine">
+    <h2><span class="num">④</span> Moonshine 的 LRU 模型快取與語言預備</h2>
+    <p>聽與說由 <code>server.py</code> 直接呼叫 Moonshine(STT)與 <code>moonshine-voice</code>(TTS)。因為<strong>每種語言一組模型</strong>,記憶體吃緊,所以用 <strong>LRU 快取</strong>控管:</p>
+    <pre><code>_stt_recognizers = OrderedDict()   <span class="cm"># language -> recognizer</span>
+_tts_engines     = OrderedDict()   <span class="cm"># language -> TextToSpeech</span>
+MAX_MODELS = max(<span class="kw">2</span>, int(os.environ.get(<span class="st">"TRANSLATOR_SPEECH_MODEL_CACHE_SIZE"</span>, <span class="st">"2"</span>)))
+<span class="cm"># 要新語言且滿了 → popitem(last=False) 淘汰最舊;命中就 move_to_end</span></code></pre>
+    <ul>
+      <li><strong>支援語言:</strong><code>{en, ar, es, ja, zh, ko}</code>;用 <code>threading.RLock()</code>(可重入)保護快取。</li>
+      <li><strong>預載:</strong>啟動時讀 <code>TRANSLATOR_PRELOAD_LANGUAGES</code>(預設 <code>zh,en</code>),背景執行緒 <code>prepare_languages_background()</code> 先載好。</li>
+      <li><strong>隨需載入 + 進度回報:</strong><code>POST /api/languages</code> 觸發背景 daemon 下載/載入,狀態經 <code>set_language_prepare_status()</code> 記進 <code>_language_prepare_status</code>(queued→preparing→ready);前端輪詢 <code>GET /api/languages</code> 畫進度條。<code>tracked_download_file()</code> 還 patch 了 moonshine 的下載函式來攔截進度。</li>
+    </ul>
+    <div class="table-wrap"><table>
+      <thead><tr><th>路徑</th><th>方法</th><th>資料流</th></tr></thead>
+      <tbody>
+        <tr><td><code>/api/stt</code></td><td>POST</td><td>收 <code>{audio_base64, language}</code> → 解 base64 成 <code>numpy.float32</code> → <code>recognizer.transcribe_without_streaming(audio, 16000)</code> → 回 <code>{text}</code></td></tr>
+        <tr><td><code>/api/tts</code></td><td>GET</td><td><code>?text=&amp;lang=</code> → <code>engine.synthesize(text)</code> → 浮點取樣夾到 [-1,1] → 16-bit PCM → 回 <code>audio/wav</code></td></tr>
+        <tr><td><code>/api/languages</code></td><td>GET/POST</td><td>查詢/觸發語言模型預備與進度</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout tip"><strong>可偷師:</strong>端側多語音服務的通用招式——<strong>LRU 夾住同時常駐的模型數</strong>(預設 2)、<strong>預載熱門語言</strong>、<strong>其餘隨需背景載入並回報進度</strong>。把「一次全載會爆記憶體」變成「常用即時、少用稍等」。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="model">
+    <h2><span class="num">⑤</span> 模型與啟動編排</h2>
+    <h3>模型:確定是 Gemma 4 E2B-it</h3>
+    <p><code>download_model.sh</code> 從 Hugging Face <code>litert-community/gemma-4-E2B-it-litert-lm</code> 抓 <strong><code>gemma-4-E2B-it.litertlm</code></strong>(註解標為「generic CPU build,正確用於樹莓派」;另有 <code>*_Google_Tensor / *_intel / *_qualcomm</code> 加速版),再用 <code>litert-lm import</code> 匯入其本地儲存。<strong>約需 5.2GB 磁碟</strong>(HF 快取 ~2.6GB + 匯入副本 ~2.6GB)。這也確認了概覽頁的命名:是 <strong>Gemma 4 E2B-it</strong>(非 3n)。</p>
+    <h3>啟動:<code>start.sh</code> 的順序與等待</h3>
+    <ol>
+      <li>最多等 <strong>15 秒</strong>網路連線;缺 npm 依賴則安裝;正式模式先 <code>vite build</code> 出 <code>frontend/dist</code>。</li>
+      <li>用 <code>wpctl</code> / <code>amixer</code> 把系統音量開到最大(設 <code>XDG_RUNTIME_DIR</code> 給 PipeWire)。</li>
+      <li>(可選)GPIO bridge <code>deploy/whisplay_plus_gpio.py</code>;接著 <strong>LiteRT-LM(9379)→ 等埠就緒(最多 180 秒)→ API(3000)→ Vite(5173,僅開發)</strong>。</li>
+      <li><code>PYTHONUNBUFFERED=1</code> 讓 log 即時進 systemd。</li>
+    </ol>
+    <div class="callout warn"><strong>值得注意的韌性細節:</strong>API server 會<strong>等 LiteRT-LM 埠就緒最多 180 秒</strong>才啟動——因為在樹莓派上載入 ~2.6GB 模型很慢,這個等待避免了「前端先起來、後端還沒好」的競態。這種「啟動順序 + 埠健康等待」在端側家電式部署很關鍵。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="frontend">
+    <h2><span class="num">⑥</span> 前端與 /proxy 的設計</h2>
+    <p>前端專案名 <code>gemma-offline-translator</code>,<strong>刻意極簡</strong>:只有 <code>react</code> / <code>react-dom</code>(18.3)、<code>@fontsource/roboto-mono</code>(復古終端機字體),建置用 <code>vite</code>(5.3)、格式化用 <code>oxfmt</code>——<strong>沒有任何 UI 框架或狀態管理庫</strong>。對一台只有 480–640px 小螢幕的家電來說,這種「零肥料」前端能省下載入與記憶體。</p>
+    <ul>
+      <li><strong>正式模式</strong>不跑 Vite:由 <code>server.py</code> 直接送 <code>frontend/dist</code> 靜態檔,少一個行程。</li>
+      <li>所有 LLM 呼叫走 <code>/proxy</code>(見 ③),STT/TTS 走 <code>/api/*</code>——前端<strong>完全不知道 9379 的存在</strong>,只跟 <code>:3000</code> 對話。</li>
+      <li>周邊控制也走 API:<code>/api/volume</code>(音量)、<code>/api/hardware</code>(讀 <code>/tmp/whisplay-plus-gpio-state.json</code> 的 GPIO 狀態)、<code>/api/kiosk/exit</code>(關 Chromium kiosk)——這些敏感操作<strong>限 localhost</strong>。</li>
+      <li>互動偏好(如 <code>keyboardMode</code>)存瀏覽器 <code>localStorage</code>。</li>
+    </ul>
+    <div class="callout info"><strong>設計一致性:</strong>無論 LLM、語音、還是硬體控制,前端一律透過 <code>server.py</code> 的 HTTP 介面。<strong>server.py 是唯一對外的面</strong>,把「模型行程、系統周邊」全部藏在後面——換模型、換語音引擎、換硬體,前端都不用動。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="steal">
+    <h2><span class="num">⑦</span> 值得偷師的思路 / <span style="color:var(--stone);font-weight:700">來源</span></h2>
+    <ol>
+      <li><strong>行程邊界即介面。</strong>把重的模型(LLM、STT/TTS)關進常駐行程,對外只露 HTTP+SSE;膠水層與前端不碰模型 SDK。換引擎、換硬體都不牽動其他層。</li>
+      <li><strong>OpenAI 相容是免費的可替換性。</strong>翻譯引擎講 <code>/v1/chat/completions</code>,等於任何 OpenAI 相容後端(vLLM、llama.cpp server…)都能直接替換 LiteRT-LM。</li>
+      <li><strong>常駐對話 + KV 重用 + token 門檻重置。</strong>系統提示只預填一次、跨句重用 KV、到 3200 就重置——端側 LLM 省算力與控延遲的範式,還附「出錯即重置」韌性。</li>
+      <li><strong><code>read1()</code> + <code>flush()</code> 是串流順不順的關鍵。</strong>轉發串流別用會湊滿才回的 <code>read()</code>;<code>read1()</code> 有多少送多少,才保住 token 的即時節奏。</li>
+      <li><strong>LRU 夾住常駐模型數 + 預載 + 隨需背景載入。</strong>多語音服務在小記憶體上的通用解;配進度輪詢給使用者回饋。</li>
+      <li><strong>啟動順序 + 埠健康等待(180s)。</strong>端側載大模型慢,先等後端就緒再起前端,避免競態——家電式部署的必備細節。</li>
+    </ol>
+    <h3>來源</h3>
+    <ul>
+      <li>原始碼:<a href="https://github.com/PiSugar/whisplay-gemma-translator" target="_blank" rel="noopener">PiSugar/whisplay-gemma-translator</a> —— <code>backend/litert_session_server.py</code>、<code>backend/server.py</code>、<code>start.sh</code>、<code>download_model.sh</code>、<code>frontend/package.json</code>(main 分支)。</li>
+      <li>模型:<a href="https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm" target="_blank" rel="noopener">litert-community/gemma-4-E2B-it-litert-lm</a>(<code>gemma-4-E2B-it.litertlm</code>)。</li>
+      <li>執行期:<a href="https://ai.google.dev/edge/litert" target="_blank" rel="noopener">LiteRT</a> / LiteRT-LM;語音:<a href="https://github.com/usefulsensors/moonshine" target="_blank" rel="noopener">Moonshine</a>。</li>
+    </ul>
+    <div class="related">
+      <a href="./gemma-translator.html">
+        <div class="rel-title">💬 Gemma Translator(概覽)</div>
+        <div class="rel-sub">硬體/管線/模型的入門拆解</div>
+      </a>
+      <a href="./voxemw-realtime.html">
+        <div class="rel-title">⏱️ VoxEMW 即時對話工程</div>
+        <div class="rel-sub">另一個本地語音串流的內幕</div>
+      </a>
+      <a href="./deepseek-harness-internals.html">
+        <div class="rel-title">🧩 DeepSeek Harness 內部</div>
+        <div class="rel-sub">另一則讀原始碼的深潛</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      本頁依 repo <code>main</code> 分支原始碼整理(透過原始檔閱讀,非逐行貼碼),函式/變數/環境變數名以原始碼為準;實作可能隨版本演進,細節請以最新程式碼為準。非官方文件。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

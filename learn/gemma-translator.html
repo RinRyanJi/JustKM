@@ -169,6 +169,7 @@
     <p><strong>Gemma Translator 是一台「說一句、翻一句」的雙向語音口譯機,完全跑在一台樹莓派上、全程不連網。</strong>它把三件事串起來:<strong>Moonshine</strong> 把你說的話轉成文字(STT)、<strong>Gemma(E2B)</strong> 透過 <strong>LiteRT-LM</strong> 把文字翻成目標語言、再由 <strong>Moonshine 語音合成</strong>把譯文念出來(TTS)。</p>
     <p>這個 repo(<strong>PiSugar/whisplay-gemma-translator</strong>)是 Jdaie Lin 把 Google 開源的 Gemma Translator <strong>簡化成兩塊板子</strong>的版本:一台 <strong>Raspberry Pi 5(8GB)</strong>,加一片 <strong>Whisplay HAT+</strong>(自帶觸控螢幕、雙麥克風、喇叭)。開機即用、資料不出裝置,支援阿拉伯語、英語、西語、日語、中文、韓語共 6 種語言互譯。</p>
     <div class="callout info"><strong>為什麼有意思:</strong>它是「端側小模型」浪潮一個很具體的落地——不是 demo 一個聊天框,而是把 <strong>聽→翻→說</strong> 整條語音鏈壓進一台巴掌大、離線、靠電池就能帶著走的裝置。旅行、無網環境、隱私敏感場合都用得上。</div>
+    <div class="callout tip"><strong>想看原始碼內幕?</strong>本頁是概覽;若想深入「兩個 Python 行程怎麼接、KV cache 怎麼跨句重用、SSE 為何用 <code>read1()</code> 直通、Moonshine LRU 快取」等實作細節,見深潛版:<a href="./gemma-translator-internals.html"><strong>⚙️ Gemma Translator 原始碼拆解</strong></a>。</div>
   </section>
 
   <!-- 1 -->
