@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>找到公司憑證:企業 CA / TLS 檢查憑證怎麼找、怎麼用 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🔐 找到公司憑證:企業 CA / TLS 檢查憑證怎麼找、怎麼用</h1>
+    <p class="sub">公司網路常做 TLS 檢查(MITM),會把一張「企業根憑證」預先裝進你的電腦信任庫。它是公開憑證(不含私鑰),你在公司電腦上就能找到並匯出——本頁整理各系統的找法、如何確認、以及找到後怎麼餵給各種工具。</p>
+    <div>
+      <span class="badge green">Windows · macOS · Linux · Firefox</span>
+      <span class="badge blue">找 / 匯出 / 確認 / 使用</span>
+      <span class="badge orange">公鑰非私鑰 · 不要停用驗證</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#why">① 為什麼電腦上會有這張憑證</a>
+      <a href="#windows">② Windows 怎麼找</a>
+      <a href="#macos">③ macOS 怎麼找</a>
+      <a href="#linux">④ Linux 怎麼找</a>
+      <a href="#browser">⑤ 瀏覽器(Firefox 自帶庫)</a>
+      <a href="#identify">⑥ 怎麼確認這張就是公司憑證</a>
+      <a href="#use">⑦ 找到之後怎麼用</a>
+      <a href="#notes">⑧ 重點與注意事項</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>是的,通常「直接在公司電腦上找就有」。</strong>做 TLS 檢查的公司,會把一張<strong>企業根憑證(root CA)預先安裝在作業系統的信任庫</strong>裡;你有權限的話就能找到並匯出它——因為那是<strong>公開憑證(只有公鑰、沒有私鑰)</strong>,匯出不算洩密。</p>
+    <p>找它的通用邏輯:<strong>打開系統的「受信任根憑證」清單 → 找名稱像公司名或代理商(Zscaler、Netskope、Palo Alto、Cisco Umbrella、Forcepoint…)的那張 → 匯出成 <code>.crt / .pem</code></strong>。找到後,把需要的工具指向它即可正常連線(見 ⑦)。</p>
+    <div class="callout info"><strong>什麼時候需要它:</strong>某個工具在公司網路報「憑證驗證失敗 / self-signed certificate in chain / PKIX / unable to get local issuer」時,通常就是它沒讀到這張企業根憑證。把工具指向這張憑證就能修好,<strong>而不是去停用 TLS 驗證</strong>。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="why">
+    <h2><span class="num">①</span> 為什麼公司電腦上會有這張憑證</h2>
+    <p>公司為了資安/稽核,會在網路出口放一台<strong>會「拆解」HTTPS 的代理</strong>(TLS inspection / MITM)。它的運作是:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="TLS 檢查流程：你的電腦連到公司代理，代理再連真正網站；代理用企業根憑證即時重簽一張憑證給你，因為這張根憑證已預裝在你電腦的信任庫，瀏覽器就顯示安全鎖">
+        <defs><marker id="af" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">TLS 檢查(MITM):代理在中間拆了又重簽</text>
+
+          <rect x="16" y="60" width="150" height="66" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="91" y="84" text-anchor="middle" font-size="16">💻</text>
+          <text x="91" y="104" text-anchor="middle" font-size="9.5" font-weight="700" fill="#005bb0">你的電腦</text>
+          <text x="91" y="118" text-anchor="middle" font-size="7.5" fill="#5d5b54">信任庫已裝企業根憑證</text>
+
+          <rect x="286" y="60" width="150" height="66" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="361" y="84" text-anchor="middle" font-size="16">🏢</text>
+          <text x="361" y="104" text-anchor="middle" font-size="9.5" font-weight="800" fill="#3a2a99">公司代理(MITM)</text>
+          <text x="361" y="118" text-anchor="middle" font-size="7.5" fill="#5d5b54">用企業根憑證即時重簽</text>
+
+          <rect x="556" y="60" width="148" height="66" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="630" y="84" text-anchor="middle" font-size="16">🌐</text>
+          <text x="630" y="104" text-anchor="middle" font-size="9.5" font-weight="700" fill="#137a29">真正的網站</text>
+          <text x="630" y="118" text-anchor="middle" font-size="7.5" fill="#5d5b54">公開 CA 簽發</text>
+
+          <g stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#af)">
+            <path d="M166,86 L284,86"/><path d="M436,86 L554,86"/>
+          </g>
+          <g stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#af)">
+            <path d="M554,108 L438,108"/><path d="M284,108 L168,108"/>
+          </g>
+          <text x="225" y="80" text-anchor="middle" font-size="7.5" fill="#787671">你↔代理:企業憑證</text>
+          <text x="495" y="80" text-anchor="middle" font-size="7.5" fill="#787671">代理↔網站:真憑證</text>
+
+          <rect x="18" y="150" width="686" height="38" rx="10" fill="#fef7d6" stroke="#e5e3df"/>
+          <text x="34" y="168" font-size="9.5" fill="#5d5b54">因為<tspan font-weight="700" fill="#1a1a1a">企業根憑證已預裝在你電腦的信任庫</tspan>,代理重簽的憑證就被視為「可信」,瀏覽器顯示安全鎖——你多半不會察覺。</text>
+          <text x="34" y="183" font-size="8.5" fill="#a4a097">代價:任何<em>沒讀到</em>這張根憑證的工具(curl、python、node、git…)會因為「不認得簽發者」而報憑證錯誤。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 瀏覽器通常沒事(它用系統信任庫);報錯的往往是命令列工具,因為它們有自己的一套 CA 讀取方式,沒被設定指到企業根憑證。</div>
+    </div>
+    <p>所以「找到這張憑證」的目的通常有二:<strong>(1)</strong> 把它交給某個一直報憑證錯誤的工具;<strong>(2)</strong> 確認你連線是否被檢查、由誰簽發。</p>
+  </section>
+
+  <!-- 2 -->
+  <section id="windows">
+    <h2><span class="num">②</span> Windows 怎麼找</h2>
+    <h3>圖形介面</h3>
+    <ul>
+      <li><code>Win + R</code> → 輸入 <code>certlm.msc</code>(本機層級)或 <code>certmgr.msc</code>(目前使用者)。</li>
+      <li>展開 <strong>「受信任的根憑證授權單位 → 憑證」</strong>。</li>
+      <li>找名稱像公司名或代理商(Zscaler、Netskope、Palo Alto、Cisco Umbrella、Forcepoint…)的那張 → 右鍵 <strong>所有工作 → 匯出</strong>,選 Base-64 編碼(<code>.cer</code>)。</li>
+    </ul>
+    <h3>PowerShell(找 + 匯出)</h3>
+    <pre><code><span class="cm"># 列出本機根憑證,依名稱過濾</span>
+Get-ChildItem Cert:\LocalMachine\Root |
+  Where-Object { $_.Subject -match <span class="st">"公司名|Zscaler|Netskope|Palo Alto"</span> } |
+  Format-List Subject, Issuer, Thumbprint, NotAfter
+
+<span class="cm"># 依 Thumbprint 匯出成 Base-64 .cer</span>
+$c = Get-Item Cert:\LocalMachine\Root\&lt;Thumbprint&gt;
+Export-Certificate -Cert $c -FilePath C:\temp\corp-ca.cer -Type CERT</code></pre>
+    <div class="callout info"><strong>來源:</strong>這類憑證多半是 IT 透過<strong>群組原則(GPO)</strong>或 <strong>Intune / MDM</strong> 推下來的;Windows / Chrome / Edge 都用系統信任庫。</div>
+  </section>
+
+  <!-- 3 -->
+  <section id="macos">
+    <h2><span class="num">③</span> macOS 怎麼找</h2>
+    <h3>圖形介面</h3>
+    <ul>
+      <li>打開 <strong>「鑰匙圈存取」(Keychain Access)</strong> → 左側選 <strong>系統(System)</strong> 或 <strong>系統根憑證(System Roots)</strong>。</li>
+      <li>搜尋公司名 → 找到後右鍵 <strong>匯出</strong> 成 <code>.pem / .cer</code>。</li>
+    </ul>
+    <h3>命令列</h3>
+    <pre><code><span class="cm"># 傾印系統鑰匙圈所有憑證成 PEM(可再 grep 公司名)</span>
+security find-certificate -a -p /Library/Keychains/System.keychain
+
+<span class="cm"># 依名稱找特定一張並輸出 PEM</span>
+security find-certificate -c <span class="st">"公司名"</span> -p /Library/Keychains/System.keychain &gt; corp-ca.pem
+
+<span class="cm"># 若是描述檔(Configuration Profile)推的,列出描述檔</span>
+profiles list        <span class="cm"># 新版可能需 sudo</span></code></pre>
+    <p>描述檔也可在 <strong>系統設定 → 一般 → 裝置管理 / 描述檔(Profiles)</strong> 查看。</p>
+  </section>
+
+  <!-- 4 -->
+  <section id="linux">
+    <h2><span class="num">④</span> Linux 怎麼找</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>發行版</th><th>放憑證的來源目錄</th><th>合併/更新指令</th></tr></thead>
+      <tbody>
+        <tr><td>Debian / Ubuntu</td><td><code>/usr/local/share/ca-certificates/*.crt</code></td><td><code>sudo update-ca-certificates</code> → 併入 <code>/etc/ssl/certs/ca-certificates.crt</code></td></tr>
+        <tr><td>RHEL / Fedora / CentOS</td><td><code>/etc/pki/ca-trust/source/anchors/</code></td><td><code>sudo update-ca-trust</code></td></tr>
+      </tbody>
+    </table></div>
+    <pre><code><span class="cm"># 列出目前信任的 CA(p11-kit)</span>
+trust list | grep -i -A2 <span class="st">"公司名或代理商"</span>
+
+<span class="cm"># 直接在合併後的 bundle 裡找</span>
+awk -v cmd='openssl x509 -noout -subject' '/BEGIN/{c=""} {c=c$0"\n"} /END/{print c | cmd; close(cmd)}' \
+  /etc/ssl/certs/ca-certificates.crt | grep -i <span class="st">"公司名"</span></code></pre>
+    <div class="callout tip"><strong>對照本站雲端環境:</strong>像 Claude Code 的雲端 session,其代理 CA 就直接放在 <code>/root/.ccr/ca-bundle.crt</code>(與 <code>/root/.ccr/agent-proxy-ca.crt</code>)——這正是「憑證通常擺在機器上某個已知路徑」的活例。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="browser">
+    <h2><span class="num">⑤</span> 瀏覽器:Firefox 有自己的信任庫</h2>
+    <p>大多數瀏覽器共用系統信任庫,<strong>但 Firefox 例外——它自帶一套 CA 庫</strong>(除非開了企業政策 <code>security.enterprise_roots.enabled</code> 才會讀系統庫)。</p>
+    <ul>
+      <li>Firefox → <strong>設定 → 隱私與安全性 → 憑證 → 檢視憑證 → 憑證機構(Authorities)</strong>。</li>
+      <li>搜尋公司名 → 選取 → <strong>匯出</strong>。</li>
+      <li>Chrome / Edge:在 Windows/macOS 直接用系統信任庫,查法同 ②③。</li>
+    </ul>
+  </section>
+
+  <!-- 6 -->
+  <section id="identify">
+    <h2><span class="num">⑥</span> 怎麼確認「這張就是公司 MITM 憑證」</h2>
+    <h3>最快:看瀏覽器的憑證鏈</h3>
+    <p>打開任一 HTTPS 網站 → 點網址列<strong>鎖頭 → 檢視憑證 → 憑證鏈(Chain)</strong>。如果最上層的<strong>發行者(Issuer)不是公開 CA</strong>(DigiCert、Let's Encrypt、GlobalSign…),而是<strong>公司名或代理商</strong>,那張根就是企業 MITM 憑證。</p>
+    <h3>命令列:看代理實際回傳的鏈</h3>
+    <pre><code><span class="cm"># 看某網站在你的網路下被誰簽(注意 issuer 那行)</span>
+openssl s_client -connect example.com:443 -showcerts &lt;/dev/null 2&gt;/dev/null \
+  | openssl x509 -noout -issuer -subject
+
+<span class="cm"># 驗證某工具用某張 CA 能不能通</span>
+curl --cacert corp-ca.pem https://example.com -I</code></pre>
+    <div class="callout warn"><strong>安全提醒:</strong>如果你在<strong>非公司網路</strong>(家裡、咖啡廳)也看到憑證被不明的根重簽,那可能是惡意攔截,不是正常公司檢查——這時該停下來查清楚,而不是照單全收。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="use">
+    <h2><span class="num">⑦</span> 找到之後怎麼用:把工具指向這張憑證</h2>
+    <p>多數「憑證驗證失敗」都是因為某工具沒讀到企業根憑證。把它指過去即可,<strong>不要停用驗證</strong>:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>工具 / 語言</th><th>設定方式(指向 PEM)</th></tr></thead>
+      <tbody>
+        <tr><td>curl</td><td><code>--cacert corp-ca.pem</code>,或環境變數 <code>CURL_CA_BUNDLE=/path/corp-ca.pem</code></td></tr>
+        <tr><td>通用(OpenSSL 系)</td><td><code>SSL_CERT_FILE=/path/corp-ca.pem</code>(Python/Ruby/Go 多會讀)</td></tr>
+        <tr><td>Python requests</td><td><code>REQUESTS_CA_BUNDLE=/path/corp-ca.pem</code>;pip 用 <code>PIP_CERT</code> 或 pip.conf <code>cert=</code></td></tr>
+        <tr><td>Node.js</td><td><code>NODE_EXTRA_CA_CERTS=/path/corp-ca.pem</code>;npm 用 <code>npm config set cafile</code></td></tr>
+        <tr><td>git</td><td><code>git config --global http.sslCAInfo /path/corp-ca.pem</code>,或 <code>GIT_SSL_CAINFO</code></td></tr>
+        <tr><td>AWS CLI</td><td><code>AWS_CA_BUNDLE=/path/corp-ca.pem</code></td></tr>
+        <tr><td>Java(JVM)</td><td>匯入 truststore:<code>keytool -importcert -alias corp-ca -file corp-ca.pem -keystore $JAVA_HOME/lib/security/cacerts</code>(密碼預設 <code>changeit</code>),或 <code>-Djavax.net.ssl.trustStore=...</code></td></tr>
+        <tr><td>系統層(一勞永逸)</td><td>Linux 放進系統來源目錄再 <code>update-ca-certificates</code> / <code>update-ca-trust</code>(見 ④);macOS/Windows 匯入系統信任庫</td></tr>
+      </tbody>
+    </table></div>
+    <pre><code><span class="cm"># 範例:讓這個終端機的多數工具一次認得企業 CA</span>
+export SSL_CERT_FILE=/path/corp-ca.pem
+export REQUESTS_CA_BUNDLE=/path/corp-ca.pem
+export NODE_EXTRA_CA_CERTS=/path/corp-ca.pem
+export CURL_CA_BUNDLE=/path/corp-ca.pem
+export GIT_SSL_CAINFO=/path/corp-ca.pem</code></pre>
+  </section>
+
+  <!-- 8 -->
+  <section id="notes">
+    <h2><span class="num">⑧</span> 重點與注意事項</h2>
+    <ol>
+      <li><strong>你找到的是公鑰,不是私鑰。</strong>根憑證檔(<code>.crt/.pem/.cer</code>)只含公開憑證;私鑰只在公司代理伺服器上,電腦上不會有,所以匯出這張憑證不算洩密。</li>
+      <li><strong>能不能匯出看權限。</strong>一般讀取/匯出根憑證多半允許;若被 IT 鎖住,或你不確定哪張才對,<strong>最保險是直接向 IT 索取</strong>官方 CA 檔,避免信任到錯的憑證。</li>
+      <li><strong>永遠不要用「停用 TLS 驗證」來繞過。</strong><code>curl -k</code>、<code>NODE_TLS_REJECT_UNAUTHORIZED=0</code>、<code>git -c http.sslVerify=false</code> 這類做法會讓你對<em>所有</em>連線失去保護——正解是把工具指向正確的企業 CA。</li>
+      <li><strong>非公司網路也被重簽 = 警訊。</strong>正常的企業檢查只發生在公司網路;在外面看到不明根憑證攔截,要當成潛在的中間人攻擊處理。</li>
+      <li><strong>優先用工具自己的 CA 選項,其次才動系統庫。</strong>先試環境變數/參數(影響範圍小、好回復);要一勞永逸再匯入系統信任庫。</li>
+    </ol>
+    <div class="related">
+      <a href="./network-basics.html">
+        <div class="rel-title">🌐 網路小白入門</div>
+        <div class="rel-sub">REST / WebSocket / HTTPS 基礎</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      本頁整理自一般作業系統的憑證管理知識與代理/TLS 檢查的運作原理,非任一廠商官方文件。實際路徑、指令與權限可能因系統版本與公司政策而異;涉及公司資產時,請以貴公司 IT 的指引為準。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
