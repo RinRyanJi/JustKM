@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>讓工程師擁抱 AI:從心理阻力到工程護欄 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🛡️ 讓工程師擁抱 AI:從心理阻力到工程護欄</h1>
+    <p class="sub">傳統工程師抗拒 AI,多半不是學不會,而是出於對品質的堅持、對掌控感的追求與專業自尊被衝擊。這頁分兩半:<strong>上半</strong>——主管怎麼務實引導(五策略);<strong>下半</strong>——現代 AI 工程用什麼「護欄」壓制幻覺/失憶/說幹話(四對策)。核心邏輯:別讓 AI 自由發揮,替它建工程防護欄。</p>
+    <div>
+      <span class="badge green">團隊轉型 · 工程領導</span>
+      <span class="badge blue">五策略引導抗拒者</span>
+      <span class="badge orange">AST+LSP · 原子化 · TDD · 雙代理</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#why">① 為什麼資深工程師抗拒</a>
+      <a href="#reframe">② 策略一:重新定位價值</a>
+      <a href="#strategies">③ 策略二~五:落地引導</a>
+      <a href="#legit">④ 他們的擔憂是精準痛點</a>
+      <a href="#hallucination">⑤ 護欄一:對付幻覺</a>
+      <a href="#memory">⑥ 護欄二:對付失憶</a>
+      <a href="#tdd">⑦ 護欄三:對付說幹話</a>
+      <a href="#guide">⑧ 用護欄引導抗拒者</a>
+      <a href="#steal">⑨ 值得偷師 / 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>工程師抗拒 AI,不是能力問題,而是三件正當的顧慮:對工程品質的堅持、對系統掌控感的追求、專業自尊被衝擊。</strong>他們怕 AI 產出充滿幻覺、難維護的垃圾碼,也擔心多年累積的技術壁壘被稀釋。這些擔憂<strong>不是杞人憂天,而是精準的工程痛點</strong>。</p>
+    <p>引導的關鍵不是由上而下強推、也不是神化 AI,而是兩手並進:<strong>(A)</strong> 幫他們<strong>重塑角色</strong>(從逐行打字員 → 掌握架構與驗收的指揮官)、從痛點切入、守住品質防線、小步試水;<strong>(B)</strong> 讓他們看到現代 AI 工程<strong>不是聊天室盲猜,而是有工程護欄</strong>——AST 索引 + 編譯器閉環、任務原子化 + 外部記憶、TDD 全綠、雙代理審查。</p>
+    <div class="callout info"><strong>一句話抓重點:</strong>當工程師親身體驗到護欄如何壓制 AI 的缺點、並確認<strong>自己的架構把關仍是不可取代的守門人</strong>,抗拒就會自然轉成務實運用。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="why">
+    <h2><span class="num">①</span> 為什麼資深工程師抗拒(不是學不會)</h2>
+    <ul>
+      <li><strong>對工程品質的堅持:</strong>怕 AI 產出幻覺、難維護的垃圾碼,拉低整體水準。</li>
+      <li><strong>對系統掌控感的追求:</strong>怕失去對程式碼庫的掌控,團隊產出不可控的架構災難。</li>
+      <li><strong>專業自尊受衝擊:</strong>把核心價值定義在「逐行敲出優雅程式碼」,感覺多年技術壁壘被稀釋。</li>
+    </ul>
+    <div class="callout warn"><strong>錯誤的推法:</strong>由上而下強硬命令、或過度神化 AI,都會引爆防衛。正確的是<strong>務實、尊重、具體落地</strong>——先承認他們的顧慮是對的,再用方法一一化解。</div>
+  </section>
+
+  <!-- 2 -->
+  <section id="reframe">
+    <h2><span class="num">②</span> 策略一:重新定位工程師的價值與角色</h2>
+    <p>很多資深工程師抗拒,是因為把價值定在「打字」。要幫他們重塑認知:<strong>AI 時代,寫碼的邊際成本大幅降低,但架構設計、系統邊界、高併發穩定性、底層邏輯洞察、程式碼審查的價值急遽上升。</strong>AI 產碼極快,卻缺乏對業務全貌與系統深層脆弱點的理解。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 180" role="img" aria-label="角色重定位:從逐行打字員轉為指揮官;把 AI 當成反應極快但偶爾粗心的初階工程師,自己負責架構方向與驗收品質">
+        <defs><marker id="rf" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1aae39"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">你不是被取代的打字員,是把關品質的指揮官</text>
+          <rect x="16" y="42" width="200" height="60" rx="10" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.5"/>
+          <text x="116" y="66" text-anchor="middle" font-size="10" font-weight="800" fill="#a11a6b">舊定位:逐行打字員</text>
+          <text x="116" y="85" text-anchor="middle" font-size="8" fill="#5d5b54">價值 = 親手敲出程式碼</text>
+          <path d="M222,72 L262,72" stroke="#1aae39" stroke-width="2.4" fill="none" marker-end="url(#rf)"/>
+          <rect x="268" y="42" width="200" height="60" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.6"/>
+          <text x="368" y="66" text-anchor="middle" font-size="10" font-weight="800" fill="#137a29">新定位:主導工程師</text>
+          <text x="368" y="85" text-anchor="middle" font-size="8" fill="#2f6b40">架構 / 邊界 / 併發 / 審查</text>
+          <rect x="500" y="42" width="204" height="60" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="602" y="63" text-anchor="middle" font-size="9.5" font-weight="800" fill="#3a2a99">AI = 反應極快但偶爾</text>
+          <text x="602" y="78" text-anchor="middle" font-size="9.5" font-weight="800" fill="#3a2a99">粗心的初階工程師</text>
+          <text x="602" y="94" text-anchor="middle" font-size="8" fill="#4a3a8a">你帶著他、替他把關</text>
+          <rect x="16" y="122" width="688" height="42" rx="10" fill="#f6f5f4" stroke="#e5e3df"/>
+          <text x="32" y="140" font-size="9.5" fill="#5d5b54">寫碼邊際成本 ↓ &nbsp;&nbsp;|&nbsp;&nbsp; <tspan font-weight="700" fill="#137a29">架構/邊界/併發/洞察/審查 的價值 ↑</tspan></text>
+          <text x="32" y="156" font-size="8.5" fill="#a4a097">AI 產碼快,但看不到業務全貌與系統深層脆弱點——那正是資深工程師不可取代的地方。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 把自己重新定位成「帶著一位反應極快但偶爾粗心的初階工程師的主導工程師」——角色是掌握架構方向、把關規格與驗收,而不是被取代的打字員。</div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section id="strategies">
+    <h2><span class="num">③</span> 策略二~五:落地引導</h2>
+    <h3>策略二:從痛點切入,別強推核心業務改造</h3>
+    <p>一開始就要他們用 AI 生成核心模組或底層架構,必然引爆排斥。<strong>從枯燥、耗時、價值感低的雜務下手</strong>阻力最小、見效最快:</p>
+    <ul>
+      <li>依已寫好的業務函式,自動生成<strong>邊界測試案例與單元測試</strong>。</li>
+      <li>快速產出 <strong>API 技術文件、函式註解、重構說明</strong>。</li>
+      <li>寫複雜<strong>正規表達式</strong>、跨語言腳本轉換、梳理<strong>缺文件的遺留程式碼</strong>流程。</li>
+    </ul>
+    <p>當工程師發現 AI 能吸收掉日常六七成的枯燥體力活,對抗情緒就大幅降低。</p>
+    <h3>策略三:建立明確的安全感與品質防線</h3>
+    <p>明確訂規則,保證<strong>引入 AI 絕不代表降低品質標準</strong>:AI 輔助生成的程式碼,一樣要嚴格通過<strong>靜態分析、風格檢查、自動化測試、同行審查</strong>,標準與人寫的完全一致。並確立<strong>「提交者負全責」</strong>原則——AI 只是輔助工具,系統的最終守門人仍是工程師本人。這種對品質防線的堅持,給舊模式同仁極大的專業安全感。</p>
+    <h3>策略四:創造小步嘗試的環境與同儕示範</h3>
+    <p>別期待一夜全面轉向。鼓勵已熟練的同仁辦<strong>小型「踩坑分享會」</strong>——重點不是 AI 多神,而是<strong>客觀展示 AI 在哪裡會犯錯、會產生什麼邏輯漏洞,以及資深工程師如何一眼看穿並修正</strong>。這會強化傳統工程師的信心(人類專業經驗仍居支配地位)。並在非核心專案/內部工具/PoC 設<strong>實驗沙盒</strong>,讓大家在沒有線上事故壓力下自由嘗試。</p>
+    <h3>策略五:尊重適應節奏,聚焦最終產出而非工具</h3>
+    <p>不同工程師的接受曲線本就不同。<strong>只要能交付高品質、穩定、符合時程的成果,就不必硬性規定每天要用幾次 AI。</strong>鼓勵他們先把 AI 當「加強版搜尋引擎/討論夥伴」,在日常除錯與局部重構累積正面體驗,接納就會從被動嘗試轉為自主探索。</p>
+  </section>
+
+  <!-- 4 -->
+  <section id="legit">
+    <h2><span class="num">④</span> 他們的擔憂是精準的痛點,不是杞人憂天</h2>
+    <p>工程師對 <strong>AI 幻覺、遺忘上下文、煞有其事說幹話、品質不如自己寫</strong> 的擔憂,非常切中要害。<strong>如果只是把 AI 當網頁聊天室、隨意丟一段碼讓它盲猜修改</strong>,確實會頻繁遇到:編造不存在的函式庫、遺漏邊界條件、邏輯前後矛盾——最後工程師花更多時間替 AI 除錯,自然得出「還不如自己寫」。</p>
+    <div class="callout info"><strong>轉折點:</strong>現代軟體工程界為了克服這些問題,早已發展出結合<strong>工具鏈 + 系統架構 + 開發流程</strong>的具體對策。核心邏輯只有一句:<strong>不再讓 AI 自由隨意發揮,而是為它建立一套嚴格的工程防護欄。</strong>下面四節就是這些護欄。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="hallucination">
+    <h2><span class="num">⑤</span> 護欄一:對付幻覺與憑空編造 API</h2>
+    <p>幻覺的本質,是模型在缺乏精確上下文時,依機率硬拼的結果。對策是<strong>把「真實的專案事實」與「編譯器的鐵律」綁在 AI 身上</strong>:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 190" role="img" aria-label="幻覺護欄閉環:工具先解析專案 AST 與符號表,強制 AI 只能引用真實存在的型別與函式;AI 產碼後由 LSP 型別檢查與編譯器驗證,一有編造就報錯並把錯誤餵回 AI 自我修正,直到通過">
+        <defs><marker id="hl" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">產碼前先餵真相,產碼後用編譯器把關 —— 自動閉環</text>
+          <rect x="16" y="44" width="150" height="52" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="91" y="64" text-anchor="middle" font-size="9" font-weight="800" fill="#005bb0">① 索引專案</text>
+          <text x="91" y="80" text-anchor="middle" font-size="7.5" fill="#5d5b54">AST + 符號表</text>
+          <text x="91" y="91" text-anchor="middle" font-size="7" fill="#787671">Cursor/Windsurf/Aider</text>
+          <rect x="196" y="44" width="150" height="52" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.6"/>
+          <text x="271" y="64" text-anchor="middle" font-size="9" font-weight="800" fill="#3a2a99">② AI 產碼</text>
+          <text x="271" y="80" text-anchor="middle" font-size="7.5" fill="#4a3a8a">只能引用真實存在的</text>
+          <text x="271" y="91" text-anchor="middle" font-size="7.5" fill="#4a3a8a">型別/介面/函式</text>
+          <rect x="376" y="44" width="150" height="52" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.6"/>
+          <text x="451" y="64" text-anchor="middle" font-size="9" font-weight="800" fill="#a8460a">③ LSP + 編譯器</text>
+          <text x="451" y="80" text-anchor="middle" font-size="7.5" fill="#8a4a1a">型別檢查 / 編譯</text>
+          <text x="451" y="91" text-anchor="middle" font-size="7.5" fill="#8a4a1a">編造 → 立刻報錯</text>
+          <rect x="556" y="44" width="150" height="52" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="631" y="64" text-anchor="middle" font-size="9" font-weight="800" fill="#137a29">④ 通過 ✓</text>
+          <text x="631" y="80" text-anchor="middle" font-size="7.5" fill="#2f6b40">語法/型別皆綠</text>
+          <text x="631" y="91" text-anchor="middle" font-size="7.5" fill="#2f6b40">才交付</text>
+          <g stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#hl)">
+            <path d="M166,70 L194,70"/><path d="M346,70 L374,70"/><path d="M526,70 L554,70"/>
+          </g>
+          <path d="M451,96 C451,140 271,140 271,98" stroke="#e03131" stroke-width="1.8" fill="none" stroke-dasharray="4 3" marker-end="url(#hl)"/>
+          <text x="361" y="135" text-anchor="middle" font-size="8" fill="#c92a2a">報錯訊息自動餵回 AI 自我修正(不需人類肉眼抓漏)</text>
+          <rect x="16" y="158" width="690" height="24" rx="8" fill="#f6f5f4" stroke="#e5e3df"/>
+          <text x="30" y="174" font-size="8.5" fill="#5d5b54">再加<tspan font-weight="700" fill="#1a1a1a">架構規範設定檔</tspan>(如 .cursorrules / AGENTS.md 類):強制函式庫版本、架構約束與防錯規則,壓縮胡言亂語空間。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 成熟工具(Cursor / Windsurf / Aider)先解析整個專案的 AST 與符號表,強制 AI 只能引用真實存在的符號;再與 LSP、編譯器串成閉環——一編造就報錯、錯誤自動餵回修正,直到通過。</div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section id="memory">
+    <h2><span class="num">⑥</span> 護欄二:對付失憶與上下文遺忘</h2>
+    <p>就算上下文視窗再長,塞太多歷史/雜訊仍會「中間遺忘、注意力分散」。對策是<strong>任務原子化 + 子代理 + 外部記憶</strong>:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="失憶護欄:把大需求拆成規格探索、介面定義、核心邏輯、單元測試等原子子任務,每個在乾淨獨立上下文執行,只傳遞結構化結果;並用外部記憶狀態檔記錄進度與決策">
+        <defs><marker id="mm" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">別在一段長對話裡做完整模組 —— 拆成原子子任務</text>
+          <g font-size="8" text-anchor="middle">
+            <rect x="16" y="42" width="120" height="46" rx="9" fill="#dcecfa" stroke="#0075de"/>
+            <text x="76" y="62" font-weight="700" fill="#005bb0">規格探索</text><text x="76" y="77" fill="#5d5b54">乾淨上下文</text>
+            <rect x="156" y="42" width="120" height="46" rx="9" fill="#e6e0f5" stroke="#5645d4"/>
+            <text x="216" y="62" font-weight="700" fill="#3a2a99">介面定義</text><text x="216" y="77" fill="#5d5b54">乾淨上下文</text>
+            <rect x="296" y="42" width="120" height="46" rx="9" fill="#fef7d6" stroke="#dd5b00"/>
+            <text x="356" y="62" font-weight="700" fill="#a8460a">核心邏輯</text><text x="356" y="77" fill="#5d5b54">乾淨上下文</text>
+            <rect x="436" y="42" width="120" height="46" rx="9" fill="#d9f3e1" stroke="#1aae39"/>
+            <text x="496" y="62" font-weight="700" fill="#137a29">單元測試</text><text x="496" y="77" fill="#5d5b54">乾淨上下文</text>
+          </g>
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#mm)">
+            <path d="M136,65 L154,65"/><path d="M276,65 L294,65"/><path d="M416,65 L434,65"/>
+          </g>
+          <text x="600" y="60" font-size="8" fill="#5d5b54">每步完成只萃取</text>
+          <text x="600" y="72" font-size="8" fill="#5d5b54"><tspan font-weight="700" fill="#1a1a1a">結構化結果</tspan></text>
+          <text x="600" y="84" font-size="8" fill="#5d5b54">傳給下一步</text>
+          <rect x="16" y="110" width="690" height="72" rx="10" fill="#0d1526" stroke="#22304e"/>
+          <text x="34" y="132" font-size="9.5" font-weight="800" fill="#fff">🗃️ 外部記憶狀態機(寫進磁碟的暫存筆記)</text>
+          <text x="34" y="150" font-size="8.5" font-family="monospace" fill="#b6f0c4">progress: 目前進度 / decisions: 關鍵決策 / todo: 待辦清單</text>
+          <text x="34" y="168" font-size="8.5" fill="#9fb0d0">對話重啟或切換上下文時,AI 只要讀這個狀態檔就能立即同步 —— 徹底解決長對話失憶。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 每個子任務在乾淨、無污染的獨立上下文執行,完成後只把結構化結果往下傳;複雜多步任務再用外部狀態檔記錄進度/決策/待辦,重啟即可續作。</div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section id="tdd">
+    <h2><span class="num">⑦</span> 護欄三:對付「有模有樣說幹話」與品質不可信</h2>
+    <p>工程師最在意的是:程式碼看似言之成理,實則在<strong>邊界條件與異常處理</strong>一觸即潰。最強的工程解藥是 <strong>測試驅動開發(TDD)</strong>:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 170" role="img" aria-label="TDD 護欄:工程師先定義輸入輸出規格與嚴苛邊界測試,產生自動化測試;AI 唯一目標是持續改碼直到所有測試全綠;再用產出與審查分離的雙代理,由審查模型檢視效能記憶體資安">
+        <defs><marker id="td" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">先寫嚴苛測試,再叫 AI 改到全綠 —— 沒有打混空間</text>
+          <rect x="16" y="42" width="180" height="56" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.6"/>
+          <text x="106" y="62" text-anchor="middle" font-size="9" font-weight="800" fill="#3a2a99">① 工程師主導</text>
+          <text x="106" y="78" text-anchor="middle" font-size="7.5" fill="#4a3a8a">定義輸入/輸出規格 +</text>
+          <text x="106" y="90" text-anchor="middle" font-size="7.5" fill="#4a3a8a">嚴苛邊界測試(自動化)</text>
+          <rect x="226" y="42" width="180" height="56" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.6"/>
+          <text x="316" y="62" text-anchor="middle" font-size="9" font-weight="800" fill="#a8460a">② AI 唯一目標</text>
+          <text x="316" y="78" text-anchor="middle" font-size="7.5" fill="#8a4a1a">持續改碼,直到</text>
+          <text x="316" y="90" text-anchor="middle" font-size="7.5" fill="#8a4a1a">所有測試全綠 ✅</text>
+          <rect x="436" y="42" width="180" height="56" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.6"/>
+          <text x="526" y="62" text-anchor="middle" font-size="9" font-weight="800" fill="#137a29">③ 雙代理審查</text>
+          <text x="526" y="78" text-anchor="middle" font-size="7.5" fill="#2f6b40">審查模型挑效能/</text>
+          <text x="526" y="90" text-anchor="middle" font-size="7.5" fill="#2f6b40">記憶體洩漏/資安</text>
+          <rect x="646" y="42" width="58" height="56" rx="10" fill="#0a1530"/>
+          <text x="675" y="66" text-anchor="middle" font-size="8" font-weight="800" fill="#fff">人類</text>
+          <text x="675" y="80" text-anchor="middle" font-size="7" fill="#9fb0d0">審閱</text>
+          <g stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#td)">
+            <path d="M196,70 L224,70"/><path d="M406,70 L434,70"/><path d="M616,70 L644,70"/>
+          </g>
+          <path d="M316,98 C316,128 316,128 316,98" stroke="none"/>
+          <text x="316" y="120" text-anchor="middle" font-size="7.5" fill="#a8460a">↻ 測試沒過就繼續改</text>
+          <rect x="16" y="138" width="690" height="24" rx="8" fill="#f6f5f4" stroke="#e5e3df"/>
+          <text x="30" y="154" font-size="8.5" fill="#5d5b54">只要測試涵蓋夠完整,AI 就<tspan font-weight="700" fill="#1a1a1a">沒有說幹話或打混的空間</tspan>;產出/審查分離,劣質產出在送人類前先被過濾。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 工程師不讓 AI 憑空寫業務邏輯,而是先定義規格 + 嚴苛邊界測試,給 AI「改到全綠」的硬性目標;再用「產出/審查分離」的雙代理,讓專挑毛病的審查模型先過濾效能/記憶體/資安問題。</div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section id="guide">
+    <h2><span class="num">⑧</span> 如何用這些護欄引導抗拒的工程師</h2>
+    <p>當同仁說「AI 只會說幹話、還不如自己寫」時,四步走:</p>
+    <ol>
+      <li><strong>先充分肯定他們的判斷。</strong>坦白承認:如果只把 AI 當聊天機器人,確實會浪費時間。(先站在他那邊)</li>
+      <li><strong>說明現代 AI 工程不是聊天。</strong>而是靠型別系統、編譯器回饋、TDD 等<strong>工程防護欄</strong>約束模型(即 ⑤⑥⑦)。</li>
+      <li><strong>把精力導向最高價值環節。</strong>設計規格架構、擬定嚴格邊界測試由他主導;機械性的語法填充與繁瑣實作交給 AI。</li>
+      <li><strong>從零幻覺風險的場景起步。</strong>讓 AI 協助<strong>解析冗長報錯日誌、產生模擬假資料、為現有函式補測試</strong>——低風險、立即有感。</li>
+    </ol>
+    <div class="callout tip"><strong>轉化的心理機制:</strong>當工程師親身體驗護欄如何有效抑制 AI 的缺點,並確認<strong>自己的專業經驗與架構把關仍是不可取代的守門人</strong>,不信任與抗拒就會自然轉為務實運用。這和 <a href="./agent-verification-mindset.html">把晶片驗證思維帶進 AI Agent</a> 的「設計可驗證架構 + 雙層裁判」是同一套精神。</div>
+  </section>
+
+  <!-- 9 -->
+  <section id="steal">
+    <h2><span class="num">⑨</span> 值得偷師的思路 / <span style="color:var(--stone);font-weight:700">來源</span></h2>
+    <ol>
+      <li><strong>抗拒多半是正當顧慮,不是能力問題。</strong>先承認品質/掌控/自尊的擔憂是對的,再談方法;強推與神化都會引爆防衛。</li>
+      <li><strong>重塑角色:從打字員到指揮官。</strong>寫碼邊際成本降、架構/邊界/審查價值升;把 AI 當「反應快但偶爾粗心的初階工程師」。</li>
+      <li><strong>從痛點雜務切入,不碰核心。</strong>測試、文件、註解、regex、legacy 梳理——阻力最小、立即有感。</li>
+      <li><strong>品質防線不降級 + 提交者負全責。</strong>AI 產出一樣過 lint/測試/review;守門人永遠是人。</li>
+      <li><strong>別讓 AI 自由發揮,建工程護欄。</strong>AST+符號表索引、LSP/編譯器閉環自我修正、架構規範設定檔。</li>
+      <li><strong>任務原子化 + 外部記憶。</strong>拆小任務、乾淨上下文、只傳結構化結果;進度/決策/待辦寫進磁碟狀態檔。</li>
+      <li><strong>TDD 是最強解藥。</strong>先寫嚴苛邊界測試,叫 AI 改到全綠;再用產出/審查分離的雙代理先過濾劣質產出。</li>
+    </ol>
+    <h3>來源與延伸</h3>
+    <ul>
+      <li>整理自一份「引導傳統工程師擁抱 AI + 現代 AI 工程護欄」的內容梳理。</li>
+      <li>工具/概念:<a href="https://cursor.com/" target="_blank" rel="noopener">Cursor</a>、<a href="https://windsurf.com/" target="_blank" rel="noopener">Windsurf</a>、<a href="https://aider.chat/" target="_blank" rel="noopener">Aider</a>(程式碼庫索引 / AST);<a href="https://microsoft.github.io/language-server-protocol/" target="_blank" rel="noopener">LSP(語言伺服器協議)</a>;測試驅動開發(TDD)、產出/審查分離的多代理模式。</li>
+    </ul>
+    <div class="related">
+      <a href="./agent-verification-mindset.html">
+        <div class="rel-title">🔬 把晶片驗證思維帶進 AI Agent</div>
+        <div class="rel-sub">設計可驗證架構 · 雙層裁判</div>
+      </a>
+      <a href="./llm-skill-forgetting.html">
+        <div class="rel-title">🧠 為什麼 LLM 會「忘記」</div>
+        <div class="rel-sub">上下文遺忘/中間迷失的根因與解法</div>
+      </a>
+      <a href="./ai-context-compression.html">
+        <div class="rel-title">🗜️ AI 對話/上下文壓縮</div>
+        <div class="rel-sub">長對話與記憶管理</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      本頁整理自上述內容梳理,並補充現代 AI 開發工具與流程的通用背景,非任一工具或機構的官方文件。工具能力(AST 索引、LSP/編譯器閉環、規範設定檔)會隨版本演進,實務套用請以各工具最新文件為準。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
