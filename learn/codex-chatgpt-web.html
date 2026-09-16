@@ -421,6 +421,39 @@ return { ...catalog, models: [...nativeModels, ...webModels] };</code></pre>
         <li>此通道<strong>沒有 MCP 子代理工具</strong>，模型改用「跑 <code>codex exec</code> 非互動指令」來 delegate 子任務，再用第二個 <code>[EXEC_REQUEST]</code> 讀回結果。</li>
       </ul>
     </div>
+
+    <h3>實際 wire 格式：一次來回長怎樣</h3>
+    <p>下面 <code>[EXEC_REQUEST]</code>／<code>[EXEC_RESULT]</code> 的欄位與規則取自原始碼 <code>src/hitl/protocol.ts</code>（<code>DEV_CHAT_HITL_PROTOCOL_INSTRUCTIONS</code>）；任務內容為示意。模型被教的區塊格式（原文）：</p>
+    <pre><code>[EXEC_REQUEST]
+command: &lt;要執行的指令，必填、單行&gt;
+cwd: &lt;工作目錄，選填，預設 .&gt;
+reason: &lt;執行理由，選填&gt;
+[/EXEC_REQUEST]
+
+[EXEC_RESULT]
+exit_code: 0
+output:
+...
+[/EXEC_RESULT]</code></pre>
+    <p><strong>一次完整來回</strong>（示意任務「這個 repo 有幾個 Python 檔？」）：</p>
+    <p>① codex-chatgpt-web 把「協定指示 ＋ 打包的 Codex context ＋ 你的任務」整串貼進 ChatGPT 對答框 → ChatGPT <strong>不直接答，先要求執行</strong>：</p>
+    <pre><code>好，我先數一下。
+[EXEC_REQUEST]
+command: find . -name '*.py' | wc -l
+cwd: .
+reason: 計算 repo 內 .py 檔數量
+[/EXEC_REQUEST]</code></pre>
+    <p>② 你的終端（<code>serve --hitl</code>）攔到區塊、顯示提議等你 <code>y/n/c</code>；按 <code>y</code> 後在 repo 目錄執行，把結果當<strong>下一則訊息</strong>貼回同一對話：</p>
+    <pre><code>[EXEC_RESULT]
+exit_code: 0
+output:
+7
+[/EXEC_RESULT]</code></pre>
+    <p>③ ChatGPT 收到結果才收尾：</p>
+    <pre><code>這個 repo 有 7 個 Python 檔。</code></pre>
+    <div class="callout info">
+      兩條硬規則就藏在這格式裡：<strong>command 必須單行、一次一條</strong>；<strong>在收到 <code>[EXEC_RESULT]</code> 前不得捏造輸出或先做總結</strong>——後者正是防「有模有樣說幹話」的關鍵。委派子任務用 <code>codex exec '…'</code>（一定單引號、600s、10KB），<strong>絕不</strong>帶 <code>--dangerously-bypass-approvals-and-sandbox</code>。
+    </div>
   </section>
 
   <!-- ⑥ -->
