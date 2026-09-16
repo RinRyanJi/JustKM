@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>IDEAS + GROWTH:先深度思考,再高效溝通 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>💡 IDEAS + GROWTH:先深度思考,再高效溝通</h1>
+    <p class="sub">整理自 YouTube 頻道「JCoachLIFE」《領導力 IDEAS+GROWTH:從深度思考到高效溝通》(約 10 分)· 溝通無效多半不是口條/簡報差,而是缺乏結構化思考 · 用 IDEAS 把思緒打包成精準表達,再用 GROWTH 把思考轉成日常習慣與行動</p>
+    <div>
+      <span class="badge green">職場領導 · 思考與表達</span>
+      <span class="badge blue">IDEAS 表達框架</span>
+      <span class="badge orange">GROWTH 落地成習慣</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#root">① 表達的根源是深度思考</a>
+      <a href="#ideas">② IDEAS 思考框架</a>
+      <a href="#example">③ 實戰:壽險增員範例</a>
+      <a href="#goals">④ 溝通的三大目標</a>
+      <a href="#growth">⑤ GROWTH:從思考到行動</a>
+      <a href="#steal">⑥ 值得偷師 / 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>台上講了 20 分鐘,台下只丟一個超表層的問題——溝通無效,通常不是你口才差,而是「開口前的思考」沒結構。</strong>表達只是溝通流程的最後一步,它的底層是<strong>反思</strong>。沒有反思,「十年工作經驗」可能只是把一年的經驗機械式重複了十年。</p>
+    <p>影片給兩個框架接力:<strong>IDEAS</strong> 幫你在開口前把混亂資訊打包成精準表達(核心主張→定義→實例→論證→意義);<strong>GROWTH</strong> 幫你把想清楚的事轉成<strong>每日習慣與行動</strong>——因為再好的點子沒變成習慣,終究只是空想。</p>
+    <div class="callout info"><strong>一句話抓重點:</strong>好表達 = 先想清楚(反思)→ 再打包好(IDEAS)→ 最後變成行動(GROWTH)。主管該時時自問:「我現在只是在<strong>發出聲音</strong>,還是真的用清晰思維在<strong>領導與賦能</strong>?」</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="root">
+    <h2><span class="num">①</span> 表達的根源:先深度思考,後高效表達</h2>
+    <ul>
+      <li><strong>思考決定表達的品質。</strong>表達是最後一步;上游是反思。上游混濁,下游再會講也是包裝糊塗。</li>
+      <li><strong>經驗不等於洞察。</strong>缺乏反思,「十年經驗」= 一年經驗抄十次。只有把經驗反思淬鍊成<strong>結構與觀點</strong>,表達才有說服力。</li>
+    </ul>
+    <div class="callout tip"><strong>可偷師:</strong>覺得自己「講不清楚」時,別急著練簡報技巧——先回頭問「我到底想清楚了沒?我的核心觀點能用一句話講完嗎?」多半問題出在思考,不在嘴巴。</div>
+  </section>
+
+  <!-- 2 -->
+  <section id="ideas">
+    <h2><span class="num">②</span> IDEAS 思考框架:把混亂資訊精準打包</h2>
+    <p>IDEAS 不是教你講客套話,而是<strong>開口前把思緒結構化</strong>的五個要素:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="IDEAS 五要素:Idea 核心主張、Definition 定義澄清、Example 具體實例、Argument 有力論證、Significance 意義與行動">
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">IDEAS:開口前的五步打包</text>
+          <g>
+            <rect x="14" y="44" width="136" height="130" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+            <text x="82" y="68" text-anchor="middle" font-size="15" font-weight="800" fill="#005bb0">I</text>
+            <text x="82" y="86" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0a4f8a">Idea 核心主張</text>
+            <text x="82" y="104" text-anchor="middle" font-size="7.5" fill="#5d5b54">30 字內講完</text>
+            <text x="82" y="118" text-anchor="middle" font-size="7.5" fill="#5d5b54">否則是資訊轟炸</text>
+            <text x="82" y="140" text-anchor="middle" font-size="7" fill="#787671">「每天為您省</text>
+            <text x="82" y="152" text-anchor="middle" font-size="7" fill="#787671">下兩小時白工」</text>
+
+            <rect x="158" y="44" width="136" height="130" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+            <text x="226" y="68" text-anchor="middle" font-size="15" font-weight="800" fill="#3a2a99">D</text>
+            <text x="226" y="86" text-anchor="middle" font-size="8.5" font-weight="700" fill="#4a3a8a">Definition 定義</text>
+            <text x="226" y="104" text-anchor="middle" font-size="7.5" fill="#5d5b54">主動定義關鍵詞</text>
+            <text x="226" y="124" text-anchor="middle" font-size="7" fill="#787671">「緊急」= 今天下班前</text>
+            <text x="226" y="136" text-anchor="middle" font-size="7" fill="#787671">還是週五?先講清楚</text>
+
+            <rect x="302" y="44" width="136" height="130" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+            <text x="370" y="68" text-anchor="middle" font-size="15" font-weight="800" fill="#137a29">E</text>
+            <text x="370" y="86" text-anchor="middle" font-size="8.5" font-weight="700" fill="#2f6b40">Example 實例</text>
+            <text x="370" y="104" text-anchor="middle" font-size="7.5" fill="#5d5b54">大腦需要「錨點」</text>
+            <text x="370" y="124" text-anchor="middle" font-size="7" fill="#787671">抽象概念配</text>
+            <text x="370" y="136" text-anchor="middle" font-size="7" fill="#787671">真實故事才秒懂</text>
+
+            <rect x="446" y="44" width="136" height="130" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.5"/>
+            <text x="514" y="68" text-anchor="middle" font-size="15" font-weight="800" fill="#a8460a">A</text>
+            <text x="514" y="86" text-anchor="middle" font-size="8.5" font-weight="700" fill="#8a4a1a">Argument 論證</text>
+            <text x="514" y="104" text-anchor="middle" font-size="7.5" fill="#5d5b54">數據/理論/邏輯</text>
+            <text x="514" y="124" text-anchor="middle" font-size="7" fill="#787671">不能靠「我是老闆」</text>
+            <text x="514" y="136" text-anchor="middle" font-size="7" fill="#787671">回答「為什麼」</text>
+
+            <rect x="590" y="44" width="116" height="130" rx="10" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.5"/>
+            <text x="648" y="68" text-anchor="middle" font-size="15" font-weight="800" fill="#a11a6b">S</text>
+            <text x="648" y="86" text-anchor="middle" font-size="8" font-weight="700" fill="#8a1a5b">Significance</text>
+            <text x="648" y="100" text-anchor="middle" font-size="8" font-weight="700" fill="#8a1a5b">意義與行動</text>
+            <text x="648" y="120" text-anchor="middle" font-size="7" fill="#787671">回答「所以呢?</text>
+            <text x="648" y="132" text-anchor="middle" font-size="7" fill="#787671">跟我有關係?」</text>
+            <text x="648" y="150" text-anchor="middle" font-size="7" fill="#787671">+ 下一步行動</text>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ 順序有邏輯:先亮主張(I)→ 對齊語言(D)→ 給錨點(E)→ 撐起說服力(A)→ 收束到「與你何干 + 下一步」(S)。</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>要素</th><th>要做的事</th><th>反例 → 正例</th></tr></thead>
+      <tbody>
+        <tr><td><strong>I · Idea 核心主張</strong></td><td>開口前把觀點濃縮在 30 字內</td><td>「產品功能很多很棒」→「每天為您省下兩小時白工」</td></tr>
+        <tr><td><strong>D · Definition 定義</strong></td><td>主動定義關鍵詞,搭共同語言橋樑</td><td>「這很緊急」→ 說清楚是「今天下班前」還是「週五」</td></tr>
+        <tr><td><strong>E · Example 實例</strong></td><td>抽象概念配真實故事/案例當錨點</td><td>只講理論 → 補一個聽眾能代入的真實例子</td></tr>
+        <tr><td><strong>A · Argument 論證</strong></td><td>用數據/理論/邏輯回答「為什麼」</td><td>「因為我是老闆/我認為」→ 客觀證據</td></tr>
+        <tr><td><strong>S · Significance 意義</strong></td><td>點出對聽眾的價值 + 清晰下一步</td><td>停在結論 → 回答「所以呢?跟我有什麼關係?」</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 3 -->
+  <section id="example">
+    <h2><span class="num">③</span> 實戰範例:壽險業主管的「增員」溝通</h2>
+    <p>把 IDEAS 套進「向團隊推動增員」的情境:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>要素</th><th>內容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>I 主張</strong></td><td>為了事業永續,「增員」比單純衝個人業績更重要。</td></tr>
+        <tr><td><strong>D 定義</strong></td><td>增員不是隨便拉人頭,而是持續培養新人、建立<strong>可複製</strong>的組織系統。</td></tr>
+        <tr><td><strong>E 例子</strong></td><td>A 主任個人業績 500 萬但單打獨鬥;B 主任個人 300 萬但每年穩定培養 2 人。<strong>五年後 B 的團隊累積 7500 萬,是 A 的 3 倍。</strong></td></tr>
+        <tr><td><strong>A 論證</strong></td><td>① 人才槓桿(一天只有 24 小時,槓桿來自育才)② 組織新陳代謝(沒新血必老化)③ 持續被動收入(擴大組織是唯一路徑)</td></tr>
+        <tr><td><strong>S 意義+行動</strong></td><td>想十年後事業穩定成長,<strong>現在起每週完成 3 次增員面談</strong>。</td></tr>
+      </tbody>
+    </table></div>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 180" role="img" aria-label="五年累積業績對比:A 主任單打獨鬥五年約 2500 萬;B 主任建團隊五年累積 7500 萬,是 A 的三倍">
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">五年後:系統與團隊 &gt; 單一超級業務員</text>
+          <text x="20" y="60" font-size="10" font-weight="700" fill="#5d5b54">A 主任(單打)</text>
+          <rect x="150" y="48" width="150" height="24" rx="5" fill="#c8c4be"/>
+          <text x="312" y="65" font-size="9.5" font-weight="700" fill="#5d5b54">≈ 2500 萬(500 萬 × 5 年)</text>
+          <text x="20" y="104" font-size="10" font-weight="700" fill="#137a29">B 主任(建團隊)</text>
+          <rect x="150" y="92" width="450" height="24" rx="5" fill="#1aae39"/>
+          <text x="612" y="109" font-size="9.5" font-weight="800" fill="#137a29">≈ 7500 萬</text>
+          <text x="150" y="146" font-size="9" fill="#5d5b54">B 個人業績只有 A 的 60%(300 萬 vs 500 萬),但因為<tspan font-weight="700" fill="#137a29">每年培養 2 人、建立可複製系統</tspan>,五年累積反超到 <tspan font-weight="800" fill="#137a29">3 倍</tspan>。</text>
+          <text x="150" y="164" font-size="8.5" fill="#a4a097">金句:「你今天的成交決定你現在的收入,但你今天的增員決定你未來的事業。」</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 這正是 E(實例)+ A(論證)的威力:一個具體、可算的對比,勝過十句「增員很重要」。</div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section id="goals">
+    <h2><span class="num">④</span> 溝通的三大目標:先辨識,再開口</h2>
+    <p>不是隨時都在提案或說服。開口前先辨識這場對話的目的,用對工具:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>目標</th><th>用什麼</th></tr></thead>
+      <tbody>
+        <tr><td><strong>說服</strong></td><td>用 <strong>IDEAS</strong> 做有結構的高效表達。</td></tr>
+        <tr><td><strong>澄清</strong></td><td>確保彼此理解一致、頻率對齊(這裡 D 定義最關鍵)。</td></tr>
+        <tr><td><strong>收集情報(教練提問)</strong></td><td>用<strong>漏斗式提問</strong>引導員工自己理清思緒——常比單向長篇大論更有領導影響力。</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout info"><strong>接回教練式領導:</strong>第三種「收集情報」正是教練型主管的主場——與其急著給答案,不如用提問把員工的思路引出來。這和站內 <a href="./solution-focused-coaching.html">焦點解決教練</a>、<a href="./okr-phdi-performance-coaching.html">PHDI 績效教練</a> 的提問精神一致。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="growth">
+    <h2><span class="num">⑤</span> 從思考走向行動:GROWTH 成長模型</h2>
+    <p>思考與表達的終極目的不是「懂了就好」,而是促成真正的改變。GROWTH 把想清楚的事一路推到<strong>每日習慣</strong>:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 150" role="img" aria-label="GROWTH 落地路徑:Goal 目標、Reality 現況、Options 選項、Will 承諾、Tactics 拆解戰術、Habit 每日習慣,習慣靠複利累積成績效">
+        <defs><marker id="gr" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif" text-anchor="middle">
+          <text x="360" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">GROWTH:把承諾拆到「每天做得到」</text>
+          <g font-size="8.5" font-weight="700">
+            <rect x="12" y="44" width="106" height="44" rx="9" fill="#dcecfa" stroke="#0075de"/>
+            <text x="65" y="64" fill="#005bb0">G · Goal</text><text x="65" y="79" font-size="7.5" font-weight="400" fill="#5d5b54">釐清目標</text>
+            <rect x="130" y="44" width="106" height="44" rx="9" fill="#dcecfa" stroke="#0075de"/>
+            <text x="183" y="64" fill="#005bb0">R · Reality</text><text x="183" y="79" font-size="7.5" font-weight="400" fill="#5d5b54">掌握現況</text>
+            <rect x="248" y="44" width="106" height="44" rx="9" fill="#e6e0f5" stroke="#5645d4"/>
+            <text x="301" y="64" fill="#3a2a99">O · Options</text><text x="301" y="79" font-size="7.5" font-weight="400" fill="#5d5b54">探索選項</text>
+            <rect x="366" y="44" width="106" height="44" rx="9" fill="#e6e0f5" stroke="#5645d4"/>
+            <text x="419" y="64" fill="#3a2a99">W · Will</text><text x="419" y="79" font-size="7.5" font-weight="400" fill="#5d5b54">給出承諾</text>
+            <rect x="484" y="44" width="106" height="44" rx="9" fill="#fef7d6" stroke="#dd5b00"/>
+            <text x="537" y="64" fill="#a8460a">T · Tactics</text><text x="537" y="79" font-size="7.5" font-weight="400" fill="#5d5b54">拆解戰術</text>
+            <rect x="602" y="44" width="106" height="44" rx="9" fill="#d9f3e1" stroke="#1aae39"/>
+            <text x="655" y="64" fill="#137a29">H · Habit</text><text x="655" y="79" font-size="7.5" font-weight="400" fill="#5d5b54">每日習慣</text>
+          </g>
+          <g stroke="#8a93ad" stroke-width="1.6" fill="none" marker-end="url(#gr)">
+            <path d="M118,66 L128,66"/><path d="M236,66 L246,66"/><path d="M354,66 L364,66"/><path d="M472,66 L482,66"/><path d="M590,66 L600,66"/>
+          </g>
+          <text x="360" y="118" font-size="9" fill="#5d5b54">習慣的<tspan font-weight="700" fill="#137a29">複利</tspan>:再好的點子沒變成日常習慣,終究只是大腦的一場空想。</text>
+          <text x="360" y="136" font-size="8" fill="#a4a097">GROW(Goal-Reality-Options-Will)是經典教練模型,這裡延伸出 Tactics 與 Habit 兩步收尾。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 前四步(GROW)想清楚方向與承諾,後兩步(T、H)把承諾拆成戰術、再固化成每天做得到的習慣——這才接得上績效。</div>
+    </div>
+    <div class="callout tip"><strong>和 PHDI 呼應:</strong>GROWTH 最後落在「每日習慣」,正好接上站內 <a href="./okr-phdi-performance-coaching.html">OKR × PHDI</a> 的 H(好習慣)與習慣複利——想清楚只是起點,變成習慣才有績效。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="steal">
+    <h2><span class="num">⑥</span> 值得偷師的思路 / <span style="color:var(--stone);font-weight:700">來源</span></h2>
+    <ol>
+      <li><strong>講不清楚,先修「思考」不是「口條」。</strong>表達是下游,反思是上游;核心觀點講不成一句話,就是還沒想清楚。</li>
+      <li><strong>核心主張壓到 30 字。</strong>開口第一件事是亮出一句話能懂的主張,其餘都是支撐。</li>
+      <li><strong>主動定義關鍵詞。</strong>多數溝通災難來自「同一個詞、各自解讀」(緊急/盡快/差不多)。</li>
+      <li><strong>用實例當錨點、用證據當靈魂。</strong>E 讓人秒懂,A 回答「為什麼」——現代領導不能靠「我是老闆」。</li>
+      <li><strong>永遠回答「所以跟我有什麼關係 + 下一步」。</strong>沒有 S,再好的內容都留不下行動。</li>
+      <li><strong>想清楚要落到每日習慣。</strong>GROWTH 把承諾拆成戰術與習慣,靠複利變成績效——否則只是空想。</li>
+    </ol>
+    <h3>來源與延伸</h3>
+    <ul>
+      <li>影片:YouTube 頻道 <strong>JCoachLIFE</strong>《領導力 IDEAS+GROWTH:從深度思考到高效溝通》(約 10 分鐘)。</li>
+      <li>框架背景:<strong>GROW 模型</strong>(Goal-Reality-Options-Will,教練經典,常歸於 John Whitmore《Coaching for Performance》),影片延伸為 GROWTH(加入 Tactics、Habit)。IDEAS 為影片提出的表達框架。</li>
+    </ul>
+    <div class="related">
+      <a href="./solution-focused-coaching.html">
+        <div class="rel-title">🌱 焦點解決教練取向</div>
+        <div class="rel-sub">用提問激發潛能</div>
+      </a>
+      <a href="./okr-phdi-performance-coaching.html">
+        <div class="rel-title">📈 OKR × PHDI 績效教練</div>
+        <div class="rel-sub">習慣複利接得上這頁的 GROWTH</div>
+      </a>
+      <a href="./cross-dept-communication.html">
+        <div class="rel-title">🤝 跨部門溝通</div>
+        <div class="rel-sub">把對立翻譯成合作</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      本頁整理自上述影片的內容梳理,並補充 GROW 模型的通用背景,非影片或任一機構的官方文件。IDEAS 框架與壽險增員數字為影片的示範說法;實務套用時請按你的產業與情境調整。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="../index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
