@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>拆解 codex-chatgpt-web：把網頁版 ChatGPT 變成 Codex 的一個模型 · JustKM</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a; --bg-secondary: #131826; --bg-card: #1a2138; --bg-code: #0f1424;
+      --border: #2a3454; --text-primary: #e8ecf4; --text-secondary: #9aa3b8; --text-muted: #6b7390;
+      --accent: #4f9eff; --accent-green: #00d68f; --accent-orange: #ff9f43; --accent-red: #ff4d6d; --accent-purple: #a855f7;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--bg-primary); color: var(--text-primary); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; }
+    .container { max-width: 980px; margin: 0 auto; }
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 16px rgba(0,0,0,0.4); backdrop-filter: blur(8px); }
+    .font-adjuster button { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--text-muted); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--accent); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+    .hero { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; padding: 36px 32px; margin-bottom: 28px; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg,#00d68f,#4f9eff,#a855f7); }
+    .hero h1 { font-size: 1.6875rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .hero .sub { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 3px 10px; font-size: 0.6875rem; color: var(--text-secondary); margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: var(--accent); border-color: var(--accent); }
+    .badge.green { color: var(--accent-green); border-color: var(--accent-green); }
+    .badge.purple { color: var(--accent-purple); border-color: var(--accent-purple); }
+    .badge.orange { color: var(--accent-orange); border-color: var(--accent-orange); }
+    .badge.red { color: var(--accent-red); border-color: var(--accent-red); }
+    .toc { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 32px; }
+    .toc-title { font-size: 0.8125rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px; }
+    .toc a { color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 6px; transition: all 0.15s; }
+    .toc a:hover { color: var(--accent); background: var(--bg-card); }
+    section { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; scroll-margin-top: 20px; }
+    section h2 { font-size: 1.375rem; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+    section h2 .num { color: var(--accent); font-size: 0.875rem; font-weight: 800; background: var(--bg-card); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border); }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--accent); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--text-secondary); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--text-secondary); font-size: 0.875rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--text-secondary); font-size: 0.875rem; }
+    section li { margin-bottom: 4px; }
+    section strong { color: var(--text-primary); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.8125rem; }
+    th { text-align: left; background: var(--bg-card); color: var(--text-primary); padding: 9px 12px; border: 1px solid var(--border); font-weight: 700; }
+    td { padding: 9px 12px; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+    tr:hover td { background: rgba(79, 158, 255, 0.04); }
+    pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.78125rem; line-height: 1.55; }
+    pre code { color: #e8ecf4; }
+    p code, li code, td code { background: var(--bg-code); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; font-size: 0.78125rem; color: var(--accent-orange); }
+    .callout { border-left: 3px solid var(--accent); background: var(--bg-card); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0 16px; font-size: 0.84375rem; color: var(--text-secondary); }
+    .callout.warn { border-left-color: var(--accent-orange); }
+    .callout.tip { border-left-color: var(--accent-green); }
+    .callout.info { border-left-color: var(--accent-purple); }
+    .callout.danger { border-left-color: var(--accent-red); }
+    .callout strong { color: var(--text-primary); }
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--accent); text-decoration: none; font-size: 0.875rem; padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-secondary); }
+    .back-home:hover { border-color: var(--accent); }
+    .footer { text-align: center; color: var(--text-muted); font-size: 0.75rem; margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); }
+    .diagram { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; font-family: 'SF Mono', Menlo, monospace; font-size: 0.78125rem; color: var(--text-secondary); white-space: pre; overflow-x: auto; line-height: 1.5; }
+    .diagram .arrow { color: var(--accent); }
+    .diagram .label { color: var(--accent-green); }
+    .diagram .purple { color: var(--accent-purple); }
+    .diagram .orange { color: var(--accent-orange); }
+    .related { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin: 16px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--accent); text-decoration: none; font-size: 0.875rem; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-secondary); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .related .rel-title { color: var(--text-primary); font-weight: 700; }
+    .related .rel-sub { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
+    @media (max-width: 600px) { .related { grid-template-columns: 1fr; } .toc-grid { grid-template-columns: 1fr 1fr; } .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; } .font-adjuster button { width: 28px; height: 28px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../index.html">← 回到 JustKM 首頁</a>
+
+  <div class="hero">
+    <h1>🔌 拆解 codex-chatgpt-web</h1>
+    <p class="sub">一個跑在 <code>127.0.0.1</code> 的本地 Responses API 橋接器：把你已登入的「網頁版 ChatGPT」包裝成 Codex 的一個模型，用 ChatGPT 方案額度跑 Codex，不吃 API/Codex 配額，介面與工作流不變。</p>
+    <div>
+      <span class="badge green">本地 Responses 代理</span>
+      <span class="badge blue">Bun · Electron · Playwright</span>
+      <span class="badge purple">MCP 反向工具調用</span>
+      <span class="badge orange">v5.0.7</span>
+      <span class="badge">MIT</span>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <strong>這頁在講什麼？</strong> 逐層拆解「怎麼讓 Codex 把外部網頁 ChatGPT 當一個模型用」——
+    從模型清單如何被動手腳、請求怎麼分流、到 Full 模式下 ChatGPT 反過來調用你本機工具（MCP）的完整授權流程、
+    瀏覽器怎麼被自動化、以及上下文壓縮與安全設計。內容整理自 repo 原始碼（file:line 級）。
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#problem">① 它解決什麼問題</a>
+      <a href="#lineage">② 定位與血統</a>
+      <a href="#arch">③ 核心架構</a>
+      <a href="#asmodel">④ 怎麼把網頁 ChatGPT 變成一個模型</a>
+      <a href="#modes">⑤ 三種模式 + HITL</a>
+      <a href="#mcp">⑥ MCP 工具調用怎麼實現</a>
+      <a href="#browser">⑦ 瀏覽器 worker 內幕</a>
+      <a href="#compaction">⑧ 上下文壓縮子系統</a>
+      <a href="#security">⑨ 安全模型與 fail-closed</a>
+      <a href="#relation">⑩ 與 JustKM 其他單元</a>
+      <a href="#sources">⑪ 來源</a>
+    </div>
+  </nav>
+
+  <!-- ⓪ -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p>它把自己偽裝成 <strong>OpenAI 官方 Responses API 的本地端點</strong>，Codex 把模型請求打過來，它負責分流：</p>
+    <ul>
+      <li><strong>原生模型</strong> → 原封不動轉發給官方後端（透明代理），一切照舊。</li>
+      <li><strong><code>chatgpt-web/*</code> 模型</strong> → 改用 Playwright 驅動你登入的網頁 ChatGPT 回答，再把結果組回 Responses API 格式。</li>
+    </ul>
+    <p>進階的 <strong>Full harness</strong> 模式再加一條反向通道：讓網頁 ChatGPT 透過 MCP + OpenAI tunnel <strong>回呼你本機的 Codex 工具</strong>（讀寫檔案、跑指令），而且每個回合用一次性 token 嚴格授權。<strong>Codex 全程不知道背後其實是一個瀏覽器分頁。</strong></p>
+  </section>
+
+  <!-- ① -->
+  <section id="problem">
+    <h2><span class="num">①</span> 它解決什麼問題</h2>
+    <p>Codex（OpenAI 的 CLI/桌面編碼 agent）預設用 API/Codex 額度計費。但很多人手上有 <strong>ChatGPT 訂閱方案</strong>（Plus / Pro），那份額度是<strong>另外一套、獨立計算</strong>的訊息配額。</p>
+    <p>這個專案的動機：<strong>把 Codex 的模型後端偷偷換成「網頁版 ChatGPT」</strong>，於是：</p>
+    <ul>
+      <li>用 ChatGPT 方案的訊息配額跑 Codex 任務，<strong>不消耗你的 Work / Codex / API 配額</strong>。</li>
+      <li>可用到只在網頁開放的模式（Instant / Think / Medium / High / Extra High，甚至 <strong>Pro</strong>）。</li>
+      <li>介面、任務、圖片、串流全都留在 Codex 原生 harness 裡，體驗不變。</li>
+    </ul>
+    <div class="callout warn">
+      <strong>這是非官方的瀏覽器自動化，不是 OpenAI API。</strong> repo 自己明列 non-goal：不繞過 ChatGPT 方案/workspace/用量/模型限制、不靠重試規避用量上限。ChatGPT 網頁改版可能讓 selector 失效 —— 遇到就讓該回合「明確失敗」，絕不偷換模型或假造成功。使用前請自行評估是否符合你帳號的服務條款。
+    </div>
+  </section>
+
+  <!-- ② -->
+  <section id="lineage">
+    <h2><span class="num">②</span> 定位與血統</h2>
+    <table>
+      <tr><th>項目</th><th>內容</th></tr>
+      <tr><td>你打開的 repo</td><td><code>jesseclin/codex-chatgpt-web</code> —— 是 <code>miuuyy/codex-chatgpt-web</code> 的 <strong>fork</strong>（package.json、README、launcher 內的連結全指向 miuuyy）</td></tr>
+      <tr><td>版本 / 授權</td><td>v5.0.7 · MIT</td></tr>
+      <tr><td>daemon 端</td><td><strong>Bun 1.4</strong> 寫的本地 HTTP 服務（Responses 代理 + MCP broker）</td></tr>
+      <tr><td>桌面 launcher</td><td><strong>Electron 41 + React 19 + Vite</strong>；擁有真正的 ChatGPT <code>WebContentsView</code> 分頁、登入 partition、tunnel/daemon 監管、HITL 彈窗</td></tr>
+      <tr><td>瀏覽器自動化</td><td><strong>Playwright-core / CDP</strong>（<code>connectOverCDP</code> 連到 launcher 租給它的分頁）</td></tr>
+      <tr><td>工具回呼</td><td><strong>@modelcontextprotocol/sdk</strong>（stdio MCP server）+ 官方 <code>openai/tunnel-client</code>（pinned 0.0.12）</td></tr>
+      <tr><td>用量估算</td><td><strong>tiktoken</strong>（<code>o200k_base</code>，GPT-5 世代的 tokenizer）</td></tr>
+    </table>
+    <p>三個獨立行程協作：<strong>(1) daemon</strong>（adapter + MCP broker + TurnBroker）、<strong>(2) helper 子行程</strong>（真正跑 Playwright 的驅動）、<strong>(3) Launcher</strong>（Electron，擁有 ChatGPT 分頁與登入狀態）。</p>
+  </section>
+
+  <!-- ③ -->
+  <section id="arch">
+    <h2><span class="num">③</span> 核心架構</h2>
+    <div class="diagram">Codex app / CLI
+      │ <span class="label">Responses API on loopback (127.0.0.1)</span>
+      ▼
+launcher 擁有的 codex-chatgpt-web daemon  <span class="arrow">(Bun)</span>
+  ├─ 官方 /models passthrough <span class="arrow">+</span> 追加固定 chatgpt-web/* 模型
+  ├─ native passthrough  <span class="arrow">或</span>  ChatGPT SSE 橋接
+  ├─ 已驗證的 native Search / Image Gen 轉發
+  ├─ ChatGPT 瀏覽器 worker  <span class="orange">(最多 5 個 task-bound 分頁)</span>
+  ├─ capability broker      <span class="purple">(僅 Full 模式)</span>
+  └─ stdio MCP server
+            ▲
+            │ <span class="label">outbound OpenAI Tunnel (純出向, 不開對外 port)</span>
+            ▼
+      ChatGPT custom connector  <span class="purple">("Codex Native2")</span></div>
+    <p>daemon 的 HTTP 路由（<code>src/server.ts</code> 的 <code>Bun.serve</code>）大致是：</p>
+    <table>
+      <tr><th>路徑</th><th>行為</th></tr>
+      <tr><td><code>GET /healthz</code></td><td>健康檢查；回報 mode/pid/uptime + 兩個 drain 計數器</td></tr>
+      <tr><td><code>GET /v1/models</code></td><td>官方目錄 passthrough → <code>augmentNativeModelCatalog</code> 追加 <code>chatgpt-web/*</code></td></tr>
+      <tr><td><code>POST /v1/responses</code></td><td>核心：依 <code>model</code> slug 分流（原生 passthrough vs 瀏覽器橋接）</td></tr>
+      <tr><td><code>GET /v1/responses</code></td><td>一律回 <strong>HTTP 426</strong>（叫 Codex 切回 HTTP/SSE 傳輸）</td></tr>
+      <tr><td><code>POST /v1/responses/compact</code></td><td>壓縮（native passthrough 或橋接 v1 摘要）</td></tr>
+      <tr><td><code>POST /v1/alpha/search</code>、<code>/v1/images/*</code></td><td>原生轉發（帶你自己的 Bearer）</td></tr>
+      <tr><td><code>POST /admin/{drain,resume,cancel-turn,interrupt-turn,cancel-turns,shutdown}</code></td><td>生命週期控制，需隨機 bearer token</td></tr>
+    </table>
+  </section>
+
+  <!-- ④ -->
+  <section id="asmodel">
+    <h2><span class="num">④</span> 怎麼把「網頁 ChatGPT」變成一個 Codex 模型？</h2>
+    <p>這是最核心的問題。答案分三步：<strong>接管路線 → 混進模型清單 → 按模型分流</strong>。</p>
+
+    <h3>Step 1：接管 Codex 的 Responses 路線</h3>
+    <p>setup 把 Codex <code>~/.codex/config.toml</code> 裡內建 <code>openai</code> provider 的 <code>openai_base_url</code> 改成指向本地 daemon（<code>http://127.0.0.1:&lt;port&gt;/v1</code>），<strong>保留原本 provider 身分</strong>。從此 Codex 所有模型流量都先經過這個 daemon。</p>
+    <ul>
+      <li><strong>Voice 路線被釘死在官方端點</strong>：同時把 <code>experimental_realtime_webrtc_call_base_url</code> 指回 <code>chatgpt.com/backend-api/codex</code>，語音功能不會誤走本地橋接。</li>
+      <li><strong>逐字可還原</strong>：改動全部寫進一份 journal（<code>version:10</code>），記錄改前的原始行；斷開/解除安裝時 byte-for-byte 還原，並採「先寫 recovery 副本 → 再寫 config → 最後寫主 journal」的順序，讓當機後能明確判斷已提交狀態。</li>
+    </ul>
+
+    <h3>Step 2：把 chatgpt-web/* 混進官方模型清單</h3>
+    <p><code>GET /v1/models</code> 先原封不動轉發到真正的官方後端拿回目錄，然後 <code>augmentNativeModelCatalog()</code> 做「<strong>原生一列不動、只追加</strong>」：</p>
+    <pre><code>const nativeModels = catalog.models.filter(m =&gt; !slug(m)?.startsWith("chatgpt-web/")); // 原生全照抄
+const webModels = availableChatGptWebModelRoutes(config)
+  .map(route =&gt; buildChatGptWebModel(template, route, config));                // 追加幾列
+return { ...catalog, models: [...nativeModels, ...webModels] };</code></pre>
+    <p>追加的列拿一個原生模型當 template 複製，再覆寫關鍵欄位（slug、顯示名、context window、effort、<code>tool_mode:null</code>、<code>supported_in_api:true</code> 等），對應這些帳號才看得到的路線：</p>
+    <table>
+      <tr><th>slug</th><th>顯示</th><th>effort（固定）</th><th>gate</th></tr>
+      <tr><td><code>chatgpt-web/light</code></td><td>Instant</td><td>low</td><td>—</td></tr>
+      <tr><td><code>chatgpt-web/medium</code></td><td>Medium</td><td>medium</td><td>—</td></tr>
+      <tr><td><code>chatgpt-web/high</code></td><td>High</td><td>high</td><td>—</td></tr>
+      <tr><td><code>chatgpt-web/extra-high</code></td><td>Extra High</td><td>xhigh</td><td>帳號需開放</td></tr>
+      <tr><td><code>chatgpt-web/pro</code></td><td>Pro</td><td>ultra→max</td><td>需 Pro 帳號</td></tr>
+      <tr><td><code>chatgpt-web/luna</code>、<code>/think</code></td><td>Luna / Think</td><td>low / medium</td><td>沒有 Sol 選單的帳號</td></tr>
+      <tr><td><code>chatgpt-web/zero-risk</code>(-pro)</td><td>Zero Risk</td><td>—</td><td>手動互動模式</td></tr>
+    </table>
+    <p>後端實際模型是 <code>gpt-5.6-sol</code> / <code>gpt-5.6-luna</code>。每列 effort <strong>固定不可改</strong>（模型本身就等於 ChatGPT 的那個模式），Codex 的 Effort/Speed 選項壓不過它。</p>
+
+    <h3>Step 3：POST /v1/responses 按 slug 分流</h3>
+    <pre><code>if (typeof requestedModel === "string" &amp;&amp; !isChatGptWebModelSlug(requestedModel)) {
+  // 不是 chatgpt-web/* → 原封不動轉發給官方後端
+  return await forwardNativeCodexRequest(nativeRequest, "responses", undefined, raw);
+}
+// 是 chatgpt-web/* → 交給瀏覽器 adapter 去驅動你登入的網頁 ChatGPT</code></pre>
+
+    <div class="callout tip">
+      <strong>回答你最關心的三個問題：</strong>
+      <ul style="margin-top:8px;margin-bottom:0;">
+        <li><strong>其它模型還正常嗎？</strong> ✅ 完全正常。非 <code>chatgpt-web/*</code> 一律 native passthrough 原樣轉發，連 image、search、compaction、Voice 都照走原路 —— 它只是個透明代理。</li>
+        <li><strong>可以挑選模型嗎？</strong> ✅ 就在 Codex <strong>原生模型選單</strong>裡挑。因為 <code>/v1/models</code> 把 <code>chatgpt-web/*</code> 混進官方目錄一起回傳，你看到的是「原生模型 + 幾列 ChatGPT Web — …」。</li>
+        <li><strong>怎麼變成一個模型？</strong> 把網頁 ChatGPT 包成一列符合 Codex 模型 schema 的 catalog row，請求進來就改用瀏覽器回答，SSE 事件再組回 Responses 格式。</li>
+      </ul>
+    </div>
+
+    <h3>兩個容易忽略的細節</h3>
+    <ul>
+      <li><strong>HTTP 426 握手</strong>：<code>GET /v1/responses</code> 一律回 <code>426 Upgrade Required</code>。這是 Codex 探測「有沒有 WebSocket 傳輸」的預熱握手，426 = 「這裡沒有 WS，請用純 HTTP/SSE」，且不會 fallback 換模型。</li>
+      <li><strong>跨 provider 殘留物清洗</strong>：本地產生的 <code>rs_*</code> reasoning id、<code>ocx1:</code> 壓縮 checkpoint，在切回原生模型前會被 <code>scrubBridgeArtifactsForNative()</code> 移除/改寫成一般 user 訊息，避免官方後端去載一個它從沒存過的 item。</li>
+    </ul>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="modes">
+    <h2><span class="num">⑤</span> 三種模式 + HITL 本地 exec</h2>
+    <table>
+      <tr><th>模式</th><th>送訊息</th><th>本機 Codex 工具</th><th>機制</th></tr>
+      <tr><td><strong>Browser-only</strong></td><td>自動</td><td>❌</td><td>把整包 Codex context 丟進一個全新的 ChatGPT「臨時對話」，只取回答；不啟動 broker/tunnel/MCP</td></tr>
+      <tr><td><strong>Full harness</strong></td><td>自動</td><td>✅ 經 MCP</td><td>ChatGPT 透過 outbound tunnel + <code>Codex Native2</code> connector 回呼本機工具</td></tr>
+      <tr><td><strong>Zero Risk</strong></td><td>手動貼上</td><td>✅ 另一組 connector</td><td>程式<strong>完全不讀寫 ChatGPT DOM</strong>；你手動選模型、貼 prompt、按送出，再回 launcher 按「Sent」確認</td></tr>
+      <tr><td><strong>--hitl</strong>（browser-only）</td><td>自動</td><td>✅ 本機終端 exec</td><td>tunnel 被擋時的替代路：模型發 <code>[EXEC_REQUEST]</code>，你在終端逐條核准才執行</td></tr>
+    </table>
+
+    <h3>HITL（Human-In-The-Loop）本地 exec 的設計與限制</h3>
+    <p>當 MCP tunnel 不能用（例如被網路擋），<code>--hitl</code> 讓 browser-only session 直接在終端跑本機指令，<strong>每一條都要你按 Enter/<code>y</code> 核准</strong>（<code>n</code>/Esc 拒絕、<code>c</code> 先編輯）。模型用文字區塊 <code>[EXEC_REQUEST]</code> 提出指令，核准後結果以 <code>[EXEC_RESULT]</code> 注回同一個瀏覽器回合。</p>
+    <div class="callout danger">
+      <strong>安全邊界很現實，務必理解：</strong>
+      <ul style="margin-top:8px;margin-bottom:0;">
+        <li><strong>可寫、不做內容沙箱</strong>：你核准什麼就跑什麼（含 <code>rm</code>、<code>git commit</code>、<code>sed -i</code>）。唯二內建限制是「指令限制在設定的 workspace 目錄內」＋「每條都要你核准」；<strong>沒有</strong>自動唯讀強制或指令黑名單。</li>
+        <li><strong>600 秒逾時、單條輸出上限 10KB</strong>；<strong>單行指令</strong>（<code>command:</code> 當一行解析，delegate 的子任務 prompt 要單引號、不能含換行/單引號）。</li>
+        <li><strong>只在 browser-only + 前景有 TTY</strong> 才啟用；當背景服務或無 TTY 一律 fail-closed（不執行）。</li>
+        <li>此通道<strong>沒有 MCP 子代理工具</strong>，模型改用「跑 <code>codex exec</code> 非互動指令」來 delegate 子任務，再用第二個 <code>[EXEC_REQUEST]</code> 讀回結果。</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ⑥ -->
+  <section id="mcp">
+    <h2><span class="num">⑥</span> MCP 工具調用怎麼實現？（Full 模式）</h2>
+    <p>Browser-only 下 ChatGPT 只是純聊天、碰不到你本機。要讓它真的能讀寫檔案、跑指令，就靠 Full 模式的 <strong>MCP 反向回呼</strong>。它是個<strong>三方拆分</strong>設計：</p>
+    <div class="diagram"><span class="label">owner</span> = ChatGPT-web adapter（在 daemon 裡）—— 把「當前 Codex 回合的工具環境」註冊給 broker
+   │
+   ▼  <span class="arrow">newline-JSON over Unix socket / Windows named pipe</span>
+<span class="label">broker</span> = TurnBroker（daemon 內單例）—— 持有回合環境, 仲裁每一次工具呼叫
+   ▲
+   │  <span class="arrow">claim / invoke / settle</span>
+<span class="label">MCP server</span> = 獨立子行程（tunnel 生的）—— 對 ChatGPT 暴露 codex_* 工具
+                              它<span class="orange">看不到環境</span>, 必須先用 turn token 換 binding</div>
+
+    <h3>授權生命週期：token → claim → invoke → settle</h3>
+    <p>能力的核心是一個 <strong>「本回合專屬」的隨機 token</strong>（<code>turn_</code> + 24 bytes base64url）。daemon 把它編進 ChatGPT 的 prompt，ChatGPT 在回答途中每次 <code>codex_*</code> 工具呼叫都要帶這個 token 回來。每個工具 handler 都跑在 <code>withClaimedTurn</code> 裡：</p>
+    <ol>
+      <li><strong>Claim</strong>：MCP server 拿 token 向 broker <code>{method:"claim"}</code>。broker 驗 token（能區分「發給一個已結束回合」vs「從沒存在」）、記下 activity 租約、回一個 <strong>不透明的 <code>bindingId</code></strong> + 環境。</li>
+      <li><strong>Invoke</strong>：用 <code>bindingId</code> 呼叫「當前回合真正擁有的工具」，實際在真正的 Codex runtime 裡執行。</li>
+      <li><strong>Settle</strong>：<code>finally</code> 一定送 <code>{method:"activity_complete"}</code>（<strong>刻意不帶 AbortSignal</strong>，避免取消時遺留租約卡住後續完成），把 activity 移到 tombstone。</li>
+    </ol>
+    <div class="callout tip">
+      三個安全要點：<strong>(1)</strong> ChatGPT 只能呼叫「當前 outer Codex 回合自己宣告過」的工具，跨不了 turn/task；<strong>(2)</strong> 內部 <code>bindingId</code>/handle 從不暴露給模型，token 每回合都是新的；<strong>(3)</strong> 工具是在真正的 Codex runtime 跑的（沙箱、核准彈窗、UI、結果都是 Codex 原生負責），不是重新實作一套 —— 所以工具調用跟你直接用 Codex 一樣真實。
+    </div>
+
+    <h3>對 ChatGPT 暴露的 bridge 工具</h3>
+    <ul>
+      <li><code>codex_exec</code> / <code>codex_write_stdin</code> —— 跑指令 / 寫入或輪詢一個 session</li>
+      <li><code>codex_apply_patch</code> / <code>codex_view_image</code></li>
+      <li><code>codex_tool_inventory</code> —— <strong>分頁列出</strong>當前回合有哪些工具（回傳精確 <code>wire_name</code> 與 schema）</li>
+      <li><code>codex_tool_call</code> —— <strong>用 inventory 給的精確 wire_name 去呼叫</strong>（萬用 dispatcher）</li>
+      <li><code>codex_turn_start</code> / <code>codex_turn_complete</code> —— Zero Risk 用的起訖</li>
+      <li><code>multi_agent_v1/v2__wait_agent</code>、<code>collaboration__wait_agent</code> —— 子代理輪詢</li>
+    </ul>
+
+    <h3>exec gateway：用生成的 JS 跑巢狀工具</h3>
+    <p>有時 Codex 不暴露離散的 <code>exec_command</code>，而是暴露一個 freeform <code>exec</code>（可跑模型寫的 JS，scope 裡有 <code>tools</code> 註冊表）。這時 bridge <strong>生成一段 JS</strong> 丟進那個沙箱：挑對的原生命令工具呼叫、正規化結果再 <code>emit()</code>。同時用一個 <code>Proxy</code> 包住 <code>tools</code> 註冊表：<strong>禁止在 exec 裡再遞迴呼叫 exec</strong>，並強制 wait_agent 的輪詢間隔。</p>
+
+    <h3>三個容易踩雷的時間/併發設計</h3>
+    <ul>
+      <li><strong>wait_agent 固定 30 秒輪詢</strong>：因為 MCP 通道是共享序列化的，一個長 block 會餓死被 spawn 的 web 子代理。schema 把 <code>timeout_ms</code> 鎖成 const/min/max=30000，且呼叫端三處強制。一次 timeout ≠ 任務完成，要再檢查進度再等。</li>
+      <li><strong>MCP invocation timeout = 90 秒 &lt; tunnel 約 2 分鐘期限</strong>：本地先結束，讓被放棄的呼叫回一個 MCP error，而不是拖垮長壽命的 stdio transport（回 <code>codex_tool_timeout</code> 叫模型別在本回合重試）。</li>
+      <li><strong>completion fence 防競態</strong>：瀏覽器判定「回合完成」要 <code>begin()</code> 拿當下 <code>activityRevision</code>（只有「沒有進行中的 activity/invocation」才給），再 <code>commit(revision)</code>；期間任何新 claim 都會讓 revision 變動而使 fence 失效 —— 避免在某個原生工具還在跑時就誤判回合結束。</li>
+    </ul>
+
+    <h3>子代理協定：Compatibility V1（預設）vs Native</h3>
+    <table>
+      <tr><th></th><th>Compatibility V1（新裝預設）</th><th>Native</th></tr>
+      <tr><td>config.toml</td><td>釘死 <code>multi_agent=true</code>、<code>multi_agent_v2=false</code>、<code>[agents].max_depth≥2</code></td><td>不動，沿用官方 template 的協定面</td></tr>
+      <tr><td>子代理 payload</td><td><strong>純文字</strong>，parser 正常讀</td><td>V2 用密文；出向補 <code>encrypted_function_args:[]</code> 明文交付標記</td></tr>
+      <tr><td>遇到跨後端加密 payload</td><td>—</td><td>ChatGPT Web 讀不了 → <strong>回 HTTP 400</strong> 叫你改用 V1</td></tr>
+    </table>
+    <p>切換協定要重啟 Codex 並開新任務（協定在任務開始時就 pin 住）。</p>
+
+    <div class="callout warn">
+      <strong>「工具調用沒問題嗎？」</strong> 會動，但有實打實前提：要開 ChatGPT <strong>Developer Mode</strong>、建一個名稱剛好叫 <code>Codex Native2</code> 的 Tunnel connector（Auth: None、Allow all actions）；寫入類動作還要 workspace 管理政策允許；意外的核准彈窗會 fail-closed（除非明確 <code>--auto-approve-tool-calls</code>，且它只點「Allow once」）；tunnel 被網路擋就退回 <code>--hitl</code>。
+    </div>
+  </section>
+
+  <!-- ⑦ -->
+  <section id="browser">
+    <h2><span class="num">⑦</span> 瀏覽器 worker 內幕</h2>
+    <p>真正驅動 ChatGPT 網頁的 <code>runBrowserTurn</code> 跑在一個 <strong>helper 子行程</strong>裡（daemon 用 newline-JSON stdio 跟它溝通）；分頁本身由 Electron Launcher 擁有，worker 用 CDP <code>connectOverCDP</code> 連上 launcher 租給它的那個 <code>WebContentsView</code>。</p>
+
+    <h3>五分頁租約：為什麼第 6 個回合會失敗</h3>
+    <p><code>MAX_CHATGPT_BROWSER_TABS = 5</code>，兩處把關：worker 層（<code>activeRuns.size &gt;= 5</code> 直接拒）與 session registry 層（<code>ChatGptTurnSessions.getOrCreate</code> 數 active，滿了丟同樣錯誤）。理由：每個 active 回合都佔一個真正登入的 ChatGPT document，分頁上限避免過量併發流量觸發帳號濫用偵測。每回合向 launcher 要一個 <code>surfaceId</code> 的分頁租約，結束時釋放。</p>
+
+    <h3>用 data-turn-id 綁定提交與回應</h3>
+    <p>ChatGPT 的 <code>data-testid="conversation-turn-N"</code> 是<strong>顯示索引</strong>、會在渲染時重新編號，所以工具刻意<strong>改用穩定的 <code>data-turn-id</code></strong> 來綁定。送出前先 <code>captureSubmissionBaseline</code> 記下所有既有 turn 容器；送出後等到出現「相對 baseline 的新 <code>data-turn-id</code>」才算提交被接受（多出 &gt;1 個新 turn 會直接丟錯）。回應鎖定到 <code>[data-turn-id=…]</code> 的那個節點；因為 ChatGPT 會虛擬化/reparent，還有 rebind 邏輯在節點數 ≠ 1 時重綁。</p>
+    <div class="callout info">
+      <strong>細節控最愛的一手：</strong> 貼 prompt <strong>不</strong>用 Playwright 打字或 CDP <code>Input.insertText</code> —— 因為那會被 ChatGPT 的 Lexical 編輯器當成「真人逐字輸入」而<strong>搞爛反引號 `</strong>。改成在頁面內 <code>evaluate</code> 一段 <code>insertPlainTextIntoComposer</code> 直接塞純文字，並用精確 readback 驗證貼對了。
+    </div>
+
+    <h3>Prompt envelope 與圖片原生附加</h3>
+    <p>可見訊息是「自然語言傳輸契約」＋把任務編成 JSON：<code>&lt;codex_context_json&gt;{version:3, system, messages}&lt;/codex_context_json&gt;</code>，外加輸出 schema、傳輸模式（本地工具 / 唯讀 / 壓縮）、以及要模型把 <code>turn_token</code> 原樣帶進每次 Codex Native 呼叫的 resume 尾註。圖片<strong>不進 JSON</strong>：以 <code>{type:"image_attachment", attachment_ref}</code> 佔位，實際 bytes 用 <code>input[data-testid="upload-photos-input"].setInputFiles()</code> 原生上傳（最多 10 張，遠端 URL 會被拒）。</p>
+
+    <h3>用量估算與 context 視窗</h3>
+    <ul>
+      <li>tokenizer 用 tiktoken <code>o200k_base</code>（GPT-5 世代），分塊避免單次爆炸、絕不低估。</li>
+      <li>各模式視窗（含固定 <strong>8,192 token 平台保留</strong>）：Instant 41k/自動壓縮 32k；Medium/High 90k/80k；Pro 約 103–104k；Luna 模型窗 1,050,000。</li>
+      <li><strong>「10% 壓縮保留」</strong>其實是 <code>effective_context_window_percent = round(自動壓縮上限 / 視窗)</code>（如 80k/90k≈89%），讓 Codex 在真正塞滿前就先壓縮、留 headroom。</li>
+      <li><strong>3× Bigger Context</strong>：把視窗 ×3（Medium/High 可到 270k），靠把「完整語意記錄」切成 2–3 段 staged 提交（永不切斷一則訊息或 JSON 字串），用二分搜尋同時平衡每段的 token 與 composer 字元預算。</li>
+    </ul>
+
+    <h3>串流：ChatGPT 狀態列 → Codex reasoning/commentary</h3>
+    <p>worker 把 DOM 分成三種 trace：<strong>status</strong>（思考/步驟列）→ 映射成 Codex 的 <code>thinking_delta</code>（reasoning）；<strong>commentary</strong>（狀態容器內/首個狀態前的散文）→ <code>text_delta</code> phase=commentary；<strong>answer</strong>（其餘 <code>.markdown</code>）→ 最終答案串流。答案用 append-only Markdown buffer 提交（區塊穩定 750ms、且後面已出現下一塊才 commit；已提交區塊被改動會丟一致性錯）。</p>
+
+    <h3>重試、卡住逾時、取消</h3>
+    <ul>
+      <li><strong>重試</strong>：每回合最多 3 次，只計可重試的 adapter error，30 分鐘 TTL 預算；第 4 次變不可重試的 exhausted error。</li>
+      <li><strong>三層逾時</strong>：橋接上游 stall（預設 300s）；DOM 健康寬限窗（缺回應 60s、空回應 10s、完成鍵 60s、multipart 180s，且被證實的 MCP 進度會暫停缺回應窗）；每 stage 預算（還會<strong>退還系統睡眠時間</strong>再重新計時）。</li>
+      <li><strong>取消</strong>：每個 await 都串 AbortSignal；取消時按下 Stop 鍵再丟 AbortError。錯誤分類含分頁關閉(499)、被取代(499)、stopped-thinking(502)、以及壓縮 handoff 被接受這種「良性中止」。</li>
+    </ul>
+  </section>
+
+  <!-- ⑧ -->
+  <section id="compaction">
+    <h2><span class="num">⑧</span> 上下文壓縮子系統</h2>
+    <p>長對話要能 checkpoint 成摘要再繼續。routed 模型產生不了 OpenAI 的加密壓縮 blob，所以自成一套：</p>
+    <ul>
+      <li><strong>透明信封</strong>：摘要包成 <code>ocx1:</code>+base64（<code>encode/decodeCompactionSummary</code>）；真正的官方加密 blob 沒前綴，解碼成 null 並顯示為 opaque 註記。</li>
+      <li><strong>v1 替換歷史</strong>（<code>/responses/compact</code>）：<code>buildCompactV1Output</code> = 近期 user 訊息（20k token 字元預算內、由新到舊）+ 最多 10 張圖 + 一則 <code>SUMMARY_PREFIX\n&lt;摘要&gt;</code>；1×1 PNG 佔位會被丟掉。<strong>v2</strong>（<code>{type:"compaction_trigger"}</code>）要求剛好一個 <code>compaction</code> 輸出項。</li>
+      <li><strong>一次性 checkpoint capability</strong>：<code>CompactionTransactionStore</code> 只保管「摘要」這一件事、不持有任何 Codex 工具環境；發一個 <code>control_</code> token + <code>handoff_</code> id（有 TTL、單次消費）。model 端用固定 wire name <code>codex.control.compaction_handoff</code> 呼叫剛好一次交出摘要 —— 這條<strong>繞過</strong>一般 claim 流程、也被濾出 inventory，無法被當普通工具發現/呼叫。</li>
+      <li><strong>retained source vs fallback</strong>：優先在「完成回合的那個保留分頁」上做 checkpoint（只暴露那個一次性 control token）；若來源分頁已不在，則開一個全新唯讀臨時對話，把累積 context 重播進去直接產摘要。整條 handoff 有 5 分鐘 liveness 預算，每個 ack 重新計時。</li>
+      <li><strong>continuation 當「證明」不是「推測」</strong>：交出 checkpoint 後 daemon 記下 <code>{summaryHash, sourceHashes}</code>；之後的請求要 hash 得對得上這台 daemon 真的產過的 checkpoint 才接受 ——「新行程不得憑空發明一個不存在的 handoff」。</li>
+      <li><strong>Luna 的 rolling checkpoint</strong>：Luna 每個完成回合都在答案尾端夾一段「私有 checkpoint」（用 ChatGPT Markdown 序列化逃不掉的純英數 marker 分隔），存進 per-thread store（用父答案 hash 綁定），讓完成歷史不進入 Codex transcript，也就不需要另外的 Codex 壓縮。</li>
+    </ul>
+  </section>
+
+  <!-- ⑨ -->
+  <section id="security">
+    <h2><span class="num">⑨</span> 安全模型與 fail-closed 設計</h2>
+    <h4>信任邊界</h4>
+    <p>使用者信任：本地 Codex app、這個 loopback daemon、launcher 的私有 Electron 瀏覽器 profile、你選的 ChatGPT workspace、OpenAI tunnel 服務、你親手建的那個 MCP connector。<strong>repo 內容、工具輸出、網站、prompt 文字都是不可信資料。</strong></p>
+    <h4>關鍵不變量</h4>
+    <ul>
+      <li>Responses 與 health listener 只綁 <code>127.0.0.1</code>；Full 模式只用 outbound tunnel，不開任何對外 port 或防火牆規則。</li>
+      <li>瀏覽器 state 與 tunnel 憑證存在 app home、權限 <code>0600</code>；秘密絕不進 CLI 參數、log、產生的 profile 或 git。</li>
+      <li><code>/admin/*</code> 生命週期端點要隨機 bearer token；drain 要「HTTP 請求數」與「瀏覽器/工具回合數」<strong>兩個計數器都歸零</strong>才准 shutdown（否則 409 refused）。</li>
+      <li>connector 身分即公開 MCP ABI：只認 <code>Codex Native2</code>，舊 <code>Codex Native</code> 永不被當 fallback（避免舊 schema 被誤認為當前能力契約）。</li>
+    </ul>
+    <h4>已知風險（repo 自己列的）</h4>
+    <ul>
+      <li><strong>Prompt injection / 破壞性工具</strong>：ChatGPT 看得到可能含惡意指令的 repo 內容與工具結果，Full 模式能寫檔/跑指令 —— 請用可信 workspace、保持 Codex 沙箱/核准設定、只授權你要的 connector 動作（預設不自動核准）。</li>
+      <li><strong>同機同使用者行程</strong>：loopback 沒有獨立 bearer（因為要保留原生 provider 身分），同 OS 使用者的其他行程能連到那個 port —— 請在可信單人帳號上跑，把本機程式碼執行視為信任邊界內。</li>
+      <li><strong>瀏覽器 session / tunnel 憑證竊取</strong>：私有 partition 是敏感登入物件，別同步/上傳/commit；懷疑外洩就登出或撤銷 session、輪換 tunnel key。</li>
+      <li><strong>UI 漂移</strong>：ChatGPT DOM 不是穩定 API；selector 收窄，漂移就讓回合失敗，絕不換模型/換傳輸/假造成功。</li>
+    </ul>
+    <div class="callout danger">
+      <strong>Non-goals（明列不做的事）：</strong> 不防禦被攻陷的本機 OS 使用者或被竄改的 Codex/Electron 二進位；<strong>不繞過</strong> ChatGPT 方案、workspace、用量、動作控制或模型限制；不把消費級瀏覽器自動化當成受支援的 OpenAI API 契約。
+    </div>
+  </section>
+
+  <!-- ⑩ -->
+  <section id="relation">
+    <h2><span class="num">⑩</span> 與 JustKM 其他單元</h2>
+    <div class="related">
+      <a href="./oh-my-pi.html">
+        <div class="rel-title">🥧 拆解 oh-my-pi（omp）</div>
+        <div class="rel-sub">另一種 AI 編碼 Agent harness 的架構拆解</div>
+      </a>
+      <a href="./codex-usage-calculation.html">
+        <div class="rel-title">📊 Codex 使用量計算原理</div>
+        <div class="rel-sub">token/成本/配額怎麼算 —— 對照本頁的用量估算</div>
+      </a>
+      <a href="./codex-taskboard.html">
+        <div class="rel-title">🗂️ Codex Taskboard</div>
+        <div class="rel-sub">Codex 上的 agent workflow 深拆</div>
+      </a>
+      <a href="./ai-context-compression.html">
+        <div class="rel-title">🗜️ AI 對話/上下文壓縮</div>
+        <div class="rel-sub">對照本頁的壓縮子系統</div>
+      </a>
+      <a href="./sesshu/_index.md">
+        <div class="rel-title">📚 Sesshu 壓縮 hook</div>
+        <div class="rel-sub">另一種 session 歷史壓縮做法</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">🎓 AI 學習總目錄</div>
+        <div class="rel-sub">學習區入口</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ⑪ -->
+  <section id="sources">
+    <h2><span class="num">⑪</span> 來源</h2>
+    <ul>
+      <li><a href="https://github.com/jesseclin/codex-chatgpt-web" target="_blank" rel="noopener" style="color:var(--accent)">github.com/jesseclin/codex-chatgpt-web</a> —— 本次分析對象（fork）</li>
+      <li><a href="https://github.com/miuuyy/codex-chatgpt-web" target="_blank" rel="noopener" style="color:var(--accent)">github.com/miuuyy/codex-chatgpt-web</a> —— 上游原始專案</li>
+      <li>repo 內一手文件：<code>README.md</code>、<code>docs/architecture.md</code>、<code>docs/security-model.md</code>、<code>docs/superpowers/specs/*hitl*.md</code></li>
+      <li>原始碼（file:line 級）：<code>src/server.ts</code>、<code>src/model-catalog.ts</code>、<code>src/chatgpt-web-models.ts</code>、<code>src/native-passthrough.ts</code>、<code>src/codex-integration*.ts</code>、<code>src/adapters/chatgpt-web/*</code>（mcp-server / turn-broker / browser-worker / prompt / compaction-* / hitl-*）</li>
+    </ul>
+    <p style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;">內容整理自 repo 公開原始碼與文件（分析時 HEAD 為 v5.0.7）；此專案更新頻繁，功能、數字與命名可能變動，以 repo 最新版為準。本工具為非官方軟體，與 OpenAI 無關；請僅用於自己的帳號並遵守適用條款。</p>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · 拆解 codex-chatgpt-web</p>
+    <p style="margin-top:4px;">整理自 github.com/jesseclin/codex-chatgpt-web · 建立於 2026-09-16 · 字級調整器在右上角</p>
+    <p style="margin-top:4px;"><a href="../index.html" style="color:var(--accent);text-decoration:none;">← 回到 JustKM 首頁</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

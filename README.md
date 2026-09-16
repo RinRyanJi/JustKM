@@ -15,6 +15,7 @@
     - ✍️ AI 寫作系統：<https://rinryanji.github.io/JustKM/learn/matt-pocock-writing-skills.html>
     - 🏭 AI 程式開發流程：<https://rinryanji.github.io/JustKM/learn/matt-pocock-dev-workflow.html>
   - 🥧 拆解 oh-my-pi（omp）—— Rust 的 terminal-first AI 編碼 Agent：<https://rinryanji.github.io/JustKM/learn/oh-my-pi.html>
+  - 🔌 **NEW · 拆解 codex-chatgpt-web（把網頁 ChatGPT 當 Codex 一個模型）**：<https://rinryanji.github.io/JustKM/learn/codex-chatgpt-web.html>
   - 📊 **NEW · Codex 使用量計算原理（token / 成本 / 配額怎麼算出來的）**：<https://rinryanji.github.io/JustKM/learn/codex-usage-calculation.html>
   - 📚 **NEW · Sesshu 知識區（session 壓縮 hook 套件）**：<https://rinryanji.github.io/JustKM/learn/sesshu/_index.md>
     - 📄 官方架構與使用指南（HTML 原檔）：<https://rinryanji.github.io/JustKM/learn/sesshu/sesshu-architecture-and-usage-guide.html>
@@ -56,6 +57,7 @@ JustKM/
 | 🗜️ AI 對話/上下文壓縮實戰 | [`learn/ai-context-compression.html`](learn/ai-context-compression.html) | ✅ 已建立 | 跨 Agent 通用 · Claude Code/Codex 對照 + 四層次 + 通用策略 + GitHub 專案來源 |
 | 🏢 Palantir 解決資料碎片化 | [`learn/palantir-data-fragmentation.html`](learn/palantir-data-fragmentation.html) | ✅ 已建立 | 簡約明亮 · 5 張 SVG 圖解 · Foundry/Ontology/AIP/Apollo · 閉環寫回 |
 | 🥧 拆解 oh-my-pi（omp） | [`learn/oh-my-pi.html`](learn/oh-my-pi.html) | ✅ 已建立 | Rust terminal-first AI 編碼 Agent（Pi 的 fork）· 架構/31 工具/角色路由/亮點 |
+| 🔌 拆解 codex-chatgpt-web | [`learn/codex-chatgpt-web.html`](learn/codex-chatgpt-web.html) | ✅ 已建立 | 本地 Responses 代理 · 把網頁 ChatGPT 當 Codex 一個模型 · 模型清單追加/請求分流/MCP 反向工具調用/瀏覽器自動化/壓縮/安全 |
 | 📊 Codex 使用量計算原理 | [`learn/codex-usage-calculation.html`](learn/codex-usage-calculation.html) | ✅ 已建立 | 9 個觀念 · 用例子講不用公式 · cached 扣抵／三種百分比／週配額反推／去重匯入／誤差來源 |
 | 🧠 訓練小模型做單一任務 | [`learn/train-slm-single-task.html`](learn/train-slm-single-task.html) | ✅ 已建立 | SLM 專用化實戰 · 13 節 · LoRA/QLoRA + 蒸餾 + NVIDIA 六步 · 含決策樹與程式範例 |
 | 🧰 Matt Pocock Skills 總覽目錄 | [`learn/matt-pocock-skills.html`](learn/matt-pocock-skills.html) | ✅ 已建立 | 系列入口 · 兩篇深入拆解 + 整個 repo 的 Skill 速查地圖 |
@@ -84,4 +86,4 @@ JustKM/
 
 ---
 
-最後更新：2026-08-10（新增 learn/git-worktree.html — Git Worktree 觀念與實務）
+最後更新：2026-09-16（新增 learn/codex-chatgpt-web.html — 拆解 codex-chatgpt-web：把網頁 ChatGPT 當 Codex 一個模型）
