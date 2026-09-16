@@ -70,7 +70,7 @@ JustKM/
 | 📚 Sesshu 知識區 | [`learn/sesshu/_index.md`](learn/sesshu/_index.md) | ✅ 已建立 | session 歷史壓縮 hook 套件（Claude Code/Codex/Gemini/Copilot CLI）· 7 份中文導覽 + [官方 HTML 原檔](learn/sesshu/sesshu-architecture-and-usage-guide.html) + [壓縮技術說明](learn/sesshu/sesshu-compression-explained.html) + [使用手冊](learn/sesshu/manual.html) |
 | 🤝 為什麼他們總在「刁難」（跨部門溝通） | [`learn/workplace/cross-dept-communication.html`](learn/workplace/cross-dept-communication.html) | ✅ 已建立 | 職場軟技能 · 整理自「龍文說書」上・下集＋企業培訓框架 · 衝突根源 + 六部門翻譯表 + 對話模板作戰地圖 + 穀倉效應/ABC + Thomas-Kilmann 五種衝突模式 + 化解衝突 3 步驟 + 降溫金句 + 綜合案例 + 3 張 SVG · 從對立受害者變協調指揮者 |
 | 🧭 跨部門專案怎麼不散掉（決策權·依賴·升級） | [`learn/workplace/cross-dept-projects.html`](learn/workplace/cross-dept-projects.html) | ✅ 已建立 | 職場結構面 · 跨部門溝通的姊妹頁 · 專案章程 + 單一負責人(DRI) + RACI vs Bain RAPID 決策權 + Mendelow 權力-利益矩陣 + 依賴地圖/介面契約/康威定律/Scrum of Scrums·PI Planning + 節奏與三級升級路徑 + 失敗模式速查表 + 3 張 SVG |
-| 👑 教練式領導總整合（一頁全） | [`learn/workplace/leadership-coaching.html`](learn/workplace/leadership-coaching.html) | ✅ 已建立 | 職場領導 · 四套教練框架整併成一頁的完整手冊(心態→提問→輔導→績效→習慣)· 範式轉移 + 教練三信念/角色 + 三層思考煞車 + 語言工具/溝通三目標 + IDEAS 表達 + 四步驟輔導 + OKR×PHDI(P=(H×D)−I) + GROWTH/習慣複利 · 焦點解決/深度教練/IDEAS+GROWTH/OKR×PHDI 皆整併於此 · 7 SVG |
+| 👑 教練式領導總整合（一頁全） | [`learn/workplace/leadership-coaching.html`](learn/workplace/leadership-coaching.html) | ✅ 已建立 | 職場領導 · 四套教練框架整併成一頁的完整手冊(心態→提問→輔導→績效→習慣)· 範式轉移 + 教練三信念/角色 + 三層思考煞車 + 語言工具/溝通三目標 + IDEAS 表達 + 四步驟輔導 + OKR×PHDI(P=(H×D)−I) + GROWTH/習慣複利 + 反面課(管理得過且過的下屬) · 焦點解決/深度教練/IDEAS+GROWTH/OKR×PHDI 皆整併於此 · 8 SVG |
 
 ---
 
