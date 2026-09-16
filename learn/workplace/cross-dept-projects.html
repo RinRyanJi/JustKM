@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>跨部門專案怎麼不散掉:決策權、利害關係人與依賴管理 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🧭 跨部門專案怎麼不散掉:決策權、利害關係人與依賴管理</h1>
+    <p class="sub">姊妹頁「<a href="./cross-dept-communication.html" style="color:#bcd8ff;">跨部門溝通</a>」解決<strong>人</strong>的對立;這頁解決<strong>結構</strong>的失控——當一個專案橫跨好幾個部門,誰決策、誰負責、依賴怎麼管、卡住了往哪升級。整理常用的實證框架(RACI、Bain RAPID、Mendelow 利害關係人矩陣)並落地成可抄的做法。</p>
+    <div>
+      <span class="badge green">結構面 · 專案治理</span>
+      <span class="badge blue">RACI · RAPID · 利害關係人矩陣</span>
+      <span class="badge orange">章程 · 依賴 · 升級路徑</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#why">① 為什麼跨部門專案特別容易散</a>
+      <a href="#charter">② 專案章程:把模糊變契約</a>
+      <a href="#decision">③ 決策權:RACI vs RAPID</a>
+      <a href="#stakeholder">④ 利害關係人地圖</a>
+      <a href="#dependency">⑤ 依賴與介面:團隊間的合約</a>
+      <a href="#cadence">⑥ 節奏與升級路徑</a>
+      <a href="#failure">⑦ 常見失敗模式 → 對策</a>
+      <a href="#steal">⑧ 值得偷師 / 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>跨部門專案散掉,九成不是因為「人不好」,而是因為「結構沒定義」——沒人是唯一負責人、決策權沒寫清楚、部門間的依賴沒人管、卡住不知道往哪升級。</strong>溝通技巧(姊妹頁)能降低摩擦,但摩擦的根源常是這些<strong>結構空白</strong>。</p>
+    <p>解法是四件可落地的事:<strong>(1)</strong> 用一份<strong>專案章程</strong>把目標/範圍/贊助者/成功指標/決策權釘死、指定<strong>單一負責人</strong>;<strong>(2)</strong> 用 <strong>RACI / RAPID</strong> 把「誰做、誰批、誰決定」寫成表;<strong>(3)</strong> 用<strong>利害關係人矩陣</strong>把力氣花在對的人;<strong>(4)</strong> 把團隊間的<strong>依賴與介面</strong>當成合約來管、並定好<strong>節奏與升級路徑</strong>。</p>
+    <div class="callout info"><strong>一句話抓重點:</strong>跨部門專案的本質是<strong>「權責的接縫工程」</strong>。接縫沒定義好,再多的善意溝通都會在灰色地帶耗損;把接縫寫成契約,人就不必天天靠交情硬撐。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="why">
+    <h2><span class="num">①</span> 為什麼跨部門專案特別容易散</h2>
+    <p>單一部門的專案,老闆只有一個、優先序清楚。跨部門一來,結構就出現幾道天生的裂縫:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 210" role="img" aria-label="矩陣式組織的張力：專案負責人橫向拉三個部門的人,但這些人各自還向自己的部門主管垂直匯報,兩條線優先序衝突,若沒有贊助者仲裁就會卡住">
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">矩陣組織的天生張力:一個人,兩個老闆</text>
+          <!-- sponsor -->
+          <rect x="286" y="36" width="148" height="34" rx="9" fill="#0a1530"/>
+          <text x="360" y="52" text-anchor="middle" font-size="9.5" font-weight="800" fill="#fff">專案贊助者(仲裁)</text>
+          <text x="360" y="64" text-anchor="middle" font-size="7.5" fill="#9fb0d0">給優先序、解僵局</text>
+          <!-- functional managers -->
+          <g>
+            <rect x="20" y="96" width="130" height="30" rx="8" fill="#f6f5f4" stroke="#787671"/>
+            <text x="85" y="115" text-anchor="middle" font-size="9" font-weight="700" fill="#37352f">業務部 主管</text>
+            <rect x="295" y="96" width="130" height="30" rx="8" fill="#f6f5f4" stroke="#787671"/>
+            <text x="360" y="115" text-anchor="middle" font-size="9" font-weight="700" fill="#37352f">研發部 主管</text>
+            <rect x="570" y="96" width="130" height="30" rx="8" fill="#f6f5f4" stroke="#787671"/>
+            <text x="635" y="115" text-anchor="middle" font-size="9" font-weight="700" fill="#37352f">法務部 主管</text>
+          </g>
+          <!-- members -->
+          <g>
+            <rect x="20" y="160" width="130" height="30" rx="8" fill="#dcecfa" stroke="#0075de"/>
+            <text x="85" y="179" text-anchor="middle" font-size="9" fill="#005bb0">業務 成員</text>
+            <rect x="295" y="160" width="130" height="30" rx="8" fill="#e6e0f5" stroke="#5645d4"/>
+            <text x="360" y="179" text-anchor="middle" font-size="9" fill="#3a2a99">研發 成員</text>
+            <rect x="570" y="160" width="130" height="30" rx="8" fill="#d9f3e1" stroke="#1aae39"/>
+            <text x="635" y="179" text-anchor="middle" font-size="9" fill="#137a29">法務 成員</text>
+          </g>
+          <!-- vertical reporting -->
+          <g stroke="#a4a097" stroke-width="1.6" fill="none">
+            <path d="M85,160 L85,126"/><path d="M360,160 L360,126"/><path d="M635,160 L635,126"/>
+          </g>
+          <text x="150" y="150" font-size="7.5" fill="#a4a097">↕ 垂直:向部門主管匯報(考績在這)</text>
+          <!-- horizontal project pull -->
+          <path d="M150,175 L294,175" stroke="#dd5b00" stroke-width="2" stroke-dasharray="5 3" fill="none"/>
+          <path d="M425,175 L569,175" stroke="#dd5b00" stroke-width="2" stroke-dasharray="5 3" fill="none"/>
+          <text x="360" y="203" text-anchor="middle" font-size="8" fill="#a8460a">↔ 水平:專案負責人橫向調度(但沒有考績權)</text>
+          <!-- sponsor lines -->
+          <g stroke="#5645d4" stroke-width="1.2" stroke-dasharray="2 2" fill="none">
+            <path d="M300,53 L150,100"/><path d="M360,70 L360,94"/><path d="M420,53 L570,100"/>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ 成員被兩條線拉扯:垂直的部門主管(掌考績)vs 水平的專案負責人(掌交付、卻沒考績權)。沒有贊助者定優先序時,成員理性上會先做「打考績的那條線」。</div>
+    </div>
+    <ul>
+      <li><strong>雙重匯報(矩陣組織):</strong>成員的考績在部門主管手上,專案負責人卻要他交付——優先序一衝突,專案就排後面。</li>
+      <li><strong>沒有唯一負責人:</strong>「大家一起負責」= 沒人負責。出事時互指,決策時沒人拍板。</li>
+      <li><strong>局部最佳化:</strong>每個部門都在優化自己的 KPI(業務要快、法務要穩、研發要少改需求),缺少<strong>共同的成功指標</strong>就會各拉各的。</li>
+      <li><strong>決策權模糊:</strong>「這要誰同意?」沒答案時,決策卡在無限的來回會議。</li>
+      <li><strong>康威定律(Conway's Law):</strong>系統/流程的樣子會長得像組織的溝通結構——部門之間溝通不良,交付出來的東西接縫也會裂。</li>
+    </ul>
+  </section>
+
+  <!-- 2 -->
+  <section id="charter">
+    <h2><span class="num">②</span> 專案章程:把模糊變契約</h2>
+    <p>開工前先花半天寫一份<strong>專案章程(Project Charter)</strong>,把所有人「以為有共識、其實沒有」的東西攤開寫死。它是後面所有爭議的仲裁依據:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>章程欄位</th><th>要回答的問題(寫具體、可驗收)</th></tr></thead>
+      <tbody>
+        <tr><td><strong>目標與成功指標</strong></td><td>做完長什麼樣?用<strong>一個共同的數字</strong>衡量成功(不是各部門各自的 KPI)。</td></tr>
+        <tr><td><strong>範圍 / 不做什麼</strong></td><td>明確寫「不在範圍內」的項目——防止範圍潛變(scope creep)。</td></tr>
+        <tr><td><strong>贊助者(Sponsor)</strong></td><td>誰有權定優先序、解跨部門僵局、要資源?通常是各部門共同的上級。</td></tr>
+        <tr><td><strong>單一負責人</strong></td><td>指定<strong>一個人</strong>對交付結果負全責(Amazon 的「single-threaded owner」、Apple 的「DRI, Directly Responsible Individual」)。</td></tr>
+        <tr><td><strong>決策權</strong></td><td>哪些決定誰能拍板?(用 ③ 的 RACI / RAPID 寫成表)</td></tr>
+        <tr><td><strong>里程碑與依賴</strong></td><td>關鍵時間點,以及跨部門的交付依賴(見 ⑤)。</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout tip"><strong>最關鍵的兩格:單一負責人 + 共同成功指標。</strong>前者解決「沒人負責」,後者解決「局部最佳化」。這兩格定好,超過一半的跨部門專案問題會自動消失。</div>
+  </section>
+
+  <!-- 3 -->
+  <section id="decision">
+    <h2><span class="num">③</span> 決策權寫清楚:RACI vs RAPID</h2>
+    <p>跨部門最耗的不是做事,是「這件事到底誰說了算」。兩個常用框架把它寫成表:</p>
+    <h3>RACI:每個任務,四種角色</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>角色</th><th>意思</th><th>鐵律</th></tr></thead>
+      <tbody>
+        <tr><td><strong>R</strong>esponsible 負責執行</td><td>實際動手做的人</td><td>可多人</td></tr>
+        <tr><td><strong>A</strong>ccountable 當責</td><td>對成敗負最終責任、有拍板權</td><td><strong>每個任務只能有一個 A</strong></td></tr>
+        <tr><td><strong>C</strong>onsulted 諮詢</td><td>做決定前要徵詢(雙向)</td><td>控制人數,別讓人人都是 C</td></tr>
+        <tr><td><strong>I</strong>nformed 知會</td><td>結果通知(單向)</td><td>只需知道,不參與</td></tr>
+      </tbody>
+    </table></div>
+    <h3>RAPID(Bain):複雜決策,五種角色</h3>
+    <p>當一個決定牽涉很多部門、RACI 的「一個 A」不夠細時,用 Bain 的 <strong>RAPID</strong> 把決策拆成五個角色(實際順序是 Recommend → Input → Agree → Decide → Perform):</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 150" role="img" aria-label="RAPID 決策流程:Recommend 提案、Input 提供意見(無否決權)、Agree 有限否決權(法務/風險/品牌)、Decide 最終拍板、Perform 執行">
+        <defs><marker id="rp" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">RAPID:把「決策」拆成五個明確角色</text>
+          <g>
+            <rect x="14" y="44" width="118" height="52" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/>
+            <text x="73" y="64" text-anchor="middle" font-size="10" font-weight="800" fill="#005bb0">R ecommend</text>
+            <text x="73" y="80" text-anchor="middle" font-size="7.5" fill="#0a4f8a">提案 + 分析</text>
+            <rect x="150" y="44" width="118" height="52" rx="9" fill="#f6f5f4" stroke="#787671" stroke-width="1.4"/>
+            <text x="209" y="64" text-anchor="middle" font-size="10" font-weight="800" fill="#37352f">I nput</text>
+            <text x="209" y="80" text-anchor="middle" font-size="7.5" fill="#5d5b54">提供意見(無否決)</text>
+            <rect x="286" y="44" width="118" height="52" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/>
+            <text x="345" y="64" text-anchor="middle" font-size="10" font-weight="800" fill="#a8460a">A gree</text>
+            <text x="345" y="80" text-anchor="middle" font-size="7.5" fill="#8a4a1a">有限否決權</text>
+            <rect x="422" y="44" width="118" height="52" rx="9" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+            <text x="481" y="64" text-anchor="middle" font-size="10" font-weight="800" fill="#3a2a99">D ecide</text>
+            <text x="481" y="80" text-anchor="middle" font-size="7.5" fill="#4a3a8a">最終拍板(一人)</text>
+            <rect x="558" y="44" width="118" height="52" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+            <text x="617" y="64" text-anchor="middle" font-size="10" font-weight="800" fill="#137a29">P erform</text>
+            <text x="617" y="80" text-anchor="middle" font-size="7.5" fill="#2f6b40">執行落地</text>
+          </g>
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#rp)">
+            <path d="M132,70 L148,70"/><path d="M268,70 L284,70"/><path d="M404,70 L420,70"/><path d="M540,70 L556,70"/>
+          </g>
+          <text x="20" y="124" font-size="8.5" fill="#5d5b54"><tspan font-weight="700" fill="#a8460a">Agree</tspan> 只在特定條件(法規/風險/品牌)才有否決權,不是「所有人都要點頭」;<tspan font-weight="700" fill="#3a2a99">Decide</tspan> 是唯一的最終拍板者。</text>
+          <text x="20" y="140" font-size="8" fill="#a4a097">好處:把「誰能否決、誰只是提供意見、誰最終拍板」分開——終結「開會開到所有人都同意才敢動」的癱瘓。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ RAPID 最大的價值:把「Input(有意見但不能否決)」和「Agree(能否決)」分開。很多跨部門癱瘓,是因為把「有意見的人」都當成「能否決的人」。</div>
+    </div>
+    <div class="callout info"><strong>怎麼選:</strong>日常任務分工用 <strong>RACI</strong> 就夠;遇到<strong>重大、跨多部門、容易吵不完</strong>的決策(要不要改架構、預算歸誰、上線與否),用 <strong>RAPID</strong> 把決策權切細。核心都一樣:<strong>拍板權收斂到一個人</strong>,其他人分清楚是「諮詢/意見」還是「否決」。</div>
+  </section>
+
+  <!-- 4 -->
+  <section id="stakeholder">
+    <h2><span class="num">④</span> 利害關係人地圖:力氣花在對的人</h2>
+    <p>跨部門專案的利害關係人一大票,不可能對每個人都同等投入。用 <strong>Mendelow 權力—利益矩陣(Power-Interest Grid)</strong>把他們分四類,對症下藥:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 240" role="img" aria-label="Mendelow 權力-利益矩陣:高權力高利益要緊密管理;高權力低利益要維持滿意;低權力高利益要保持告知;低權力低利益只需監看">
+        <g font-family="sans-serif">
+          <text x="20" y="20" font-size="12.5" font-weight="800" fill="#1a1a1a">Mendelow 權力—利益矩陣:四類人、四種對法</text>
+          <!-- axes -->
+          <line x1="90" y1="210" x2="640" y2="210" stroke="#c8c4be" stroke-width="1.4"/>
+          <line x1="90" y1="210" x2="90" y2="40" stroke="#c8c4be" stroke-width="1.4"/>
+          <text x="365" y="230" text-anchor="middle" font-size="9" fill="#787671">利益(對結果的在乎程度) →</text>
+          <text x="74" y="125" text-anchor="middle" font-size="9" fill="#787671" transform="rotate(-90 74 125)">權力(影響決策的能力) →</text>
+          <!-- quadrants -->
+          <rect x="90" y="120" width="275" height="90" fill="#f6f5f4" stroke="#e5e3df"/>
+          <text x="227" y="158" text-anchor="middle" font-size="10" font-weight="800" fill="#787671">低權力 · 低利益</text>
+          <text x="227" y="176" text-anchor="middle" font-size="9" fill="#5d5b54">→ 監看(最少投入)</text>
+
+          <rect x="365" y="120" width="275" height="90" fill="#dcecfa" stroke="#bcd8ff"/>
+          <text x="502" y="158" text-anchor="middle" font-size="10" font-weight="800" fill="#005bb0">低權力 · 高利益</text>
+          <text x="502" y="176" text-anchor="middle" font-size="9" fill="#0a4f8a">→ 保持告知(常是使用者)</text>
+
+          <rect x="90" y="40" width="275" height="80" fill="#fef7d6" stroke="#f5d75e"/>
+          <text x="227" y="74" text-anchor="middle" font-size="10" font-weight="800" fill="#a8460a">高權力 · 低利益</text>
+          <text x="227" y="92" text-anchor="middle" font-size="9" fill="#8a4a1a">→ 維持滿意(別惹、別煩)</text>
+
+          <rect x="365" y="40" width="275" height="80" fill="#e6e0f5" stroke="#c9c0f0"/>
+          <text x="502" y="70" text-anchor="middle" font-size="10" font-weight="800" fill="#3a2a99">高權力 · 高利益</text>
+          <text x="502" y="88" text-anchor="middle" font-size="9" fill="#4a3a8a">→ 緊密管理(關鍵人物)</text>
+          <text x="502" y="104" text-anchor="middle" font-size="7.5" fill="#5d5b54">贊助者、關鍵部門主管</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 對「高權力高利益」緊密管理(頻繁對齊)、對「高權力低利益」維持滿意(定期簡報、別讓他們意外)、對「低權力高利益」保持告知(常是實際使用者)、對「低權力低利益」監看即可。</div>
+    </div>
+    <div class="callout tip"><strong>接回 RACI:</strong>把矩陣的分類對回 RACI——高權力高利益通常是 <strong>A / C</strong>,低權力高利益多是 <strong>C / I</strong>,高權力低利益至少要 <strong>I</strong>(別讓有權的人被意外)。<strong>清單要動態更新</strong>:專案階段變,人的權力/利益也會變。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="dependency">
+    <h2><span class="num">⑤</span> 依賴與介面:把團隊之間當「合約」管</h2>
+    <p>跨部門專案最常爆的地方,是<strong>團隊之間的交接點</strong>:「我以為你會給我 X」「那不是我們負責的」。解法是把依賴與介面明確化、當合約管:</p>
+    <ul>
+      <li><strong>依賴地圖:</strong>把「A 團隊要等 B 團隊先交付什麼」畫出來,標上<strong>日期與負責人</strong>。看不見的依賴,就是未爆彈。</li>
+      <li><strong>介面契約 / 內部 SLA:</strong>團隊之間約定「我提供什麼、什麼格式、什麼時候、品質標準是什麼」。像 API 合約一樣,把交接點寫死,減少灰色地帶。</li>
+      <li><strong>康威定律的逆用:</strong>既然系統會長得像組織溝通結構,那就<strong>刻意設計溝通結構</strong>——讓負責相鄰模組的團隊有固定溝通管道(例如共同的介面同步會)。</li>
+      <li><strong>規模化時的協調機制:</strong>團隊多到一定程度,用制度化的跨團隊同步——<strong>Scrum of Scrums</strong>(各團隊代表定期對齊依賴)、或 <strong>SAFe 的 PI Planning</strong>(大型計畫定期把所有團隊拉在一起排依賴)。</li>
+    </ul>
+    <div class="callout warn"><strong>最容易被略過的一步:</strong>依賴要<strong>雙方確認</strong>,不能只寫在你的計畫裡。B 團隊沒點頭的「依賴」,只是你的一廂情願。每個跨團隊依賴都該有對方的一個具名負責人 + 承諾日期。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="cadence">
+    <h2><span class="num">⑥</span> 節奏與升級路徑:別等爆了才知道</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>機制</th><th>頻率</th><th>目的</th></tr></thead>
+      <tbody>
+        <tr><td><strong>啟動會(Kickoff)</strong></td><td>一次</td><td>對齊章程、角色、依賴——讓所有部門在同一頁。</td></tr>
+        <tr><td><strong>工作同步</strong></td><td>每週(或每日站會)</td><td>進度、卡點、依賴變化;短、聚焦在「誰卡住誰」。</td></tr>
+        <tr><td><strong>指導委員會(Steering)</strong></td><td>雙週 / 每月</td><td>贊助者 + 部門主管看大局、定優先序、解重大僵局。</td></tr>
+        <tr><td><strong>共享儀表板</strong></td><td>持續</td><td>單一事實來源:進度、風險、依賴狀態人人可見,取代「用轉述打聽」。</td></tr>
+      </tbody>
+    </table></div>
+    <h4>升級路徑(Escalation Path)要事先講好</h4>
+    <p>卡住時最怕「不知道找誰、也不敢往上報」。事先定義<strong>三級升級</strong>:<strong>①</strong> 團隊間先自己解(有時限,例如 2 天)→ <strong>②</strong> 專案負責人協調 → <strong>③</strong> 贊助者/指導委員會裁決。把「什麼情況、多久沒解、往哪升」寫進章程,升級就不再是「打小報告」,而是<strong>正常的流程</strong>。</p>
+    <div class="callout info"><strong>心法:</strong>好的跨部門專案<strong>把壞消息的傳遞速度做快</strong>。卡點越早浮上檯面越好——共享儀表板 + 明確升級路徑,就是讓壞消息不必靠勇氣、而是靠制度往上走。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="failure">
+    <h2><span class="num">⑦</span> 常見失敗模式 → 對策(速查表)</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>症狀</th><th>根因</th><th>對策</th></tr></thead>
+      <tbody>
+        <tr><td>大家都在忙,專案卻不動</td><td>雙重匯報,專案排在部門工作後面</td><td>贊助者明確定優先序;把專案時間寫進成員的部門目標</td></tr>
+        <tr><td>出事互相推</td><td>沒有單一負責人</td><td>章程指定一個 DRI / single-threaded owner</td></tr>
+        <tr><td>會開不完、決定不了</td><td>把「有意見」當成「能否決」</td><td>用 RAPID 分開 Input 與 Agree;Decide 收斂到一人</td></tr>
+        <tr><td>各做各的、兜不起來</td><td>各優化自己 KPI,無共同指標</td><td>章程定<strong>一個</strong>共同成功指標</td></tr>
+        <tr><td>交接點爆炸「我以為你會…」</td><td>依賴/介面沒明確、沒雙方確認</td><td>依賴地圖 + 介面契約/內部 SLA + 具名負責人</td></tr>
+        <tr><td>問題爆了才知道</td><td>沒節奏、沒升級路徑</td><td>固定同步 + 共享儀表板 + 三級升級路徑</td></tr>
+        <tr><td>有權的人突然反對、翻案</td><td>關鍵利害關係人沒被納管</td><td>Mendelow 矩陣:高權力者至少維持滿意/緊密管理</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 8 -->
+  <section id="steal">
+    <h2><span class="num">⑧</span> 值得偷師的思路 / <span style="color:var(--stone);font-weight:700">來源</span></h2>
+    <ol>
+      <li><strong>跨部門專案是「權責的接縫工程」。</strong>散掉多半因為結構空白,不是人不好;先補結構,再談溝通。</li>
+      <li><strong>拍板權收斂到一個人。</strong>單一負責人(DRI / single-threaded owner)+ 每任務一個 A——「大家一起負責」等於沒人負責。</li>
+      <li><strong>把「有意見」和「能否決」分開。</strong>RAPID 的 Input vs Agree 是終結會議癱瘓的關鍵區分。</li>
+      <li><strong>一個共同成功指標,壓過各部門的局部 KPI。</strong>沒有共同數字,局部最佳化必然發生。</li>
+      <li><strong>依賴與介面當合約管,而且雙方確認。</strong>看不見、沒對方點頭的依賴,都是未爆彈。</li>
+      <li><strong>把壞消息傳遞做快。</strong>共享儀表板 + 事先講好的升級路徑,讓卡點靠制度浮出、不靠勇氣。</li>
+    </ol>
+    <h3>來源與延伸</h3>
+    <ul>
+      <li>決策權框架:<a href="https://www.bain.com/insights/rapid-tool-to-clarify-decision-accountability/" target="_blank" rel="noopener">Bain RAPID®</a>;RACI(責任分配矩陣,PMI 常用)。</li>
+      <li>利害關係人:<a href="https://www.mindtools.com/aol0rms/stakeholder-analysis" target="_blank" rel="noopener">Mendelow 權力—利益矩陣</a>(Aubrey L. Mendelow)。</li>
+      <li>組織與規模化:康威定律(Conway's Law);<a href="https://www.scaledagileframework.com/pi-planning/" target="_blank" rel="noopener">SAFe PI Planning</a>、Scrum of Scrums(跨團隊依賴協調)。</li>
+      <li>單一負責人:Apple「DRI」、Amazon「single-threaded owner / two-pizza team」的公開實務。</li>
+    </ul>
+    <div class="related">
+      <a href="./cross-dept-communication.html">
+        <div class="rel-title">🤝 跨部門溝通</div>
+        <div class="rel-sub">姊妹頁:人的對立與話術</div>
+      </a>
+      <a href="../codex-taskboard.html">
+        <div class="rel-title">🗂️ Codex Taskboard</div>
+        <div class="rel-sub">把協作協定寫成可執行規則</div>
+      </a>
+      <a href="../multi-persona-prompting.html">
+        <div class="rel-title">🎭 多角色腦力激盪</div>
+        <div class="rel-sub">用角色分工做更好的決策</div>
+      </a>
+      <a href="../index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      本頁整理自公開的專案管理與組織框架(RACI、Bain RAPID、Mendelow 矩陣、康威定律、SAFe/Scrum of Scrums 等),並轉譯成跨部門場景的落地做法,非任一機構官方文件。各框架細節請以其原始出處為準;實務套用時按貴組織規模與文化調整。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="../index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

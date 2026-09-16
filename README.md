@@ -22,6 +22,7 @@
     - 🗜️ **NEW · Sesshu 壓縮技術說明（繁中 HTML 原檔）**：<https://rinryanji.github.io/JustKM/learn/sesshu/sesshu-compression-explained.html>
     - 📘 **NEW · Sesshu 使用手冊（繁中 HTML 原檔）**：<https://rinryanji.github.io/JustKM/learn/sesshu/manual.html>
   - 🤝 **NEW · 為什麼他們總在「刁難」（跨部門溝通 · 龍文說書上・下集）**：<https://rinryanji.github.io/JustKM/learn/workplace/cross-dept-communication.html>
+  - 🧭 **NEW · 跨部門專案怎麼不散掉（決策權 · 依賴 · 升級路徑）**：<https://rinryanji.github.io/JustKM/learn/workplace/cross-dept-projects.html>
 - 🌳 **NEW · Git Worktree 觀念與實務**：<https://rinryanji.github.io/JustKM/learn/git-worktree.html>
 - 🌐 網路小白入門（REST / WebSocket）：<https://rinryanji.github.io/JustKM/learn/network-basics.html>
 - 🎨 74 品牌設計系統圖鑑：<https://rinryanji.github.io/JustKM/design-md/>
@@ -67,6 +68,7 @@ JustKM/
 | 🌳 Git Worktree 觀念與實務 | [`learn/git-worktree.html`](learn/git-worktree.html) | ✅ 已建立 | 一個 repo 多工作目錄 · 心智模型/指令速查/實務場景/優缺點/vs clone |
 | 📚 Sesshu 知識區 | [`learn/sesshu/_index.md`](learn/sesshu/_index.md) | ✅ 已建立 | session 歷史壓縮 hook 套件（Claude Code/Codex/Gemini/Copilot CLI）· 7 份中文導覽 + [官方 HTML 原檔](learn/sesshu/sesshu-architecture-and-usage-guide.html) + [壓縮技術說明](learn/sesshu/sesshu-compression-explained.html) + [使用手冊](learn/sesshu/manual.html) |
 | 🤝 為什麼他們總在「刁難」（跨部門溝通） | [`learn/workplace/cross-dept-communication.html`](learn/workplace/cross-dept-communication.html) | ✅ 已建立 | 職場軟技能 · 整理自「龍文說書」上・下集＋企業培訓框架 · 衝突根源 + 六部門翻譯表 + 對話模板作戰地圖 + 穀倉效應/ABC + Thomas-Kilmann 五種衝突模式 + 化解衝突 3 步驟 + 降溫金句 + 綜合案例 + 3 張 SVG · 從對立受害者變協調指揮者 |
+| 🧭 跨部門專案怎麼不散掉（決策權·依賴·升級） | [`learn/workplace/cross-dept-projects.html`](learn/workplace/cross-dept-projects.html) | ✅ 已建立 | 職場結構面 · 跨部門溝通的姊妹頁 · 專案章程 + 單一負責人(DRI) + RACI vs Bain RAPID 決策權 + Mendelow 權力-利益矩陣 + 依賴地圖/介面契約/康威定律/Scrum of Scrums·PI Planning + 節奏與三級升級路徑 + 失敗模式速查表 + 3 張 SVG |
 
 ---
 
