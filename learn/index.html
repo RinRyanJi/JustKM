@@ -393,6 +393,12 @@
       <div class="mt">8 節 + 3 SVG · 嵌入式語音 · Groq 三模型 · 串流被記憶體逼出來</div>
       <div class="ds">techiesms 開源:整台語音助手跑在單顆 ESP32-S3,按住說話、聽它答。AI 全走 Groq 雲(whisper-large-v3-turbo + gpt-oss-120b + orpheus-v1-english),一把免費 key,端到端 ~2.2s。和站內全本地(VoxEMW/Gemma Translator)相反——MCU 只做即時音訊 I/O 與串流。最精彩的工程:WiFi/TLS 後僅 ~130KB heap、放不下 320KB(10s)音訊,只能 chunked transfer 邊錄邊傳、邊收邊播。含硬體接線(INMP441/MAX98357A)、延遲拆解、免費額度(2000 requests/每回合 3 個)與疑難排解。</div>
     </a>
+    <a class="card" href="./kokoro-tts.html">
+      <div class="ic">🗣️</div>
+      <div class="nm">Kokoro-82M:82M 開源 TTS 怎麼又小又快<span class="status ok">已建立</span></div>
+      <div class="mt">10 節 + 3 SVG · 讀原始碼 · StyleTTS 2 · misaki G2P</div>
+      <div class="ds">hexgrad 開源:只有 82M 參數、Apache-2.0 權重、24kHz 的文字轉語音,卻逼近大模型音質。從 kokoro/model.py、pipeline.py 原始碼拆解兩層設計(語言盲 KModel × 語言感知 KPipeline)、StyleTTS 2 血統的五模組架構(PL-BERT → ProsodyPredictor 時長/F0/能量 → 對齊 → TextEncoder → iSTFTNet)、聲線向量如何把「音色/語調」分兩半、misaki+espeak 的多語 G2P、voicepack 平均混音、510 音素「標點瀑布」切塊,與 CPU/MPS/ONNX 部署。</div>
+    </a>
     <a class="card" href="./realtime-speaker-diarization.html">
       <div class="ic">🗣️</div>
       <div class="nm">即時語者分離:本地串流「誰在說話」的管線<span class="status ok">已建立</span></div>

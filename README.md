@@ -19,6 +19,7 @@
   - 📊 **NEW · Codex 使用量計算原理（token / 成本 / 配額怎麼算出來的）**：<https://rinryanji.github.io/JustKM/learn/codex-usage-calculation.html>
   - 🛡️ **NEW · 讓工程師擁抱 AI（心理阻力 → 工程護欄:AST/LSP · 原子化 · TDD · 雙代理）**：<https://rinryanji.github.io/JustKM/learn/engineers-adopt-ai.html>
   - 🔊 **NEW · ESP32-S3 + Groq 語音助手（一顆 MCU 靠雲端 AI · 嵌入式語音）**：<https://rinryanji.github.io/JustKM/learn/esp32-groq-voice-assistant.html>
+  - 🗣️ **NEW · Kokoro-82M:82M 開源 TTS 怎麼又小又快（讀原始碼 · StyleTTS 2 · misaki G2P）**：<https://rinryanji.github.io/JustKM/learn/kokoro-tts.html>
   - 📚 **NEW · Sesshu 知識區（session 壓縮 hook 套件）**：<https://rinryanji.github.io/JustKM/learn/sesshu/_index.md>
     - 📄 官方架構與使用指南（HTML 原檔）：<https://rinryanji.github.io/JustKM/learn/sesshu/sesshu-architecture-and-usage-guide.html>
     - 🗜️ **NEW · Sesshu 壓縮技術說明（繁中 HTML 原檔）**：<https://rinryanji.github.io/JustKM/learn/sesshu/sesshu-compression-explained.html>
@@ -66,6 +67,7 @@ JustKM/
 | 📊 Codex 使用量計算原理 | [`learn/codex-usage-calculation.html`](learn/codex-usage-calculation.html) | ✅ 已建立 | 9 個觀念 · 用例子講不用公式 · cached 扣抵／三種百分比／週配額反推／去重匯入／誤差來源 |
 | 🛡️ 讓工程師擁抱 AI（阻力→護欄） | [`learn/engineers-adopt-ai.html`](learn/engineers-adopt-ai.html) | ✅ 已建立 | 團隊轉型/工程領導 · 抗拒是正當顧慮(品質/掌控/自尊) · 五策略(重定位成指揮官/從痛點切入/品質防線不降級+提交者負全責/踩坑分享+沙盒/尊重節奏) · 工程護欄:AST+符號表+LSP/編譯器閉環治幻覺、任務原子化+外部記憶治失憶、TDD 全綠+雙代理審查治說幹話 · 4 張 SVG |
 | 🔊 ESP32-S3 + Groq 語音助手 | [`learn/esp32-groq-voice-assistant.html`](learn/esp32-groq-voice-assistant.html) | ✅ 已建立 | 嵌入式語音/端側+雲端 · techiesms 開源 · 單顆 ESP32-S3 按住說話 · AI 全走 Groq(whisper-large-v3-turbo + gpt-oss-120b + orpheus-v1-english)一把免費 key 端到端~2.2s · 硬體接線(INMP441/MAX98357A) · 核心工程:130KB heap 放不下 320KB 音訊→chunked 串流 · 免費額度 2000 req/回合 3 個 · 疑難排解 · 3 張 SVG · 對照全本地 VoxEMW/Gemma |
+| 🗣️ Kokoro-82M 開源 TTS | [`learn/kokoro-tts.html`](learn/kokoro-tts.html) | ✅ 已建立 | 讀原始碼式深潛 · hexgrad 開源 · 82M 參數/Apache-2.0/24kHz TTS · StyleTTS 2 血統(PL-BERT→ProsodyPredictor 時長/F0/能量→對齊→TextEncoder→iSTFTNet)· 兩層設計:語言盲 KModel × 語言感知 KPipeline · 聲線向量把音色/語調分兩半 · misaki+espeak 多語 G2P(英/中/日/西/法…)· voicepack 平均混音 · 510 音素「標點瀑布」切塊 · CPU/MPS/ONNX 部署 · 10 節 + 3 SVG |
 | 🧠 訓練小模型做單一任務 | [`learn/train-slm-single-task.html`](learn/train-slm-single-task.html) | ✅ 已建立 | SLM 專用化實戰 · 13 節 · LoRA/QLoRA + 蒸餾 + NVIDIA 六步 · 含決策樹與程式範例 |
 | 🧰 Matt Pocock Skills 總覽目錄 | [`learn/matt-pocock-skills.html`](learn/matt-pocock-skills.html) | ✅ 已建立 | 系列入口 · 兩篇深入拆解 + 整個 repo 的 Skill 速查地圖 |
 | ✍️ Matt Pocock AI 寫作系統 | [`learn/matt-pocock-writing-skills.html`](learn/matt-pocock-writing-skills.html) | ✅ 已建立 | 拆解 mattpocock/skills 的 fragments/shape/beats · 探索 vs 開採 · 含手動版流程 |
