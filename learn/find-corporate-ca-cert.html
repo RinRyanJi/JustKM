@@ -300,6 +300,25 @@ openssl s_client -connect example.com:443 -showcerts &lt;/dev/null 2&gt;/dev/nul
 
 <span class="cm"># 驗證某工具用某張 CA 能不能通</span>
 curl --cacert corp-ca.pem https://example.com -I</code></pre>
+
+    <h3>別「逐一試 CA 檔」——直接讀 issuer 鎖定</h3>
+    <p>有人會想:<em>「不斷 <code>--cacert</code> 換不同 CA 檔,直到 curl 通了那張就是公司的。」</em>這確實行得通(你給的檔裡只要有能驗證這條鏈的那張,連線就會通,所以 loop 會收斂到正確那張)——但它只是把「本來一行就讀得出的 issuer」跑成慢版,還有兩個坑。直接讀最省事:</p>
+    <pre><code><span class="cm"># 最快:直接印出這條連線的 issuer / subject</span>
+openssl s_client -connect any-site.com:443 -showcerts &lt;/dev/null 2&gt;/dev/null \
+  | openssl x509 -noout -issuer -subject
+
+<span class="cm"># 想看「最上層根」是誰:x509 只讀第一張,故把整條鏈逐張拆開再看</span>
+openssl s_client -connect any-site.com:443 -showcerts &lt;/dev/null 2&gt;/dev/null \
+  | awk <span class="st">'/-----BEGIN CERTIFICATE-----/{n++} n&gt;0{print &gt; ("/tmp/c"n".pem")}'</span>
+for f in /tmp/c*.pem; do openssl x509 -noout -issuer -subject -in "$f"; echo; done
+<span class="cm"># 最上層那張 Issuer==Subject(自簽根)、名字是公司或代理商 → 就是它</span></code></pre>
+    <div class="callout tip"><strong>兩個實務結論:</strong>
+      <ul style="margin:6px 0 0;">
+        <li><strong>別暴力輪流試。</strong><code>-issuer</code> 一行就讀出是哪張;暴力法還可能在「<em>沒被攔截</em>的網站」上假通過(某候選檔剛好含公開根)而誤判——要測就測<strong>確定被 MITM</strong> 的目標。</li>
+        <li><strong>修復首選「append 到現有 bundle」,而非挑單一張。</strong>把公司 CA 接到完整 bundle 尾巴,讓公開站與內部站<strong>都</strong>通;只挑出公司那張去替換,反而會讓正常網站(公開 CA 簽的)驗不過。</li>
+      </ul>
+    </div>
+
     <div class="callout warn"><strong>安全提醒:</strong>如果你在<strong>非公司網路</strong>(家裡、咖啡廳)也看到憑證被不明的根重簽,那可能是惡意攔截,不是正常公司檢查——這時該停下來查清楚,而不是照單全收。</div>
   </section>
 
