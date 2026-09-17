@@ -507,6 +507,13 @@
       <div class="topic-desc">techiesms 開源:整台語音助手跑在單顆 ESP32-S3,按住說話、聽它答。AI 全走 Groq 雲(whisper-large-v3-turbo + gpt-oss-120b + orpheus-v1-english),一把免費 key,端到端 ~2.2s。和站內全本地(VoxEMW/Gemma)相反——MCU 只做音訊 I/O。最精彩的工程:130KB heap 放不下 320KB 音訊,只能 chunked 邊錄邊傳邊播。含接線、延遲、免費額度與疑難排解。</div>
     </a>
 
+    <a class="topic-card" data-tags="kokoro kokoro-82m 82m tts 文字轉語音 text to speech 語音合成 開源 open-weight apache 授權 hexgrad styletts styletts2 istftnet 聲碼器 vocoder pl-bert albert misaki g2p 字素轉音素 grapheme phoneme espeak espeak-ng 音素 24khz 聲線 voicepack voice 混音 平均 blend prosody 韻律 duration 時長 f0 音高 能量 對齊 alignment kmodel kpipeline 語言盲 多語 multilingual 中文 日語 英語 cpu mps apple silicon onnx 小模型 slm 端側 本地 讀原始碼 svg ai 語音" href="./learn/kokoro-tts.html">
+      <div class="topic-icon">🗣️</div>
+      <div class="topic-name">Kokoro-82M:82M 開源 TTS 怎麼又小又快</div>
+      <div class="topic-meta">10 節 + 3 SVG · 讀原始碼 · StyleTTS 2 · misaki G2P</div>
+      <div class="topic-desc">hexgrad 開源:只有 82M 參數、Apache-2.0 權重、24kHz 的 TTS,卻逼近大模型音質。從 model.py/pipeline.py 拆解兩層設計(語言盲 KModel × 語言感知 KPipeline)、StyleTTS 2 五模組(PL-BERT→ProsodyPredictor 時長/F0/能量→對齊→TextEncoder→iSTFTNet)、聲線向量把音色/語調分兩半、misaki+espeak 多語 G2P、voicepack 平均混音、510 音素「標點瀑布」切塊,與 CPU/MPS/ONNX 部署。</div>
+    </a>
+
     <a class="topic-card" data-tags="即時 語者分離 speaker diarization 說話者 誰在說話 who spoke when 串流 streaming 本地 離線 cpu onnx onnx runtime cam++ 3d-speaker embedding 特徵向量 512維 餘弦 cosine 相似度 ema 移動平均 分群 clustering 門檻 pyannote nemo sortformer nvidia silero vad 語音活動檢測 faster-whisper whisper.cpp asr 語音轉文字 時間戳 word timestamp 對齊 alignment wasapi loopback 16khz 會議紀錄 逐字稿 重疊語音 overlap qwen2.5 小模型 slm 摘要 條件觸發 svg ai 語音" href="./learn/realtime-speaker-diarization.html">
       <div class="topic-icon">🗣️</div>
       <div class="topic-name">即時語者分離:本地串流「誰在說話」的管線</div>

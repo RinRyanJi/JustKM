@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Kokoro-82M:82M 參數的開源 TTS 怎麼做到又小又快 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🗣️ Kokoro-82M:82M 參數的開源 TTS 怎麼做到又小又快</h1>
+    <p class="sub">Kokoro 是一個只有 8,200 萬參數、Apache-2.0 開放權重的文字轉語音模型,卻能逼近大模型的音質,而且明顯更快、更省。本頁從原始碼層拆解它的兩層設計(語言盲的 KModel × 語言感知的 KPipeline)、StyleTTS 2 血統的模型架構、聲線向量、多語 G2P、長文本切塊,以及部署與 ONNX。</p>
+    <div>
+      <span class="badge blue">82M · Apache-2.0 · 24kHz</span>
+      <span class="badge green">StyleTTS 2 + iSTFTNet + PL-BERT</span>
+      <span class="badge orange">misaki G2P · 9 語言 · 可跑 CPU</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#why">① 82M 憑什麼</a>
+      <a href="#twolayer">② 兩層設計:KModel × KPipeline</a>
+      <a href="#arch">③ 模型架構拆解</a>
+      <a href="#refs">④ 聲線向量:音色與語調分兩半</a>
+      <a href="#g2p">⑤ 語言與 G2P</a>
+      <a href="#voices">⑥ 聲音包與混音</a>
+      <a href="#chunk">⑦ 長文本切塊</a>
+      <a href="#deploy">⑧ 部署、加速與 ONNX</a>
+      <a href="#notes">⑨ 重點 · 關聯 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>Kokoro-82M 是「小到能塞進本機、卻不太犧牲音質」的開源 TTS。</strong>它走 <strong>StyleTTS 2</strong> 的非自迴歸、以「時長預測 + 對齊」為核心的路線,不是自迴歸也不是擴散,所以推論快;用 <strong>iSTFTNet</strong> 這種輕量聲碼器直接以反短時傅立葉(iSTFT)出波形;文字端靠 <strong>misaki</strong> 這個字素轉音素(G2P)庫把文字變音素。輸出 <strong>24kHz</strong> 單聲道。</p>
+    <p>程式上它刻意拆成兩個角色:<strong><code>KModel</code>(語言盲)</strong>只吃音素 + 一個聲線向量就吐音訊;<strong><code>KPipeline</code>(語言感知)</strong>負責各語言的 G2P、切塊、與管理聲音包。權重是 <strong>Apache-2.0</strong>,可商用、可部署到生產或個人專案。</p>
+    <div class="callout info"><strong>最快上手:</strong><code>pip install kokoro soundfile</code> + 系統裝 <code>espeak-ng</code>,然後 <code>KPipeline(lang_code='a')</code> 選一個聲音(如 <code>af_heart</code>)就能生成。底層 G2P 用的是 <a href="https://github.com/hexgrad/misaki" style="color:var(--link)">misaki</a>。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="why">
+    <h2><span class="num">①</span> 82M 憑什麼:小模型的定位</h2>
+    <p>現在很多高品質 TTS 動輒數億到數十億參數,推論貴、難落地。Kokoro 反其道:<strong>只有 82M 參數</strong>,卻靠架構選擇把「音質 / 速度 / 成本」拉到一個很實用的平衡點:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>面向</th><th>Kokoro 的取捨</th><th>帶來的好處</th></tr></thead>
+      <tbody>
+        <tr><td>參數量</td><td>82M(輕量)</td><td>可跑 CPU / 一般 GPU / Apple Silicon;記憶體與延遲都低</td></tr>
+        <tr><td>生成範式</td><td>非自迴歸 + 時長預測(StyleTTS 2 式)</td><td>一次前傳算完整段,不像自迴歸逐 token,速度快</td></tr>
+        <tr><td>聲碼器</td><td>iSTFTNet(以 iSTFT 出波形)</td><td>比純神經聲碼器省算力,合成快</td></tr>
+        <tr><td>授權</td><td>權重 Apache-2.0</td><td>可商用、可自由部署,不綁 API 額度</td></tr>
+        <tr><td>音色來源</td><td>預存「聲線向量」(voicepack)</td><td>換聲音只換一個向量,不需重訓</td></tr>
+      </tbody>
+    </table></div>
+    <p>它也被加入社群的 <strong>TTS Spaces Arena</strong> 作為競爭者,以這個體量拿到超出預期的評價。訓練資料方面,作者致謝頁提到大量<strong>合成訓練資料</strong>的貢獻者——換句話說它走的是「用合成語料把小模型餵到夠好」的路。</p>
+    <div class="callout warn"><strong>誠實邊界:</strong>小模型不是萬能——極端表現力、罕見腔調、複雜情感的細膩度,仍可能不及最大型商用 TTS。Kokoro 的價值在「本機、可控、夠好、可商用」,不是「全面第一」。本頁的架構細節取自其開源 <code>kokoro</code> 套件原始碼;主觀評價字眼請自行聽 samples 驗證。</div>
+  </section>
+
+  <!-- 2 -->
+  <section id="twolayer">
+    <h2><span class="num">②</span> 兩層設計:KModel(語言盲)× KPipeline(語言感知)</h2>
+    <p>Kokoro 最關鍵的工程決策,是把「懂語言的部分」和「純聲學合成」<strong>徹底切開</strong>:</p>
+    <ul>
+      <li><strong><code>KModel</code> 是語言盲的。</strong>它只認音素字串 + 一個聲線向量 <code>ref_s</code>,輸出音訊。它內部存 <code>vocab</code>(音素→input_ids),所以不需要知道你講哪國語言。<strong>一個 KModel 實例可被多個 KPipeline 共用</strong>,避免重複佔記憶體。</li>
+      <li><strong><code>KPipeline</code> 是語言感知的。</strong>它做兩件事:(1) 對特定語言做 <strong>G2P(字素轉音素)並切塊</strong>;(2) 管理與<strong>惰性下載聲音包</strong>。原則是<strong>每種語言一個 KPipeline</strong>,但共用同一個 KModel。</li>
+    </ul>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 250" role="img" aria-label="Kokoro 兩層資料流：文字進入語言感知的 KPipeline，做 G2P 轉音素、切塊、挑選聲線向量，把（音素, ref_s）交給語言盲的 KModel 合成，輸出 24kHz 波形；一個 KModel 可被多個語言的 KPipeline 共用">
+        <defs><marker id="ak" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">兩層分工:語言感知 → 語言盲</text>
+
+          <rect x="16" y="44" width="120" height="46" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="76" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#005bb0">文字</text>
+          <text x="76" y="80" text-anchor="middle" font-size="8" fill="#5d5b54">任一支援語言</text>
+
+          <rect x="176" y="30" width="250" height="120" rx="12" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="301" y="50" text-anchor="middle" font-size="11" font-weight="800" fill="#3a2a99">KPipeline(語言感知)</text>
+          <text x="301" y="72" text-anchor="middle" font-size="9" fill="#37352f">① G2P:字素 → 音素(misaki / espeak)</text>
+          <text x="301" y="90" text-anchor="middle" font-size="9" fill="#37352f">② 切塊:長文本切成 ≤510 音素段</text>
+          <text x="301" y="108" text-anchor="middle" font-size="9" fill="#37352f">③ 選聲線:載入 / 混音 voicepack</text>
+          <text x="301" y="132" text-anchor="middle" font-size="8" fill="#7b3ff2">每語言一個,可共用同一 KModel</text>
+
+          <rect x="486" y="44" width="218" height="92" rx="12" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.8"/>
+          <text x="595" y="66" text-anchor="middle" font-size="11" font-weight="800" fill="#137a29">KModel(語言盲)</text>
+          <text x="595" y="88" text-anchor="middle" font-size="9" fill="#37352f">輸入:音素 + ref_s(聲線向量)</text>
+          <text x="595" y="106" text-anchor="middle" font-size="9" fill="#37352f">輸出:音訊波形</text>
+          <text x="595" y="124" text-anchor="middle" font-size="8" fill="#5d5b54">存 vocab:音素→input_ids</text>
+
+          <rect x="486" y="180" width="218" height="42" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/>
+          <text x="595" y="200" text-anchor="middle" font-size="10" font-weight="700" fill="#b34700">24kHz 單聲道 WAV</text>
+          <text x="595" y="214" text-anchor="middle" font-size="8" fill="#5d5b54">generator 產出 (字素, 音素, 音訊)</text>
+
+          <g stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#ak)">
+            <path d="M136,67 L174,67"/>
+            <path d="M426,90 L484,90"/>
+            <path d="M595,136 L595,178"/>
+          </g>
+          <text x="455" y="82" text-anchor="middle" font-size="7.5" fill="#787671">(音素, ref_s)</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 懂語言的髒活(G2P、切塊、選聲線)全在 KPipeline;KModel 只做純聲學合成,因此可跨語言重用同一份權重與記憶體。</div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section id="arch">
+    <h2><span class="num">③</span> 模型架構拆解:StyleTTS 2 的骨架</h2>
+    <p>從 <code>KModel</code> 原始碼可以清楚看到五個子模組,對應 StyleTTS 2 的設計。給定音素 <code>input_ids</code> 與聲線向量 <code>ref_s</code>,一次前傳的流程是:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 320" role="img" aria-label="Kokoro 模型架構：音素 input_ids 經 PL-BERT（CustomAlbert）取得上下文表徵，ProsodyPredictor 用聲線向量的語調半段預測每個音素的時長，據此建對齊矩陣，再預測 F0 音高與能量；TextEncoder 的表徵依對齊展開為 asr；最後 iSTFTNet Decoder 結合 asr、F0、能量與聲線向量的音色半段，以 iSTFT 合成波形">
+        <defs><marker id="aa" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">一次前傳:音素 + 聲線向量 → 波形</text>
+
+          <rect x="16" y="40" width="150" height="40" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="91" y="58" text-anchor="middle" font-size="9.5" font-weight="700" fill="#005bb0">音素 input_ids</text>
+          <text x="91" y="72" text-anchor="middle" font-size="7.5" fill="#5d5b54">[0, …音素…, 0]</text>
+
+          <rect x="16" y="104" width="150" height="44" rx="9" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.6"/>
+          <text x="91" y="124" text-anchor="middle" font-size="9.5" font-weight="700" fill="#3a2a99">PL-BERT</text>
+          <text x="91" y="138" text-anchor="middle" font-size="7.5" fill="#5d5b54">CustomAlbert 上下文表徵</text>
+
+          <rect x="210" y="90" width="220" height="72" rx="10" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.6"/>
+          <text x="320" y="110" text-anchor="middle" font-size="10" font-weight="800" fill="#c02d80">ProsodyPredictor(韻律)</text>
+          <text x="320" y="128" text-anchor="middle" font-size="8.5" fill="#37352f">LSTM → 每音素時長 duration</text>
+          <text x="320" y="144" text-anchor="middle" font-size="8.5" fill="#37352f">F0(音高)+ N(能量)預測</text>
+
+          <rect x="210" y="196" width="220" height="40" rx="9" fill="#f0eeec" stroke="#a4a097" stroke-width="1.4"/>
+          <text x="320" y="214" text-anchor="middle" font-size="9" font-weight="700" fill="#37352f">對齊矩陣 pred_aln_trg</text>
+          <text x="320" y="228" text-anchor="middle" font-size="7.5" fill="#5d5b54">依時長把每音素展開到影格</text>
+
+          <rect x="16" y="196" width="150" height="40" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="91" y="214" text-anchor="middle" font-size="9.5" font-weight="700" fill="#137a29">TextEncoder</text>
+          <text x="91" y="228" text-anchor="middle" font-size="7.5" fill="#5d5b54">音素聲學表徵</text>
+
+          <rect x="474" y="150" width="230" height="60" rx="11" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.8"/>
+          <text x="589" y="172" text-anchor="middle" font-size="10.5" font-weight="800" fill="#b34700">iSTFTNet Decoder(聲碼器)</text>
+          <text x="589" y="190" text-anchor="middle" font-size="8.5" fill="#37352f">asr + F0 + N + 音色半段</text>
+          <text x="589" y="204" text-anchor="middle" font-size="8" fill="#5d5b54">以 iSTFT 直接出波形</text>
+
+          <rect x="474" y="248" width="230" height="40" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/>
+          <text x="589" y="272" text-anchor="middle" font-size="10.5" font-weight="800" fill="#b34700">🔊 24kHz 波形</text>
+
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#aa)">
+            <path d="M91,80 L91,102"/>
+            <path d="M166,126 L208,126"/>
+            <path d="M320,162 L320,194"/>
+            <path d="M166,216 L208,216"/>
+            <path d="M430,216 L589,216 L589,212"/>
+            <path d="M430,120 L500,120 L500,148"/>
+            <path d="M589,210 L589,246"/>
+          </g>
+          <text x="470" y="112" text-anchor="middle" font-size="7.5" fill="#787671">asr(對齊後)</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 五個子模組:PL-BERT(CustomAlbert)→ ProsodyPredictor(時長 + F0 + 能量)→ 對齊 → TextEncoder → iSTFTNet Decoder。時長預測是「非自迴歸卻能對齊」的關鍵。</div>
+    </div>
+    <h3>逐步對照原始碼</h3>
+    <ol>
+      <li><strong>PL-BERT 取上下文</strong>:<code>bert(input_ids)</code>(一個 <code>CustomAlbert</code>,即音素級 BERT)→ 經 <code>bert_encoder</code> 線性投影成 <code>d_en</code>。</li>
+      <li><strong>時長預測</strong>:<code>ProsodyPredictor</code> 用聲線向量的語調半段 <code>s = ref_s[:, 128:]</code>,跑 LSTM + <code>duration_proj</code>,<code>sigmoid</code> 後除以 <code>speed</code> 得到每個音素要佔幾影格。</li>
+      <li><strong>建對齊</strong>:用 <code>repeat_interleave</code> 依時長把每個音素展開,得到硬對齊矩陣 <code>pred_aln_trg</code>(這就是非自迴歸還能對齊語音的手法)。</li>
+      <li><strong>韻律</strong>:<code>F0Ntrain</code> 產出 <code>F0_pred</code>(音高曲線)與 <code>N_pred</code>(能量)。</li>
+      <li><strong>聲學展開</strong>:<code>TextEncoder</code> 的輸出經同一對齊矩陣變成 <code>asr</code>。</li>
+      <li><strong>合成波形</strong>:<code>decoder(asr, F0_pred, N_pred, ref_s[:, :128])</code> —— iSTFTNet 結合音色半段,以反短時傅立葉出波形。</li>
+    </ol>
+    <div class="callout tip"><strong>為什麼快:</strong>沒有自迴歸逐步生成(不像早期 Tacotron/AR TTS),整段時長一次算完、對齊一次展開、聲碼器用 iSTFT 而非逐點神經生成——三者疊起來,就是 82M 也能即時的原因。</div>
+  </section>
+
+  <!-- 4 -->
+  <section id="refs">
+    <h2><span class="num">④</span> 聲線向量 ref_s:一個向量把「音色」與「語調」分兩半</h2>
+    <p>Kokoro 換聲音不靠重訓,而是換一個<strong>預存的聲線向量</strong>(voicepack,一個 <code>.pt</code> 張量)。原始碼裡它被切成<strong>兩半各司其職</strong>:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>切片</th><th>送到哪</th><th>負責什麼</th></tr></thead>
+      <tbody>
+        <tr><td><code>ref_s[:, 128:]</code>(後半)</td><td>ProsodyPredictor</td><td>語調 / 韻律風格:影響時長、音高、能量的走向</td></tr>
+        <tr><td><code>ref_s[:, :128]</code>(前半)</td><td>iSTFTNet Decoder</td><td>音色 / 音質:影響最終聲音聽起來像誰</td></tr>
+      </tbody>
+    </table></div>
+    <p>這種「風格向量分段注入」正是 StyleTTS 2 的招牌:把「怎麼唸」(prosody)和「像誰的嗓」(timbre)解耦,所以你可以<strong>只換向量就換一個人聲</strong>,甚至(見下一節)把兩個聲線向量平均出一個新音色。</p>
+  </section>
+
+  <!-- 5 -->
+  <section id="g2p">
+    <h2><span class="num">⑤</span> 語言與 G2P:misaki 為主,espeak-ng 補位</h2>
+    <p>把文字變成音素(G2P)是 KPipeline 的核心。不同語言走不同引擎:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>lang_code</th><th>語言</th><th>G2P 引擎</th><th>需要安裝</th></tr></thead>
+      <tbody>
+        <tr><td><code>a</code></td><td>美式英語</td><td>misaki <code>en.G2P</code> + espeak OOD 補位</td><td><code>misaki[en]</code> + espeak-ng</td></tr>
+        <tr><td><code>b</code></td><td>英式英語</td><td>同上(british=True)</td><td>同上</td></tr>
+        <tr><td><code>j</code></td><td>日語</td><td>misaki <code>ja.JAG2P</code></td><td><code>misaki[ja]</code></td></tr>
+        <tr><td><code>z</code></td><td>中文(普通話)</td><td>misaki <code>zh.ZHG2P</code>(可帶英文 callback)</td><td><code>misaki[zh]</code></td></tr>
+        <tr><td><code>e / f / h / i / p</code></td><td>西/法/印地/義/巴葡</td><td>espeak <code>EspeakG2P</code></td><td>espeak-ng</td></tr>
+      </tbody>
+    </table></div>
+    <ul>
+      <li><strong>英語走 misaki + espeak 補位</strong>:遇到訓練沒見過的字(OOD)時,用 <code>EspeakFallback</code> 補音素;若連 fallback 都沒有,未知詞會被<strong>直接略過</strong>(<code>unk=''</code>)。</li>
+      <li><strong>中文有專屬 v1.1 檢查點</strong>:<code>hexgrad/Kokoro-82M-v1.1-zh</code>(權重檔 <code>kokoro-v1_1-zh.pth</code>),<code>ZHG2P</code> 會用 version='1.1',還能透過 <code>en_callable</code> 處理句中夾雜的英文。</li>
+      <li><strong>espeak 系語言尚未實作切塊</strong>:原始碼會警告——這些語言的長文本可能被截斷,除非你自己用 <code>\n</code> 分段。</li>
+    </ul>
+    <div class="callout warn"><strong>espeak-ng 是硬相依。</strong>英語 OOD 補位與多個非英語語言都靠它。Windows 要裝 <code>.msi</code>、conda 環境可能要 <code>libstdcxx</code> 才能正確載入 espeak(見 ⑧)。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="voices">
+    <h2><span class="num">⑥</span> 聲音包(voicepacks)與「混音」</h2>
+    <p>聲音就是 HF 上 <code>voices/{名稱}.pt</code> 的張量,<strong>用到才惰性下載</strong>並快取。命名有規律,例如 <code>af_heart</code>、<code>af_bella</code>:第一碼是語言(<code>a</code>=American)、第二碼是性別(<code>f</code>=female),後面是名字。</p>
+    <h3>兩個實用招式</h3>
+    <ul>
+      <li><strong>多聲線平均 = 混出新音色</strong>:<code>load_voice('af_bella,af_jessica')</code> 會把多個聲線向量<strong>堆疊後取平均</strong>,得到一個介於兩者之間的新聲音(分隔符預設逗號)。</li>
+      <li><strong>直接餵張量</strong>:也可以 <code>torch.load('path/to/voice.pt')</code> 後把 tensor 當 <code>voice=</code> 傳進去,不必用名稱。</li>
+      <li><strong>語言要對齊</strong>:聲線名稱開頭若和 pipeline 的 <code>lang_code</code> 不符,會發出「語言不匹配」警告——聲線是配合特定語言調出來的。</li>
+    </ul>
+    <pre><code><span class="cm"># 混兩個聲音成新音色</span>
+gen = pipeline(text, voice=<span class="st">'af_bella,af_jessica'</span>)   <span class="cm"># 兩個 voicepack 取平均</span>
+
+<span class="cm"># 或直接載入聲線張量</span>
+voice_tensor = torch.load(<span class="st">'path/to/voice.pt'</span>, weights_only=True)
+gen = pipeline(text, voice=voice_tensor)</code></pre>
+  </section>
+
+  <!-- 7 -->
+  <section id="chunk">
+    <h2><span class="num">⑦</span> 長文本切塊:510 音素上限與「標點瀑布」</h2>
+    <p>模型的上下文長度來自 ALBERT 的最大位置數;程式強制 <code>音素數 + 2 ≤ context_length</code>,實務上一段最多約 <strong>510 個音素 token</strong>。所以長文本必須切塊,而 Kokoro 的切法很講究——盡量切在<strong>自然停頓</strong>處,靠 <code>waterfall_last</code> 這個「標點瀑布」:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 210" role="img" aria-label="切塊的標點瀑布優先序：先找句末標點驚嘆號句號問號刪節號當切點，找不到就退而求其次用冒號分號，再不行才用逗號破折號，且盡量讓每段不超過 510 個音素，收尾括號與引號不落單">
+        <defs><marker id="ac" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">切點優先序:先強停頓,再弱停頓,都不行才硬切</text>
+
+          <rect x="30" y="42" width="180" height="40" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.6"/>
+          <text x="120" y="60" text-anchor="middle" font-size="10.5" font-weight="800" fill="#137a29">① 句末</text>
+          <text x="120" y="75" text-anchor="middle" font-size="11" fill="#37352f">! . ? …</text>
+
+          <rect x="270" y="42" width="180" height="40" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.6"/>
+          <text x="360" y="60" text-anchor="middle" font-size="10.5" font-weight="800" fill="#b34700">② 次級</text>
+          <text x="360" y="75" text-anchor="middle" font-size="11" fill="#37352f">: ;</text>
+
+          <rect x="510" y="42" width="180" height="40" rx="9" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.6"/>
+          <text x="600" y="60" text-anchor="middle" font-size="10.5" font-weight="800" fill="#b34700">③ 弱停頓</text>
+          <text x="600" y="75" text-anchor="middle" font-size="11" fill="#37352f">, —</text>
+
+          <g stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#ac)">
+            <path d="M210,62 L268,62"/>
+            <path d="M450,62 L508,62"/>
+          </g>
+          <text x="239" y="54" text-anchor="middle" font-size="7.5" fill="#787671">找不到</text>
+          <text x="479" y="54" text-anchor="middle" font-size="7.5" fill="#787671">找不到</text>
+
+          <rect x="30" y="110" width="660" height="34" rx="9" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.4"/>
+          <text x="360" y="131" text-anchor="middle" font-size="9.5" fill="#37352f">條件:切完該段音素數要 <tspan font-weight="700" fill="#3a2a99">≤ 510</tspan>;收尾的 <tspan font-family="monospace">)</tspan> <tspan font-family="monospace">”</tspan> 會被一起帶走,不落單</text>
+
+          <rect x="30" y="156" width="660" height="34" rx="9" fill="#f0eeec" stroke="#a4a097" stroke-width="1.3"/>
+          <text x="360" y="177" text-anchor="middle" font-size="9.5" fill="#5d5b54">三級都找不到合適切點 → 退回「就在 token 上限附近硬切」(<tspan font-family="monospace">len(tokens)</tspan>)</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ waterfall_last:優先在句末標點切,退而求其次冒號分號,再退逗號破折號,同時確保每段 ≤510 音素、收尾標點不被切散。</div>
+    </div>
+    <p>你也能在呼叫時用 <code>split_pattern=r'\n+'</code> 先按換行粗切,generator 會逐段回傳 <code>(字素, 音素, 音訊)</code>,方便你邊生成邊存檔或串流播放。</p>
+  </section>
+
+  <!-- 8 -->
+  <section id="deploy">
+    <h2><span class="num">⑧</span> 部署、加速與 ONNX</h2>
+    <h3>安裝與相依</h3>
+    <ul>
+      <li><strong>基本</strong>:<code>pip install kokoro&gt;=0.9.4 soundfile</code>;系統裝 <code>espeak-ng</code>(Linux <code>apt-get install espeak-ng</code>)。</li>
+      <li><strong>Windows</strong>:到 espeak-ng releases 下載對應 <code>.msi</code> 安裝。</li>
+      <li><strong>conda 相依問題</strong>:官方建議的 <code>environment.yml</code> 會裝 <code>libstdcxx~=12.4.0</code> 以正確載入 espeak。</li>
+      <li><strong>中文 / 日文</strong>:另外 <code>pip install misaki[zh]</code> 或 <code>misaki[ja]</code>。</li>
+    </ul>
+    <h3>裝置與加速</h3>
+    <ul>
+      <li><strong>自動選裝置</strong>:有 CUDA 用 <code>cuda</code>;否則若開了 <code>PYTORCH_ENABLE_MPS_FALLBACK=1</code> 且有 MPS 就用 <code>mps</code>;再不然 <code>cpu</code>。</li>
+      <li><strong>Apple Silicon</strong>:M1/M2/M3/M4 設 <code>PYTORCH_ENABLE_MPS_FALLBACK=1</code> 啟用 GPU 加速。</li>
+      <li><strong>CPU 也能跑</strong>:82M 的體量讓純 CPU 推論仍可用,適合沒有 GPU 的環境。</li>
+    </ul>
+    <h3>ONNX</h3>
+    <p>原始碼提供 <code>KModelForONNX</code> 包裝,把 <code>forward_with_tokens(input_ids, ref_s, speed)</code> 暴露成適合匯出的介面(回傳 <code>waveform, duration</code>),方便匯出 ONNX 到非 PyTorch 的推論環境部署。</p>
+    <pre><code><span class="cm"># 最小可跑範例</span>
+<span class="kw">from</span> kokoro <span class="kw">import</span> KPipeline
+<span class="kw">import</span> soundfile <span class="kw">as</span> sf
+
+pipeline = KPipeline(lang_code=<span class="st">'a'</span>)          <span class="cm"># 'a' = 美式英語</span>
+gen = pipeline(<span class="st">"Hello from Kokoro."</span>, voice=<span class="st">'af_heart'</span>, speed=1)
+<span class="kw">for</span> i, (gs, ps, audio) <span class="kw">in</span> enumerate(gen):
+    sf.write(f<span class="st">"{i}.wav"</span>, audio, 24000)         <span class="cm"># 24kHz 輸出</span></code></pre>
+  </section>
+
+  <!-- 9 -->
+  <section id="notes">
+    <h2><span class="num">⑨</span> 重點 · 關聯 · 來源</h2>
+    <h3>八個帶得走的重點</h3>
+    <ol>
+      <li><strong>82M、Apache-2.0、24kHz</strong>——小、可商用、可本機。</li>
+      <li><strong>血統是 StyleTTS 2</strong>(由 @yl4579 設計),非自迴歸 + 時長對齊,所以快。</li>
+      <li><strong>KModel 語言盲、KPipeline 語言感知</strong>,一個 KModel 可被多語言 pipeline 共用。</li>
+      <li><strong>五模組</strong>:PL-BERT → ProsodyPredictor(時長/F0/能量)→ 對齊 → TextEncoder → iSTFTNet Decoder。</li>
+      <li><strong>聲線向量分兩半</strong>:後半給韻律、前半給音色;換聲音只換向量。</li>
+      <li><strong>G2P 用 misaki,espeak-ng 補位</strong>;espeak 系語言尚未做切塊。</li>
+      <li><strong>voicepack 可平均混音</strong>,也可直接餵張量。</li>
+      <li><strong>長文本靠「標點瀑布」切塊</strong>,每段 ≤510 音素。</li>
+    </ol>
+    <div class="related">
+      <a href="./gemma-translator.html">
+        <div class="rel-title">🎙️ Gemma Translator(端側語音)</div>
+        <div class="rel-sub">Pi 5 本地 STT/翻譯/TTS 全鏈</div>
+      </a>
+      <a href="./esp32-groq-voice-assistant.html">
+        <div class="rel-title">🔊 ESP32-S3 + Groq 語音助理</div>
+        <div class="rel-sub">雲端 STT/LLM/TTS 三模型串流</div>
+      </a>
+      <a href="./gemma-translator-internals.html">
+        <div class="rel-title">🔬 Gemma Translator 原始碼內幕</div>
+        <div class="rel-sub">讀碼式深潛的姊妹範例</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>本頁內容取自 Kokoro 開源套件 <a href="https://github.com/hexgrad/kokoro" style="color:var(--link)">github.com/hexgrad/kokoro</a> 的 README 與原始碼(<code>kokoro/model.py</code>、<code>kokoro/pipeline.py</code>),以及其 G2P 相依 <a href="https://github.com/hexgrad/misaki" style="color:var(--link)">misaki</a>。模型權重與 samples 位於 HuggingFace <code>hexgrad/Kokoro-82M</code>。架構名詞(StyleTTS 2、iSTFTNet、PL-BERT)以原始碼模組對照為準;主觀音質評價請自行聆聽驗證。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
