@@ -158,8 +158,9 @@
       <a href="#linux">④ Linux 怎麼找</a>
       <a href="#browser">⑤ 瀏覽器(Firefox 自帶庫)</a>
       <a href="#identify">⑥ 怎麼確認這張就是公司憑證</a>
-      <a href="#use">⑦ 找到之後怎麼用</a>
-      <a href="#notes">⑧ 重點與注意事項</a>
+      <a href="#why-tools">⑦ 瀏覽器自動通、程式卻要設定?</a>
+      <a href="#use">⑧ 找到之後怎麼用</a>
+      <a href="#notes">⑨ 重點與注意事項</a>
     </div>
   </nav>
 
@@ -303,8 +304,81 @@ curl --cacert corp-ca.pem https://example.com -I</code></pre>
   </section>
 
   <!-- 7 -->
+  <section id="why-tools">
+    <h2><span class="num">⑦</span> 為何瀏覽器自動通、程式卻要另外設定(甚至重 build)</h2>
+    <p>一個常見困惑:<strong>同一張公司 CA,瀏覽器一開就通,命令列工具卻報憑證錯誤——甚至有人說要「重新 build」才行。</strong>差別不在憑證本身,而在<strong>「信任清單從哪裡讀」每個程式不一樣</strong>。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 300" role="img" aria-label="同一張公司根 CA 的兩種讀取命運：瀏覽器讀作業系統信任庫（IT 已用 GPO/MDM 推入）所以自動通；各 runtime 自帶打包的 CA bundle、預設不看 OS 庫，所以看不到公司 CA 而報錯，要把它指過去，只有信任集在 build 時凍死才需重 build">
+        <defs><marker id="aw" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">同一張公司 CA,兩種讀取命運</text>
+
+          <rect x="270" y="36" width="180" height="42" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="360" y="55" text-anchor="middle" font-size="10.5" font-weight="800" fill="#3a2a99">公司根 CA(同一張)</text>
+          <text x="360" y="70" text-anchor="middle" font-size="8" fill="#5d5b54">公開憑證,已在這台電腦上</text>
+
+          <g stroke="#8a93ad" stroke-width="2" fill="none" marker-end="url(#aw)">
+            <path d="M300,78 L175,116"/><path d="M420,78 L545,116"/>
+          </g>
+
+          <rect x="30" y="120" width="290" height="40" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="175" y="138" text-anchor="middle" font-size="10" font-weight="700" fill="#005bb0">瀏覽器(Chrome / Edge / Safari)</text>
+          <text x="175" y="152" text-anchor="middle" font-size="8" fill="#5d5b54">不自己管,掛到 OS 信任庫</text>
+
+          <rect x="400" y="120" width="290" height="40" rx="9" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="545" y="138" text-anchor="middle" font-size="10" font-weight="700" fill="#b34700">程式(curl / python / node / git / JVM)</text>
+          <text x="545" y="152" text-anchor="middle" font-size="8" fill="#5d5b54">各自自帶一份 CA 清單</text>
+
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#aw)">
+            <path d="M175,160 L175,186"/><path d="M545,160 L545,186"/>
+          </g>
+
+          <rect x="30" y="190" width="290" height="48" rx="9" fill="#f6f5f4" stroke="#e5e3df"/>
+          <text x="175" y="209" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1a1a1a">OS 信任庫(Windows 存放區 / Keychain)</text>
+          <text x="175" y="225" text-anchor="middle" font-size="8" fill="#5d5b54">IT 早用 GPO / MDM 把公司 CA 推進去</text>
+
+          <rect x="400" y="190" width="290" height="48" rx="9" fill="#f6f5f4" stroke="#e5e3df"/>
+          <text x="545" y="209" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1a1a1a">自帶 bundle:certifi / cacerts / 內建 roots</text>
+          <text x="545" y="225" text-anchor="middle" font-size="8" fill="#5d5b54">跟著 runtime 打包/凍結,預設不看 OS 庫</text>
+
+          <rect x="30" y="256" width="290" height="34" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+          <text x="175" y="277" text-anchor="middle" font-size="10" font-weight="800" fill="#137a29">✓ 找得到 → 一開就通(看起來「自動」)</text>
+
+          <rect x="400" y="256" width="290" height="34" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/>
+          <text x="545" y="272" text-anchor="middle" font-size="9" font-weight="800" fill="#b34700">✗ 看不到公司 CA → 憑證錯誤</text>
+          <text x="545" y="285" text-anchor="middle" font-size="7.5" fill="#5d5b54">解法:把它指過去;凍死才需重 build</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 憑證沒變,變的是「誰去哪讀信任清單」。瀏覽器接到 OS 那份會被 IT 動態更新的庫;各 runtime 帶著自己出廠的 CA 清單,看不見後來才裝的公司 CA。</div>
+    </div>
+
+    <h3>各程式的信任清單其實來自不同地方</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>消費者</th><th>信任清單從哪讀</th><th>看得到後裝的公司 CA?</th></tr></thead>
+      <tbody>
+        <tr><td>Chrome / Edge / Safari</td><td>作業系統信任庫(schannel / Keychain)</td><td>看得到(IT 已推入)</td></tr>
+        <tr><td>Firefox</td><td>自帶 NSS 庫(除非開 <code>security.enterprise_roots</code>)</td><td>預設看不到,開了才讀系統</td></tr>
+        <tr><td>Python</td><td><code>certifi</code> 的 <code>cacert.pem</code></td><td>看不到</td></tr>
+        <tr><td>Node.js</td><td>內建 OpenSSL roots</td><td>看不到</td></tr>
+        <tr><td>Java(JVM)</td><td>自己的 <code>cacerts</code> keystore</td><td>看不到</td></tr>
+        <tr><td>Go / curl / git</td><td>依 build 而定的內建 bundle</td><td>多半看不到</td></tr>
+        <tr><td>靜態 binary / 精簡容器映像</td><td>build 時烤進去的 roots</td><td>看不到(信任集被凍死)</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>「要不要重 build」——多數情況其實不用</h3>
+    <p>所謂「重 build」是被誤解的最後手段。真相分兩層:</p>
+    <ol>
+      <li><strong>絕大多數:不用重編譯,把 CA「指過去」就好。</strong>用環境變數或參數告訴工具去讀這張憑證(<code>SSL_CERT_FILE</code>、<code>NODE_EXTRA_CA_CERTS</code>、<code>REQUESTS_CA_BUNDLE</code>、<code>GIT_SSL_CAINFO</code>…),或把公司 CA <strong>接到現有 bundle 檔尾巴</strong>。具體對照見下一節 ⑧。<em>(本站雲端環境的 <code>/root/.ccr/ca-bundle.crt</code> 就是「接到 bundle 尾巴」這種做法。)</em></li>
+      <li><strong>只有信任集在 build 階段就凍死時,才真的得重 build。</strong>例如靜態連結的 musl binary、把 roots 嵌進二進位的 Go 程式、或精簡到沒有系統憑證目錄的容器映像——這些沒有「執行期再指過去」的縫,只能重打映像/重編,把公司 CA 一起放進去。</li>
+    </ol>
+    <div class="callout tip"><strong>一句話:</strong>憑證本身<strong>不需要「編譯」</strong>。會讓人以為要重 build,是因為<strong>那些工具的信任清單不是動態從 OS 讀,而是隨自己 runtime 一起打包、凍結的</strong>。瀏覽器剛好接到 OS 那份會被動態更新的庫,所以看起來「自動」。<strong>首選永遠是「指過去」,重 build 只在信任集被烤死在 build 階段時才逼不得已。</strong></div>
+  </section>
+
+  <!-- 8 -->
   <section id="use">
-    <h2><span class="num">⑦</span> 找到之後怎麼用:把工具指向這張憑證</h2>
+    <h2><span class="num">⑧</span> 找到之後怎麼用:把工具指向這張憑證</h2>
     <p>多數「憑證驗證失敗」都是因為某工具沒讀到企業根憑證。把它指過去即可,<strong>不要停用驗證</strong>:</p>
     <div class="table-wrap"><table>
       <thead><tr><th>工具 / 語言</th><th>設定方式(指向 PEM)</th></tr></thead>
@@ -327,9 +401,9 @@ export CURL_CA_BUNDLE=/path/corp-ca.pem
 export GIT_SSL_CAINFO=/path/corp-ca.pem</code></pre>
   </section>
 
-  <!-- 8 -->
+  <!-- 9 -->
   <section id="notes">
-    <h2><span class="num">⑧</span> 重點與注意事項</h2>
+    <h2><span class="num">⑨</span> 重點與注意事項</h2>
     <ol>
       <li><strong>你找到的是公鑰,不是私鑰。</strong>根憑證檔(<code>.crt/.pem/.cer</code>)只含公開憑證;私鑰只在公司代理伺服器上,電腦上不會有,所以匯出這張憑證不算洩密。</li>
       <li><strong>能不能匯出看權限。</strong>一般讀取/匯出根憑證多半允許;若被 IT 鎖住,或你不確定哪張才對,<strong>最保險是直接向 IT 索取</strong>官方 CA 檔,避免信任到錯的憑證。</li>
