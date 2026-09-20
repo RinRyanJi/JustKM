@@ -1,82 +1,62 @@
 # 🗂️ JustKM — 我的私人知識庫
 
-> 一個統一的收納入口。未來各主題放子資料夾，互不干擾。
+> 一個統一的收納入口。首頁只放主題 hub；深入文章收在各區總目錄（zone index）。
 
 ## 🔗 快速連結（線上瀏覽）
 
 > 全站以 **GitHub Pages** 部署，來源分支 `main`。以下連結需該內容已合併進 `main` 後才會生效。
 
-- 🏠 **網站首頁**：<https://rinryanji.github.io/JustKM/>
+- 🏠 **網站首頁（主題 hub）**：<https://rinryanji.github.io/JustKM/>
+- 💹 **投資與程式交易**：首頁卡片 → [`invest/`](https://rinryanji.github.io/JustKM/invest/course.html)
 - 🎓 **AI 學習總目錄（學習區入口）**：<https://rinryanji.github.io/JustKM/learn/>
-  - 🗜️ AI 對話/上下文壓縮實戰（跨 Agent 通用）：<https://rinryanji.github.io/JustKM/learn/ai-context-compression.html>
-  - 🏢 **NEW · Palantir 如何一站式解決資料碎片化（SVG 圖解／簡約明亮）**：<https://rinryanji.github.io/JustKM/learn/palantir-data-fragmentation.html>
-  - 🧠 訓練小模型做單一任務（SLM 專用化）：<https://rinryanji.github.io/JustKM/learn/train-slm-single-task.html>
-  - 🧰 Matt Pocock AI Skills 總覽（系列入口）：<https://rinryanji.github.io/JustKM/learn/matt-pocock-skills.html>
-    - ✍️ AI 寫作系統：<https://rinryanji.github.io/JustKM/learn/matt-pocock-writing-skills.html>
-    - 🏭 AI 程式開發流程：<https://rinryanji.github.io/JustKM/learn/matt-pocock-dev-workflow.html>
-  - 🥧 拆解 oh-my-pi（omp）—— Rust 的 terminal-first AI 編碼 Agent：<https://rinryanji.github.io/JustKM/learn/oh-my-pi.html>
-  - 🔌 **NEW · 拆解 codex-chatgpt-web（把網頁 ChatGPT 當 Codex 一個模型）**：<https://rinryanji.github.io/JustKM/learn/codex-chatgpt-web.html>
-  - 📊 **NEW · Codex 使用量計算原理（token / 成本 / 配額怎麼算出來的）**：<https://rinryanji.github.io/JustKM/learn/codex-usage-calculation.html>
-  - 🛡️ **NEW · 讓工程師擁抱 AI（心理阻力 → 工程護欄:AST/LSP · 原子化 · TDD · 雙代理）**：<https://rinryanji.github.io/JustKM/learn/engineers-adopt-ai.html>
-  - 🔊 **NEW · ESP32-S3 + Groq 語音助手（一顆 MCU 靠雲端 AI · 嵌入式語音）**：<https://rinryanji.github.io/JustKM/learn/esp32-groq-voice-assistant.html>
-  - 🗣️ **NEW · Kokoro-82M:82M 開源 TTS 怎麼又小又快（讀原始碼 · StyleTTS 2 · misaki G2P）**：<https://rinryanji.github.io/JustKM/learn/kokoro-tts.html>
-  - 📚 **NEW · Sesshu 知識區（session 壓縮 hook 套件）**：<https://rinryanji.github.io/JustKM/learn/sesshu/_index.md>
-    - 📄 官方架構與使用指南（HTML 原檔）：<https://rinryanji.github.io/JustKM/learn/sesshu/sesshu-architecture-and-usage-guide.html>
-    - 🗜️ **NEW · Sesshu 壓縮技術說明（繁中 HTML 原檔）**：<https://rinryanji.github.io/JustKM/learn/sesshu/sesshu-compression-explained.html>
-    - 📘 **NEW · Sesshu 使用手冊（繁中 HTML 原檔）**：<https://rinryanji.github.io/JustKM/learn/sesshu/manual.html>
-  - 🤝 **NEW · 為什麼他們總在「刁難」（跨部門溝通 · 龍文說書上・下集）**：<https://rinryanji.github.io/JustKM/learn/workplace/cross-dept-communication.html>
-  - 🧭 **NEW · 跨部門專案怎麼不散掉（決策權 · 依賴 · 升級路徑）**：<https://rinryanji.github.io/JustKM/learn/workplace/cross-dept-projects.html>
-  - 👑 **NEW · 教練式領導總整合（一頁全:心態→提問→輔導→績效→習慣）**：<https://rinryanji.github.io/JustKM/learn/workplace/leadership-coaching.html>
-- 🌳 **NEW · Git Worktree 觀念與實務**：<https://rinryanji.github.io/JustKM/learn/git-worktree.html>
-- 🌐 網路小白入門（REST / WebSocket）：<https://rinryanji.github.io/JustKM/learn/network-basics.html>
-- 🎨 74 品牌設計系統圖鑑：<https://rinryanji.github.io/JustKM/design-md/>
-- 📈 美股交易教學：<https://rinryanji.github.io/JustKM/invest/course.html>
+  - 分組：AI 工作流 & Skills · 上下文／記憶（含 Sesshu）· 模型訓練 & Agent · 語音／嵌入式 · 工程實踐／職場 · 開發基礎 · 其他
+  - 📚 Sesshu 知識區：<https://rinryanji.github.io/JustKM/learn/sesshu/_index.md>
+  - 🏢 精選 · Palantir 資料碎片化：<https://rinryanji.github.io/JustKM/learn/palantir-data-fragmentation.html>
+  - 🛡️ 精選 · 讓工程師擁抱 AI：<https://rinryanji.github.io/JustKM/learn/engineers-adopt-ai.html>
+- 🧩 **Skills 分析專區**：<https://rinryanji.github.io/JustKM/skills/>
+- 🎨 **設計系統圖鑑（74 品牌）**：<https://rinryanji.github.io/JustKM/design-md/>
+- ✈️ **旅遊 · 八重山**：<https://rinryanji.github.io/JustKM/travel/ishigaki-2026/>
+- ⚖️ **法律 · 蝦皮租約**：<https://rinryanji.github.io/JustKM/legal/shopee-lease-review.html>
+- 🗂️ **原始資料**：[`raw/DayTrade/`](https://rinryanji.github.io/JustKM/raw/DayTrade/) · [`raw/Survery/`](https://github.com/RinRyanJi/JustKM/tree/main/raw/Survery)
 
-## 結構
+## 結構（入口層級）
 
 ```
 JustKM/
-├── README.md             ← 你在這裡
-├── index.html            ← 入口（74 個設計模板 + 主題卡）
-├── invest/               ← 美股交易教學（AutoInvest）
-├── learn/                ← AI / ML 學習（SLM 訓練、網路基礎、Agent）
-├── legal/                ← 契約 / 法務（租約逐條解析）
-├── raw/                  ← 原始資料
-├── design-md/            ← 74 個品牌 DESIGN.md
-└── travel/               ← 旅遊行程
-    └── ishigaki-2026/
-        ├── index.html        ← 行李清單 (Binance 風格, 1358 行)
-        └── itinerary.html    ← 行程總覽 (Sanity 風格, 1212 行)
+├── README.md
+├── index.html              ← Level 1：主題 hub 首頁（投資／AI／Skills／設計／旅遊／法律／原始資料）
+├── invest/                 ← 美股交易與券商 API
+├── learn/
+│   └── index.html          ← Level 2：AI 學習總目錄（分組索引 → 各篇文章）
+├── skills/
+│   └── index.html          ← Level 2：Skills 分析專區
+├── design-md/              ← 74 個品牌 DESIGN.md
+├── travel/ishigaki-2026/   ← 旅遊知識庫
+├── legal/                  ← 契約／法務
+└── raw/                    ← 原始資料（未整理）
 ```
+
+**導覽原則**
+
+1. **首頁**只放各主題 hub（及最多 1–3 張 AI 精選卡），不堆 40+ 文章卡。
+2. **深入文章**請從 `learn/index.html` / `skills/index.html` 等 zone index 進入。
+3. Sesshu 子頁只掛在學習區「上下文／記憶」群組，不再出現在首頁。
 
 ## 各主題目錄
 
 | 主題 | 路徑 | 狀態 | 說明 |
 |---|---|---|---|
-| 📈 美股交易 | [`invest/`](invest/course.html) | ✅ 已建立 | 日內 × 波段交易完整教學（8 章 + 速查表） |
-| 🧳 石垣跳島 · 行李 | [`travel/ishigaki-2026/index.html`](travel/ishigaki-2026/index.html) | ✅ 已建立 | Binance 風格 · 14 段含 SVG 時間軸 · 2人 6D5N |
-| 🗓️ 石垣跳島 · 行程 | [`travel/ishigaki-2026/itinerary.html`](travel/ishigaki-2026/itinerary.html) | ✅ 重列 | Sanity 風格 · 兩段住宿 + 颱風應變 SOP |
-| 🎨 74 品牌 DESIGN.md | [`design-md/`](design-md/index.html) | ✅ 已建立 | Stripe/Linear/Vercel/Apple/Cursor 等設計 token |
-| 📑 蝦皮租約逐條解析 | [`legal/shopee-lease-review.html`](legal/shopee-lease-review.html) | ✅ 已建立 | 房東視角逐條風險分級 · 周邊得失衡量/策略/出售 · Notion 明亮配色 · 附[📋 一頁決策摘要](legal/shopee-lease-decision.html) |
-| 🤖 Pi Agent 最佳實踐 | [`learn/ai-agents/pi-agent-best-practices-2026-06.md`](learn/ai-agents/pi-agent-best-practices-2026-06.md) | 🟡 metadata only | 暮閒 2026-06 影片,無字幕,待 Briefing Doc 補強 |
-| 🎓 AI 學習總目錄 | [`learn/`](learn/index.html) | ✅ 已建立 | AI/ML 學習區入口 · 收整下列所有單元，分區導覽 |
-| 🗜️ AI 對話/上下文壓縮實戰 | [`learn/ai-context-compression.html`](learn/ai-context-compression.html) | ✅ 已建立 | 跨 Agent 通用 · Claude Code/Codex 對照 + 四層次 + 通用策略 + GitHub 專案來源 |
-| 🏢 Palantir 解決資料碎片化 | [`learn/palantir-data-fragmentation.html`](learn/palantir-data-fragmentation.html) | ✅ 已建立 | 簡約明亮 · 5 張 SVG 圖解 · Foundry/Ontology/AIP/Apollo · 閉環寫回 |
-| 🥧 拆解 oh-my-pi（omp） | [`learn/oh-my-pi.html`](learn/oh-my-pi.html) | ✅ 已建立 | Rust terminal-first AI 編碼 Agent（Pi 的 fork）· 架構/31 工具/角色路由/亮點 |
-| 🔌 拆解 codex-chatgpt-web | [`learn/codex-chatgpt-web.html`](learn/codex-chatgpt-web.html) | ✅ 已建立 | 本地 Responses 代理 · 把網頁 ChatGPT 當 Codex 一個模型 · 模型清單追加/請求分流/MCP 反向工具調用/瀏覽器自動化/壓縮/安全 |
-| 📊 Codex 使用量計算原理 | [`learn/codex-usage-calculation.html`](learn/codex-usage-calculation.html) | ✅ 已建立 | 9 個觀念 · 用例子講不用公式 · cached 扣抵／三種百分比／週配額反推／去重匯入／誤差來源 |
-| 🛡️ 讓工程師擁抱 AI（阻力→護欄） | [`learn/engineers-adopt-ai.html`](learn/engineers-adopt-ai.html) | ✅ 已建立 | 團隊轉型/工程領導 · 抗拒是正當顧慮(品質/掌控/自尊) · 五策略(重定位成指揮官/從痛點切入/品質防線不降級+提交者負全責/踩坑分享+沙盒/尊重節奏) · 工程護欄:AST+符號表+LSP/編譯器閉環治幻覺、任務原子化+外部記憶治失憶、TDD 全綠+雙代理審查治說幹話 · 4 張 SVG |
-| 🔊 ESP32-S3 + Groq 語音助手 | [`learn/esp32-groq-voice-assistant.html`](learn/esp32-groq-voice-assistant.html) | ✅ 已建立 | 嵌入式語音/端側+雲端 · techiesms 開源 · 單顆 ESP32-S3 按住說話 · AI 全走 Groq(whisper-large-v3-turbo + gpt-oss-120b + orpheus-v1-english)一把免費 key 端到端~2.2s · 硬體接線(INMP441/MAX98357A) · 核心工程:130KB heap 放不下 320KB 音訊→chunked 串流 · 免費額度 2000 req/回合 3 個 · 疑難排解 · 3 張 SVG · 對照全本地 VoxEMW/Gemma |
-| 🗣️ Kokoro-82M 開源 TTS | [`learn/kokoro-tts.html`](learn/kokoro-tts.html) | ✅ 已建立 | 讀原始碼式深潛 · hexgrad 開源 · 82M 參數/Apache-2.0/24kHz TTS · StyleTTS 2 血統(PL-BERT→ProsodyPredictor 時長/F0/能量→對齊→TextEncoder→iSTFTNet)· 兩層設計:語言盲 KModel × 語言感知 KPipeline · 聲線向量把音色/語調分兩半 · misaki+espeak 多語 G2P(英/中/日/西/法…)· voicepack 平均混音 · 510 音素「標點瀑布」切塊 · CPU/MPS/ONNX 部署 · 10 節 + 3 SVG |
-| 🧠 訓練小模型做單一任務 | [`learn/train-slm-single-task.html`](learn/train-slm-single-task.html) | ✅ 已建立 | SLM 專用化實戰 · 13 節 · LoRA/QLoRA + 蒸餾 + NVIDIA 六步 · 含決策樹與程式範例 |
-| 🧰 Matt Pocock Skills 總覽目錄 | [`learn/matt-pocock-skills.html`](learn/matt-pocock-skills.html) | ✅ 已建立 | 系列入口 · 兩篇深入拆解 + 整個 repo 的 Skill 速查地圖 |
-| ✍️ Matt Pocock AI 寫作系統 | [`learn/matt-pocock-writing-skills.html`](learn/matt-pocock-writing-skills.html) | ✅ 已建立 | 拆解 mattpocock/skills 的 fragments/shape/beats · 探索 vs 開採 · 含手動版流程 |
-| 🏭 Matt Pocock AI 程式開發流程 | [`learn/matt-pocock-dev-workflow.html`](learn/matt-pocock-dev-workflow.html) | ✅ 已建立 | grill→spec→tickets→implement(TDD)→review 生產線 · 17 個工程 Skill · 含手動版 |
-| 🌳 Git Worktree 觀念與實務 | [`learn/git-worktree.html`](learn/git-worktree.html) | ✅ 已建立 | 一個 repo 多工作目錄 · 心智模型/指令速查/實務場景/優缺點/vs clone |
-| 📚 Sesshu 知識區 | [`learn/sesshu/_index.md`](learn/sesshu/_index.md) | ✅ 已建立 | session 歷史壓縮 hook 套件（Claude Code/Codex/Gemini/Copilot CLI）· 7 份中文導覽 + [官方 HTML 原檔](learn/sesshu/sesshu-architecture-and-usage-guide.html) + [壓縮技術說明](learn/sesshu/sesshu-compression-explained.html) + [使用手冊](learn/sesshu/manual.html) |
-| 🤝 為什麼他們總在「刁難」（跨部門溝通） | [`learn/workplace/cross-dept-communication.html`](learn/workplace/cross-dept-communication.html) | ✅ 已建立 | 職場軟技能 · 整理自「龍文說書」上・下集＋企業培訓框架 · 衝突根源 + 六部門翻譯表 + 對話模板作戰地圖 + 穀倉效應/ABC + Thomas-Kilmann 五種衝突模式 + 化解衝突 3 步驟 + 降溫金句 + 綜合案例 + 3 張 SVG · 從對立受害者變協調指揮者 |
-| 🧭 跨部門專案怎麼不散掉（決策權·依賴·升級） | [`learn/workplace/cross-dept-projects.html`](learn/workplace/cross-dept-projects.html) | ✅ 已建立 | 職場結構面 · 跨部門溝通的姊妹頁 · 專案章程 + 單一負責人(DRI) + RACI vs Bain RAPID 決策權 + Mendelow 權力-利益矩陣 + 依賴地圖/介面契約/康威定律/Scrum of Scrums·PI Planning + 節奏與三級升級路徑 + 失敗模式速查表 + 3 張 SVG |
-| 👑 教練式領導總整合（一頁全） | [`learn/workplace/leadership-coaching.html`](learn/workplace/leadership-coaching.html) | ✅ 已建立 | 職場領導 · 四套教練框架整併成一頁的完整手冊(心態→提問→輔導→績效→習慣)· 範式轉移 + 教練三信念/角色 + 三層思考煞車 + 語言工具/溝通三目標 + IDEAS 表達 + 四步驟輔導 + OKR×PHDI(P=(H×D)−I) + GROWTH/習慣複利 + 反面課(管理得過且過的下屬) · 焦點解決/深度教練/IDEAS+GROWTH/OKR×PHDI 皆整併於此 · 8 SVG |
+| 🏠 首頁（hub） | [`index.html`](index.html) | ✅ | 七大主題入口；AI 區 = 學習總目錄 hub + 最多數張精選 |
+| 📈 美股交易 | [`invest/`](invest/course.html) | ✅ | 日內 × 波段教學 + Alpaca／IBKR／Finnhub API 速查 |
+| 🎓 AI 學習總目錄 | [`learn/`](learn/index.html) | ✅ | 分組導覽：工作流、上下文／記憶、Agent、語音、職場、基礎 |
+| 🧩 Skills 分析專區 | [`skills/`](skills/index.html) | ✅ | 技能包拆解 · 6 維框架 + 五大類巡覽 |
+| 🎨 74 品牌 DESIGN.md | [`design-md/`](design-md/index.html) | ✅ | Stripe／Linear／Vercel／Apple／Cursor 等設計 token |
+| 🏝️ 八重山旅行知識庫 | [`travel/ishigaki-2026/`](travel/ishigaki-2026/index.html) | ✅ | 石垣 × 西表 × 竹富 · 行程／住宿／交通／飲食 |
+| 📑 蝦皮租約 | [`legal/shopee-lease-review.html`](legal/shopee-lease-review.html) | ✅ | 房東逐條解析 · 附[一頁決策摘要](legal/shopee-lease-decision.html) |
+| 📚 Sesshu 知識區 | [`learn/sesshu/_index.md`](learn/sesshu/_index.md) | ✅ | session 壓縮 hook · 經 learn 總目錄進入 |
+| 🗂️ 原始資料 | [`raw/`](raw/DayTrade/index.html) | ✅ | DayTrade 手冊、美股 API 調研、自動化專案計畫 |
+
+> 學習區內個別文章清單以 [`learn/index.html`](learn/index.html) 為準，此表不再逐篇列舉，避免與 zone index 重複維護。
 
 ---
 
@@ -84,7 +64,7 @@ JustKM/
 
 - 每個主題是一個獨立子資料夾，放該主題的所有檔案（HTML / Markdown / 圖）
 - 主題頁面之間不強耦合，可獨立維護
-- 主題內連接與跨主題連結都歡迎，只要寫得清楚
+- 新增深入文章：放到對應 zone，並在該區 `index.html` 掛卡；**不要**再往首頁堆卡
 - 字級調整器：每頁都有 `Cmd/Ctrl + / - / 0` 快捷鍵，跨頁 localStorage 同步
 
 ## 部署
@@ -98,4 +78,4 @@ JustKM/
 
 ---
 
-最後更新：2026-09-16（充實 learn/workplace/cross-dept-communication.html 核心工具區 — 補充穀倉效應/ABC 共識、Thomas-Kilmann 五種衝突模式、化解衝突 3 步驟、降溫金句與綜合案例，來源含太毅國際・胡修遠專欄與言果學習）
+最後更新：2026-09-20（入口 IA 重整：首頁改為主題 hub；AI 文章牆下沉至 `learn/index.html` 分組索引；Skills 獨立成 Level 1；README 對齊真實路徑）
