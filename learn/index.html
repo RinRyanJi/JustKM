@@ -158,18 +158,18 @@
     <h1>🎓 AI 學習總目錄</h1>
     <p class="sub">JustKM 的 AI / ML 學習區 —— 把 AI 馴服成可靠工具的方法，都收在這裡</p>
     <div>
-      <span class="badge green">SLM 訓練</span>
-      <span class="badge blue">AI 工作流</span>
-      <span class="badge purple">寫作系統</span>
-      <span class="badge">用量追蹤</span>
-      <span class="badge">網路基礎</span>
-      <span class="badge green">職場軟技能</span>
+      <span class="badge blue">AI 工作流 &amp; Skills</span>
+      <span class="badge purple">上下文／記憶</span>
+      <span class="badge green">模型訓練 &amp; Agent</span>
+      <span class="badge">語音／嵌入式</span>
+      <span class="badge green">工程實踐／職場</span>
+      <span class="badge">開發基礎</span>
     </div>
   </div>
 
-  <!-- 群組 1：AI 工作流 / Skills -->
+  <!-- 群組 1：AI 工作流 & Skills -->
   <div class="group-title">🧰 AI 工作流 &amp; Skills</div>
-  <div class="group-sub">把隨機的 AI 調教成穩定輸出的生產力 —— 拆解自 Matt Pocock 的開源 skills</div>
+  <div class="group-sub">把隨機的 AI 調教成穩定輸出的生產力 —— Skills、編碼 harness、用量追蹤</div>
 
   <div class="feature">
     <a href="./matt-pocock-skills.html" style="text-decoration:none;color:inherit;display:block;">
@@ -200,258 +200,416 @@
       <div class="mt">本地 Responses 代理 · 把網頁 ChatGPT 當 Codex 一個模型 · v5.0.7</div>
       <div class="ds">用 ChatGPT 方案額度跑 Codex、不吃 API 配額。拆解模型清單如何被追加、請求怎麼分流、Full 模式 MCP 反向工具調用的授權流程、瀏覽器自動化、上下文壓縮與安全設計。</div>
     </a>
+    <a class="card" href="./codex-taskboard.html">
+      <div class="ic">🗂️</div>
+      <div class="nm">Codex Taskboard：議題生命週期 = Agent 協定<span class="status ok">已建立</span></div>
+      <div class="mt">8 節 · 認領／併發／驗收 · 多代理紀律</div>
+      <div class="ds">dashi-taskboard 拆解：用一份 Codex Skill 把 issue 的認領→執行→驗收寫成可多 agent 安全併發的協定。</div>
+    </a>
+    <a class="card" href="./codex-usage-calculation.html">
+      <div class="ic">📊</div>
+      <div class="nm">Codex 使用量計算原理<span class="status ok">已建立</span></div>
+      <div class="mt">9 個觀念 · 用例子講不用公式 · schema v8</div>
+      <div class="ds">token 數字從哪來、怎麼變成報表、什麼時候不能盡信：cached 扣抵、三種百分比、週配額反推、去重匯入。</div>
+    </a>
+    <a class="card" href="./herdr.html">
+      <div class="ic">🐑</div>
+      <div class="nm">Herdr：AI agent 專用終端多工器<span class="status ok">已建立</span></div>
+      <div class="mt">10 節 · tmux + agent 狀態感知 · Rust/Ratatui</div>
+      <div class="ds">同一終端養多個 coding agent，側欄一眼看誰 working/blocked/idle，斷線續跑。</div>
+    </a>
+    <a class="card" href="../skills/index.html">
+      <div class="ic">🧩</div>
+      <div class="nm">Skills 分析專區<span class="status ok">已建立</span></div>
+      <div class="mt">站內 Skills 區入口 · 6 維分析框架</div>
+      <div class="ds">專門分析各式 AI Skill：觸發、漸進揭露、好 Skill vs 反模式。與本頁工作流互補。</div>
+    </a>
   </div>
 
-  <!-- 群組 2：模型訓練 / Agent -->
-  <div class="group-title">🧠 模型訓練 &amp; Agent</div>
-  <div class="group-sub">讓小模型/Agent 專注把單一任務做到最好</div>
-  <div class="grid">
-    <a class="card" href="./train-slm-single-task.html">
-      <div class="ic">🧠</div>
-      <div class="nm">訓練小模型做單一任務<span class="status ok">已建立</span></div>
-      <div class="mt">13 節 · LoRA/QLoRA + 蒸餾 + NVIDIA 六步</div>
-      <div class="ds">把 1–8B 小模型練成只做好一件事的專才：決策樹、資料集準備、調參起手值、評估陷阱與檢查清單。</div>
-    </a>
-    <a class="card" href="./ai-agents/pi-agent-best-practices-2026-06.md">
-      <div class="ic">🤖</div>
-      <div class="nm">Pi Agent 最佳實踐<span class="status wip">metadata</span></div>
-      <div class="mt">Harness Agent 客製化 · 2026-06 影片</div>
-      <div class="ds">Agent 客製化全流程筆記。目前僅整理自影片 metadata + NotebookLM 摘要，待字幕/Briefing Doc 補強。</div>
-    </a>
-  </div>
-
-  <!-- 群組 3：上下文 / 記憶管理 -->
-  <div class="group-title">🗜️ 上下文 &amp; 記憶管理</div>
-  <div class="group-sub">長對話塞爆視窗、Agent「降智」怎麼救 —— 跨不同 Agent 通用</div>
+  <!-- 群組 2：上下文／記憶 -->
+  <div class="group-title">🗜️ 上下文／記憶</div>
+  <div class="group-sub">長對話塞爆視窗、Agent「降智」怎麼救 —— Sesshu 知識區與跨 Agent 通用壓縮策略</div>
   <div class="grid">
     <a class="card" href="./ai-context-compression.html">
       <div class="ic">🗜️</div>
-      <div class="nm">AI 對話 / 上下文壓縮實戰<span class="status ok">已建立</span></div>
+      <div class="nm">AI 對話／上下文壓縮實戰<span class="status ok">已建立</span></div>
       <div class="mt">9 節 · Claude Code · Codex 對照 + 跨 Agent 通用策略</div>
-      <div class="ds">四種壓縮層次、各家 Agent 怎麼壓（Claude Code/Codex/OpenCode/Amp）、以及不管用哪個 Agent 都適用的實戰策略；附 GitHub 專案清單與來源。</div>
+      <div class="ds">四種壓縮層次、各家 Agent 怎麼壓，以及不管用哪個 Agent 都適用的實戰策略。</div>
+    </a>
+    <a class="card" href="./llm-skill-forgetting.html">
+      <div class="ic">🧠</div>
+      <div class="nm">為什麼 LLM 會「忘記」被賦予的 Skill<span class="status ok">已建立</span></div>
+      <div class="mt">9 節 + 3 SVG · 五大機制 · 四招解法</div>
+      <div class="ds">Lost in the Middle、Context Rot、災難性遺忘、指令衝突……症狀→根因→對策速查。</div>
     </a>
   </div>
 
   <div class="feature">
     <a href="./sesshu/_index.md" style="text-decoration:none;color:inherit;display:block;">
       <div class="nm">📚 Sesshu 知識區 <span style="font-size:0.75rem;color:var(--accent);font-weight:700;">（知識區入口）→</span></div>
-      <div class="ds">給 Claude Code / Codex CLI / Gemini CLI / Copilot CLI 的 <strong>session 歷史壓縮 hook 套件</strong>：把 transcript 壓成結構化 wiki 摘要，<code>/clear</code> 後重新注入新 session。7 份中文導覽（架構、安裝使用、執行時序、程式碼地圖、原始碼索引、疑難排解）＋ 一手英文原檔。</div>
+      <div class="ds">給 Claude Code / Codex CLI / Gemini CLI / Copilot CLI 的 <strong>session 歷史壓縮 hook 套件</strong>：把 transcript 壓成結構化 wiki 摘要，<code>/clear</code> 後重新注入新 session。中文導覽＋一手原檔都從這裡進。</div>
     </a>
     <div class="subcards">
       <a class="subcard" href="./sesshu/sesshu-architecture-and-usage-guide.html">
         <div class="snm">📄 官方架構與使用指南</div>
-        <div class="sds">HTML 一手來源（英文原檔，原樣複製）</div>
+        <div class="sds">HTML 一手來源（英文原檔）</div>
       </a>
       <a class="subcard" href="./sesshu/sesshu-compression-explained.html">
         <div class="snm">🗜️ Sesshu 壓縮技術說明</div>
-        <div class="sds">HTML 一手來源（繁中原檔）· 四個核心觀念 · 8 張 SVG · 中文</div>
+        <div class="sds">繁中 HTML · 四個核心觀念 · 8 張 SVG</div>
       </a>
       <a class="subcard" href="./sesshu/manual.html">
         <div class="snm">📘 Sesshu 使用手冊</div>
-        <div class="sds">HTML 一手來源（繁中原檔）· 安裝到疑難排解 · 5 張 SVG</div>
+        <div class="sds">繁中 HTML · 安裝到疑難排解 · 5 張 SVG</div>
+      </a>
+      <a class="subcard" href="./sesshu/architecture.md">
+        <div class="snm">🏗️ 架構導覽</div>
+        <div class="sds">中文 · 元件與資料流</div>
       </a>
       <a class="subcard" href="./sesshu/installation-and-usage.md">
         <div class="snm">🔧 安裝與日常使用</div>
-        <div class="sds">Windows / Linux 安裝 · 設定觀念 · 中文</div>
+        <div class="sds">Windows / Linux · 設定觀念</div>
+      </a>
+      <a class="subcard" href="./sesshu/workflows.md">
+        <div class="snm">🔁 執行時序／工作流</div>
+        <div class="sds">hook 何時觸發、怎麼壓</div>
+      </a>
+      <a class="subcard" href="./sesshu/code-map.md">
+        <div class="snm">🗺️ 程式碼地圖</div>
+        <div class="sds">目錄與模組對照</div>
+      </a>
+      <a class="subcard" href="./sesshu/source-index.md">
+        <div class="snm">📇 原始碼索引</div>
+        <div class="sds">關鍵檔案速查</div>
+      </a>
+      <a class="subcard" href="./sesshu/troubleshooting.md">
+        <div class="snm">🛠️ 疑難排解</div>
+        <div class="sds">常見錯誤與決策樹</div>
       </a>
     </div>
   </div>
 
-  <!-- 群組 4：用量 &amp; 成本追蹤 -->
-  <div class="group-title">📊 用量 &amp; 成本追蹤</div>
-  <div class="group-sub">AI Agent 到底燒掉多少 token、多少錢 —— 從原始日誌到報表的完整計算原理</div>
+  <!-- 群組 3：模型訓練 & Agent 架構 -->
+  <div class="group-title">🧠 模型訓練 &amp; Agent 架構</div>
+  <div class="group-sub">小模型專用化、自我演化、編碼 Agent harness 與品質方法論</div>
   <div class="grid">
-    <a class="card" href="./codex-usage-calculation.html">
+    <a class="card" href="./train-slm-single-task.html">
+      <div class="ic">🧠</div>
+      <div class="nm">訓練小模型做單一任務<span class="status ok">已建立</span></div>
+      <div class="mt">13 節 · LoRA/QLoRA + 蒸餾 + NVIDIA 六步</div>
+      <div class="ds">把 1–8B 小模型練成只做好一件事的專才：決策樹、資料集、調參與評估陷阱。</div>
+    </a>
+    <a class="card" href="./k2-horizon.html">
+      <div class="ic">⌚</div>
+      <div class="nm">K2 Horizon 0.9B：能塞進手錶的全開源小模型<span class="status ok">已建立</span></div>
+      <div class="mt">2026 · IFM/MBZUAI · 端側 · 誠實拆解</div>
+      <div class="ds">多師蒸餾、4-bit ~633MB 足跡、本地安裝路徑，與行銷 vs 實測落差。</div>
+    </a>
+    <a class="card" href="./chartool.html">
       <div class="ic">📊</div>
-      <div class="nm">Codex 使用量計算原理<span class="status ok">已建立</span></div>
-      <div class="mt">9 個觀念 · 用例子講不用公式 · schema v8</div>
-      <div class="ds">Codex 的 token 數字從哪來、怎麼變成報表、什麼時候不能盡信：cached 為何要從 input 扣掉、三種百分比差在哪、週配額怎麼被反推出來、重複匯入為何不會重複計算。每個觀念一個實例。</div>
+      <div class="nm">CharTool：給多模態模型掛「工具」的圖表推理<span class="status ok">已建立</span></div>
+      <div class="mt">2026 · SJTU · 工具整合視覺推理 + SVG</div>
+      <div class="ds">7B 小模型靠切圖＋寫 Python 的智慧體策略，在複雜圖表推理上以小博大。</div>
     </a>
-  </div>
-
-  <!-- 群組 5：企業資料平台 -->
-  <div class="group-title">🏢 企業資料平台</div>
-  <div class="group-sub">大型組織怎麼把碎片化的孤島資料整合成單一可決策的畫面</div>
-  <div class="grid">
-    <a class="card" href="./palantir-data-fragmentation.html">
-      <div class="ic">🏢</div>
-      <div class="nm">Palantir 如何一站式解決資料碎片化<span class="status ok">已建立</span></div>
-      <div class="mt">簡約明亮 · 5 張 SVG 圖解 · Foundry/Ontology/AIP/Apollo</div>
-      <div class="ds">接入→整理→Ontology 統一成單一真相→人/AI 決策→寫回來源系統的閉環；含分層堆疊圖、Ontology 三元素、閉環流程與四大產品圖解。</div>
-    </a>
-  </div>
-
-  <!-- 群組 6：職場軟技能 -->
-  <div class="group-title">🤝 職場軟技能</div>
-  <div class="group-sub">技術之外的另一半功課 —— 跨部門溝通、把衝突轉成協作</div>
-  <div class="grid">
-    <a class="card" href="./workplace/cross-dept-communication.html">
-      <div class="ic">🤝</div>
-      <div class="nm">為什麼他們總在「刁難」：跨部門溝通<span class="status ok">已建立</span></div>
-      <div class="mt">整理自「龍文說書」上・下集 + 企業培訓框架 · 翻譯表/對話模板/五種衝突模式 · 3 SVG</div>
-      <div class="ds">會議裡的「刁難」多半不是針對人，而是各部門使命不同的必然摩擦。拆成衝突根源、六部門翻譯表、對誰用什麼說服邏輯的作戰地圖、化解火藥味的降溫金句，與基層/中階/高階用法；並補充企業培訓實務三框架——穀倉效應與 ABC 共識、Thomas-Kilmann 五種衝突模式、化解衝突 3 步驟，附綜合案例。從「對立的受害者」變成「協調全場的指揮者」。</div>
-    </a>
-    <a class="card" href="./workplace/cross-dept-projects.html">
-      <div class="ic">🧭</div>
-      <div class="nm">跨部門專案怎麼不散掉:決策權與依賴管理<span class="status ok">已建立</span></div>
-      <div class="mt">結構面姊妹頁 · RACI/Bain RAPID/Mendelow 矩陣 · 章程/依賴/升級 · 3 SVG</div>
-      <div class="ds">溝通頁解決「人」的對立;這頁解決「結構」的失控。當專案橫跨多部門:用專案章程把目標/贊助者/單一負責人/決策權寫成契約、用 RACI 與 Bain RAPID 分清「誰做/誰否決/誰拍板」、用 Mendelow 權力-利益矩陣把力氣花對人、把團隊間依賴與介面當合約管(含康威定律、Scrum of Scrums/PI Planning),並定好節奏與三級升級路徑。附失敗模式速查表。</div>
-    </a>
-    <a class="card" href="./workplace/leadership-coaching.html">
-      <div class="ic">👑</div>
-      <div class="nm">教練式領導總整合(一頁全)<span class="status ok">已建立</span></div>
-      <div class="mt">4 套框架整併一頁 · 心態→提問→輔導→績效→習慣 + 反面課 · 8 SVG</div>
-      <div class="ds">把四支教練式領導主題整併成一條龍的完整手冊:範式轉移(別當救火員/保姆)、教練三信念與角色、破解自動化思考的三層煞車(理性論證/後設認知/知彼解己)、對話語言工具與溝通三目標、IDEAS 說服表達、四步驟深度輔導、OKR×PHDI 績效系統(P=(H×D)−I)、GROWTH 落地成習慣;並收錄反面課:當教練無效時怎麼管「得過且過」的下屬(具體標準/交換價值/責任邊界/一對一面談)。焦點解決 / 深度教練 / IDEAS+GROWTH / OKR×PHDI 皆整併於此頁。</div>
-    </a>
-  </div>
-
-  <!-- 群組 7：基礎 -->
-  <div class="group-title">🌐 開發基礎</div>
-  <div class="group-sub">串接 API / 部署推論前的必備知識</div>
-  <div class="grid">
-    <a class="card" href="./network-basics.html">
-      <div class="ic">🌐</div>
-      <div class="nm">網路小白入門：REST 與 WebSocket<span class="status ok">已建立</span></div>
-      <div class="mt">9 節 · 含可跑範例 + ASCII 流程圖</div>
-      <div class="ds">5 分鐘搞懂兩種網路通訊模式：打電話叫外送（REST）vs LINE 群組（WebSocket）。學任何 API 前的基礎。</div>
-    </a>
-    <a class="card" href="./find-corporate-ca-cert.html">
-      <div class="ic">🔐</div>
-      <div class="nm">找到公司憑證：企業 CA / TLS 檢查憑證<span class="status ok">已建立</span></div>
-      <div class="mt">10 節 + 2 SVG · Windows/macOS/Linux/Firefox · 找/匯出/確認/為何程式要另設/使用</div>
-      <div class="ds">公司網路常做 TLS 檢查(MITM),會把企業根憑證預裝進你電腦的信任庫。整理各系統怎麼找並匯出(certlm/Keychain/trust list)、怎麼用憑證鏈/openssl 確認、以及找到後怎麼餵給 curl/python/node/git/JVM——重點是指向它、別停用 TLS 驗證。</div>
-    </a>
-    <a class="card" href="./git-worktree.html">
-      <div class="ic">🌳</div>
-      <div class="nm">Git Worktree 觀念與實務<span class="status ok">已建立</span></div>
-      <div class="mt">10 節 · 一個 repo 多個工作目錄 · 指令速查 + 優缺點</div>
-      <div class="ds">告別 stash 與反覆切分支：同時開多個分支的工作目錄、共用歷史。含心智模型、核心指令、實務場景、手把手範例與 vs clone 對照。</div>
-    </a>
-    <a class="card" href="./herdr.html">
-      <div class="ic">🐑</div>
-      <div class="nm">Herdr：AI agent 專用終端多工器<span class="status ok">已建立</span></div>
-      <div class="mt">10 節 · tmux + agent 狀態感知 · Rust/Ratatui</div>
-      <div class="ds">「the runtime your coding agents live on」：同一終端養多個 coding agent，側欄一眼看誰 working/blocked/idle，斷線續跑。含心智模型、CLI/Socket API、vs tmux 對照。</div>
+    <a class="card" href="./ai-agents/pi-agent-best-practices-2026-06.md">
+      <div class="ic">🤖</div>
+      <div class="nm">Pi Agent 最佳實踐<span class="status wip">metadata</span></div>
+      <div class="mt">Harness Agent 客製化 · 2026-06 影片</div>
+      <div class="ds">目前僅整理自影片 metadata + NotebookLM 摘要，待字幕／Briefing Doc 補強。</div>
     </a>
     <a class="card" href="./self-evolving-agents.html">
       <div class="ic">🧬</div>
       <div class="nm">自我演化 Agent 綜述導讀<span class="status ok">已建立</span></div>
-      <div class="mt">8 節 · 三大維度分類 · 論文/Benchmark/函式庫/應用</div>
-      <div class="ds">廈大 XMUDeepLIT 綜述的中文地圖：模型中心 / 環境中心 / 模型-環境共同演化三維度，涵蓋自我修正、經驗記憶、技能增強、拓撲演化、環境訓練與落地應用。</div>
+      <div class="mt">8 節 · 三大維度分類 · 論文／Benchmark／函式庫</div>
+      <div class="ds">廈大綜述中文地圖：模型中心／環境中心／共同演化三維度。</div>
     </a>
     <a class="card" href="./evoagentx.html">
       <div class="ic">🔁</div>
       <div class="nm">EvoAgentX：自動演化 Agent 工作流框架<span class="status ok">已建立</span></div>
-      <div class="mt">7 節 · 自動生成→評估→演化 · 4 種 Optimizer · Python/MIT</div>
-      <div class="ds">把「自我演化 agent」理論做成能 pip install 的框架：從一句目標生成多代理工作流，用 TextGrad/MIPRO/AFlow/EvoPrompt 迭代優化提示與結構。含快速開始與整合。</div>
-    </a>
-    <a class="card" href="./prime-agent.html">
-      <div class="ic">🔷</div>
-      <div class="nm">Prime Agent 架構拆解<span class="status ok">已建立</span></div>
-      <div class="mt">9 節 · daemon/worker/IPython kernel · RLM + Continual Harness · 讀原始碼</div>
-      <div class="ds">PrimeIntellect 的自我改進 RLM coding agent(建於 pi)。實際 clone 原始碼拆解:三層執行架構、RLM 遞迴橋接(rlm.run over host.request)、daemon 租約與崩潰復原、兩大核心抽象。</div>
+      <div class="mt">7 節 · 4 種 Optimizer · Python/MIT</div>
+      <div class="ds">從一句目標生成多代理工作流，用 TextGrad/MIPRO/AFlow/EvoPrompt 迭代優化。</div>
     </a>
     <a class="card" href="./ai-quality-docs.html">
       <div class="ic">📝</div>
       <div class="nm">讓 AI 產生高品質文件<span class="status ok">已建立</span></div>
-      <div class="mt">8 節 · 五大評分方法論 + 開源專案 + 流水線</div>
-      <div class="ds">把評分演算法化、生成流水線化:Rubric/二元檢核、Metadata 契合、角色對立、強制引用反查(防幻覺扣分)、結構化 JSON Prompt;含 GPT-Researcher/AutoGen/Ragas/DSPy 等專案與 Map-Reduce/Reflexion 技術。</div>
-    </a>
-    <a class="card" href="./deepseek-harness.html">
-      <div class="ic">🐋</div>
-      <div class="nm">DeepSeek Harness 架構拆解<span class="status ok">已建立</span></div>
-      <div class="mt">9 節 · 一切皆插件 · Cordis · 讀原始碼</div>
-      <div class="ds">DeepSeek 官方開源 agent harness(dsh)。clone 原始碼拆解:Cordis 五核心概念、Profile/bundle 疊加、核心包與 ctx 服務、三事件域+四分發模式、turn/step 輪次流程,及與 Prime Agent 對照。</div>
-    </a>
-    <a class="card" href="./voxemw.html">
-      <div class="ic">🎙️</div>
-      <div class="nm">VoxEMW:1.3 秒本地 AI 語音數字人<span class="status ok">已建立</span></div>
-      <div class="mt">8 節 · 延遲預算工程 · VAD→STT→LLM→TTS→Avatar</div>
-      <div class="ds">單張 4090 全本地、端到端 1.3 秒的即時語音數字人(電磁波Studio)。拆解延遲預算、六模組(Silero/SenseVoice/Qwen3/VoxCPM2/AVTR-1/人設蒸餾)、串流壓延遲、語義判停與打斷記憶,及可偷師的思路。</div>
-    </a>
-    <a class="card" href="./voxemw-realtime.html">
-      <div class="ic">⏱️</div>
-      <div class="nm">VoxEMW 即時對話工程深潛<span class="status ok">已建立</span></div>
-      <div class="mt">9 節 · 語義判停 · 串流管線 · 打斷時序</div>
-      <div class="ds">從原始碼拆解 VoxEMW 的即時對話工程:兩階段語義判停(Silero+SmartTurn)的模型原理、串流管線怎麼一段段接與 MTP 推測解碼、以及「打斷」發生時的毫秒級時序與 heard_prefix 記憶回寫。</div>
-    </a>
-    <a class="card" href="./gemma-translator.html">
-      <div class="ic">💬</div>
-      <div class="nm">Gemma Translator on Whisplay:離線語音翻譯機<span class="status ok">已建立</span></div>
-      <div class="mt">9 節 + 3 SVG · Pi 5 端側 · Moonshine + Gemma E2B · LiteRT-LM</div>
-      <div class="ds">把 Google 開源 Gemma Translator 簡化成「Pi 5 + Whisplay HAT+」兩板式離線口譯機(PiSugar / Jdaie Lin),全程不連網、支援 6 語言互譯。拆解聽(Moonshine STT)→翻(Gemma E2B 經 LiteRT-LM)→說(Moonshine TTS)三模型串流管線、為何用 Moonshine 而非 Whisper(變長輸入省掉 30 秒補零、sub-200ms)、E2B「有效參數」如何塞進 8GB,與 systemd + Chromium kiosk 的家電式部署。</div>
-    </a>
-    <a class="card" href="./gemma-translator-internals.html">
-      <div class="ic">⚙️</div>
-      <div class="nm">Gemma Translator 原始碼拆解:兩個行程怎麼接<span class="status ok">已建立</span></div>
-      <div class="mt">8 節 + 2 SVG · 讀原始碼 · internals · SSE/KV/LRU</div>
-      <div class="ds">概覽頁的深潛版:讀 backend 原始碼。兩個 Python 行程(LiteRT-LM 常駐翻譯器 :9379 OpenAI 相容 + stdlib http.server 閘道 :3000)怎麼分工、常駐 conversation 如何跨句重用 KV cache 並在 3200 token 重置、SSE 為何用 read1() 不緩衝直通瀏覽器、Moonshine 的 LRU 模型快取與語言預載,與 start.sh 的啟動編排(等埠就緒 180s)。</div>
-    </a>
-    <a class="card" href="./esp32-groq-voice-assistant.html">
-      <div class="ic">🔊</div>
-      <div class="nm">ESP32-S3 + Groq 語音助手:一顆 MCU 靠雲端 AI<span class="status ok">已建立</span></div>
-      <div class="mt">8 節 + 3 SVG · 嵌入式語音 · Groq 三模型 · 串流被記憶體逼出來</div>
-      <div class="ds">techiesms 開源:整台語音助手跑在單顆 ESP32-S3,按住說話、聽它答。AI 全走 Groq 雲(whisper-large-v3-turbo + gpt-oss-120b + orpheus-v1-english),一把免費 key,端到端 ~2.2s。和站內全本地(VoxEMW/Gemma Translator)相反——MCU 只做即時音訊 I/O 與串流。最精彩的工程:WiFi/TLS 後僅 ~130KB heap、放不下 320KB(10s)音訊,只能 chunked transfer 邊錄邊傳、邊收邊播。含硬體接線(INMP441/MAX98357A)、延遲拆解、免費額度(2000 requests/每回合 3 個)與疑難排解。</div>
-    </a>
-    <a class="card" href="./kokoro-tts.html">
-      <div class="ic">🗣️</div>
-      <div class="nm">Kokoro-82M:82M 開源 TTS 怎麼又小又快<span class="status ok">已建立</span></div>
-      <div class="mt">10 節 + 3 SVG · 讀原始碼 · StyleTTS 2 · misaki G2P</div>
-      <div class="ds">hexgrad 開源:只有 82M 參數、Apache-2.0 權重、24kHz 的文字轉語音,卻逼近大模型音質。從 kokoro/model.py、pipeline.py 原始碼拆解兩層設計(語言盲 KModel × 語言感知 KPipeline)、StyleTTS 2 血統的五模組架構(PL-BERT → ProsodyPredictor 時長/F0/能量 → 對齊 → TextEncoder → iSTFTNet)、聲線向量如何把「音色/語調」分兩半、misaki+espeak 的多語 G2P、voicepack 平均混音、510 音素「標點瀑布」切塊,與 CPU/MPS/ONNX 部署。</div>
-    </a>
-    <a class="card" href="./realtime-speaker-diarization.html">
-      <div class="ic">🗣️</div>
-      <div class="nm">即時語者分離:本地串流「誰在說話」的管線<span class="status ok">已建立</span></div>
-      <div class="mt">16 節 + 7 SVG · 選型/資料流 · 延遲/DER 量測 · 證據三角驗證 · 敏感度 · 決策樹</div>
-      <div class="ds">把「即時 speaker diarization」從架構論述推進到「可衡量、可靠的可行性分析」:選型取捨、五階段資料流、語者追蹤與合流;量化延遲/資源預算(端到端&lt;1s、RTF&lt;1)、DER/JER 量測法、POC 關卡與計分卡;在「無法實作」前提下用真實系統(diart、Streaming Sortformer、pyannote 3.1)與中文會議基準(AliMeeting VBx ~15.6% / AISHELL-4 ~11–18%)三角驗證,附假設登記、敏感度分析,與依場景(重疊×人數×算力×通道數)選路線的決策樹。</div>
-    </a>
-    <a class="card" href="./codex-taskboard.html">
-      <div class="ic">🗂️</div>
-      <div class="nm">Codex Taskboard:議題生命週期 = Agent 協定<span class="status ok">已建立</span></div>
-      <div class="mt">8 節 · 認領/併發/驗收 · 多代理紀律</div>
-      <div class="ds">chuspeeism/dashi-taskboard 拆解:重點不是看板 UI,而是它用一份 Codex Skill 把 issue 的認領→執行→驗收寫成可多 agent 安全併發的協定——樂觀版本鎖、五欄位身份綁定、E3 循環、反過度設計、依衝突域併發、CDP 注入嵌入 Codex。</div>
+      <div class="mt">8 節 · 五大評分方法論 + 開源專案</div>
+      <div class="ds">Rubric、角色對立、強制引用反查、JSON Prompt；含 GPT-Researcher/AutoGen/Ragas/DSPy。</div>
     </a>
     <a class="card" href="./multi-persona-prompting.html">
       <div class="ic">🎭</div>
-      <div class="nm">多角色 AI 腦力激盪:完整角色庫與運作法<span class="status ok">已建立</span></div>
-      <div class="mt">11 節 + SVG · SPP/辯論 · 抗附和設計</div>
-      <div class="ds">從卡帕西的 5 角色出發,補上學理(Solo Performance Prompting、多代理辯論)、11+ 個依決策選角的互補角色、六頂思考帽與紅藍隊、四種運作模式,以及最常被略過的「抗附和」設計。附 3 份可直接複製的 Prompt 範本與 SVG 圖解。</div>
+      <div class="nm">多角色 AI 腦力激盪<span class="status ok">已建立</span></div>
+      <div class="mt">11 節 + SVG · SPP／辯論 · 抗附和設計</div>
+      <div class="ds">從卡帕西 5 角色補上學理與 11+ 互補角色、四種運作模式與 Prompt 範本。</div>
     </a>
     <a class="card" href="./agent-verification-mindset.html">
       <div class="ic">🔬</div>
       <div class="nm">把晶片驗證思維帶進 AI Agent<span class="status ok">已建立</span></div>
       <div class="mt">11 節 + 5 SVG · 驗證不對稱 · ACI · 雙層裁判</div>
-      <div class="ds">拆解「數字黑魔法」的案例:做 Agent 一年 90% 在做表面功夫,直到把晶片工程「設計可驗證架構」的思路搬進來。逐一講清楚前後端分離、ACI、MCP 差別、雙層裁判、以及新舊 debug(含 CLI vs MCP)差別。</div>
-    </a>
-    <a class="card" href="./engineers-adopt-ai.html">
-      <div class="ic">🛡️</div>
-      <div class="nm">讓工程師擁抱 AI:心理阻力 → 工程護欄<span class="status ok">已建立</span></div>
-      <div class="mt">10 節 + 4 SVG · 引導抗拒者五策略 · AST/LSP·原子化·TDD·雙代理</div>
-      <div class="ds">傳統工程師抗拒 AI 多半不是學不會,而是對品質/掌控/自尊的正當顧慮。上半是主管的五策略(重定位成指揮官、從痛點切入、品質防線不降級+提交者負全責、同儕踩坑分享+沙盒、尊重節奏);下半是現代 AI 工程護欄——AST+符號表索引+LSP/編譯器閉環治幻覺、任務原子化+外部記憶治失憶、TDD 全綠+雙代理審查治說幹話。核心:別讓 AI 自由發揮,替它建護欄;工程師的架構把關仍是不可取代的守門人。</div>
-    </a>
-    <a class="card" href="./chartool.html">
-      <div class="ic">📊</div>
-      <div class="nm">CharTool:給多模態模型掛「工具」的圖表推理<span class="status ok">已建立</span></div>
-      <div class="mt">2026 · SJTU · 工具整合視覺推理 + SVG</div>
-      <div class="ds">一個 7B 小模型靠「該切圖時切圖、該寫 Python 時寫 Python」的智慧體策略,在複雜圖表推理上媲美甚至打敗大數十倍的閉源大模型。拆解裁剪放大 + 代碼執行兩工具、Agentic RL(SFT→RL/VeRL)、DuoChart 雙源數據,與「以小博大」的評測。</div>
-    </a>
-    <a class="card" href="./llm-skill-forgetting.html">
-      <div class="ic">🧠</div>
-      <div class="nm">為什麼 LLM 會「忘記」被賦予的 Skill<span class="status ok">已建立</span></div>
-      <div class="mt">9 節 + 3 SVG · 五大機制 · 四招解法</div>
-      <div class="ds">明明給了 System Prompt / 工具 / 微調,模型卻漸漸不照做。拆成兩大類、五個機制(中間迷失 Lost in the Middle、Context Rot、截斷、災難性遺忘、近期效應與指令衝突、工具歧義),配四招驗證過的解法(Anchor 重注入、RAG 掛載、約束解碼、Critic 看門狗)與症狀→根因→對策速查表。</div>
+      <div class="ds">前後端分離、ACI、MCP 差別、雙層裁判，以及新舊 debug（CLI vs MCP）。</div>
     </a>
     <a class="card" href="./microduck-biped-rl.html">
       <div class="ic">🦆</div>
-      <div class="nm">Microduck:會走路的 3D 列印雙足小鴨<span class="status ok">已建立</span></div>
-      <div class="mt">8 節 + 3 SVG · sim-to-real RL · 可自造</div>
-      <div class="ds">開源 DIY 雙足機器人:14 顆舵機、跑在樹莓派 Zero 2 W。但走路不是寫死步態,而是在 MuJoCo 用強化學習「學」出來、匯出 walk.onnx、再搬到真機 50Hz 閉環。拆解觀測向量、動作、以及「為什麼模擬學的能上真機」的域隨機化/IMU 延遲建模等 sim-to-real 關鍵。</div>
+      <div class="nm">Microduck：會走路的 3D 列印雙足小鴨<span class="status ok">已建立</span></div>
+      <div class="mt">8 節 + 3 SVG · sim-to-real RL</div>
+      <div class="ds">MuJoCo 強化學習學步態 → walk.onnx → 真機 50Hz；域隨機化與 IMU 延遲建模。</div>
     </a>
-    <a class="card" href="./k2-horizon.html">
-      <div class="ic">⌚</div>
-      <div class="nm">K2 Horizon 0.9B:能塞進手錶的全開源小模型<span class="status ok">已建立</span></div>
-      <div class="mt">2026 · IFM/MBZUAI · 端側 · 誠實拆解</div>
-      <div class="ds">IFM(LLM360 血統)六模型艦隊裡最小的一員,主打端側/穿戴。拆解多師蒸餾如何把 0.9B 拉到同級最佳、4-bit 量化把足跡壓到 ~633MB、本地安裝路徑,並誠實點出「跑在手錶=定位語非實測」「發布當下要自訂 runtime、首發權重有 bug」的行銷 vs 實測落差。</div>
+  </div>
+
+  <div class="feature">
+    <a href="./prime-agent.html" style="text-decoration:none;color:inherit;display:block;">
+      <div class="nm">🔷 Prime Agent 架構拆解 <span style="font-size:0.75rem;color:var(--accent);font-weight:700;">（系列入口）→</span></div>
+      <div class="ds">PrimeIntellect 的自我改進 RLM coding agent（建於 pi）。三層執行架構、RLM 遞迴橋接、daemon 租約與崩潰復原。</div>
+    </a>
+    <div class="subcards">
+      <a class="subcard" href="./prime-agent-glossary.html">
+        <div class="snm">📖 白話術語表</div>
+        <div class="sds">IPython／REPL／ZeroMQ／daemon…</div>
+      </a>
+      <a class="subcard" href="./prime-agent-deep.html">
+        <div class="snm">🔍 深挖三題</div>
+        <div class="sds">ZeroMQ · Daemon 復原 · Compaction</div>
+      </a>
+      <a class="subcard" href="./prime-agent-internals.html">
+        <div class="snm">⚙️ 內部細節</div>
+        <div class="sds">RLM loop · 子代理 · Harness · 壓縮</div>
+      </a>
+      <a class="subcard" href="./prime-agent-ai-and-sessions.html">
+        <div class="snm">🧵 AI 抽象 + Session</div>
+        <div class="sds">packages/ai · session JSONL</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="feature">
+    <a href="./deepseek-harness.html" style="text-decoration:none;color:inherit;display:block;">
+      <div class="nm">🐋 DeepSeek Harness 架構拆解 <span style="font-size:0.75rem;color:var(--accent);font-weight:700;">（系列入口）→</span></div>
+      <div class="ds">DeepSeek 官方開源 agent harness（dsh）。Cordis 五核心、Profile/bundle、turn/step，並與 Prime Agent 對照。</div>
+    </a>
+    <div class="subcards">
+      <a class="subcard" href="./deepseek-harness-ideas.html">
+        <div class="snm">💡 Agent 設計思路</div>
+        <div class="sds">不只是插件 · 設計哲學</div>
+      </a>
+      <a class="subcard" href="./deepseek-harness-internals.html">
+        <div class="snm">⚙️ 最底層流水線</div>
+        <div class="sds">工具執行 · Cordis scope/effect</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- 群組 4：語音／嵌入式 -->
+  <div class="group-title">🎙️ 語音／嵌入式</div>
+  <div class="group-sub">本地／雲端語音管線、端側翻譯、MCU 語音助手、TTS 與語者分離</div>
+  <div class="grid">
+    <a class="card" href="./voxemw.html">
+      <div class="ic">🎙️</div>
+      <div class="nm">VoxEMW：1.3 秒本地 AI 語音數字人<span class="status ok">已建立</span></div>
+      <div class="mt">8 節 · 延遲預算工程 · VAD→STT→LLM→TTS→Avatar</div>
+      <div class="ds">單張 4090 全本地、端到端 1.3 秒的即時語音數字人；六模組與串流壓延遲。</div>
+    </a>
+    <a class="card" href="./voxemw-realtime.html">
+      <div class="ic">⏱️</div>
+      <div class="nm">VoxEMW 即時對話工程深潛<span class="status ok">已建立</span></div>
+      <div class="mt">9 節 · 語義判停 · 串流管線 · 打斷時序</div>
+      <div class="ds">兩階段語義判停、MTP 推測解碼、打斷時的毫秒級時序與 heard_prefix 記憶回寫。</div>
+    </a>
+    <a class="card" href="./gemma-translator.html">
+      <div class="ic">💬</div>
+      <div class="nm">Gemma Translator on Whisplay：離線語音翻譯機<span class="status ok">已建立</span></div>
+      <div class="mt">9 節 + 3 SVG · Pi 5 端側 · Moonshine + Gemma E2B</div>
+      <div class="ds">Pi 5 + Whisplay 兩板式離線口譯機，聽→翻→說三模型串流、6 語言互譯。</div>
+    </a>
+    <a class="card" href="./gemma-translator-internals.html">
+      <div class="ic">⚙️</div>
+      <div class="nm">Gemma Translator 原始碼拆解<span class="status ok">已建立</span></div>
+      <div class="mt">8 節 + 2 SVG · SSE／KV／LRU</div>
+      <div class="ds">兩個 Python 行程怎麼接、KV cache 重用、SSE read1() 不緩衝直通。</div>
+    </a>
+    <a class="card" href="./esp32-groq-voice-assistant.html">
+      <div class="ic">🔊</div>
+      <div class="nm">ESP32-S3 + Groq 語音助手<span class="status ok">已建立</span></div>
+      <div class="mt">8 節 + 3 SVG · 嵌入式語音 · 串流被記憶體逼出來</div>
+      <div class="ds">單顆 MCU 按住說話；AI 全走 Groq；~130KB heap 逼出 chunked transfer。</div>
+    </a>
+    <a class="card" href="./kokoro-tts.html">
+      <div class="ic">🗣️</div>
+      <div class="nm">Kokoro-82M：82M 開源 TTS 怎麼又小又快<span class="status ok">已建立</span></div>
+      <div class="mt">10 節 + 3 SVG · StyleTTS 2 · misaki G2P</div>
+      <div class="ds">語言盲 KModel × 語言感知 KPipeline；聲線向量、多語 G2P、CPU/MPS/ONNX。</div>
+    </a>
+    <a class="card" href="./realtime-speaker-diarization.html">
+      <div class="ic">🗣️</div>
+      <div class="nm">即時語者分離：本地串流「誰在說話」<span class="status ok">已建立</span></div>
+      <div class="mt">16 節 + 7 SVG · 選型／延遲／DER · 決策樹</div>
+      <div class="ds">可衡量的可行性分析：資料流、DER/JER、證據三角驗證與場景決策樹。</div>
+    </a>
+  </div>
+
+  <!-- 群組 5：工程實踐／職場 -->
+  <div class="group-title">🤝 工程實踐／職場</div>
+  <div class="group-sub">團隊轉型、跨部門協作、教練式領導，以及企業資料平台視角</div>
+  <div class="grid">
+    <a class="card" href="./engineers-adopt-ai.html">
+      <div class="ic">🛡️</div>
+      <div class="nm">讓工程師擁抱 AI：心理阻力 → 工程護欄<span class="status ok">已建立</span></div>
+      <div class="mt">10 節 + 4 SVG · 五策略 · AST/LSP · TDD · 雙代理</div>
+      <div class="ds">抗拒是正當顧慮；引導策略 + 幻覺／失憶／說幹話的工程護欄。</div>
+    </a>
+    <a class="card" href="./workplace/cross-dept-communication.html">
+      <div class="ic">🤝</div>
+      <div class="nm">為什麼他們總在「刁難」：跨部門溝通<span class="status ok">已建立</span></div>
+      <div class="mt">翻譯表／對話模板／五種衝突模式 · 3 SVG</div>
+      <div class="ds">衝突根源、六部門翻譯表、穀倉效應／ABC、Thomas-Kilmann、化解 3 步驟。</div>
+    </a>
+    <a class="card" href="./workplace/cross-dept-projects.html">
+      <div class="ic">🧭</div>
+      <div class="nm">跨部門專案怎麼不散掉<span class="status ok">已建立</span></div>
+      <div class="mt">RACI／Bain RAPID／Mendelow · 章程／依賴／升級 · 3 SVG</div>
+      <div class="ds">結構面：決策權、依賴地圖、介面契約、三級升級路徑與失敗模式速查。</div>
+    </a>
+    <a class="card" href="./workplace/leadership-coaching.html">
+      <div class="ic">👑</div>
+      <div class="nm">教練式領導總整合（一頁全）<span class="status ok">已建立</span></div>
+      <div class="mt">4 套框架 · 心態→提問→輔導→績效→習慣 · 8 SVG</div>
+      <div class="ds">IDEAS、四步驟輔導、OKR×PHDI、GROWTH；含「得過且過」下屬的反面課。</div>
+    </a>
+    <a class="card" href="./palantir-data-fragmentation.html">
+      <div class="ic">🏢</div>
+      <div class="nm">Palantir 如何一站式解決資料碎片化<span class="status ok">已建立</span></div>
+      <div class="mt">簡約明亮 · 5 張 SVG · Foundry／Ontology／AIP／Apollo</div>
+      <div class="ds">接入→整理→Ontology→決策→寫回的閉環；企業資料平台視角。</div>
+    </a>
+  </div>
+
+  <!-- 群組 6：開發基礎 -->
+  <div class="group-title">🌐 開發基礎</div>
+  <div class="group-sub">串接 API／部署推論前的必備知識與日常工程工具</div>
+  <div class="grid">
+    <a class="card" href="./network-basics.html">
+      <div class="ic">🌐</div>
+      <div class="nm">網路小白入門：REST 與 WebSocket<span class="status ok">已建立</span></div>
+      <div class="mt">9 節 · 含可跑範例 + ASCII 流程圖</div>
+      <div class="ds">5 分鐘搞懂兩種網路通訊：打電話叫外送（REST）vs LINE 群組（WebSocket）。</div>
+    </a>
+    <a class="card" href="./find-corporate-ca-cert.html">
+      <div class="ic">🔐</div>
+      <div class="nm">找到公司憑證：企業 CA／TLS 檢查憑證<span class="status ok">已建立</span></div>
+      <div class="mt">找／匯出／確認／餵給 curl／python／node／git／JVM</div>
+      <div class="ds">公司 TLS 檢查憑證怎麼找、怎麼確認、怎麼指向它——別停用 TLS 驗證。</div>
+    </a>
+    <a class="card" href="./git-worktree.html">
+      <div class="ic">🌳</div>
+      <div class="nm">Git Worktree 觀念與實務<span class="status ok">已建立</span></div>
+      <div class="mt">10 節 · 一個 repo 多個工作目錄</div>
+      <div class="ds">同時開多個分支工作目錄、共用歷史；心智模型、指令速查、vs clone。</div>
+    </a>
+  </div>
+
+  <!-- 群組 7：其他（巢狀子頁索引） -->
+  <div class="group-title">📎 其他</div>
+  <div class="group-sub">已收錄於上方主文的巢狀子頁速查（ai-quality／self-evolving 系列）</div>
+  <div class="grid">
+    <a class="card" href="./ai-quality/gpt-researcher.html">
+      <div class="ic">🔎</div>
+      <div class="nm">ai-quality · GPT-Researcher</div>
+      <div class="mt">高品質文件系列子頁</div>
+      <div class="ds">見「讓 AI 產生高品質文件」主文。</div>
+    </a>
+    <a class="card" href="./ai-quality/autogen.html">
+      <div class="ic">🤝</div>
+      <div class="nm">ai-quality · AutoGen</div>
+      <div class="mt">高品質文件系列子頁</div>
+      <div class="ds">見「讓 AI 產生高品質文件」主文。</div>
+    </a>
+    <a class="card" href="./ai-quality/crewai.html">
+      <div class="ic">👥</div>
+      <div class="nm">ai-quality · CrewAI</div>
+      <div class="mt">高品質文件系列子頁</div>
+      <div class="ds">見「讓 AI 產生高品質文件」主文。</div>
+    </a>
+    <a class="card" href="./ai-quality/ragas.html">
+      <div class="ic">📏</div>
+      <div class="nm">ai-quality · Ragas</div>
+      <div class="mt">高品質文件系列子頁</div>
+      <div class="ds">見「讓 AI 產生高品質文件」主文。</div>
+    </a>
+    <a class="card" href="./ai-quality/deepeval.html">
+      <div class="ic">✅</div>
+      <div class="nm">ai-quality · DeepEval</div>
+      <div class="mt">高品質文件系列子頁</div>
+      <div class="ds">見「讓 AI 產生高品質文件」主文。</div>
+    </a>
+    <a class="card" href="./ai-quality/dspy.html">
+      <div class="ic">🧪</div>
+      <div class="nm">ai-quality · DSPy</div>
+      <div class="mt">高品質文件系列子頁</div>
+      <div class="ds">見「讓 AI 產生高品質文件」主文。</div>
+    </a>
+    <a class="card" href="./self-evolving/reflexion.html">
+      <div class="ic">🪞</div>
+      <div class="nm">self-evolving · Reflexion</div>
+      <div class="mt">自我演化系列子頁</div>
+      <div class="ds">見「自我演化 Agent 綜述導讀」主文。</div>
+    </a>
+    <a class="card" href="./self-evolving/self-refine.html">
+      <div class="ic">✨</div>
+      <div class="nm">self-evolving · Self-Refine</div>
+      <div class="mt">自我演化系列子頁</div>
+      <div class="ds">見「自我演化 Agent 綜述導讀」主文。</div>
+    </a>
+    <a class="card" href="./self-evolving/tree-of-thoughts.html">
+      <div class="ic">🌳</div>
+      <div class="nm">self-evolving · Tree of Thoughts</div>
+      <div class="mt">自我演化系列子頁</div>
+      <div class="ds">見「自我演化 Agent 綜述導讀」主文。</div>
+    </a>
+    <a class="card" href="./self-evolving/self-consistency.html">
+      <div class="ic">🎲</div>
+      <div class="nm">self-evolving · Self-Consistency</div>
+      <div class="mt">自我演化系列子頁</div>
+      <div class="ds">見「自我演化 Agent 綜述導讀」主文。</div>
+    </a>
+    <a class="card" href="./self-evolving/critic.html">
+      <div class="ic">⚖️</div>
+      <div class="nm">self-evolving · Critic</div>
+      <div class="mt">自我演化系列子頁</div>
+      <div class="ds">見「自我演化 Agent 綜述導讀」主文。</div>
+    </a>
+    <a class="card" href="./self-evolving/self-debug.html">
+      <div class="ic">🐛</div>
+      <div class="nm">self-evolving · Self-Debug</div>
+      <div class="mt">自我演化系列子頁</div>
+      <div class="ds">見「自我演化 Agent 綜述導讀」主文。</div>
+    </a>
+    <a class="card" href="./self-evolving/language-agent-tree-search.html">
+      <div class="ic">🌲</div>
+      <div class="nm">self-evolving · Language Agent Tree Search</div>
+      <div class="mt">自我演化系列子頁</div>
+      <div class="ds">見「自我演化 Agent 綜述導讀」主文。</div>
+    </a>
+    <a class="card" href="./self-evolving/large-language-monkeys.html">
+      <div class="ic">🐒</div>
+      <div class="nm">self-evolving · Large Language Monkeys</div>
+      <div class="mt">自我演化系列子頁</div>
+      <div class="ds">見「自我演化 Agent 綜述導讀」主文。</div>
+    </a>
+    <a class="card" href="./self-evolving/llm-blender.html">
+      <div class="ic">🥤</div>
+      <div class="nm">self-evolving · LLM-Blender</div>
+      <div class="mt">自我演化系列子頁</div>
+      <div class="ds">見「自我演化 Agent 綜述導讀」主文。</div>
+    </a>
+    <a class="card" href="./self-evolving/stream-of-search.html">
+      <div class="ic">🌊</div>
+      <div class="nm">self-evolving · Stream of Search</div>
+      <div class="mt">自我演化系列子頁</div>
+      <div class="ds">見「自我演化 Agent 綜述導讀」主文。</div>
+    </a>
+    <a class="card" href="./self-evolving/think-on-graph.html">
+      <div class="ic">🕸️</div>
+      <div class="nm">self-evolving · Think-on-Graph</div>
+      <div class="mt">自我演化系列子頁</div>
+      <div class="ds">見「自我演化 Agent 綜述導讀」主文。</div>
     </a>
   </div>
 
@@ -461,7 +619,7 @@
 
   <div class="footer">
     <p>JustKM · AI 學習總目錄</p>
-    <p style="margin-top:4px;">建立於 2026-08-04 · 字級調整器在右上角，可隨時改變字體大小</p>
+    <p style="margin-top:4px;">建立於 2026-08-04 · 入口 IA 重整 2026-09-20 · 字級調整器在右上角</p>
     <p style="margin-top:4px;"><a href="../index.html" style="color:var(--accent);text-decoration:none;">← 回到 JustKM 首頁</a></p>
   </div>
 
