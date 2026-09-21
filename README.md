@@ -14,6 +14,7 @@
   - 🏢 精選 · Palantir 資料碎片化：<https://rinryanji.github.io/JustKM/learn/palantir-data-fragmentation.html>
   - 🛡️ 精選 · 讓工程師擁抱 AI：<https://rinryanji.github.io/JustKM/learn/engineers-adopt-ai.html>
   - ⌨️ 精選 · OpenTypeless 桌面語音輸入：<https://rinryanji.github.io/JustKM/learn/opentypeless.html>
+  - 🐋 精選 · Orca ADE 平行 Agent 編排：<https://rinryanji.github.io/JustKM/learn/orca-ade.html>
 - 🧩 **Skills 分析專區**：<https://rinryanji.github.io/JustKM/skills/>
 - 🎨 **設計系統圖鑑（74 品牌）**：<https://rinryanji.github.io/JustKM/design-md/>
 - ✈️ **旅遊 · 八重山**：<https://rinryanji.github.io/JustKM/travel/ishigaki-2026/>
@@ -55,6 +56,7 @@ JustKM/
 | 🏝️ 八重山旅行知識庫 | [`travel/ishigaki-2026/`](travel/ishigaki-2026/index.html) | ✅ | 石垣 × 西表 × 竹富 · 行程／住宿／交通／飲食 |
 | 📑 蝦皮租約 | [`legal/shopee-lease-review.html`](legal/shopee-lease-review.html) | ✅ | 房東逐條解析 · 附[一頁決策摘要](legal/shopee-lease-decision.html) |
 | ⌨️ OpenTypeless 深潛 | [`learn/opentypeless.html`](learn/opentypeless.html) | ✅ | 開源桌面 AI 語音輸入 · 掛在語音／嵌入式 |
+| 🐋 Orca ADE 深潛 | [`learn/orca-ade.html`](learn/orca-ade.html) | ✅ | 平行 Agent 編排／worktree · 掛在 AI 工作流 & Skills |
 | 📚 Sesshu 知識區 | [`learn/sesshu/_index.md`](learn/sesshu/_index.md) | ✅ | session 壓縮 hook · 經 learn 總目錄進入 |
 | 🗂️ 原始資料 | [`raw/`](raw/DayTrade/index.html) | ✅ | DayTrade 手冊、美股 API 調研、自動化專案計畫 |
 
@@ -80,4 +82,4 @@ JustKM/
 
 ---
 
-最後更新：2026-09-20（新增 `learn/opentypeless.html` 開源桌面語音輸入深潛；掛在語音／嵌入式；README 精選連結同步）
+最後更新：2026-09-20（新增 `learn/orca-ade.html` Orca ADE 平行 Agent／worktree 深潛；掛在 AI 工作流 & Skills；README 精選連結同步）

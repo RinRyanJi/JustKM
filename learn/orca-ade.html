@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Orca ADE：平行 Agent 編排與 git worktree · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+    .badge.teal { color: #9ee8e4; border-color: rgba(42,157,153,.45); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; flex: none; align-self: flex-start; margin-top: 2px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+    section a { color: var(--link); }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🐋 Orca ADE：平行 Agent 編排與 git worktree</h1>
+    <p class="sub">Orca 是 ADE／編排層，不是自家 LLM。把 Claude Code、Codex、OpenCode、Pi 等 CLI agent 各放進隔離 worktree，在同一個 Electron 桌面（加手機伴生）裡監控、分流與合流。本頁拆定位、使用架構、扇出流程、技術棧與核心設計邊界。</p>
+    <div>
+      <span class="badge blue">ADE · Orchestrator</span>
+      <span class="badge green">MIT · Electron</span>
+      <span class="badge orange">git worktree · PTY</span>
+      <span class="badge teal">約七萬星 · 持續更新</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話定位</a>
+      <a href="#why">① 為什麼重要</a>
+      <a href="#arch">② 使用架構</a>
+      <a href="#fanout">③ 典型扇出流程</a>
+      <a href="#stack">④ 技術棧表</a>
+      <a href="#design">⑤ 核心設計點</a>
+      <a href="#justkm">⑥ 與 JustKM 議題銜接</a>
+      <a href="#when">⑦ 何時用／不用</a>
+      <a href="#sources">⑧ 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話定位</h2>
+    <p><strong>Orca = ADE（Agent Development Environment）／編排器，不是自己的 LLM。</strong>它不取代 Claude、Codex、Grok CLI 等推理引擎；它提供桌面殼、git worktree 隔離、PTY 終端、狀態總覽、SSH／WSL 執行主機、手機伴生與可腳本化的 <code>orca</code> CLI，讓你用自己的訂閱帳戶並行養一艦隊 coding agent。</p>
+    <p>上游：<a href="https://github.com/stablyai/orca">stablyai/orca</a>；站點 <a href="https://onOrca.dev">onOrca.dev</a>；授權 MIT。產品自稱「The AI Orchestrator for 100x builders」——本頁把它讀成<strong>控制平面 + 執行隔離</strong>，不把行銷數字當架構結論。</p>
+    <div class="callout tip"><strong>寫作當下快照（2026-09-20 台北時間）：</strong>GitHub 約 <strong>73k★</strong>（持續變動，請以倉庫為準）。下文以「約七萬星／持續更新」表述，不釘死精確星數。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="why">
+    <h2><span class="num">①</span> 為什麼重要：多 Agent／Claude×Codex 雙棧</h2>
+    <p>JustKM 後續會反覆碰到三個壓力：</p>
+    <ul>
+      <li><strong>同一任務要試多個 agent／模型：</strong>Claude Code 擅長長程編輯；Codex 擅長另一套工具節奏。你需要「同一提示、多隔離副本」而不是在同一個 checkout 上互踩檔案。</li>
+      <li><strong>雙棧不是雙訂閱面板：</strong>真正難的是帳號／用量、worktree 邊界、誰在跑、誰卡住、誰該 merge——這些是<strong>編排問題</strong>，不是再包一層 chat UI。</li>
+      <li><strong>終端原生 vs IDE 聊天：</strong>多數 coding agent 本來就活在 CLI／PTY。Orca 的賭注是：把 Ghostty 級終端、worktree、diff 標註、GitHub／Linear 任務、手機推播收進同一 ADE，而不是另發明一個「假 agent」。</li>
+    </ul>
+    <div class="callout info"><strong>和 JustKM 已有頁的界線：</strong><a href="./herdr.html">Herdr</a> 偏「終端多工器＋狀態感知」；<a href="./oh-my-pi.html">oh-my-pi</a>／<a href="./deepseek-harness.html">DeepSeek harness</a> 偏「單一 agent 運行時」；Orca 偏「多 agent 艦隊的 ADE／編排層」。三者互補，不是互斥替代。</div>
+
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看定位圖 →</div>
+      <svg viewBox="0 0 920 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orca 編排層與 CLI Agent 推理層分工">
+        <rect width="920" height="260" rx="12" fill="#f6f5f4"/>
+        <rect x="40" y="30" width="400" height="200" rx="14" fill="#0a1530"/>
+        <text x="240" y="70" text-anchor="middle" fill="#fff" font-size="15" font-weight="800" font-family="Inter,sans-serif">Orca = ADE／編排層</text>
+        <text x="240" y="100" text-anchor="middle" fill="#b9c2d6" font-size="12" font-family="Inter,sans-serif">worktree · PTY · 狀態 · SSH</text>
+        <text x="240" y="122" text-anchor="middle" fill="#b9c2d6" font-size="12" font-family="Inter,sans-serif">UI · mobile · orca CLI</text>
+        <text x="240" y="156" text-anchor="middle" fill="#9ee8e4" font-size="12" font-weight="700" font-family="Inter,sans-serif">不做推理</text>
+        <text x="240" y="180" text-anchor="middle" fill="#b9c2d6" font-size="12" font-family="Inter,sans-serif">擁有「誰在跑／怎麼隔離」</text>
+        <text x="240" y="202" text-anchor="middle" fill="#b9c2d6" font-size="12" font-family="Inter,sans-serif">不擁有「下一個 token」</text>
+
+        <rect x="480" y="30" width="400" height="200" rx="14" fill="#e6e0f5" stroke="#5645d4" stroke-width="2"/>
+        <text x="680" y="70" text-anchor="middle" fill="#5645d4" font-size="15" font-weight="800" font-family="Inter,sans-serif">CLI Agents = 推理／工具</text>
+        <text x="680" y="100" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">Claude Code · Codex · Pi · …</text>
+        <text x="680" y="122" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">各用你自己的訂閱／金鑰</text>
+        <text x="680" y="156" text-anchor="middle" fill="#1aae39" font-size="12" font-weight="700" font-family="Inter,sans-serif">做推理與工具呼叫</text>
+        <text x="680" y="180" text-anchor="middle" fill="#5d5b54" font-size="12" font-family="Inter,sans-serif">活在獨立 worktree＋PTY</text>
+        <text x="680" y="202" text-anchor="middle" fill="#5d5b54" font-size="12" font-family="Inter,sans-serif">Orca 只負責養與編排</text>
+
+        <path d="M440 130 L480 130" stroke="#5645d4" stroke-width="3" marker-end="url(#a1)"/>
+        <defs><marker id="a1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#5645d4"/></marker></defs>
+      </svg>
+      <div class="figcap">圖 1 · 編排 ≠ 推理：Orca 管艦隊，agent CLI 管思考與工具</div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section id="arch">
+    <h2><span class="num">②</span> 使用架構：人／手機 → Electron → main → N worktree</h2>
+    <p>把產品讀成一條控制與執行鏈（依 README 功能面＋ <code>AGENTS.md</code>／<code>docs/reference</code> 邊界整理；內部模組名可能隨版本演進）：</p>
+    <ol>
+      <li><strong>人與手機伴生：</strong>桌面操作，或用 iOS／Android companion 監控、推播、遠端追問（產品宣稱）。</li>
+      <li><strong>Electron UI（renderer）：</strong>側欄狀態、Monaco 編輯、xterm 終端分割、diff 標註、內嵌 Chromium Design Mode、GitHub／Linear 任務瀏覽。</li>
+      <li><strong>Main／runtime：</strong>建立／管理 git worktree、node-pty、SSH／WSL 執行主機、agent 狀態 store、通知與 CLI 控制平面。</li>
+      <li><strong>N 個隔離 checkout：</strong>每個 worktree 跑一個（或一組）CLI agent；檔案互不踩踏，最後比較結果再 merge 勝者。</li>
+    </ol>
+
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看架構 →</div>
+      <svg viewBox="0 0 960 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orca 使用架構：人與手機到多 worktree">
+        <rect width="960" height="420" rx="12" fill="#f6f5f4"/>
+        <!-- human / mobile -->
+        <rect x="40" y="24" width="200" height="70" rx="12" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+        <text x="140" y="54" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="800" font-family="Inter,sans-serif">人 · Desktop</text>
+        <text x="140" y="74" text-anchor="middle" fill="#5d5b54" font-size="11" font-family="Inter,sans-serif">提示／審 diff／merge</text>
+        <rect x="280" y="24" width="200" height="70" rx="12" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.5"/>
+        <text x="380" y="54" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="800" font-family="Inter,sans-serif">Mobile Companion</text>
+        <text x="380" y="74" text-anchor="middle" fill="#5d5b54" font-size="11" font-family="Inter,sans-serif">監控 · 推播 · 追問</text>
+
+        <!-- electron ui -->
+        <rect x="560" y="20" width="360" height="78" rx="12" fill="#e6e0f5" stroke="#5645d4" stroke-width="2"/>
+        <text x="740" y="50" text-anchor="middle" fill="#5645d4" font-size="14" font-weight="800" font-family="Inter,sans-serif">Electron UI（renderer）</text>
+        <text x="740" y="74" text-anchor="middle" fill="#5d5b54" font-size="11" font-family="Inter,sans-serif">React · Monaco · xterm · Zustand</text>
+
+        <!-- arrows down -->
+        <line x1="140" y1="94" x2="200" y2="130" stroke="#5d5b54" stroke-width="2"/>
+        <line x1="380" y1="94" x2="320" y2="130" stroke="#5d5b54" stroke-width="2"/>
+        <line x1="740" y1="98" x2="480" y2="140" stroke="#5645d4" stroke-width="2"/>
+
+        <!-- main -->
+        <rect x="120" y="140" width="720" height="88" rx="14" fill="#0a1530"/>
+        <text x="480" y="172" text-anchor="middle" fill="#fff" font-size="14" font-weight="800" font-family="Inter,sans-serif">Main / Runtime 控制平面</text>
+        <text x="480" y="196" text-anchor="middle" fill="#b9c2d6" font-size="12" font-family="Inter,sans-serif">worktree 管理 · node-pty · SSH/WSL · agent status store · orca CLI</text>
+        <text x="480" y="214" text-anchor="middle" fill="#9ee8e4" font-size="11" font-family="Inter,sans-serif">執行主機擁有 live / unverifiable / exited</text>
+
+        <!-- worktrees -->
+        <line x1="240" y1="228" x2="160" y2="270" stroke="#5d5b54" stroke-width="2"/>
+        <line x1="480" y1="228" x2="480" y2="270" stroke="#5d5b54" stroke-width="2"/>
+        <line x1="720" y1="228" x2="800" y2="270" stroke="#5d5b54" stroke-width="2"/>
+
+        <rect x="40" y="270" width="240" height="120" rx="12" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+        <text x="160" y="300" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="800" font-family="Inter,sans-serif">Worktree A</text>
+        <text x="160" y="324" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">獨立 checkout</text>
+        <text x="160" y="346" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">PTY → Claude Code</text>
+        <text x="160" y="368" text-anchor="middle" fill="#5d5b54" font-size="11" font-family="Inter,sans-serif">本地／SSH／WSL</text>
+
+        <rect x="360" y="270" width="240" height="120" rx="12" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+        <text x="480" y="300" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="800" font-family="Inter,sans-serif">Worktree B</text>
+        <text x="480" y="324" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">獨立 checkout</text>
+        <text x="480" y="346" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">PTY → Codex</text>
+        <text x="480" y="368" text-anchor="middle" fill="#5d5b54" font-size="11" font-family="Inter,sans-serif">本地／SSH／WSL</text>
+
+        <rect x="680" y="270" width="240" height="120" rx="12" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.5"/>
+        <text x="800" y="300" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="800" font-family="Inter,sans-serif">Worktree N</text>
+        <text x="800" y="324" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">獨立 checkout</text>
+        <text x="800" y="346" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">PTY → Pi / OpenCode / …</text>
+        <text x="800" y="368" text-anchor="middle" fill="#5d5b54" font-size="11" font-family="Inter,sans-serif">「能跑終端就能養」</text>
+      </svg>
+      <div class="figcap">圖 2 · 使用架構：人／手機 → Electron UI → main（worktree／PTY／SSH／狀態）→ N 個 CLI agent</div>
+    </div>
+    <div class="callout warn"><strong>SSH 邊界（產品文件強調）：</strong>執行主機擁有行程與產物；客戶端只擁有 UI／傳輸／控制平面。斷線 ≠ exited——應報 <code>unverifiable</code>，不可當成進程已死。</div>
+  </section>
+
+  <!-- 3 -->
+  <section id="fanout">
+    <h2><span class="num">③</span> 典型扇出（fan-out）工作流</h2>
+    <p>README 的「Parallel Worktrees」敘事可壓成一條可複現的操作環（產品宣稱）：</p>
+    <ol>
+      <li><strong>選任務：</strong>從本機 repo、GitHub PR／issue、或 Linear 任務開一個工作區。</li>
+      <li><strong>扇出：</strong>同一提示複製到多個 agent（例如 3–5 個），每個落在獨立 git worktree。</li>
+      <li><strong>並行執行：</strong>各 PTY 裡的 CLI agent 用各自訂閱跑；側欄／手機看狀態與未讀。</li>
+      <li><strong>人在迴路（HITL）：</strong>在 diff 上標註回饋給 agent、Design Mode 點 UI 元素餵 HTML／CSS／截圖、必要時從手機追問。</li>
+      <li><strong>合流：</strong>比較結果，merge／rebase 勝者；其餘 worktree 可清掉。</li>
+      <li><strong>可腳本化：</strong>用 <code>orca worktree create</code>、<code>snapshot</code>、<code>click</code>、<code>fill</code> 等 CLI 把重複流程自動化（產品宣稱）。</li>
+    </ol>
+
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看流程 →</div>
+      <svg viewBox="0 0 940 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orca 典型扇出工作流">
+        <rect width="940" height="300" rx="12" fill="#f6f5f4"/>
+        <defs>
+          <marker id="af" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#5d5b54"/></marker>
+        </defs>
+        <rect x="20" y="40" width="130" height="70" rx="10" fill="#0a1530"/>
+        <text x="85" y="70" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="Inter,sans-serif">1. 選任務</text>
+        <text x="85" y="90" text-anchor="middle" fill="#b9c2d6" font-size="10" font-family="Inter,sans-serif">repo / GH / Linear</text>
+        <line x1="150" y1="75" x2="180" y2="75" stroke="#5d5b54" stroke-width="2" marker-end="url(#af)"/>
+
+        <rect x="180" y="40" width="130" height="70" rx="10" fill="#5645d4"/>
+        <text x="245" y="70" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="Inter,sans-serif">2. 扇出</text>
+        <text x="245" y="90" text-anchor="middle" fill="#e6e0f5" font-size="10" font-family="Inter,sans-serif">N× worktree</text>
+        <line x1="310" y1="75" x2="340" y2="75" stroke="#5d5b54" stroke-width="2" marker-end="url(#af)"/>
+
+        <rect x="340" y="20" width="260" height="110" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+        <text x="470" y="50" text-anchor="middle" fill="#1a1a1a" font-size="12" font-weight="800" font-family="Inter,sans-serif">3. 並行 CLI Agents</text>
+        <text x="470" y="74" text-anchor="middle" fill="#37352f" font-size="11" font-family="Inter,sans-serif">Claude · Codex · Pi · …</text>
+        <text x="470" y="96" text-anchor="middle" fill="#5d5b54" font-size="10" font-family="Inter,sans-serif">各 PTY · 各訂閱 · 狀態彙總</text>
+        <line x1="600" y1="75" x2="630" y2="75" stroke="#5d5b54" stroke-width="2" marker-end="url(#af)"/>
+
+        <rect x="630" y="40" width="130" height="70" rx="10" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.5"/>
+        <text x="695" y="70" text-anchor="middle" fill="#1a1a1a" font-size="12" font-weight="700" font-family="Inter,sans-serif">4. HITL</text>
+        <text x="695" y="90" text-anchor="middle" fill="#5d5b54" font-size="10" font-family="Inter,sans-serif">diff · Design Mode</text>
+        <line x1="760" y1="75" x2="790" y2="75" stroke="#5d5b54" stroke-width="2" marker-end="url(#af)"/>
+
+        <rect x="790" y="40" width="130" height="70" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+        <text x="855" y="70" text-anchor="middle" fill="#1a1a1a" font-size="12" font-weight="700" font-family="Inter,sans-serif">5. 合流</text>
+        <text x="855" y="90" text-anchor="middle" fill="#5d5b54" font-size="10" font-family="Inter,sans-serif">選勝者 merge</text>
+
+        <rect x="180" y="180" width="580" height="90" rx="12" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+        <text x="470" y="216" text-anchor="middle" fill="#5645d4" font-size="13" font-weight="800" font-family="Inter,sans-serif">可選腳本層 · orca CLI</text>
+        <text x="470" y="242" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">worktree create · snapshot · click · fill · worktree ps —— Agent 也能驅動 Orca</text>
+      </svg>
+      <div class="figcap">圖 3 · 典型扇出：任務 → N worktree → HITL → merge；旁路可用 orca CLI 腳本化</div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section id="stack">
+    <h2><span class="num">④</span> 技術棧表</h2>
+    <p>下列依上游 <code>package.json</code>（寫作當下所見）與 README 功能面整理。版本號會變；角色比數字重要。</p>
+    <div class="table-wrap"><table>
+      <thead>
+        <tr><th>層</th><th>技術</th><th>在 Orca 裡的角色</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>桌面殼</strong></td>
+          <td>Electron + electron-vite</td>
+          <td>跨平台 ADE 殼；main／renderer 分離；打包與自動更新</td>
+        </tr>
+        <tr>
+          <td><strong>UI</strong></td>
+          <td>React 19 · Tailwind 4 · shadcn 風格元件</td>
+          <td>側欄、任務板、設定、mobile 配對 UI</td>
+        </tr>
+        <tr>
+          <td><strong>編輯器</strong></td>
+          <td>Monaco（<code>monaco-editor</code> / <code>@monaco-editor/react</code>）</td>
+          <td>檔案編輯、拖檔進 prompt、repo 預覽</td>
+        </tr>
+        <tr>
+          <td><strong>狀態</strong></td>
+          <td>Zustand</td>
+          <td>renderer 狀態；與「執行主機擁有的 agent status store」分開理解</td>
+        </tr>
+        <tr>
+          <td><strong>終端</strong></td>
+          <td>node-pty + xterm（含 WebGL addon）</td>
+          <td>Ghostty 級分割終端、捲動緩衝、agent CLI 的原生家</td>
+        </tr>
+        <tr>
+          <td><strong>隔離</strong></td>
+          <td>git worktrees（用戶本機 Git；相容基線文件寫 Git 2.25）</td>
+          <td>平行 agent 的檔案系統邊界；亦支援資料夾 workspace（非純 worktree）</td>
+        </tr>
+        <tr>
+          <td><strong>遠端</strong></td>
+          <td>ssh2 · WSL 執行路徑 · relay daemon</td>
+          <td>遠端 worktree／PTY；斷線再接；控制平面與執行主機分離</td>
+        </tr>
+        <tr>
+          <td><strong>瀏覽器</strong></td>
+          <td>內嵌 Chromium Design Mode</td>
+          <td>點選真實 UI → HTML／CSS／裁切截圖進 agent prompt（產品宣稱）</td>
+        </tr>
+        <tr>
+          <td><strong>任務整合</strong></td>
+          <td>GitHub · Linear（文件亦提醒勿只假設 GitHub）</td>
+          <td>PR／issue／看板進 ADE，減少上下文切換</td>
+        </tr>
+        <tr>
+          <td><strong>行動端</strong></td>
+          <td>iOS／Android companion + push</td>
+          <td>監控、完成通知、遠端追問；relay 在倉庫 <code>cloud/</code></td>
+        </tr>
+        <tr>
+          <td><strong>腳本面</strong></td>
+          <td><code>orca</code> CLI</td>
+          <td>HITL 之外的可程式化編排；agent 也能驅動 Orca</td>
+        </tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 5 -->
+  <section id="design">
+    <h2><span class="num">⑤</span> 核心設計點</h2>
+
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看設計點 →</div>
+      <svg viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orca 六個核心設計點">
+        <rect width="920" height="280" rx="12" fill="#f6f5f4"/>
+        <rect x="20" y="24" width="280" height="100" rx="12" fill="#0a1530"/>
+        <text x="160" y="64" text-anchor="middle" fill="#fff" font-size="13" font-weight="800" font-family="Inter,sans-serif">1. Worktree 隔離</text>
+        <text x="160" y="90" text-anchor="middle" fill="#b9c2d6" font-size="11" font-family="Inter,sans-serif">平行改碼互不踩檔</text>
+
+        <rect x="320" y="24" width="280" height="100" rx="12" fill="#5645d4"/>
+        <text x="460" y="64" text-anchor="middle" fill="#fff" font-size="13" font-weight="800" font-family="Inter,sans-serif">2. 編排 ≠ 推理</text>
+        <text x="460" y="90" text-anchor="middle" fill="#e6e0f5" font-size="11" font-family="Inter,sans-serif">Orca 不代替 LLM</text>
+
+        <rect x="620" y="24" width="280" height="100" rx="12" fill="#1a2a52"/>
+        <text x="760" y="64" text-anchor="middle" fill="#fff" font-size="13" font-weight="800" font-family="Inter,sans-serif">3. 狀態三值詞彙</text>
+        <text x="760" y="90" text-anchor="middle" fill="#9ee8e4" font-size="11" font-family="Inter,sans-serif">live / unverifiable / exited</text>
+
+        <rect x="20" y="150" width="280" height="100" rx="12" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+        <text x="160" y="190" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="800" font-family="Inter,sans-serif">4. 終端原生</text>
+        <text x="160" y="216" text-anchor="middle" fill="#37352f" font-size="11" font-family="Inter,sans-serif">能跑 CLI 就能養</text>
+
+        <rect x="320" y="150" width="280" height="100" rx="12" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.5"/>
+        <text x="460" y="190" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="800" font-family="Inter,sans-serif">5. HITL + CLI</text>
+        <text x="460" y="216" text-anchor="middle" fill="#37352f" font-size="11" font-family="Inter,sans-serif">人審 + 可腳本</text>
+
+        <rect x="620" y="150" width="280" height="100" rx="12" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+        <text x="760" y="190" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="800" font-family="Inter,sans-serif">6. 跨平台深度</text>
+        <text x="760" y="216" text-anchor="middle" fill="#37352f" font-size="11" font-family="Inter,sans-serif">macOS · Win · Linux · WSL · SSH</text>
+      </svg>
+      <div class="figcap">圖 4 · 六個應記住的設計錨點（細節見 docs/reference）</div>
+    </div>
+
+    <h3>1. Worktree 隔離</h3>
+    <p>平行 agent 的第一性原理是<strong>檔案系統隔離</strong>。git worktree 讓每個 agent 有自己的 checkout／分支視角，避免五個程序同時改同一個 working tree。文件也提醒：不是每個 workspace 都是 git worktree——資料夾 workspace 同樣要考慮。</p>
+
+    <h3>2. 編排 ≠ 推理</h3>
+    <p>Orca 賣的是艦隊操作面：建立環境、餵提示、觀察狀態、標註 diff、合流。模型選擇、工具循環、上下文壓縮仍在各 CLI agent 內。混淆這層會導致你把「裝了 Orca」誤當成「換了更強模型」。</p>
+
+    <h3>3. 執行主機擁有 agent 狀態</h3>
+    <p><code>docs/reference/agent-status-store.md</code> 與 <code>ssh-execution-boundary.md</code> 的硬規則：</p>
+    <ul>
+      <li>執行主機上有一份權威 store；側欄、<code>orca worktree ps</code>、手機、dashboard 都是<strong>訂閱者</strong>。</li>
+      <li>裁決詞彙固定為 <code>live</code>／<code>unverifiable</code>／<code>exited</code>——沒有同義詞；失去聯繫只能是 <code>unverifiable</code>。</li>
+      <li>客戶端不得把本機觀察寫回遠端主機當成真相。</li>
+    </ul>
+
+    <h3>4. 終端原生</h3>
+    <p>「Works with any CLI agent — if it runs in a terminal, it runs in Orca。」（README）這決定了適配策略：優先吃 PTY 畫面與既有 CLI，而不是要求每家實作 Orca 專屬 SDK。</p>
+
+    <h3>5. HITL + 可腳本 CLI</h3>
+    <p>人可以標註 diff、用 Design Mode、從手機介入；同時 <code>orca</code> CLI 讓 agent／腳本驅動 worktree 與 UI 操作。兩條路並存，才同時服務「探索式寫碼」與「可重複流程」。</p>
+
+    <h3>6. 跨平台深度</h3>
+    <p><code>AGENTS.md</code> 大量篇幅在 Windows 殼層、WSL argv、glibc 地板、SSH relay 版本隔離、Git 二進位相容——說明 ADE 的真正成本在<strong>執行環境真實度</strong>，不在再畫一層 chat bubble。</p>
+  </section>
+
+  <!-- 6 -->
+  <section id="justkm">
+    <h2><span class="num">⑥</span> 與 JustKM 即將／相關議題的銜接</h2>
+    <div class="table-wrap"><table>
+      <thead>
+        <tr><th>JustKM 議題</th><th>Orca 提供的抓手</th><th>仍要你自己決定的事</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Claude × Codex 雙棧</strong></td>
+          <td>同一 UI 養兩家（或多家）CLI；帳號切換／用量追蹤（產品宣稱）</td>
+          <td>何時用哪家、如何評勝者、merge 策略、測試閘門</td>
+        </tr>
+        <tr>
+          <td><strong>決策權（decision rights）</strong></td>
+          <td>HITL：diff 標註、推播介入、手機追問；狀態可見</td>
+          <td>哪些步驟允許全自動、哪些必須人簽核（Orca 不替你立法）</td>
+        </tr>
+        <tr>
+          <td><strong>MCP／Skills：主機 vs agent 工具</strong></td>
+          <td>主機側有 Design Mode、Computer Use、orca CLI、任務整合——那是<strong>編排主機工具</strong></td>
+          <td>各 agent 自己的 MCP／Skills 仍掛在 agent runtime；勿把主機工具誤當成「所有 agent 共用的 MCP 池」</td>
+        </tr>
+        <tr>
+          <td><strong>Worktree 基礎</strong></td>
+          <td>產品級工作流把 worktree 當一等公民</td>
+          <td>仍建議先讀站內 <a href="./git-worktree.html">git worktree</a>，搞懂分支／路徑／清理成本</td>
+        </tr>
+      </tbody>
+    </table></div>
+    <div class="callout tip"><strong>記一句：</strong>Orca 放大「你已經有的 agent」；它不消解「誰有決策權、工具掛在哪一層」——那兩題仍要在 JustKM 工作流／Skills 線裡寫清楚。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="when">
+    <h2><span class="num">⑦</span> 何時用／不用</h2>
+
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看決策 →</div>
+      <svg viewBox="0 0 900 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="何時使用 Orca 決策圖">
+        <rect width="900" height="230" rx="12" fill="#f6f5f4"/>
+        <rect x="300" y="16" width="300" height="44" rx="10" fill="#0a1530"/>
+        <text x="450" y="44" text-anchor="middle" fill="#fff" font-size="14" font-weight="700" font-family="Inter,sans-serif">你的痛點是什麼？</text>
+        <line x1="450" y1="60" x2="180" y2="100" stroke="#5d5b54" stroke-width="2"/>
+        <line x1="450" y1="60" x2="450" y2="100" stroke="#5d5b54" stroke-width="2"/>
+        <line x1="450" y1="60" x2="720" y2="100" stroke="#5d5b54" stroke-width="2"/>
+        <rect x="40" y="100" width="280" height="106" rx="12" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+        <text x="180" y="128" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="800" font-family="Inter,sans-serif">✓ 適合 Orca</text>
+        <text x="180" y="152" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">要平行多 agent／雙棧</text>
+        <text x="180" y="172" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">要 worktree 隔離＋總覽</text>
+        <text x="180" y="192" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">要手機監控／遠端 SSH 盒</text>
+        <rect x="310" y="100" width="280" height="106" rx="12" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.5"/>
+        <text x="450" y="128" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="800" font-family="Inter,sans-serif">△ 先想清楚</text>
+        <text x="450" y="152" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">只跑單一 agent 短任務</text>
+        <text x="450" y="172" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">→ ADE 開銷可能過重</text>
+        <text x="450" y="192" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">團隊流程／權限尚未定義</text>
+        <rect x="580" y="100" width="280" height="106" rx="12" fill="#fde0ec" stroke="#e03131" stroke-width="1.5"/>
+        <text x="720" y="128" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="800" font-family="Inter,sans-serif">✗ 別用它當這個</text>
+        <text x="720" y="152" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">自家 LLM／推理引擎</text>
+        <text x="720" y="172" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">純模型評測基準平台</text>
+        <text x="720" y="192" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter,sans-serif">取代 git／CI 本身</text>
+      </svg>
+      <div class="figcap">圖 5 · 使用／不使用決策速查</div>
+    </div>
+
+    <h3>建議使用情境</h3>
+    <ul>
+      <li>同一規格要 Claude／Codex／其他 CLI 並行出方案，再人工或半自動選勝者。</li>
+      <li>長任務需要桌面總覽＋手機推播，或把重活丟到 SSH 遠端機。</li>
+      <li>已有多個 CLI agent 訂閱，缺的是 ADE／編排，不是再買一個「更聰明的聊天框」。</li>
+    </ul>
+    <h3>較不適合</h3>
+    <ul>
+      <li>你要的是訓練／微調模型、或自研 agent harness 內部協定（請看 DeepSeek harness／Prime Agent 線）。</li>
+      <li>單人、單 agent、短迭代——終端＋worktree 手操可能更輕。</li>
+      <li>把 Orca 誤當「不需訂閱的免費 LLM」：推理仍走各 agent 自己的帳號／配額。</li>
+    </ul>
+
+    <h3>關聯閱讀</h3>
+    <div class="related">
+      <a href="./herdr.html">
+        <div class="rel-title">🐑 Herdr</div>
+        <div class="rel-sub">終端多工器 · agent 狀態感知</div>
+      </a>
+      <a href="./oh-my-pi.html">
+        <div class="rel-title">🥧 oh-my-pi</div>
+        <div class="rel-sub">terminal-first 編碼 harness</div>
+      </a>
+      <a href="./git-worktree.html">
+        <div class="rel-title">🌳 git worktree</div>
+        <div class="rel-sub">隔離 checkout 的基礎觀念</div>
+      </a>
+      <a href="./deepseek-harness.html">
+        <div class="rel-title">🔧 DeepSeek harness</div>
+        <div class="rel-sub">單一 agent 運行時拆解</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section id="sources">
+    <h2><span class="num">⑧</span> 來源</h2>
+    <div class="callout info">
+      <strong>來源（請釘住倉庫與文件，勿死記星數）：</strong>
+      <ul style="margin:8px 0 0;padding-left:18px;">
+        <li>上游倉庫 <a href="https://github.com/stablyai/orca">github.com/stablyai/orca</a>（README：定位、功能牆、支援的 CLI agents、安裝）</li>
+        <li>倉庫 <code>AGENTS.md</code>：跨平台、SSH 邊界、agent status、worktree／folder workspace 等貢獻者約束（主題級引用）</li>
+        <li><code>docs/reference/</code>：尤其 <code>agent-status-store.md</code>、<code>ssh-execution-boundary.md</code>、Git／WSL／Windows 相容文件——細節以當前檔案為準</li>
+        <li>站點與下載：<a href="https://onOrca.dev">onOrca.dev</a>；changelog／Release 為功能真相來源之一</li>
+        <li>星數寫作當下約 73k，文中以「約七萬星／持續更新」表述；請以 GitHub 即時數字為準。</li>
+      </ul>
+      功能敘述凡標「產品宣稱」者，以 README／官網為準；架構邊界以 <code>docs/reference</code> 為準。實作細節可能隨每日發版變動。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · AI 工作流 &amp; Skills · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
