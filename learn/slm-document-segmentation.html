@@ -140,11 +140,11 @@
 
   <div class="hero">
     <h1>✂️ 用小模型找長文最佳斷點:Jina 的 RAG 分段實驗</h1>
-    <p class="sub">RAG 的成敗常敗在「切塊」:固定長度或規則式切法,會把程式碼、表格、公式、清單從中間切斷,語義破碎、檢索變差。Jina AI 做了一個概念驗證——訓練 Qwen-0.5B 級的小模型專門「找斷點」,把分段當成任務來學,而不是靠正則規則。本頁拆解它的三個模型、關鍵設計洞察,以及「分段」與「後期分塊」為何互補。</p>
+    <p class="sub">Jina AI「分塊系列」第三部(2024/10/25,Alex C-G、Andrei Ungureanu)。前兩部講了後期分塊如何抵抗不佳的邊界;這一部把焦點放在「斷點該切哪」。關鍵前提是:既然後期分塊已扛住語境損失,選斷點時就能<strong>純粹為可讀性</strong>著想。他們以 <code>qwen2-0.5b-instruct</code> 訓練了三個分段小模型,並和 Jina Segmenter API 做 ROUGE-L 基準對比。本頁完整拆解模型、資料、訓練數字、結果與方法論。</p>
     <div>
-      <span class="badge blue">Qwen-0.5B · 單張 4090 · Unsloth</span>
-      <span class="badge green">simple / topic / summary 三模型</span>
-      <span class="badge orange">RAG 分段 · 概念驗證(PoC)</span>
+      <span class="badge blue">qwen2-0.5b-instruct · Unsloth · wiki727k</span>
+      <span class="badge green">simple / topic(CoT) / summary 三模型</span>
+      <span class="badge orange">分塊系列 Part 3 · 2024/10 · ROUGE-L 基準</span>
     </div>
   </div>
 
@@ -152,32 +152,35 @@
     <div class="toc-title">📑 目錄</div>
     <div class="toc-grid">
       <a href="#tldr">⓪ 一句話總結</a>
-      <a href="#problem">① 切塊為什麼難</a>
-      <a href="#whyslm">② 為什麼用「小模型」做</a>
-      <a href="#models">③ 三個分段模型</a>
-      <a href="#insights">④ 關鍵設計洞察</a>
-      <a href="#vslate">⑤ 分段 ≠ 後期分塊</a>
-      <a href="#results">⑥ 結果與下一步</a>
-      <a href="#slmkb">⑦ 延伸:更廣的 SLM+KB 版圖</a>
-      <a href="#notes">⑧ 重點 · 關聯 · 來源</a>
+      <a href="#problem">① 分割問題:RAG 的核心</a>
+      <a href="#readability">② 關鍵前提:專注可讀性</a>
+      <a href="#whyslm">③ 為什麼選小模型</a>
+      <a href="#models">④ 三個模型 + 片段頭部機制</a>
+      <a href="#data">⑤ 資料集與資料增強</a>
+      <a href="#train">⑥ 訓練設置與數字</a>
+      <a href="#segresults">⑦ 分割結果對照</a>
+      <a href="#bench">⑧ 基準測試(ROUGE-L)</a>
+      <a href="#vslate">⑨ 分段 ≠ 後期分塊</a>
+      <a href="#notes">⑩ 重點 · 延伸 · 來源</a>
     </div>
   </nav>
 
   <!-- 0 -->
   <section id="tldr">
     <h2><span class="num">⓪</span> 一句話總結</h2>
-    <p><strong>把「文件怎麼切」從規則升級成一個小模型學的任務。</strong>Jina 訓練了三個 Qwen-0.5B 基底的分段模型(<code>simple-qwen-0.5</code>、<code>topic-qwen-0.5</code>、<code>summary-qwen-0.5</code>),用 <strong>Unsloth 在單張 Nvidia 4090</strong> 就能訓練。它們在<strong>程式碼、表格、清單</strong>這類結構化內容上,切得比傳統方法更符合語義。實測中 <strong><code>topic-qwen-0.5</code> 最穩</strong>——尤其對多主題長文,給出最有意義、最貼上下文的分段。</p>
-    <div class="callout info"><strong>定位提醒:</strong>這是一個<strong>概念驗證(PoC)</strong>,作者也直說「這個特定實驗不太可能繼續」。它的價值不在「拿去用這三個模型」,而在<strong>把方法論講清楚</strong>:任務怎麼設計、資料怎麼生、訓練怎麼省算力,以及分段與後期分塊如何分工。</div>
+    <p><strong>把「文件怎麼切」從規則升級成一個小模型學的任務。</strong>這是 Jina「分塊系列」第三部:前兩部證明<strong>後期分塊(late chunking)</strong>能抵抗不佳的邊界、減少嵌入時的語境損失;因此這一部主張——選斷點時可以<strong>純粹為「可讀性」</strong>著想(對人與 LLM 都好讀),不必再怕語義/上下文流失。他們以 <code>qwen2-0.5b-instruct</code> 訓練了三個分段模型(<code>simple</code>/<code>topic</code>/<code>summary</code>),在程式碼、表格、清單這類結構化內容上切得比傳統方法連貫。</p>
+    <div class="callout tip"><strong>一句話結論:</strong>在 ROUGE-L 基準上,三個新模型都勝過 Jina Segmenter API,其中 <strong><code>topic-qwen-0.5</code>(受思維鏈啟發、依主題切)平均分數最高</strong>,尤其適合多主題長文。</div>
   </section>
 
   <!-- 1 -->
   <section id="problem">
-    <h2><span class="num">①</span> 切塊(chunking)為什麼難</h2>
-    <p>RAG 要先把長文件切成小段、建索引,查詢時檢索相關段落餵給模型。切得好不好,直接決定檢索品質。傳統切法有兩類、各有硬傷:</p>
+    <h2><span class="num">①</span> 分割問題:RAG 的核心</h2>
+    <p>分割是 RAG 系統的核心。「怎麼把長文件切成連貫、可管理的片段」直接影響檢索與生成的品質——從答案相關性到摘要品質都受它牽動。傳統切法有結果,但有共同的局限:</p>
     <ul>
-      <li><strong>固定長度</strong>(每 N 個 token/字切一刀):簡單,但完全不看語義——很容易<strong>把一個程式碼區塊、一張表格、一條公式從中間劈開</strong>。</li>
-      <li><strong>規則式</strong>(依標點/換行/標題切):比固定長度好,但規則寫死,遇到<strong>巢狀清單、跨行公式、含註解的程式碼</strong>就失準。</li>
+      <li><strong>固定 token 長度 / 固定句數</strong>:簡單,但完全不看語義邊界。</li>
+      <li><strong>正則 / 規則式</strong>:比較進階,但規則寫死,遇到模糊主題時容易產生<strong>破碎片段</strong>。</li>
     </ul>
+    <p>兩類方法的共同問題:<strong>不考慮語義邊界、處理模糊主題時破碎</strong>。作者的觀點是——就算有後期分塊撐腰,「每個片段本身要盡可能有意義」仍然關鍵:LLM 依賴連貫、結構良好的資料才能生成準確回應;片段殘缺,再好的後期分塊也救不回上下文與準確度。</p>
     <div class="fig">
       <div class="scroll-hint">← 左右滑動看完整圖 →</div>
       <svg viewBox="0 0 720 220" role="img" aria-label="切塊對照：固定長度切法把一個程式碼區塊從中間切斷，語義破碎；語義感知的分段模型把整個程式碼區塊、整張表格當成完整單元切在邊界">
@@ -209,94 +212,150 @@
   </section>
 
   <!-- 2 -->
-  <section id="whyslm">
-    <h2><span class="num">②</span> 為什麼用「小模型」做這件事</h2>
-    <p>分段是個<strong>定義明確、範圍窄</strong>的任務——判斷「這裡該不該切」。這種任務不需要通才大模型,反而很適合一個<strong>專門訓練的小模型</strong>:</p>
-    <div class="table-wrap"><table>
-      <thead><tr><th>面向</th><th>大模型硬做分段</th><th>專訓的小模型(本實驗)</th></tr></thead>
-      <tbody>
-        <tr><td>算力 / 成本</td><td>推論貴,批次切大量文件不划算</td><td>0.5B 級,推論便宜、可大量跑</td></tr>
-        <tr><td>訓練門檻</td><td>微調成本高</td><td><strong>Unsloth + 單張 4090</strong> 就能訓</td></tr>
-        <tr><td>速度</td><td>生成長、慢</td><td>只輸出斷點/標題,生成短、快</td></tr>
-        <tr><td>隱私 / 部署</td><td>常需上雲</td><td>可在地端私有部署</td></tr>
-        <tr><td>更新</td><td>重訓昂貴</td><td>資料便宜、可重訓迭代</td></tr>
-      </tbody>
-    </table></div>
-    <p>換句話說:與其叫一個大模型「順便」切文件,不如把切文件變成一個<strong>小而專</strong>的模型,又快又省又可控。</p>
+  <section id="readability">
+    <h2><span class="num">②</span> 關鍵前提:後期分塊扛語境,分割專注「可讀性」</h2>
+    <p>這篇最重要的心法,其實在一開始就講明:</p>
+    <div class="callout info"><strong>「後期分塊可以處理好的與不好的斷點,所以<em>可讀性</em>成為你的主要考量。」</strong>——既然嵌入階段的語境損失已被後期分塊吸收,決定斷點時就不必再糾結語義流失,而能專心把每段切得對人與 LLM 都好讀、好理解。</div>
+    <p>但這不代表可以亂切:斷點<strong>對人類和 LLM 的可讀性仍然重要</strong>。所以他們訓練分段模型,目標是「維持語義連貫 + 妥善處理複雜結構」,把可讀性做到最好。也就是說——<strong>後期分塊與好的分割是兩件互補的事</strong>(見 ⑨),無論用不用後期分塊,穩固的分割策略對有效的 RAG 都是必要的。</p>
   </section>
 
   <!-- 3 -->
-  <section id="models">
-    <h2><span class="num">③</span> 三個分段模型(＋Segmenter API 基線)</h2>
-    <p>Jina 訓練了三個策略不同的分段模型,全部以 <strong>Qwen-0.5B</strong> 為基底,對應「從單純到精緻」的三種切法:</p>
-    <div class="fig">
-      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
-      <svg viewBox="0 0 720 250" role="img" aria-label="三個分段模型對照：simple-qwen-0.5 依結構線索切；topic-qwen-0.5 輸出主題標題、依主題轉換切，實測最佳；summary-qwen-0.5 為每段生成摘要；另有 Segmenter API 作為簡單基線">
-        <defs><marker id="am" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
-        <g font-family="sans-serif">
-          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">從單純到精緻:三種分段策略</text>
-
-          <rect x="16" y="40" width="220" height="86" rx="11" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
-          <text x="126" y="62" text-anchor="middle" font-size="11" font-weight="800" fill="#005bb0">simple-qwen-0.5</text>
-          <text x="126" y="82" text-anchor="middle" font-size="8.5" fill="#37352f">依結構線索找斷點</text>
-          <text x="126" y="98" text-anchor="middle" font-size="8.5" fill="#37352f">最輕、最快</text>
-          <text x="126" y="116" text-anchor="middle" font-size="8" fill="#5d5b54">適合單純內容</text>
-
-          <rect x="250" y="40" width="220" height="86" rx="11" fill="#e6e0f5" stroke="#5645d4" stroke-width="2"/>
-          <text x="360" y="62" text-anchor="middle" font-size="11" font-weight="800" fill="#3a2a99">topic-qwen-0.5 ★</text>
-          <text x="360" y="82" text-anchor="middle" font-size="8.5" fill="#37352f">輸出「主題標題」</text>
-          <text x="360" y="98" text-anchor="middle" font-size="8.5" fill="#37352f">依主題轉換切段</text>
-          <text x="360" y="116" text-anchor="middle" font-size="8" fill="#7b3ff2">實測最佳,尤其多主題長文</text>
-
-          <rect x="484" y="40" width="220" height="86" rx="11" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.5"/>
-          <text x="594" y="62" text-anchor="middle" font-size="11" font-weight="800" fill="#c02d80">summary-qwen-0.5</text>
-          <text x="594" y="82" text-anchor="middle" font-size="8.5" fill="#37352f">切段 + 為每段生成摘要</text>
-          <text x="594" y="98" text-anchor="middle" font-size="8.5" fill="#37352f">最精緻、資訊最多</text>
-          <text x="594" y="116" text-anchor="middle" font-size="8" fill="#5d5b54">下一步想擴到 60k 樣本</text>
-
-          <rect x="150" y="164" width="420" height="56" rx="11" fill="#f0eeec" stroke="#a4a097" stroke-width="1.4"/>
-          <text x="360" y="186" text-anchor="middle" font-size="10.5" font-weight="700" fill="#37352f">Segmenter API(簡單基線)</text>
-          <text x="360" y="205" text-anchor="middle" font-size="8.5" fill="#5d5b54">敘事型、單純內容通常這個就夠;複雜結構才需要上面的進階策略</text>
-
-          <g stroke="#8a93ad" stroke-width="1.6" fill="none" marker-end="url(#am)">
-            <path d="M126,126 L200,162"/><path d="M360,126 L360,162"/><path d="M594,126 L520,162"/>
-          </g>
-        </g>
-      </svg>
-      <div class="figcap">▲ 三個進階模型處理複雜結構;若內容單純,退回 Segmenter API 這種簡單方法就夠——依使用場景彈性選擇。</div>
-    </div>
-    <ul>
-      <li><strong><code>simple-qwen-0.5</code></strong>:靠結構線索找基本斷點,最輕量。</li>
-      <li><strong><code>topic-qwen-0.5</code></strong>:讓模型<strong>輸出片段的主題標題</strong>,據主題轉換切段。<strong>實測中最一致、最貼上下文</strong>,對多主題文件特別有效。</li>
-      <li><strong><code>summary-qwen-0.5</code></strong>:除了切段,還為每段<strong>生成摘要</strong>,資訊量最高、也最重。</li>
-      <li><strong>Segmenter API</strong>:Jina 既有的簡單分段法,當基線;單純敘事型內容用它常常就夠。</li>
-    </ul>
+  <section id="whyslm">
+    <h2><span class="num">③</span> 為什麼選小型語言模型(SLM)</h2>
+    <p>他們做 SLM,是為了解決傳統技術的具體痛點——<strong>特別是程式碼片段,以及表格、清單、公式這類複雜結構</strong>。傳統方法靠 token 計數或死板的結構規則,很難維持語義連貫內容的完整性:例如程式碼常被切成好幾段,上下文被打斷,下游系統更難理解或準確檢索。</p>
+    <p>訓練一個專門的 SLM,目的是讓模型<strong>智慧地辨識並保護有意義的邊界</strong>,讓相關元素待在一起。好處不只是 RAG 檢索品質,還包括下游的摘要、問答等任務——這些都需要連貫、上下文相關的片段。相較傳統方法的僵硬邊界,SLM 提供的是<strong>更具適應性、更任務特異</strong>的解法。</p>
   </section>
 
   <!-- 4 -->
-  <section id="insights">
-    <h2><span class="num">④</span> 關鍵設計洞察(「我們學到了什麼」)</h2>
-    <p>這篇最值得偷師的,是它把「訓練一個任務型小模型」的每個決策講明白:</p>
-    <h3>1. 問題定義至關重要:讓模型輸出「片段標題」</h3>
-    <p>一個關鍵洞察:<strong>怎麼構建任務,會決定成敗</strong>。他們讓模型<strong>輸出片段標題</strong>——這逼模型去關注「語義轉換」,而不是把輸入原封不動複製貼到不同片段裡。結果是<strong>邊界偵測與連貫性都變好</strong>;而且因為要生成的文字更少,<strong>模型跑得更快</strong>。</p>
-    <h3>2. LLM 生成的訓練資料很有效</h3>
-    <p>用 LLM 生成資料——<strong>特別是針對清單、公式、程式碼片段這類複雜內容</strong>——擴大了訓練集,讓模型更會處理各種文件結構。這在面對技術性/結構化文件時是關鍵優勢。</p>
-    <h3>3. 「僅輸出」資料整理器(output-only collator)</h3>
-    <p>用<strong>只計算輸出部分損失</strong>的 collator,確保模型訓練時<strong>專注預測目標 token</strong>,而不是從輸入複製。好處:避免對輸入過擬合、<strong>收斂更快</strong>、跨資料集泛化更好。</p>
-    <h3>4. 用 Unsloth 高效訓練,單張 4090 就跑得動</h3>
-    <p>用 <strong>Unsloth</strong> 簡化小模型訓練流程,成功在<strong>單張 Nvidia 4090</strong> 上訓練出堪用模型,不必動用龐大算力。</p>
-    <h3>5. 複雜內容用進階策略,簡單內容用簡單方法</h3>
-    <p>分段模型在含<strong>程式碼、表格、清單</strong>的複雜文件上表現突出,這些正是傳統方法的痛點。技術內容用 <code>topic-qwen-0.5</code>／<code>summary-qwen-0.5</code> 這類複雜策略更有效;但單純敘事內容,Segmenter API 這種簡單法通常就夠——<strong>不要為簡單內容過度工程</strong>。</p>
-    <div class="callout tip"><strong>可帶走的方法論:</strong>把「複製輸入」改成「輸出語義標題」、用 LLM 補足罕見結構的訓練樣本、用 output-only collator 逼模型學目標而非抄輸入——這三招合起來,就是「用小資源訓出一個又快又準的任務型小模型」的範式。</div>
+  <section id="models">
+    <h2><span class="num">④</span> 三個模型 + 「只輸出片段頭部」機制</h2>
+    <p>三個變體全部以 <code>qwen2-0.5b-instruct</code> 為基礎,對應「從單純到精緻」的三種策略:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 260" role="img" aria-label="三個分段模型：simple-qwen-0.5 依文件結構元素切；topic-qwen-0.5 受思維鏈啟發、先辨識主題再依主題切，實測平均 ROUGE 最高；summary-qwen-0.5 為每段生成摘要；三者都只輸出片段頭部（截斷版），檢索時據此重建完整片段">
+        <defs><marker id="am" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">從單純到精緻:三種分段策略(基底 qwen2-0.5b-instruct)</text>
+
+          <rect x="16" y="40" width="222" height="92" rx="11" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="127" y="61" text-anchor="middle" font-size="11" font-weight="800" fill="#005bb0">simple-qwen-0.5</text>
+          <text x="127" y="80" text-anchor="middle" font-size="8.5" fill="#37352f">依文件「結構元素」找邊界</text>
+          <text x="127" y="96" text-anchor="middle" font-size="8.5" fill="#37352f">最簡單、快速收斂</text>
+          <text x="127" y="114" text-anchor="middle" font-size="7.5" fill="#5d5b54">HF: text-seg-lm-qwen2-0.5b</text>
+
+          <rect x="250" y="40" width="222" height="92" rx="11" fill="#e6e0f5" stroke="#5645d4" stroke-width="2"/>
+          <text x="361" y="61" text-anchor="middle" font-size="11" font-weight="800" fill="#3a2a99">topic-qwen-0.5 ★</text>
+          <text x="361" y="80" text-anchor="middle" font-size="8.5" fill="#37352f">受思維鏈啟發:先辨識主題</text>
+          <text x="361" y="96" text-anchor="middle" font-size="8.5" fill="#37352f">再依主題轉換切段</text>
+          <text x="361" y="114" text-anchor="middle" font-size="7.5" fill="#7b3ff2">平均 ROUGE 最高,近人類直覺</text>
+
+          <rect x="484" y="40" width="222" height="92" rx="11" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.5"/>
+          <text x="595" y="61" text-anchor="middle" font-size="11" font-weight="800" fill="#c02d80">summary-qwen-0.5</text>
+          <text x="595" y="80" text-anchor="middle" font-size="8.5" fill="#37352f">切段 + 為每段生成摘要</text>
+          <text x="595" y="96" text-anchor="middle" font-size="8.5" fill="#37352f">最精緻,需最多資料</text>
+          <text x="595" y="114" text-anchor="middle" font-size="7.5" fill="#5d5b54">HF: …-summary-chunking</text>
+
+          <rect x="60" y="158" width="600" height="80" rx="12" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="360" y="180" text-anchor="middle" font-size="10.5" font-weight="800" fill="#b34700">共通機制:模型只輸出「片段頭部」(segment head)</text>
+          <text x="360" y="200" text-anchor="middle" font-size="9" fill="#37352f">不生成完整片段,只吐每段的截斷版(關鍵點/子主題)→ 專注語義轉換而非複製輸入</text>
+          <text x="360" y="218" text-anchor="middle" font-size="9" fill="#37352f">檢索時:依這些片段頭部把原文切開,再重建完整片段</text>
+          <text x="360" y="232" text-anchor="middle" font-size="8" fill="#5d5b54">好處:邊界更準、連貫性更好,且生成更短 → 更快</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 三個模型策略不同,但共用同一個聰明設計:只輸出「片段頭部」,不複製整段內容。</div>
+    </div>
+    <ul>
+      <li><strong><code>simple-qwen-0.5</code></strong>(<code>jinaai/text-seg-lm-qwen2-0.5b</code>):依文件的結構元素辨識邊界,最簡單、對基本需求高效。</li>
+      <li><strong><code>topic-qwen-0.5</code></strong>(<code>…-cot-topic-chunking</code>):<strong>受思維鏈(CoT)推理啟發</strong>,先辨識文本中的主題(例如「第二次世界大戰的開始」),再用主題定義邊界。確保每段主題連貫,<strong>初步測試最接近人類直覺</strong>,適合多主題文件。</li>
+      <li><strong><code>summary-qwen-0.5</code></strong>(<code>…-summary-chunking</code>):除了切段,還為每段<strong>生成摘要</strong>;對長文問答等 RAG 任務很有優勢,但訓練需要更多資料。</li>
+    </ul>
+    <div class="callout tip"><strong>關鍵設計——「只回片段頭部」:</strong>三個模型都<strong>不生成完整片段</strong>,只輸出每段的<strong>截斷版(片段頭部:關鍵點或子主題)</strong>。這逼模型專注「語義轉換」而非把輸入原封不動複製到各段,因此邊界偵測與連貫性都更好,而且生成文字更少 → <strong>更快</strong>。檢索時,再依這些片段頭部把原文切開、重建完整片段。</div>
   </section>
 
   <!-- 5 -->
+  <section id="data">
+    <h2><span class="num">⑤</span> 資料集與資料增強</h2>
+    <h3>基底資料:wiki727k</h3>
+    <p>用 <strong>wiki727k</strong>——從維基百科文章抽出的大規模結構化文本片段集,超過 <strong>727,000 個文本部分</strong>(介紹、章節、小節等),出自論文《Text Segmentation as a Supervised Learning Task》。</p>
+    <h3>用 GPT-4 生成訓練配對</h3>
+    <p>對每篇文章,先用簡單規則切段(先在 <code>\n\n\n</code> 切、再在 <code>\n\n</code> 切),然後請 <strong>GPT-4</strong> 為每個片段生成「5–10 字的主題 + 一句摘要」,組成 <code>{sections, topics, summaries}</code> 的 JSON 訓練結構(依模型變體取用不同欄位)。</p>
+    <h3>刻意加噪聲 + 補足複雜結構</h3>
+    <ul>
+      <li><strong>加噪聲</strong>:洗牌資料、隨機插入字元/單詞/字母、隨機移除標點,並<strong>一律移除換行字元</strong>——逼模型別只靠換行等表面線索。</li>
+      <li><strong>補複雜結構</strong>:上述還不夠;為了讓模型能產生連貫片段而<strong>不破壞程式碼</strong>,再用 <strong>GPT-4o 生成的程式碼、公式、清單</strong>擴充資料集,提升它處理各種文件結構的能力。</li>
+    </ul>
+  </section>
+
+  <!-- 6 -->
+  <section id="train">
+    <h2><span class="num">⑥</span> 訓練設置與數字</h2>
+    <h3>設置</h3>
+    <ul>
+      <li><strong>框架</strong>:Hugging Face <code>transformers</code> + 整合 <strong>Unsloth</strong> 做優化——省記憶體、加速訓練,讓小模型能吃大資料集有效訓練(據「我們學到了什麼」段:可在單張 Nvidia 4090 上跑)。</li>
+      <li><strong>優化器 / 調度器</strong>:AdamW + 線性學習率調度器,設預熱步驟穩定初期訓練。</li>
+      <li><strong>實驗追蹤</strong>:Weights &amp; Biases 記錄訓練/驗證損失、學習率、整體表現。</li>
+    </ul>
+    <h3>三個模型的訓練數字</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>模型</th><th>樣本數</th><th>訓練步數</th><th>訓練損失</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr><td><code>simple-qwen-0.5</code></td><td>10,000</td><td>5,000</td><td>0.16</td><td>快速收斂,能有效抓連貫段落邊界</td></tr>
+        <tr><td><code>topic-qwen-0.5</code></td><td>10,000</td><td>5,000</td><td>0.45</td><td>依主題切,基準平均最佳</td></tr>
+        <tr><td><code>summary-qwen-0.5</code></td><td>30,000</td><td>15,000</td><td>0.81</td><td>損失偏高 → 需約兩倍資料才能發揮全部潛力</td></tr>
+      </tbody>
+    </table></div>
+    <p>基礎模型是 <code>qwen2-0.5b-instruct</code>;每個變體用「wiki727k 文章文本 + 對應的 sections／topics／summaries」作為訓練配對。</p>
+  </section>
+
+  <!-- 7 -->
+  <section id="segresults">
+    <h2><span class="num">⑦</span> 分割結果對照</h2>
+    <p>作者用 Jina Reader 抓一篇 Jina 部落格文章的純文本(含頁首頁尾等),再丟給各方法切。結果差異鮮明:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>方法</th><th>切出來長怎樣</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Jina Segmenter API</strong></td><td>非常精細,靠 <code>\n</code>、<code>\t</code> 等字元切,產生<strong>極小片段</strong>;前幾段甚至只切出導覽列的 <code>search\n</code>、<code>notifications\n</code>、<code>NEWS\n</code>,與文章內容無關,且每段保留的上下文極少。</td></tr>
+        <tr><td><strong>simple-qwen-0.5</strong></td><td>依語義結構切成<strong>較長、各自連貫</strong>的段落。</td></tr>
+        <tr><td><strong>topic-qwen-0.5</strong></td><td>先辨識文件主題,再<strong>依主題</strong>分段。</td></tr>
+        <tr><td><strong>summary-qwen-0.5</strong></td><td>辨識段落邊界,並<strong>為每段內容生成摘要</strong>。</td></tr>
+      </tbody>
+    </table></div>
+    <p>直觀差別:Segmenter API 把網頁切得太碎(連導覽列雜訊都成了片段);三個 SLM 都能切出「一段講一件完整事情」的區塊。</p>
+  </section>
+
+  <!-- 8 -->
+  <section id="bench">
+    <h2><span class="num">⑧</span> 基準測試:ROUGE-L</h2>
+    <h3>方法</h3>
+    <ul>
+      <li>抓 <strong>8 篇</strong> Jina 部落格文章,用 GPT-4o 生成 <strong>6 個問題 + 標準答案</strong>。</li>
+      <li>每種分段法(含 Segmenter API)切段後,用 <strong><code>jina-embeddings-v3</code></strong> 生成嵌入,<strong>不做後期分塊、不做重排序</strong>,各自建索引,再用 RAG 查詢。</li>
+      <li>公平起見:測 <code>topic</code>/<code>summary</code> 時<strong>只索引片段本身</strong>,不索引生成的主題/摘要(否則可能更強)。</li>
+      <li>指標:<strong>ROUGE-L 的 F1</strong>(與標準答案比,越高越好);另量<strong>速度</strong>與<strong>磁碟空間</strong>(嵌入數 × 單個 1024 維向量大小)。</li>
+    </ul>
+    <h3>單題範例(僅示意,別以單題論英雄)</h3>
+    <p>問題:「什麼因素影響 <code>jina-embeddings-v2-base-en</code> 的數字比較能力?」標準答案:<em>tokenization 與 training data</em>。</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>方法</th><th>ROUGE-L F1</th><th>答得如何</th></tr></thead>
+      <tbody>
+        <tr><td>Jina Segmenter API</td><td>0.167</td><td>答不出具體因素</td></tr>
+        <tr><td>simple-qwen-0.5</td><td>0.279</td><td>正確:tokenization + training data</td></tr>
+        <tr><td>topic-qwen-0.5</td><td>0.190</td><td>對但多列了格式細節(這題偶然偏低)</td></tr>
+        <tr><td>summary-qwen-0.5</td><td>0.318</td><td>正確:tokenization + training data</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><strong>別被單題誤導:</strong>這題 <code>topic-qwen-0.5</code> 偏低純屬偶然。整體來看,<strong><code>topic-qwen-0.5</code> 的平均 ROUGE 是所有分段法中最高的</strong>。</div>
+    <h3>重要發現</h3>
+    <p>把三個變體互比、並與 Segmenter API 對照後:<strong>三個新模型在分數上都更好,尤其是主題分段(topic)</strong>。這也回頭印證了 ①——就算有後期分塊,穩固的分割策略對 RAG 效能仍是必要的。</p>
+  </section>
+
+  <!-- 9 -->
   <section id="vslate">
-    <h2><span class="num">⑤</span> 分段 ≠ 後期分塊(late chunking),兩者互補</h2>
-    <p>容易混淆的一點:<strong>分段模型</strong>和 Jina 另一個技術<strong>後期分塊(late chunking)</strong>功能不同,但可以互補。</p>
+    <h2><span class="num">⑨</span> 分段 ≠ 後期分塊(late chunking),兩者互補</h2>
+    <p>容易混淆的一點:<strong>分段模型</strong>和 Jina 系列前兩部的<strong>後期分塊</strong>功能不同,但正好互補。</p>
     <div class="fig">
       <div class="scroll-hint">← 左右滑動看完整圖 →</div>
-      <svg viewBox="0 0 720 210" role="img" aria-label="分段決定切在哪裡，讓每段自成完整任務單元；後期分塊決定怎麼嵌入，先對整篇長文編碼再依邊界池化，讓每段保留跨段語境；兩者可疊加使用">
+      <svg viewBox="0 0 720 210" role="img" aria-label="分段決定切在哪裡，讓每段自成完整、可讀的單元；後期分塊決定怎麼嵌入，先對整篇長文編碼再依邊界池化，讓每段保留跨段語境；兩者可疊加使用">
         <defs><marker id="al" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
         <g font-family="sans-serif">
           <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">兩個問題,兩種技術</text>
@@ -304,84 +363,52 @@
           <rect x="16" y="40" width="330" height="120" rx="12" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
           <text x="181" y="62" text-anchor="middle" font-size="11" font-weight="800" fill="#3a2a99">分段(segmentation)</text>
           <text x="181" y="84" text-anchor="middle" font-size="9" fill="#37352f">回答:「切在哪裡?」</text>
-          <text x="181" y="104" text-anchor="middle" font-size="9" fill="#37352f">找語義邊界,讓每段</text>
-          <text x="181" y="120" text-anchor="middle" font-size="9" fill="#37352f">自成完整任務單元</text>
-          <text x="181" y="142" text-anchor="middle" font-size="8" fill="#7b3ff2">→ 服務「連貫、任務型生成」</text>
+          <text x="181" y="104" text-anchor="middle" font-size="9" fill="#37352f">找可讀、連貫的邊界,讓</text>
+          <text x="181" y="120" text-anchor="middle" font-size="9" fill="#37352f">每段自成完整單元</text>
+          <text x="181" y="142" text-anchor="middle" font-size="8" fill="#7b3ff2">→ 服務可讀性與任務型生成</text>
 
           <rect x="374" y="40" width="330" height="120" rx="12" fill="#dcecfa" stroke="#0075de" stroke-width="1.8"/>
           <text x="539" y="62" text-anchor="middle" font-size="11" font-weight="800" fill="#005bb0">後期分塊(late chunking)</text>
           <text x="539" y="84" text-anchor="middle" font-size="9" fill="#37352f">回答:「怎麼嵌入?」</text>
           <text x="539" y="104" text-anchor="middle" font-size="9" fill="#37352f">先對整篇長文編碼,再</text>
           <text x="539" y="120" text-anchor="middle" font-size="9" fill="#37352f">依邊界池化各段向量</text>
-          <text x="539" y="142" text-anchor="middle" font-size="8" fill="#0075de">→ 維持片段間語境關聯,優化檢索</text>
+          <text x="539" y="142" text-anchor="middle" font-size="8" fill="#0075de">→ 維持片段間語境,抗不佳邊界</text>
 
-          <text x="360" y="188" text-anchor="middle" font-size="9.5" font-weight="700" fill="#137a29">互補:先用分段找好邊界,再用後期分塊嵌入 → 邊界對、語境也不丟</text>
+          <text x="360" y="188" text-anchor="middle" font-size="9.5" font-weight="700" fill="#137a29">互補:後期分塊扛語境 → 你就能放心讓分段專注可讀性</text>
         </g>
       </svg>
-      <div class="figcap">▲ 分段決定「切在哪」、服務連貫的任務型生成;後期分塊決定「怎麼嵌入」、靠保留跨段語境來優化檢索。兩者可疊加。</div>
+      <div class="figcap">▲ 後期分塊決定「怎麼嵌入」、扛住語境損失;分段決定「切在哪」、專注可讀與連貫。正因前者撐腰,後者才能純為可讀性著想。</div>
     </div>
-    <p>所以當你需要「為連貫的、特定任務的生成流程分割文件」時,<strong>分段特別重要</strong>;而若目標是「檢索時每段都不丟全局語境」,<strong>後期分塊</strong>是另一把刀。</p>
   </section>
 
-  <!-- 6 -->
-  <section id="results">
-    <h2><span class="num">⑥</span> 結果與下一步</h2>
-    <h3>結果</h3>
-    <ul>
-      <li>在測試的模型中,<strong><code>topic-qwen-0.5</code> 持續給出最有意義、最貼上下文的分段</strong>,尤其對多主題文件。</li>
-      <li>自訂分段模型有效解決傳統方法的兩大痛點:<strong>維持語義連貫</strong>、<strong>妥善處理程式碼等複雜內容</strong>,並有潛力提升下游 RAG。</li>
-    </ul>
-    <h3>作者自陳的下一步(若要繼續)</h3>
-    <ul>
-      <li><strong>更大的訓練集</strong>:把 <code>summary-qwen-0.5</code> 從 30,000 樣本擴到理想的 <strong>60,000 樣本</strong>,可能帶來更好表現。</li>
-      <li><strong>改進基準測試</strong>:不去評估 RAG 產生的 LLM 答案,而是<strong>直接把檢索到的片段和真實值(ground truth)比對</strong>。</li>
-      <li><strong>超越 ROUGE</strong>:採用更進階的指標(可能是 <strong>ROUGE + LLM 評分</strong>的組合),更能捕捉檢索與分段品質的細微差別。</li>
-    </ul>
-    <div class="callout warn"><strong>誠實邊界:</strong>作者明說這是<strong>概念驗證</strong>,且「這個特定實驗不太可能繼續」。所以重點是<strong>方法與洞察</strong>可遷移,而非把這三個模型當成生產級成品直接部署。</div>
-  </section>
-
-  <!-- 7 -->
-  <section id="slmkb">
-    <h2><span class="num">⑦</span> 延伸:更廣的「SLM + KB」版圖</h2>
-    <p>Jina 這個分段實驗,可以放進一個更大的趨勢裡看:<strong>在學術/垂直專業場景,用「小模型(能力)+ 知識庫(上下文)」取代「什麼都問大模型」</strong>。核心動機是:</p>
-    <div class="table-wrap"><table>
-      <thead><tr><th>面向</th><th>純大模型(LLM)</th><th>小模型(SLM)+ 知識庫(KB)</th></tr></thead>
-      <tbody>
-        <tr><td>算力 / 成本</td><td>需極高算力,硬體昂貴</td><td>高效,甚至可在消費級顯卡/邊緣裝置部署</td></tr>
-        <tr><td>專業準確度</td><td>知識廣,但細分領域易「幻覺」</td><td>由 KB 實時提供精確文獻,大幅降低幻覺</td></tr>
-        <tr><td>隱私安全</td><td>資料上雲有洩密風險</td><td>可在地端私有化,確保研究資料安全</td></tr>
-        <tr><td>更新速度</td><td>重訓/微調成本高</td><td>更新 KB 檔即可,模型不必重訓</td></tr>
-      </tbody>
-    </table></div>
-    <p>Jina 的分段研究正是這條路上的一塊拼圖:<strong>用專訓小模型把長文切得更好,KB 的「精確知識」才餵得準</strong>。以下是使用者提供的兩個延伸方向,屬第三方研究:</p>
-    <ul>
-      <li><strong>KBLaM(Knowledge Base augmented Language Model)</strong>:嘗試把知識庫的向量<strong>直接整合進模型的注意力機制</strong>,省去傳統 RAG 的外部檢索模組。</li>
-      <li><strong>LightReasoner(香港大學)</strong>:指出在特定推理任務中,<strong>小模型甚至可當「老師」教導大模型</strong>,提升整體效率。</li>
-    </ul>
-    <div class="callout info"><strong>查證提醒:</strong>KBLaM 與 LightReasoner 是本頁的<strong>延伸脈絡</strong>(來自使用者提供的概述),與 Jina 分段實驗屬不同研究。若要引用其細節(架構、數據、結論),建議直接查閱各自的原始論文,本頁不對其細節背書。</div>
-  </section>
-
-  <!-- 8 -->
+  <!-- 10 -->
   <section id="notes">
-    <h2><span class="num">⑧</span> 重點 · 關聯 · 來源</h2>
-    <h3>七個帶得走的重點</h3>
+    <h2><span class="num">⑩</span> 重點 · 延伸 · 來源</h2>
+    <h3>八個帶得走的重點</h3>
     <ol>
-      <li>RAG 常敗在切塊——固定長度/規則式會切穿程式碼、表格、公式。</li>
-      <li>把「分段」當成小模型學的任務,比寫死規則更能抓語義邊界。</li>
-      <li>三個模型:<code>simple</code> / <code>topic</code> / <code>summary</code>-qwen-0.5,全 Qwen-0.5B 基底。</li>
-      <li><strong>問題定義決定成敗</strong>:讓模型輸出「主題標題」而非複製輸入,邊界更準也更快。</li>
-      <li>用 LLM 生成資料補足複雜結構、用 output-only collator 逼模型學目標、用 Unsloth 單張 4090 訓練。</li>
-      <li><code>topic-qwen-0.5</code> 實測最佳,尤其多主題長文。</li>
-      <li>分段(切在哪)≠ 後期分塊(怎麼嵌入),兩者互補。</li>
+      <li>這是 Jina 分塊系列 Part 3;核心心法:<strong>後期分塊扛語境,分割專注可讀性</strong>。</li>
+      <li>三個模型全以 <code>qwen2-0.5b-instruct</code> 為底:<code>simple</code>(結構)、<code>topic</code>(CoT 主題)、<code>summary</code>(段+摘要)。</li>
+      <li><strong>只輸出「片段頭部」</strong>(截斷版),檢索時據此重建完整片段——邊界更準、更快。</li>
+      <li>資料:<strong>wiki727k</strong> + GPT-4 生 topic/summary + <strong>GPT-4o 生程式碼/公式/清單</strong> + 噪聲注入(含一律去換行)。</li>
+      <li>訓練:transformers + <strong>Unsloth</strong>、AdamW + 線性預熱、W&amp;B;simple/topic 各 10k 樣本(loss 0.16 / 0.45),summary 30k(loss 0.81,需更多資料)。</li>
+      <li>基準:<strong>ROUGE-L F1</strong>,8 文 6 問、<code>jina-embeddings-v3</code>、不後期分塊/不重排;三模型全勝 Segmenter API。</li>
+      <li><strong><code>topic-qwen-0.5</code> 平均最高</strong>(別用單題論英雄)。</li>
+      <li>分段(切在哪)≠ 後期分塊(怎麼嵌入),互補。</li>
     </ol>
+    <h3>延伸:更廣的「SLM + KB」版圖</h3>
+    <p>這個實驗可放進更大的趨勢:在學術/垂直專業場景,用<strong>「小模型(能力)+ 知識庫(上下文)」</strong>取代「什麼都問大模型」——省算力、降幻覺(KB 提供精確文獻)、可私有部署、更新只需改 KB。以下兩個方向為使用者提供之延伸脈絡,<strong>屬第三方研究、建議查證原始論文</strong>:</p>
+    <ul>
+      <li><strong>KBLaM</strong>(Knowledge Base augmented Language Model):嘗試把知識庫向量<strong>直接整合進注意力機制</strong>,省去傳統 RAG 的外部檢索模組。</li>
+      <li><strong>LightReasoner</strong>(香港大學):指出在特定推理任務中,<strong>小模型甚至可當「老師」教大模型</strong>,提升整體效率。</li>
+    </ul>
     <div class="related">
       <a href="./kokoro-tts.html">
         <div class="rel-title">🗣️ Kokoro-82M 開源 TTS</div>
         <div class="rel-sub">另一個「小而專」模型的讀碼深潛</div>
       </a>
-      <a href="./gemma-translator-internals.html">
-        <div class="rel-title">⚙️ Gemma Translator 原始碼內幕</div>
-        <div class="rel-sub">端側小模型 + 串流管線</div>
+      <a href="./train-slm-single-task.html">
+        <div class="rel-title">🧠 訓練小模型做單一任務</div>
+        <div class="rel-sub">SLM 專用化實戰(姊妹頁)</div>
       </a>
       <a href="./engineers-adopt-ai.html">
         <div class="rel-title">🛡️ 讓工程師擁抱 AI</div>
@@ -393,7 +420,7 @@
       </a>
     </div>
     <div class="callout info" style="margin-top:14px;">
-      <strong>來源:</strong>本頁主體取自 Jina AI 文章〈Finding optimal breakpoints in long documents using small language models〉的「我們學到了什麼」與「結論」段落(使用者提供內文;原站 <code>jina.ai</code> 於本環境無法連線,細節以使用者提供之內文為準)。⑦ 的 SLM+KB 表與 KBLaM／LightReasoner 為使用者提供之延伸概述,屬第三方研究、建議自行查證。模型名稱、樣本數(30k→60k)、單張 4090、Unsloth、ROUGE 等均引自上述內文。
+      <strong>來源:</strong>Jina AI〈Finding optimal breakpoints in long documents using small language models〉(2024/10/25,Alex C-G、Andrei Ungureanu;分塊系列 Part 3)。內文由使用者提供(原站 <code>jina.ai</code> 於本執行環境被 egress 政策封鎖,無法直接抓取)。模型於 Hugging Face:<code>jinaai/text-seg-lm-qwen2-0.5b</code>、<code>…-cot-topic-chunking</code>、<code>…-summary-chunking</code>。資料集 wiki727k 出自論文《Text Segmentation as a Supervised Learning Task》。⑩ 的 KBLaM／LightReasoner 為使用者提供之延伸概述、屬第三方研究,本頁不背書其細節。
     </div>
   </section>
 
