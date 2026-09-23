@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>用小模型找長文最佳斷點:Jina 的 RAG 分段實驗 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>✂️ 用小模型找長文最佳斷點:Jina 的 RAG 分段實驗</h1>
+    <p class="sub">RAG 的成敗常敗在「切塊」:固定長度或規則式切法,會把程式碼、表格、公式、清單從中間切斷,語義破碎、檢索變差。Jina AI 做了一個概念驗證——訓練 Qwen-0.5B 級的小模型專門「找斷點」,把分段當成任務來學,而不是靠正則規則。本頁拆解它的三個模型、關鍵設計洞察,以及「分段」與「後期分塊」為何互補。</p>
+    <div>
+      <span class="badge blue">Qwen-0.5B · 單張 4090 · Unsloth</span>
+      <span class="badge green">simple / topic / summary 三模型</span>
+      <span class="badge orange">RAG 分段 · 概念驗證(PoC)</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#problem">① 切塊為什麼難</a>
+      <a href="#whyslm">② 為什麼用「小模型」做</a>
+      <a href="#models">③ 三個分段模型</a>
+      <a href="#insights">④ 關鍵設計洞察</a>
+      <a href="#vslate">⑤ 分段 ≠ 後期分塊</a>
+      <a href="#results">⑥ 結果與下一步</a>
+      <a href="#slmkb">⑦ 延伸:更廣的 SLM+KB 版圖</a>
+      <a href="#notes">⑧ 重點 · 關聯 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>把「文件怎麼切」從規則升級成一個小模型學的任務。</strong>Jina 訓練了三個 Qwen-0.5B 基底的分段模型(<code>simple-qwen-0.5</code>、<code>topic-qwen-0.5</code>、<code>summary-qwen-0.5</code>),用 <strong>Unsloth 在單張 Nvidia 4090</strong> 就能訓練。它們在<strong>程式碼、表格、清單</strong>這類結構化內容上,切得比傳統方法更符合語義。實測中 <strong><code>topic-qwen-0.5</code> 最穩</strong>——尤其對多主題長文,給出最有意義、最貼上下文的分段。</p>
+    <div class="callout info"><strong>定位提醒:</strong>這是一個<strong>概念驗證(PoC)</strong>,作者也直說「這個特定實驗不太可能繼續」。它的價值不在「拿去用這三個模型」,而在<strong>把方法論講清楚</strong>:任務怎麼設計、資料怎麼生、訓練怎麼省算力,以及分段與後期分塊如何分工。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="problem">
+    <h2><span class="num">①</span> 切塊(chunking)為什麼難</h2>
+    <p>RAG 要先把長文件切成小段、建索引,查詢時檢索相關段落餵給模型。切得好不好,直接決定檢索品質。傳統切法有兩類、各有硬傷:</p>
+    <ul>
+      <li><strong>固定長度</strong>(每 N 個 token/字切一刀):簡單,但完全不看語義——很容易<strong>把一個程式碼區塊、一張表格、一條公式從中間劈開</strong>。</li>
+      <li><strong>規則式</strong>(依標點/換行/標題切):比固定長度好,但規則寫死,遇到<strong>巢狀清單、跨行公式、含註解的程式碼</strong>就失準。</li>
+    </ul>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 220" role="img" aria-label="切塊對照：固定長度切法把一個程式碼區塊從中間切斷，語義破碎；語義感知的分段模型把整個程式碼區塊、整張表格當成完整單元切在邊界">
+        <defs><marker id="ap" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">同一份含程式碼的長文,兩種切法</text>
+
+          <text x="20" y="46" font-size="10.5" font-weight="700" fill="#c0261b">✗ 固定長度:切穿程式碼區塊</text>
+          <rect x="20" y="54" width="320" height="30" rx="6" fill="#dcecfa" stroke="#0075de" stroke-width="1.2"/>
+          <text x="30" y="73" font-size="8.5" fill="#37352f">段落文字…… def parse(x): # 開始</text>
+          <line x1="200" y1="50" x2="200" y2="120" stroke="#e03131" stroke-width="2" stroke-dasharray="4 3"/>
+          <text x="205" y="48" font-size="8" fill="#e03131">切在這(500 token 到了)</text>
+          <rect x="20" y="90" width="320" height="30" rx="6" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.2"/>
+          <text x="30" y="109" font-size="8.5" fill="#37352f">return x*2 …… 表格上半 |欄A|欄B|</text>
+          <text x="30" y="140" font-size="8" fill="#c0261b">→ 函式被切兩半、表格斷頭,檢索到殘段</text>
+
+          <text x="390" y="46" font-size="10.5" font-weight="700" fill="#137a29">✓ 語義分段:整塊當完整單元</text>
+          <rect x="390" y="54" width="310" height="26" rx="6" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.2"/>
+          <text x="400" y="71" font-size="8.5" fill="#37352f">段落文字(主題一)</text>
+          <rect x="390" y="86" width="310" height="26" rx="6" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.2"/>
+          <text x="400" y="103" font-size="8.5" fill="#37352f">完整 def parse(x) 程式碼區塊</text>
+          <rect x="390" y="118" width="310" height="26" rx="6" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.2"/>
+          <text x="400" y="135" font-size="8.5" fill="#37352f">完整表格 |欄A|欄B|…</text>
+          <text x="400" y="162" font-size="8" fill="#137a29">→ 邊界落在語義轉換處,每段自成完整意思</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 分段的目標不是「切成等長」,而是「切在語義轉換的地方」,讓每一段都是自洽的完整單元。</div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section id="whyslm">
+    <h2><span class="num">②</span> 為什麼用「小模型」做這件事</h2>
+    <p>分段是個<strong>定義明確、範圍窄</strong>的任務——判斷「這裡該不該切」。這種任務不需要通才大模型,反而很適合一個<strong>專門訓練的小模型</strong>:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>面向</th><th>大模型硬做分段</th><th>專訓的小模型(本實驗)</th></tr></thead>
+      <tbody>
+        <tr><td>算力 / 成本</td><td>推論貴,批次切大量文件不划算</td><td>0.5B 級,推論便宜、可大量跑</td></tr>
+        <tr><td>訓練門檻</td><td>微調成本高</td><td><strong>Unsloth + 單張 4090</strong> 就能訓</td></tr>
+        <tr><td>速度</td><td>生成長、慢</td><td>只輸出斷點/標題,生成短、快</td></tr>
+        <tr><td>隱私 / 部署</td><td>常需上雲</td><td>可在地端私有部署</td></tr>
+        <tr><td>更新</td><td>重訓昂貴</td><td>資料便宜、可重訓迭代</td></tr>
+      </tbody>
+    </table></div>
+    <p>換句話說:與其叫一個大模型「順便」切文件,不如把切文件變成一個<strong>小而專</strong>的模型,又快又省又可控。</p>
+  </section>
+
+  <!-- 3 -->
+  <section id="models">
+    <h2><span class="num">③</span> 三個分段模型(＋Segmenter API 基線)</h2>
+    <p>Jina 訓練了三個策略不同的分段模型,全部以 <strong>Qwen-0.5B</strong> 為基底,對應「從單純到精緻」的三種切法:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 250" role="img" aria-label="三個分段模型對照：simple-qwen-0.5 依結構線索切；topic-qwen-0.5 輸出主題標題、依主題轉換切，實測最佳；summary-qwen-0.5 為每段生成摘要；另有 Segmenter API 作為簡單基線">
+        <defs><marker id="am" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">從單純到精緻:三種分段策略</text>
+
+          <rect x="16" y="40" width="220" height="86" rx="11" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="126" y="62" text-anchor="middle" font-size="11" font-weight="800" fill="#005bb0">simple-qwen-0.5</text>
+          <text x="126" y="82" text-anchor="middle" font-size="8.5" fill="#37352f">依結構線索找斷點</text>
+          <text x="126" y="98" text-anchor="middle" font-size="8.5" fill="#37352f">最輕、最快</text>
+          <text x="126" y="116" text-anchor="middle" font-size="8" fill="#5d5b54">適合單純內容</text>
+
+          <rect x="250" y="40" width="220" height="86" rx="11" fill="#e6e0f5" stroke="#5645d4" stroke-width="2"/>
+          <text x="360" y="62" text-anchor="middle" font-size="11" font-weight="800" fill="#3a2a99">topic-qwen-0.5 ★</text>
+          <text x="360" y="82" text-anchor="middle" font-size="8.5" fill="#37352f">輸出「主題標題」</text>
+          <text x="360" y="98" text-anchor="middle" font-size="8.5" fill="#37352f">依主題轉換切段</text>
+          <text x="360" y="116" text-anchor="middle" font-size="8" fill="#7b3ff2">實測最佳,尤其多主題長文</text>
+
+          <rect x="484" y="40" width="220" height="86" rx="11" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.5"/>
+          <text x="594" y="62" text-anchor="middle" font-size="11" font-weight="800" fill="#c02d80">summary-qwen-0.5</text>
+          <text x="594" y="82" text-anchor="middle" font-size="8.5" fill="#37352f">切段 + 為每段生成摘要</text>
+          <text x="594" y="98" text-anchor="middle" font-size="8.5" fill="#37352f">最精緻、資訊最多</text>
+          <text x="594" y="116" text-anchor="middle" font-size="8" fill="#5d5b54">下一步想擴到 60k 樣本</text>
+
+          <rect x="150" y="164" width="420" height="56" rx="11" fill="#f0eeec" stroke="#a4a097" stroke-width="1.4"/>
+          <text x="360" y="186" text-anchor="middle" font-size="10.5" font-weight="700" fill="#37352f">Segmenter API(簡單基線)</text>
+          <text x="360" y="205" text-anchor="middle" font-size="8.5" fill="#5d5b54">敘事型、單純內容通常這個就夠;複雜結構才需要上面的進階策略</text>
+
+          <g stroke="#8a93ad" stroke-width="1.6" fill="none" marker-end="url(#am)">
+            <path d="M126,126 L200,162"/><path d="M360,126 L360,162"/><path d="M594,126 L520,162"/>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ 三個進階模型處理複雜結構;若內容單純,退回 Segmenter API 這種簡單方法就夠——依使用場景彈性選擇。</div>
+    </div>
+    <ul>
+      <li><strong><code>simple-qwen-0.5</code></strong>:靠結構線索找基本斷點,最輕量。</li>
+      <li><strong><code>topic-qwen-0.5</code></strong>:讓模型<strong>輸出片段的主題標題</strong>,據主題轉換切段。<strong>實測中最一致、最貼上下文</strong>,對多主題文件特別有效。</li>
+      <li><strong><code>summary-qwen-0.5</code></strong>:除了切段,還為每段<strong>生成摘要</strong>,資訊量最高、也最重。</li>
+      <li><strong>Segmenter API</strong>:Jina 既有的簡單分段法,當基線;單純敘事型內容用它常常就夠。</li>
+    </ul>
+  </section>
+
+  <!-- 4 -->
+  <section id="insights">
+    <h2><span class="num">④</span> 關鍵設計洞察(「我們學到了什麼」)</h2>
+    <p>這篇最值得偷師的,是它把「訓練一個任務型小模型」的每個決策講明白:</p>
+    <h3>1. 問題定義至關重要:讓模型輸出「片段標題」</h3>
+    <p>一個關鍵洞察:<strong>怎麼構建任務,會決定成敗</strong>。他們讓模型<strong>輸出片段標題</strong>——這逼模型去關注「語義轉換」,而不是把輸入原封不動複製貼到不同片段裡。結果是<strong>邊界偵測與連貫性都變好</strong>;而且因為要生成的文字更少,<strong>模型跑得更快</strong>。</p>
+    <h3>2. LLM 生成的訓練資料很有效</h3>
+    <p>用 LLM 生成資料——<strong>特別是針對清單、公式、程式碼片段這類複雜內容</strong>——擴大了訓練集,讓模型更會處理各種文件結構。這在面對技術性/結構化文件時是關鍵優勢。</p>
+    <h3>3. 「僅輸出」資料整理器(output-only collator)</h3>
+    <p>用<strong>只計算輸出部分損失</strong>的 collator,確保模型訓練時<strong>專注預測目標 token</strong>,而不是從輸入複製。好處:避免對輸入過擬合、<strong>收斂更快</strong>、跨資料集泛化更好。</p>
+    <h3>4. 用 Unsloth 高效訓練,單張 4090 就跑得動</h3>
+    <p>用 <strong>Unsloth</strong> 簡化小模型訓練流程,成功在<strong>單張 Nvidia 4090</strong> 上訓練出堪用模型,不必動用龐大算力。</p>
+    <h3>5. 複雜內容用進階策略,簡單內容用簡單方法</h3>
+    <p>分段模型在含<strong>程式碼、表格、清單</strong>的複雜文件上表現突出,這些正是傳統方法的痛點。技術內容用 <code>topic-qwen-0.5</code>／<code>summary-qwen-0.5</code> 這類複雜策略更有效;但單純敘事內容,Segmenter API 這種簡單法通常就夠——<strong>不要為簡單內容過度工程</strong>。</p>
+    <div class="callout tip"><strong>可帶走的方法論:</strong>把「複製輸入」改成「輸出語義標題」、用 LLM 補足罕見結構的訓練樣本、用 output-only collator 逼模型學目標而非抄輸入——這三招合起來,就是「用小資源訓出一個又快又準的任務型小模型」的範式。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="vslate">
+    <h2><span class="num">⑤</span> 分段 ≠ 後期分塊(late chunking),兩者互補</h2>
+    <p>容易混淆的一點:<strong>分段模型</strong>和 Jina 另一個技術<strong>後期分塊(late chunking)</strong>功能不同,但可以互補。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 210" role="img" aria-label="分段決定切在哪裡，讓每段自成完整任務單元；後期分塊決定怎麼嵌入，先對整篇長文編碼再依邊界池化，讓每段保留跨段語境；兩者可疊加使用">
+        <defs><marker id="al" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">兩個問題,兩種技術</text>
+
+          <rect x="16" y="40" width="330" height="120" rx="12" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="181" y="62" text-anchor="middle" font-size="11" font-weight="800" fill="#3a2a99">分段(segmentation)</text>
+          <text x="181" y="84" text-anchor="middle" font-size="9" fill="#37352f">回答:「切在哪裡?」</text>
+          <text x="181" y="104" text-anchor="middle" font-size="9" fill="#37352f">找語義邊界,讓每段</text>
+          <text x="181" y="120" text-anchor="middle" font-size="9" fill="#37352f">自成完整任務單元</text>
+          <text x="181" y="142" text-anchor="middle" font-size="8" fill="#7b3ff2">→ 服務「連貫、任務型生成」</text>
+
+          <rect x="374" y="40" width="330" height="120" rx="12" fill="#dcecfa" stroke="#0075de" stroke-width="1.8"/>
+          <text x="539" y="62" text-anchor="middle" font-size="11" font-weight="800" fill="#005bb0">後期分塊(late chunking)</text>
+          <text x="539" y="84" text-anchor="middle" font-size="9" fill="#37352f">回答:「怎麼嵌入?」</text>
+          <text x="539" y="104" text-anchor="middle" font-size="9" fill="#37352f">先對整篇長文編碼,再</text>
+          <text x="539" y="120" text-anchor="middle" font-size="9" fill="#37352f">依邊界池化各段向量</text>
+          <text x="539" y="142" text-anchor="middle" font-size="8" fill="#0075de">→ 維持片段間語境關聯,優化檢索</text>
+
+          <text x="360" y="188" text-anchor="middle" font-size="9.5" font-weight="700" fill="#137a29">互補:先用分段找好邊界,再用後期分塊嵌入 → 邊界對、語境也不丟</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 分段決定「切在哪」、服務連貫的任務型生成;後期分塊決定「怎麼嵌入」、靠保留跨段語境來優化檢索。兩者可疊加。</div>
+    </div>
+    <p>所以當你需要「為連貫的、特定任務的生成流程分割文件」時,<strong>分段特別重要</strong>;而若目標是「檢索時每段都不丟全局語境」,<strong>後期分塊</strong>是另一把刀。</p>
+  </section>
+
+  <!-- 6 -->
+  <section id="results">
+    <h2><span class="num">⑥</span> 結果與下一步</h2>
+    <h3>結果</h3>
+    <ul>
+      <li>在測試的模型中,<strong><code>topic-qwen-0.5</code> 持續給出最有意義、最貼上下文的分段</strong>,尤其對多主題文件。</li>
+      <li>自訂分段模型有效解決傳統方法的兩大痛點:<strong>維持語義連貫</strong>、<strong>妥善處理程式碼等複雜內容</strong>,並有潛力提升下游 RAG。</li>
+    </ul>
+    <h3>作者自陳的下一步(若要繼續)</h3>
+    <ul>
+      <li><strong>更大的訓練集</strong>:把 <code>summary-qwen-0.5</code> 從 30,000 樣本擴到理想的 <strong>60,000 樣本</strong>,可能帶來更好表現。</li>
+      <li><strong>改進基準測試</strong>:不去評估 RAG 產生的 LLM 答案,而是<strong>直接把檢索到的片段和真實值(ground truth)比對</strong>。</li>
+      <li><strong>超越 ROUGE</strong>:採用更進階的指標(可能是 <strong>ROUGE + LLM 評分</strong>的組合),更能捕捉檢索與分段品質的細微差別。</li>
+    </ul>
+    <div class="callout warn"><strong>誠實邊界:</strong>作者明說這是<strong>概念驗證</strong>,且「這個特定實驗不太可能繼續」。所以重點是<strong>方法與洞察</strong>可遷移,而非把這三個模型當成生產級成品直接部署。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="slmkb">
+    <h2><span class="num">⑦</span> 延伸:更廣的「SLM + KB」版圖</h2>
+    <p>Jina 這個分段實驗,可以放進一個更大的趨勢裡看:<strong>在學術/垂直專業場景,用「小模型(能力)+ 知識庫(上下文)」取代「什麼都問大模型」</strong>。核心動機是:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>面向</th><th>純大模型(LLM)</th><th>小模型(SLM)+ 知識庫(KB)</th></tr></thead>
+      <tbody>
+        <tr><td>算力 / 成本</td><td>需極高算力,硬體昂貴</td><td>高效,甚至可在消費級顯卡/邊緣裝置部署</td></tr>
+        <tr><td>專業準確度</td><td>知識廣,但細分領域易「幻覺」</td><td>由 KB 實時提供精確文獻,大幅降低幻覺</td></tr>
+        <tr><td>隱私安全</td><td>資料上雲有洩密風險</td><td>可在地端私有化,確保研究資料安全</td></tr>
+        <tr><td>更新速度</td><td>重訓/微調成本高</td><td>更新 KB 檔即可,模型不必重訓</td></tr>
+      </tbody>
+    </table></div>
+    <p>Jina 的分段研究正是這條路上的一塊拼圖:<strong>用專訓小模型把長文切得更好,KB 的「精確知識」才餵得準</strong>。以下是使用者提供的兩個延伸方向,屬第三方研究:</p>
+    <ul>
+      <li><strong>KBLaM(Knowledge Base augmented Language Model)</strong>:嘗試把知識庫的向量<strong>直接整合進模型的注意力機制</strong>,省去傳統 RAG 的外部檢索模組。</li>
+      <li><strong>LightReasoner(香港大學)</strong>:指出在特定推理任務中,<strong>小模型甚至可當「老師」教導大模型</strong>,提升整體效率。</li>
+    </ul>
+    <div class="callout info"><strong>查證提醒:</strong>KBLaM 與 LightReasoner 是本頁的<strong>延伸脈絡</strong>(來自使用者提供的概述),與 Jina 分段實驗屬不同研究。若要引用其細節(架構、數據、結論),建議直接查閱各自的原始論文,本頁不對其細節背書。</div>
+  </section>
+
+  <!-- 8 -->
+  <section id="notes">
+    <h2><span class="num">⑧</span> 重點 · 關聯 · 來源</h2>
+    <h3>七個帶得走的重點</h3>
+    <ol>
+      <li>RAG 常敗在切塊——固定長度/規則式會切穿程式碼、表格、公式。</li>
+      <li>把「分段」當成小模型學的任務,比寫死規則更能抓語義邊界。</li>
+      <li>三個模型:<code>simple</code> / <code>topic</code> / <code>summary</code>-qwen-0.5,全 Qwen-0.5B 基底。</li>
+      <li><strong>問題定義決定成敗</strong>:讓模型輸出「主題標題」而非複製輸入,邊界更準也更快。</li>
+      <li>用 LLM 生成資料補足複雜結構、用 output-only collator 逼模型學目標、用 Unsloth 單張 4090 訓練。</li>
+      <li><code>topic-qwen-0.5</code> 實測最佳,尤其多主題長文。</li>
+      <li>分段(切在哪)≠ 後期分塊(怎麼嵌入),兩者互補。</li>
+    </ol>
+    <div class="related">
+      <a href="./kokoro-tts.html">
+        <div class="rel-title">🗣️ Kokoro-82M 開源 TTS</div>
+        <div class="rel-sub">另一個「小而專」模型的讀碼深潛</div>
+      </a>
+      <a href="./gemma-translator-internals.html">
+        <div class="rel-title">⚙️ Gemma Translator 原始碼內幕</div>
+        <div class="rel-sub">端側小模型 + 串流管線</div>
+      </a>
+      <a href="./engineers-adopt-ai.html">
+        <div class="rel-title">🛡️ 讓工程師擁抱 AI</div>
+        <div class="rel-sub">工程護欄與方法論</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>本頁主體取自 Jina AI 文章〈Finding optimal breakpoints in long documents using small language models〉的「我們學到了什麼」與「結論」段落(使用者提供內文;原站 <code>jina.ai</code> 於本環境無法連線,細節以使用者提供之內文為準)。⑦ 的 SLM+KB 表與 KBLaM／LightReasoner 為使用者提供之延伸概述,屬第三方研究、建議自行查證。模型名稱、樣本數(30k→60k)、單張 4090、Unsloth、ROUGE 等均引自上述內文。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
