@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>SLPI(SoL-Pi):不換模型,幫 Coding Agent 省近半令牌 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>💸 SLPI(SoL-Pi):不換模型,幫 Coding Agent 省下近半令牌</h1>
+    <p class="sub">同一個編碼任務,原本燒 1,339 美元,一層「運行時優化」把它壓到 894 美元——令牌流量少了約 44.7–49%、API 成本降約 33%。它不換模型、不改你的原始碼,只接管 Agent 的「運行時動作」來減少模型往返。代價是得分掉約 6%、狀態管理變複雜。本頁用教學方式拆解它的四個機制、省在哪、賠在哪、什麼時候該用。</p>
+    <div>
+      <span class="badge blue">Coding Agent · 運行時優化 · 省 token</span>
+      <span class="badge green">Action Fusion · Context Compact · Observation Pack · Evidence Reducer</span>
+      <span class="badge orange">影片拆解 · 智用AI · 2026/09</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#why">① 為什麼 Coding Agent 那麼燒錢</a>
+      <a href="#idea">② 核心主張:只接管「運行時」</a>
+      <a href="#mechanisms">③ 四個運行時機制</a>
+      <a href="#numbers">④ 省多少:成本與令牌數據</a>
+      <a href="#cost">⑤ 代價:得分折損與複雜度</a>
+      <a href="#when">⑥ 什麼時候該用 / 不該用</a>
+      <a href="#notes">⑦ 帶走的觀念 · 關聯 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>SLPI(Search-based Lightweight Pi,影片標題寫作「SoL-Pi」)是一層「運行時優化」。</strong>它<strong>不替換模型</strong>(仍用 GPT-5.6S、Opus 5 這些)、<strong>不修改你的原始碼</strong>,而是<strong>接管 Agent 執行時的動作</strong>——工具調用、上下文整理、觀察結果處理、任務委派——想辦法<strong>減少模型一來一回的往返次數</strong>。往返少了,重複塞進去的上下文就少,令牌與費用就下來了。</p>
+    <div class="callout tip"><strong>一句話權衡:</strong>省下約 <strong>44.7–49% 的令牌流量、約 33% 的 API 成本</strong>,代價是<strong>得分只保留約 93.7–94.3%(掉約 6%)</strong>,而且狀態管理、快取改寫、失敗回退都變得更複雜。適合長軌跡任務,不適合短任務或不能接受掉分的場景。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="why">
+    <h2><span class="num">①</span> 為什麼 Coding Agent 那麼燒錢:往返 = 令牌通膨</h2>
+    <p>要理解 SLPI 省在哪,得先懂 Coding Agent 為什麼貴。一個編碼 Agent 的運作是個<strong>迴圈</strong>:模型想一步 → 呼叫工具(讀檔、改檔、跑測試)→ 拿到觀察結果 → 再想下一步。問題是:</p>
+    <ul>
+      <li><strong>每一次往返,都要把「先前所有上下文 + 這次的新輸出」整包再送一次給模型。</strong>對話越長,每一輪要送的 token 就越多。</li>
+      <li><strong>工具輸出很膨脹</strong>:一次測試 log、一份檔案內容、一段 build 輸出,動輒上千 token,還會被反覆帶在上下文裡重送。</li>
+      <li><strong>步驟很多</strong>:改一行、跑一次測試、看結果、再改……長任務可能幾十上百次往返,token 像滾雪球。</li>
+    </ul>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 230" role="img" aria-label="Agent 迴圈的令牌通膨：模型與工具反覆往返，每一輪都把先前全部上下文加上新的大輸出再送一次，上下文長條逐輪變長，token 累積暴漲">
+        <defs><marker id="aw" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">每次往返都把「舊上下文 + 新大輸出」整包重送</text>
+
+          <text x="20" y="52" font-size="9.5" fill="#5d5b54">第 1 輪</text>
+          <rect x="70" y="42" width="120" height="16" rx="4" fill="#dcecfa" stroke="#0075de" stroke-width="1"/>
+          <text x="200" y="54" font-size="8" fill="#787671">送出 ≈ 1×</text>
+
+          <text x="20" y="82" font-size="9.5" fill="#5d5b54">第 2 輪</text>
+          <rect x="70" y="72" width="230" height="16" rx="4" fill="#e6e0f5" stroke="#5645d4" stroke-width="1"/>
+          <text x="310" y="84" font-size="8" fill="#787671">舊上下文 + 工具輸出</text>
+
+          <text x="20" y="112" font-size="9.5" fill="#5d5b54">第 3 輪</text>
+          <rect x="70" y="102" width="360" height="16" rx="4" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1"/>
+          <text x="440" y="114" font-size="8" fill="#787671">又疊上一份大 log</text>
+
+          <text x="20" y="142" font-size="9.5" fill="#5d5b54">第 4 輪</text>
+          <rect x="70" y="132" width="520" height="16" rx="4" fill="#fde0ec" stroke="#ff64c8" stroke-width="1"/>
+          <text x="600" y="144" font-size="8" fill="#c0261b">越滾越大 →</text>
+
+          <rect x="70" y="170" width="600" height="40" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.3"/>
+          <text x="360" y="187" text-anchor="middle" font-size="9.5" font-weight="700" fill="#b34700">你付的 token = 每一輪送出量的總和</text>
+          <text x="360" y="202" text-anchor="middle" font-size="8.5" fill="#5d5b54">往返越多、每輪帶的東西越大 → 帳單指數式上漲</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 貴的根源不是「單次很貴」,而是「往返很多次 × 每次都重送一大包」。SLPI 就是從這兩個乘數下手。</div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section id="idea">
+    <h2><span class="num">②</span> 核心主張:不換模型、不改原始碼,只接管「運行時」</h2>
+    <p>SLPI 的定位很克制——它<strong>不碰兩件事</strong>:</p>
+    <ul>
+      <li><strong>不替換模型</strong>:你還是用 GPT-5.6S / Opus 5,推理能力不變。</li>
+      <li><strong>不修改你的專案原始碼</strong>:它不是要你改程式或換框架。</li>
+    </ul>
+    <p>它動手的地方是夾在「Agent 迴圈」與「模型」之間的<strong>運行時層</strong>,接管四類動作:<strong>工具調用、上下文整理、觀察結果、任務委派</strong>。核心目標只有一個:<strong>讓模型少往返幾次、每次少帶一點</strong>。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 240" role="img" aria-label="SLPI 位置：夾在 Coding Agent 與模型之間的運行時層，攔截工具調用、上下文整理、觀察結果與任務委派；左邊 Agent 原始碼不改，右邊模型不替換">
+        <defs><marker id="ai" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">SLPI 是一層「運行時攔截」,不碰模型也不碰原始碼</text>
+
+          <rect x="16" y="60" width="150" height="120" rx="11" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="91" y="112" text-anchor="middle" font-size="10.5" font-weight="800" fill="#005bb0">Coding Agent</text>
+          <text x="91" y="132" text-anchor="middle" font-size="8" fill="#5d5b54">(原始碼不改)</text>
+
+          <rect x="250" y="46" width="220" height="148" rx="12" fill="#e6e0f5" stroke="#5645d4" stroke-width="2"/>
+          <text x="360" y="68" text-anchor="middle" font-size="11" font-weight="800" fill="#3a2a99">SLPI 運行時層</text>
+          <text x="360" y="90" text-anchor="middle" font-size="8.5" fill="#37352f">接管:工具調用</text>
+          <text x="360" y="108" text-anchor="middle" font-size="8.5" fill="#37352f">接管:上下文整理</text>
+          <text x="360" y="126" text-anchor="middle" font-size="8.5" fill="#37352f">接管:觀察結果</text>
+          <text x="360" y="144" text-anchor="middle" font-size="8.5" fill="#37352f">接管:任務委派</text>
+          <text x="360" y="168" text-anchor="middle" font-size="8" fill="#7b3ff2">目標:少往返、每次少帶</text>
+
+          <rect x="554" y="60" width="150" height="120" rx="11" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="629" y="106" text-anchor="middle" font-size="10.5" font-weight="800" fill="#137a29">模型</text>
+          <text x="629" y="126" text-anchor="middle" font-size="8" fill="#5d5b54">GPT-5.6S / Opus 5</text>
+          <text x="629" y="142" text-anchor="middle" font-size="8" fill="#5d5b54">(不替換)</text>
+
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#ai)">
+            <path d="M166,110 L248,110"/><path d="M470,110 L552,110"/>
+            <path d="M552,140 L472,140"/><path d="M248,140 L168,140"/>
+          </g>
+          <text x="207" y="102" text-anchor="middle" font-size="7.5" fill="#787671">動作</text>
+          <text x="512" y="102" text-anchor="middle" font-size="7.5" fill="#787671">精簡後才送</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 因為它只在「運行時」動手,你可以把它想成裝在 Agent 與模型之間的一個「省流管家」——換不換模型、改不改程式都不需要它出手。</div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section id="mechanisms">
+    <h2><span class="num">③</span> 四個運行時機制(逐一教學)</h2>
+    <p>SLPI 的省,來自四個彼此收斂的機制。它們各自砍掉「往返次數」或「每次帶的量」其中一項:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 300" role="img" aria-label="四個機制：Action Fusion 把編輯與測試併成一次工具請求（砍往返）；Online Context Compact 線上壓實計劃與上下文（縮每次帶量）；Observation Pack 用控制代碼按需取回大輸出（縮每次帶量）；Evidence Preserving Reducer 用可驗證收據取代反覆日誌並保留原始證據與回退（縮每次帶量），四者收斂成更少往返、更小上下文">
+        <defs><marker id="am" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">四個機制,兩個著力點:少往返 × 縮每次帶量</text>
+
+          <rect x="16" y="40" width="330" height="70" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="30" y="60" font-size="10.5" font-weight="800" fill="#005bb0">① Action Fusion(行動融合)</text>
+          <text x="30" y="78" font-size="8.5" fill="#37352f">把「編輯 + 測試」併在同一次工具請求完成</text>
+          <text x="30" y="95" font-size="8" fill="#0075de">→ 直接砍掉往返次數</text>
+
+          <rect x="374" y="40" width="330" height="70" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="388" y="60" font-size="10.5" font-weight="800" fill="#3a2a99">② Online Context Compact(線上壓實)</text>
+          <text x="388" y="78" font-size="8.5" fill="#37352f">邊跑邊把計劃與上下文壓實變精簡</text>
+          <text x="388" y="95" font-size="8" fill="#5645d4">→ 縮小每次帶的量</text>
+
+          <rect x="16" y="122" width="330" height="70" rx="10" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.5"/>
+          <text x="30" y="142" font-size="10.5" font-weight="800" fill="#c02d80">③ Observation Pack(觀察打包)</text>
+          <text x="30" y="160" font-size="8.5" fill="#37352f">大輸出先收好,給一個控制代碼(handle)</text>
+          <text x="30" y="177" font-size="8" fill="#c02d80">→ 需要時才按代碼取回,不整包塞</text>
+
+          <rect x="374" y="122" width="330" height="70" rx="10" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="388" y="142" font-size="10.5" font-weight="800" fill="#b34700">④ Evidence Preserving Reducer</text>
+          <text x="388" y="160" font-size="8.5" fill="#37352f">用可驗證「收據」取代反覆的完整日誌</text>
+          <text x="388" y="177" font-size="8" fill="#b34700">→ 保留原始證據與回退,但上下文變輕</text>
+
+          <rect x="180" y="212" width="360" height="66" rx="12" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.8"/>
+          <text x="360" y="238" text-anchor="middle" font-size="11" font-weight="800" fill="#137a29">收斂結果:更少往返 + 更小上下文</text>
+          <text x="360" y="258" text-anchor="middle" font-size="9" fill="#37352f">= 令牌流量下降、API 成本下降</text>
+
+          <g stroke="#8a93ad" stroke-width="1.5" fill="none" marker-end="url(#am)">
+            <path d="M181,110 L300,210"/><path d="M539,110 L420,210"/>
+            <path d="M181,192 L320,214"/><path d="M539,192 L400,214"/>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ ① 砍往返次數;②③④ 都在縮「每次帶進模型的量」。四者疊起來,就是省下近半令牌的來源。</div>
+    </div>
+    <h3>① Action Fusion(行動融合)</h3>
+    <p>本來「改一行 → 送模型 → 模型要求跑測試 → 送模型 → 看結果」要好幾次往返。行動融合把<strong>編輯與測試合併在一次工具請求</strong>裡一起做完,模型一次就拿到「改了 + 測了」的結果。<strong>直接減少往返次數</strong>。</p>
+    <h3>② Online Context Compact(線上上下文壓實)</h3>
+    <p>不等上下文爆掉才壓,而是<strong>邊跑邊壓實計劃與上下文</strong>——把已完成的步驟、過時的細節收斂成精簡摘要,只留還需要的。每一輪送進模型的東西因此更小。</p>
+    <h3>③ Observation Pack(觀察打包)</h3>
+    <p>工具的大輸出(長 log、整份檔案)不再整包塞進上下文,而是<strong>先收好、發一個「控制代碼(handle)」</strong>。模型只看到精簡摘要 + 代碼;真的需要細節時,再<strong>按代碼(on-demand)取回</strong>。避免大輸出被反覆重送。</p>
+    <h3>④ Evidence Preserving Reducer(證據保留歸約器)</h3>
+    <p>Agent 常反覆產生類似的日誌。這個機制<strong>用可驗證的「收據」取代反覆的完整日誌</strong>——上下文裡放輕量、可查核的憑證,但<strong>原始證據與失敗回退仍被保留</strong>,需要時能還原。既瘦身又不失可追溯性。</p>
+    <div class="callout info"><strong>教學重點:</strong>四個名詞聽起來炫,但骨子裡就兩招——<strong>「合併動作以減少往返」</strong>(①)與<strong>「按需取用、只帶精華以縮小每輪上下文」</strong>(②③④)。任何 Agent 想省 token,都繞不開這兩個方向。</div>
+  </section>
+
+  <!-- 4 -->
+  <section id="numbers">
+    <h2><span class="num">④</span> 省多少:成本與令牌數據</h2>
+    <p>影片給的關鍵數字(同一個 GPT-5.6 編碼任務):</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>指標</th><th>原方案</th><th>SLPI</th><th>變化</th></tr></thead>
+      <tbody>
+        <tr><td>花費(美元)</td><td>$1,339</td><td>$894</td><td>省約 $445</td></tr>
+        <tr><td>令牌流量</td><td>基準</td><td>—</td><td>下降約 44.7–49%</td></tr>
+        <tr><td>API 成本</td><td>基準</td><td>—</td><td>下降約 33%</td></tr>
+      </tbody>
+    </table></div>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="成本對照長條圖：原方案 1339 美元，SLPI 894 美元，省下約 445 美元，約 33% 的 API 成本下降">
+        <g font-family="sans-serif">
+          <text x="20" y="24" font-size="12.5" font-weight="800" fill="#1a1a1a">同一個編碼任務的花費對照</text>
+
+          <text x="30" y="70" font-size="10" fill="#5d5b54">原方案</text>
+          <rect x="110" y="56" width="540" height="26" rx="5" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.3"/>
+          <text x="640" y="74" text-anchor="end" font-size="10.5" font-weight="800" fill="#b34700">$1,339</text>
+
+          <text x="30" y="118" font-size="10" fill="#5d5b54">SLPI</text>
+          <rect x="110" y="104" width="360" height="26" rx="5" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.3"/>
+          <text x="460" y="122" text-anchor="end" font-size="10.5" font-weight="800" fill="#137a29">$894</text>
+
+          <rect x="472" y="104" width="178" height="26" rx="5" fill="none" stroke="#1aae39" stroke-width="1" stroke-dasharray="4 3"/>
+          <text x="561" y="122" text-anchor="middle" font-size="9" fill="#137a29">省 $445</text>
+
+          <rect x="110" y="152" width="540" height="30" rx="8" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.2"/>
+          <text x="380" y="171" text-anchor="middle" font-size="9.5" fill="#b34700">令牌流量 ↓ 約 44.7–49% ·  API 成本 ↓ 約 33%</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 數字為影片提供之單一任務結果,實際幅度會因任務長度、工具調用密度而異。</div>
+    </div>
+    <div class="callout warn"><strong>讀數字的提醒:</strong>「令牌 ↓ ~49%」和「成本 ↓ ~33%」不一樣,是因為<strong>輸入/輸出、快取命中的計費權重不同</strong>——省下的多半是被反覆重送的輸入上下文,而輸出與某些費用省不掉。所以別把「省一半令牌」直接當成「省一半錢」。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="cost">
+    <h2><span class="num">⑤</span> 代價:得分折損與複雜度上升</h2>
+    <p>天下沒有白省的令牌。SLPI 的代價有兩塊:</p>
+    <h3>1. 得分折損(約 6%)</h3>
+    <p>成本大降的同時,任務得分並沒有滿分:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>模型</th><th>使用 SLPI 後保留的得分</th><th>折損</th></tr></thead>
+      <tbody>
+        <tr><td>GPT-5.6S</td><td>93.7%</td><td>約 6.3%</td></tr>
+        <tr><td>Opus 5</td><td>94.3%</td><td>約 5.7%</td></tr>
+      </tbody>
+    </table></div>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 190" role="img" aria-label="權衡示意：省下約 44.7 到 49% 令牌、約 33% 成本，代價是得分只保留約 93.7 到 94.3%，約掉 6%">
+        <g font-family="sans-serif">
+          <text x="20" y="24" font-size="12.5" font-weight="800" fill="#1a1a1a">一句話權衡:省很多錢,賠一點分</text>
+
+          <text x="30" y="66" font-size="10" font-weight="700" fill="#137a29">得到</text>
+          <rect x="90" y="52" width="260" height="24" rx="6" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.2"/>
+          <text x="220" y="69" text-anchor="middle" font-size="9" fill="#137a29">令牌 ↓ ~44.7–49% · 成本 ↓ ~33%</text>
+
+          <text x="30" y="110" font-size="10" font-weight="700" fill="#b34700">付出</text>
+          <rect x="90" y="96" width="150" height="24" rx="6" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.2"/>
+          <text x="165" y="113" text-anchor="middle" font-size="9" fill="#b34700">得分掉 ~6%</text>
+          <rect x="250" y="96" width="300" height="24" rx="6" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.1"/>
+          <text x="400" y="113" text-anchor="middle" font-size="9" fill="#b34700">狀態/快取/回退複雜度 ↑</text>
+
+          <rect x="90" y="140" width="540" height="34" rx="8" fill="#f0eeec" stroke="#a4a097" stroke-width="1.1"/>
+          <text x="360" y="161" text-anchor="middle" font-size="9.5" fill="#5d5b54">關鍵問句:這 ~6% 的得分,對你的專案是「無感」還是「不能接受」?</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 保留約 94% 得分 vs 省約 1/3 成本——划不划算,完全看你的任務能不能吞下那 6%。</div>
+    </div>
+    <h3>2. 狀態管理變複雜</h3>
+    <p>因為引入了行動融合、線上壓實、觀察打包、證據歸約這些機制,系統要多管很多事:</p>
+    <ul>
+      <li><strong>狀態管理</strong>:壓實與打包後,「模型看到的」和「系統實際保存的」不一致,要小心對齊。</li>
+      <li><strong>快取改寫</strong>:上下文被線上壓實會改動,原本的 prompt 快取容易失效或需要重算。</li>
+      <li><strong>失敗回退</strong>:動作被融合、證據被歸約後,一旦某步失敗,要能精準還原、回退到可用狀態——這條路更難走。</li>
+    </ul>
+    <div class="callout warn"><strong>本質:</strong>SLPI 是把「模型端的成本」換成「系統端的工程複雜度」。省下的錢是真的,但你得有能力維護這套更複雜的運行時,否則省下的會被除錯與故障吃回去。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="when">
+    <h2><span class="num">⑥</span> 什麼時候該用 / 不該用</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th></th><th>適合</th><th>不適合</th></tr></thead>
+      <tbody>
+        <tr><td>任務型態</td><td><strong>長時間、多工具調用的長軌跡任務</strong>(往返多,省得多)</td><td><strong>短任務</strong>(往返本來就少,省不了多少,還多擔複雜度)</td></tr>
+        <tr><td>品質要求</td><td>能接受約 6% 得分損失、以預算為重</td><td><strong>強一致性要求</strong>、或不能接受掉分的專案</td></tr>
+        <tr><td>目標</td><td>在有效控制預算的同時維持「基本」效能</td><td>追求每一分、要頂尖正確率</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout tip"><strong>一句話決策:</strong>任務越長、工具調用越密、越吃預算,SLPI 越划算;任務越短、越要求極致正確,越不該用。先問自己「這 6% 掉分我吞得下嗎?」再決定。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="notes">
+    <h2><span class="num">⑦</span> 帶走的觀念 · 關聯 · 來源</h2>
+    <h3>六個帶得走的觀念</h3>
+    <ol>
+      <li>Coding Agent 貴在<strong>往返多 × 每次重送一大包</strong>,不是單次貴。</li>
+      <li>省 token 有兩條路:<strong>合併動作減往返</strong>、<strong>按需取用縮上下文</strong>。SLPI 兩條都走。</li>
+      <li>四機制:Action Fusion(砍往返)、Online Context Compact、Observation Pack、Evidence Preserving Reducer(縮上下文)。</li>
+      <li>它<strong>不換模型、不改原始碼</strong>,只接管運行時——所以可加裝、可移除。</li>
+      <li>「令牌 ↓ ~49%」≠「省一半錢」,成本只降約 33%(計費權重不同)。</li>
+      <li>代價是<strong>約 6% 得分 + 系統複雜度</strong>;長任務划算,短任務/強一致性別用。</li>
+    </ol>
+    <div class="related">
+      <a href="./oh-my-pi.html">
+        <div class="rel-title">🥧 拆解 oh-my-pi(omp)</div>
+        <div class="rel-sub">Pi 系編碼 Agent 的架構拆解</div>
+      </a>
+      <a href="./ai-context-compression.html">
+        <div class="rel-title">🗜️ AI 對話 / 上下文壓縮實戰</div>
+        <div class="rel-sub">上下文壓實的通用視角</div>
+      </a>
+      <a href="./engineers-adopt-ai.html">
+        <div class="rel-title">🛡️ 讓工程師擁抱 AI</div>
+        <div class="rel-sub">Agent 工程護欄與方法論</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>內容整理自「智用AI」影片《SoL-Pi省49%令牌，代价是什么？》(2026/09/22)之使用者提供摘要(原片為 YouTube,於本執行環境無法連線)。<strong>成本($1,339→$894)、令牌 ↓44.7–49%、成本 ↓33%、得分保留 93.7%/94.3%、四個機制名稱</strong>均為影片提出之數據與命名,屬單一來源、未經第三方復現,建議自行查證;各機制的原理說明為本頁依一般 Agent 工程知識所作的教學延伸。模型名稱(GPT-5.6S、GPT-5.6、Opus 5)沿用影片說法。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
