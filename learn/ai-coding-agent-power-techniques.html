@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>頂尖 AI 編程者怎麼用 Claude Code / Codex:進階技巧全圖 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🚀 頂尖 AI 編程者怎麼用 Claude Code / Codex:進階技巧全圖</h1>
+    <p class="sub">從一支「6 個核心思想」的影片出發,再往下深挖官方文件與社群高手的實戰做法,整理成一張可教學的技巧全圖。核心洞察只有一句:<strong>「上下文視窗是第一稀缺資源,效能會隨它填滿而下降」</strong>——幾乎所有進階技巧,都是從這條約束推導出來的。涵蓋 Claude Code 與 Codex 兩邊。</p>
+    <div>
+      <span class="badge blue">Claude Code · Codex · 進階工作流</span>
+      <span class="badge green">上下文 · 驗證 · 記憶 · 並行 · 護欄</span>
+      <span class="badge orange">官方文件 + 社群實戰 · 2026</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 總結:影片 6 點 + 我補了什麼</a>
+      <a href="#context">① 核心:上下文是第一約束</a>
+      <a href="#eppc">② 探索→計劃→寫→提交</a>
+      <a href="#verify">③ 給它能自己驗證的方法</a>
+      <a href="#hooks">④ 確定性護欄:hooks &gt; CLAUDE.md</a>
+      <a href="#memory">⑤ 跨會話記憶與持續學習</a>
+      <a href="#token">⑥ Token / 成本優化</a>
+      <a href="#parallel">⑦ 並行化與 subagent 編排</a>
+      <a href="#skills">⑧ 技能、斜線指令與外掛</a>
+      <a href="#codex">⑨ Codex 這邊怎麼玩</a>
+      <a href="#notes">⑩ 帶走清單 · 反模式 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 總結:影片的 6 點,以及我往下補了什麼</h2>
+    <p>那支影片(智用AI,《頂尖 Claude Code 用戶怎麼思考?》)講了 6 個核心思想:<strong>跨會話記憶、動態系統提示詞注入、持續學習、Token 優化、Grader 驗證、並行化 + Subagent</strong>。這些都對,但多半停在「概念」。本頁把每點對到官方機制、補上更多高手常用招式,並加進影片沒談的:<strong>「上下文優先」的心智模型、探索→計劃→寫的流程、技能/斜線指令、以及 Codex 的對應做法</strong>。</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>影片的 6 點</th><th>本頁對應章節(含機制與更多招)</th></tr></thead>
+      <tbody>
+        <tr><td>跨會話記憶 / 持續學習</td><td>⑤ SessionStart hook + 自動記憶 + learner 資料夾</td></tr>
+        <tr><td>動態系統提示詞注入</td><td>④ 建議(CLAUDE.md)vs 確定(hooks)的正確分野</td></tr>
+        <tr><td>Token 優化</td><td>⑥ 模型分層 · <code>/clear</code> vs <code>/compact</code> · context-mode · CLI</td></tr>
+        <tr><td>Grader 驗證</td><td>③ 四種強度的驗證閘門(prompt / <code>/goal</code> / Stop hook / 對抗 subagent)</td></tr>
+        <tr><td>並行化 + Subagent</td><td>⑦ worktrees · Writer/Reviewer · <code>/batch</code> · headless</td></tr>
+        <tr><td>(影片未談)</td><td>① 上下文優先心智模型 · ② 探索→計劃→寫 · ⑧ 技能/指令 · ⑨ Codex</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 1 -->
+  <section id="context">
+    <h2><span class="num">①</span> 核心心智模型:上下文是第一約束</h2>
+    <p>官方最佳實踐開宗明義:<strong>「大部分最佳實踐,都源自同一條約束——Claude 的上下文視窗會很快填滿,而 LLM 的效能會隨上下文填滿而下降。」</strong>視窗裝的是你整段對話:每則訊息、每個讀進來的檔案、每筆指令輸出。一次除錯或探索,動輒就吃掉數萬 token。填太滿,模型會開始「忘記」先前指令、犯更多錯。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 210" role="img" aria-label="上下文視窗填滿與效能下降的關係：隨著對話、讀檔、指令輸出累積，視窗越填越滿，模型效能曲線隨之下降；因此頂尖用戶主動管理上下文">
+        <defs><marker id="ac" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">上下文越滿 → 效能越差(所有技巧的共同起點)</text>
+          <line x1="60" y1="170" x2="680" y2="170" stroke="#a4a097" stroke-width="1.2" marker-end="url(#ac)"/>
+          <line x1="60" y1="170" x2="60" y2="46" stroke="#a4a097" stroke-width="1.2" marker-end="url(#ac)"/>
+          <text x="360" y="192" text-anchor="middle" font-size="9" fill="#787671">上下文使用量 →(對話 + 讀檔 + 指令輸出)</text>
+          <text x="30" y="52" font-size="9" fill="#787671">效能</text>
+          <path d="M70,66 C230,70 330,96 420,128 C500,152 590,162 670,164" fill="none" stroke="#e03131" stroke-width="2.5"/>
+          <rect x="70" y="150" width="120" height="14" rx="3" fill="#d9f3e1" stroke="#1aae39" stroke-width="1"/>
+          <text x="130" y="161" text-anchor="middle" font-size="7.5" fill="#137a29">乾淨:準</text>
+          <rect x="300" y="150" width="180" height="14" rx="3" fill="#fef7d6" stroke="#dd5b00" stroke-width="1"/>
+          <text x="390" y="161" text-anchor="middle" font-size="7.5" fill="#b34700">開始遺忘</text>
+          <rect x="540" y="150" width="130" height="14" rx="3" fill="#fde0ec" stroke="#e03131" stroke-width="1"/>
+          <text x="605" y="161" text-anchor="middle" font-size="7.5" fill="#c0261b">明顯降智</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 頂尖用戶的共同習慣:把上下文當「最寶貴資源」主動管理,而不是讓它自然膨脹。</div>
+    </div>
+    <h3>由此推導出的實戰動作</h3>
+    <ul>
+      <li><strong><code>/clear</code> 在不相關任務之間重置</strong>:換題目就清乾淨,別讓舊脈絡拖累新任務。</li>
+      <li><strong><code>/compact</code> 收尾一個階段</strong>:同一件事做完一段,壓縮成摘要繼續;可 <code>/compact 專注在 API 變更</code> 指定保留重點。</li>
+      <li><strong>研究交給 subagent</strong>:讀一堆檔案的探索丟給子代理,它在獨立視窗跑完只回報摘要,不污染你的主視窗。</li>
+      <li><strong><code>/rewind</code>(Esc ×2)回溯</strong>:每個 prompt 都是檢查點,可還原對話/程式碼/兩者,或從某點「摘要」。</li>
+      <li><strong>糾正超過兩次就 <code>/clear</code> 重來</strong>:反覆糾錯會讓失敗嘗試塞爆上下文;乾淨會話 + 更好的 prompt 幾乎總是勝過拖長的髒會話。</li>
+      <li><strong>用 <code>/context</code> 看載入了什麼</strong>、用自訂 statusline 持續監看用量。</li>
+    </ul>
+  </section>
+
+  <!-- 2 -->
+  <section id="eppc">
+    <h2><span class="num">②</span> 探索 → 計劃 → 寫 → 提交(別急著寫)</h2>
+    <p>讓 Agent 直接開寫,常會「把錯的問題解得很好」。官方建議的四階段:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 170" role="img" aria-label="四階段工作流：探索（plan mode 只讀不改）、計劃（產出實作計劃可手動編輯）、實作（依計劃寫並跑測試）、提交（描述性訊息並開 PR）">
+        <defs><marker id="ae" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">Explore → Plan → Code → Commit</text>
+          <rect x="16" y="48" width="150" height="70" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="91" y="72" text-anchor="middle" font-size="10.5" font-weight="800" fill="#005bb0">① 探索</text>
+          <text x="91" y="90" text-anchor="middle" font-size="8" fill="#37352f">plan mode(只讀不改)</text>
+          <text x="91" y="105" text-anchor="middle" font-size="8" fill="#5d5b54">讀檔、問問題</text>
+          <rect x="190" y="48" width="150" height="70" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="265" y="72" text-anchor="middle" font-size="10.5" font-weight="800" fill="#3a2a99">② 計劃</text>
+          <text x="265" y="90" text-anchor="middle" font-size="8" fill="#37352f">產出實作計劃</text>
+          <text x="265" y="105" text-anchor="middle" font-size="8" fill="#5d5b54">Ctrl+G 可手動編輯</text>
+          <rect x="364" y="48" width="150" height="70" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="439" y="72" text-anchor="middle" font-size="10.5" font-weight="800" fill="#137a29">③ 實作</text>
+          <text x="439" y="90" text-anchor="middle" font-size="8" fill="#37352f">依計劃寫 + 跑測試</text>
+          <text x="439" y="105" text-anchor="middle" font-size="8" fill="#5d5b54">對照計劃驗證</text>
+          <rect x="538" y="48" width="150" height="70" rx="10" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="613" y="72" text-anchor="middle" font-size="10.5" font-weight="800" fill="#b34700">④ 提交</text>
+          <text x="613" y="90" text-anchor="middle" font-size="8" fill="#37352f">描述性 commit</text>
+          <text x="613" y="105" text-anchor="middle" font-size="8" fill="#5d5b54">開 PR</text>
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#ae)">
+            <path d="M166,83 L188,83"/><path d="M340,83 L362,83"/><path d="M514,83 L536,83"/>
+          </g>
+          <text x="360" y="150" text-anchor="middle" font-size="8.5" fill="#787671">小任務(改錯字、加 log)可跳過計劃直接做;不確定/多檔/不熟的程式碼才值得先計劃</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 進 plan mode:按 <code>Shift+Tab</code> 到 <code>⏸ plan mode on</code>,或 <code>claude --permission-mode plan</code> 啟動。</div>
+    </div>
+    <h3>高手加強招:讓 AI 先「訪談你」再寫規格</h3>
+    <p>大功能別自己硬寫 prompt。丟一句最小描述,叫它用 <code>AskUserQuestion</code> <strong>反過來訪談你</strong>——問技術實作、UI/UX、邊界案例、取捨,直到覆蓋完整,再把結論寫成 <code>SPEC.md</code>。然後<strong>開一個乾淨的新會話</strong>照規格實作(新會話上下文全給實作用)。</p>
+    <pre><code>我想做 [簡述]。請用 AskUserQuestion 詳細訪談我:
+技術實作、UI/UX、邊界案例、疑慮與取捨。別問顯而易見的,
+挖我可能沒想到的難點。問到覆蓋完整,再把完整規格寫進 SPEC.md。</code></pre>
+    <div class="callout tip"><strong>為什麼有效:</strong>最有用的規格是「自足」的——點名相關檔案與介面、寫明什麼不在範圍、並以一個端到端驗證步驟收尾。花時間把規格寫精準,比花時間盯著它實作值得多了。</div>
+  </section>
+
+  <!-- 3 -->
+  <section id="verify">
+    <h2><span class="num">③</span> 給它一個能自己驗證的方法(Grader 驗證體系)</h2>
+    <p>Agent 會在「看起來做完」時停手。沒有可跑的檢查,「看起來做完」就是唯一訊號,而<strong>你</strong>就變成那個驗證迴圈——每個錯都要等你發現。給它一個能產生「過/不過」的檢查,迴圈就能自己閉合:做→跑檢查→讀結果→迭代到過為止。</p>
+    <p>檢查可以是:測試套件、build 的 exit code、linter、把輸出 diff 對比 fixture 的腳本、或把<strong>螢幕截圖</strong>和設計稿比對。關鍵心法:<strong>「要它拿出證據,而不是宣稱成功」</strong>——貼測試輸出、貼跑了什麼指令與回傳、貼截圖。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 220" role="img" aria-label="四種驗證閘門強度：同一 prompt 內叫它跑檢查並迭代；跨會話用 /goal 條件由評估器每輪重檢；確定性用 Stop hook 腳本擋住回合結束直到通過；第二意見用對抗式 subagent 讓新模型嘗試反駁結果">
+        <defs><marker id="av" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">四種強度:從「一句話」到「別人來打分」</text>
+          <rect x="16" y="44" width="330" height="72" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/>
+          <text x="30" y="64" font-size="10" font-weight="800" fill="#005bb0">① 同一 prompt 內</text>
+          <text x="30" y="82" font-size="8.5" fill="#37352f">「實作後跑測試並迭代到過」</text>
+          <text x="30" y="99" font-size="8" fill="#0075de">最輕,今天任何任務都能用</text>
+          <rect x="374" y="44" width="330" height="72" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.4"/>
+          <text x="388" y="64" font-size="10" font-weight="800" fill="#3a2a99">② /goal 條件(跨會話)</text>
+          <text x="388" y="82" font-size="8.5" fill="#37352f">獨立評估器每一回合重檢</text>
+          <text x="388" y="99" font-size="8" fill="#5645d4">沒過就繼續做,直到條件解除</text>
+          <rect x="16" y="126" width="330" height="72" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+          <text x="30" y="146" font-size="10" font-weight="800" fill="#137a29">③ Stop hook(確定性閘門)</text>
+          <text x="30" y="164" font-size="8.5" fill="#37352f">用腳本跑檢查,不過就擋住回合結束</text>
+          <text x="30" y="181" font-size="8" fill="#137a29">無人值守時最硬</text>
+          <rect x="374" y="126" width="330" height="72" rx="10" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.4"/>
+          <text x="388" y="146" font-size="10" font-weight="800" fill="#b34700">④ 對抗式 subagent(第二意見)</text>
+          <text x="388" y="164" font-size="8.5" fill="#37352f">新模型只看 diff + 標準,嘗試反駁</text>
+          <text x="388" y="181" font-size="8" fill="#b34700">做事的人 ≠ 打分的人(<code>/code-review</code>)</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 越往下,設定成本越高、但「無人值守也能正確收尾」的保證越強。</div>
+    </div>
+    <div class="callout warn"><strong>對抗式審查的陷阱:</strong>被要求「找缺口」的審查者,即使程式沒問題也總會挑出東西——追著每條跑會導致過度工程(多餘抽象、防禦式程式、為不可能發生的情況寫測試)。<strong>要它「只標會影響正確性或需求的缺口,其餘當可選」</strong>。</div>
+  </section>
+
+  <!-- 4 -->
+  <section id="hooks">
+    <h2><span class="num">④</span> 確定性護欄:hooks &gt; CLAUDE.md(「一定要發生」就用 hook)</h2>
+    <p>影片講的「系統提示詞注入權限高於一般 rules」,方向對,但更精準的分野是:<strong>CLAUDE.md / skills 是「建議」(requests,不保證);hooks 才是「確定」(deterministic,保證發生)。</strong>——「如果某件事<em>一定</em>要發生,它屬於 hook。」</p>
+    <h3>hooks:生命週期事件上的確定性動作</h3>
+    <ul>
+      <li>常見事件:<code>PreToolUse</code>(工具執行前)、<code>PostToolUse</code>(之後)、<code>SessionStart</code>(開場)、<code>Stop</code>(回合結束前)。</li>
+      <li>典型用途:每次寫檔後<strong>自動格式化</strong>、編輯後<strong>跑一輪快速測試</strong>、在明顯危險的 shell 指令執行前<strong>擋下來</strong>、擋住對 <code>migrations/</code> 的寫入。</li>
+      <li>Claude 能幫你寫 hook:<code>「寫一個 hook,每次編輯檔案後跑 eslint」</code>;手動則編 <code>.claude/settings.json</code>,用 <code>/hooks</code> 瀏覽。</li>
+    </ul>
+    <h3>精簡 CLAUDE.md:太長 = 被忽略</h3>
+    <p>CLAUDE.md 每次會話都會載入,<strong>太長會讓重要規則淹沒在雜訊裡,反而被忽略</strong>。逐行自問:「刪掉這行會不會讓 Claude 犯錯?」不會就刪。該放的 vs 不該放:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>✅ 該放</th><th>❌ 別放</th></tr></thead>
+      <tbody>
+        <tr><td>猜不到的 Bash 指令</td><td>讀程式碼就能懂的東西</td></tr>
+        <tr><td>與預設不同的風格規則</td><td>模型已知的標準語言慣例</td></tr>
+        <tr><td>測試指令與偏好的 test runner</td><td>詳細 API 文件(改放連結)</td></tr>
+        <tr><td>repo 規矩(分支命名、PR 慣例)</td><td>會頻繁變動的資訊</td></tr>
+        <tr><td>專案特有的架構決策、環境怪癖、常見雷</td><td>「寫乾淨的程式」這種不言自明的話</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout info"><strong>實用訣竅:</strong>若某條規則老是被跳過,只在<strong>那一行</strong>加 <code>IMPORTANT</code>;若你到處強調,就沒有一條突出。checked-in 的 CLAUDE.md 可跑 <code>/doctor</code> 讓 Claude 幫你提議可刪的內容。<code>/init</code> 產生起手版。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="memory">
+    <h2><span class="num">⑤</span> 跨會話記憶與持續學習</h2>
+    <p>預設情況下,Agent 每次會話結束上下文就歸零。頂尖用戶讓它「像員工一樣有工作記憶」。官方其實有<strong>兩套互補記憶</strong>:</p>
+    <ul>
+      <li><strong>CLAUDE.md(你手寫)</strong>:慣例、指令、硬規則,每次會話載入。</li>
+      <li><strong>自動記憶(它自己寫)</strong>:根據你的糾正與偏好,在背景抽取重點、存成結構化摘要到磁碟,不需你動手。</li>
+    </ul>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 210" role="img" aria-label="跨會話記憶迴圈：會話結束或上下文快滿時，把進度、決策、未解問題寫入本機檔案；新會話開場由 SessionStart hook 自動注入這些狀態，達到無縫銜接；同時每次糾正被抽取成偏好存進 learner 資料夾避免重犯">
+        <defs><marker id="am" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">會話結束 → 寫檔 → 新會話開場自動注入</text>
+          <rect x="16" y="46" width="180" height="60" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="106" y="70" text-anchor="middle" font-size="10" font-weight="800" fill="#005bb0">會話 A(快結束)</text>
+          <text x="106" y="88" text-anchor="middle" font-size="8" fill="#5d5b54">上下文快滿 / 結束</text>
+          <rect x="270" y="46" width="180" height="60" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="360" y="66" text-anchor="middle" font-size="9.5" font-weight="800" fill="#b34700">寫入本機檔案</text>
+          <text x="360" y="83" text-anchor="middle" font-size="8" fill="#5d5b54">進度 · 決策 · 未解問題</text>
+          <text x="360" y="97" text-anchor="middle" font-size="8" fill="#5d5b54">+ 抽取偏好 → learner/</text>
+          <rect x="524" y="46" width="180" height="60" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="614" y="70" text-anchor="middle" font-size="10" font-weight="800" fill="#137a29">會話 B(開場)</text>
+          <text x="614" y="88" text-anchor="middle" font-size="8" fill="#5d5b54">SessionStart hook 注入</text>
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#am)">
+            <path d="M196,76 L268,76"/><path d="M450,76 L522,76"/>
+          </g>
+          <path d="M614,106 C614,150 106,150 106,108" fill="none" stroke="#a4a097" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#am)"/>
+          <text x="360" y="145" text-anchor="middle" font-size="8.5" fill="#787671">無縫銜接:像同一個人接著上次繼續做</text>
+          <rect x="150" y="168" width="420" height="30" rx="8" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.2"/>
+          <text x="360" y="187" text-anchor="middle" font-size="8.5" fill="#3a2a99">SessionStart hook 觸發時機:啟動 · /clear · resume · 壓縮後</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 關鍵零件是 <code>SessionStart</code> hook——它在啟動、<code>/clear</code>、resume、壓縮後都會觸發,正好是「會話剛丟失狀態」的接縫,可用來重新載入上次的狀態。</div>
+    </div>
+    <h3>頂尖用戶的做法</h3>
+    <ul>
+      <li><strong>自動寫記憶檔</strong>:用腳本/hook,在會話結束或上下文快滿時,把「進度、決策、未解問題」寫進本機暫存檔;新會話由 <code>SessionStart</code> hook 自動載入。</li>
+      <li><strong>learner 資料夾 + 持續學習</strong>:設一個專屬 <code>learner/</code>(或技能),每次糾正 Claude 後,自動抽取「偏好、輸出格式、寫作風格」存起來,避免重複犯同樣的錯。</li>
+      <li><strong>現成外掛</strong>:社群的 <code>claude-mem</code>、<code>claude-remember</code> 都用 SessionStart hook 注入前次壓縮後的脈絡,省得自己造。</li>
+    </ul>
+  </section>
+
+  <!-- 6 -->
+  <section id="token">
+    <h2><span class="num">⑥</span> Token / 成本優化</h2>
+    <p>核心原則一句話:<strong>「便宜的模型做簡單的事,貴的模型做複雜的事。」</strong>把貴模型放在「會改變答案」的地方(架構、推理),其餘全部降一階(路由、查文件、格式化)。更多可落地的招:</p>
+    <ul>
+      <li><strong>模型分層路由</strong>:架構/推理用高階模型;路由、查文件、雜務用平價模型。重複委派就<strong>路由到同一個常駐 worker</strong>,別每次都開新的。</li>
+      <li><strong>plan mode 先計劃再做</strong>:在動手前先讓它規劃、你先核准——能早點抓出誤解(例如它想讀 6 個檔案但你只要 2 個),省下亂讀的 token。</li>
+      <li><strong><code>/clear</code> vs <code>/compact</code> 用對</strong>:同一件事做完一段用 <code>/compact</code>(摘要有價值);換不相關的新工作用 <code>/clear</code>(摘要沒用還照樣花錢)。</li>
+      <li><strong>別在寫程式中途亂壓縮</strong>:寫到一半觸發壓縮容易丟掉關鍵狀態;在 CLAUDE.md 指定壓縮時務必保留「修改過的檔案清單與測試指令」。</li>
+      <li><strong>MCP 輸出很肥 → 用 context-mode 之類外掛</strong>:把工具輸出導進沙盒知識庫、只回摘要,能把 MCP 相關 token 砍 50–90%(多 MCP server 使用者的最高槓桿單點改動)。</li>
+      <li><strong>CLI 工具最省脈絡</strong>:用 <code>gh</code>、<code>aws</code> 這類 CLI 跟外部服務互動,比塞一堆 API 回應省 token,也避免未授權請求撞 rate limit。</li>
+      <li><strong>把探索範圍縮窄</strong>,或丟給 subagent,別讓「調查一下」變成讀幾百個檔案。</li>
+    </ul>
+    <div class="callout warn"><strong>提醒:</strong>「省一半 token」≠「省一半錢」——輸入/輸出與快取命中的計費權重不同(可對照站內 <a href="./slpi-agent-token-optimization.html" style="color:var(--link)">SLPI 那頁</a>:令牌 ↓~49% 但成本只 ↓~33%)。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="parallel">
+    <h2><span class="num">⑦</span> 並行化與 subagent 編排</h2>
+    <p>熟練一個 Claude 之後,用並行把產出倍增。但要先分清兩個東西:</p>
+    <ul>
+      <li><strong>Subagent</strong>:同一會話內 Claude 生出的工作者,各有<strong>獨立上下文與受限工具</strong>,由主 Claude 一回合一回合編排。適合「讀很多檔的研究」與「驗證」。</li>
+      <li><strong>並行會話</strong>:你自己開多個終端/實例分工。搭配 <strong>git worktrees</strong>——把同一 repo 的不同分支簽出到不同目錄(共用一個 <code>.git</code>),每個目錄跑一個 Claude,編輯互不相撞。</li>
+    </ul>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 220" role="img" aria-label="git worktrees 並行：一個 .git 資料庫，分出多個 worktree 目錄各在不同分支，每個目錄跑一個 Claude 會話獨立改檔，最後由整合車道驗證合併結果">
+        <defs><marker id="ap" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">worktrees:隔離檔案變更,並行不打架</text>
+          <rect x="280" y="40" width="160" height="40" rx="9" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.6"/>
+          <text x="360" y="65" text-anchor="middle" font-size="10" font-weight="800" fill="#3a2a99">一個 .git 資料庫</text>
+          <rect x="16" y="112" width="200" height="46" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.3"/>
+          <text x="116" y="131" text-anchor="middle" font-size="9" font-weight="700" fill="#005bb0">worktree A / 分支 A</text>
+          <text x="116" y="147" text-anchor="middle" font-size="8" fill="#5d5b54">Claude 會話 1</text>
+          <rect x="260" y="112" width="200" height="46" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.3"/>
+          <text x="360" y="131" text-anchor="middle" font-size="9" font-weight="700" fill="#137a29">worktree B / 分支 B</text>
+          <text x="360" y="147" text-anchor="middle" font-size="8" fill="#5d5b54">Claude 會話 2</text>
+          <rect x="504" y="112" width="200" height="46" rx="9" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.3"/>
+          <text x="604" y="131" text-anchor="middle" font-size="9" font-weight="700" fill="#b34700">worktree C / 分支 C</text>
+          <text x="604" y="147" text-anchor="middle" font-size="8" fill="#5d5b54">Claude 會話 3</text>
+          <g stroke="#8a93ad" stroke-width="1.5" fill="none" marker-end="url(#ap)">
+            <path d="M320,80 L150,110"/><path d="M360,80 L360,110"/><path d="M400,80 L580,110"/>
+          </g>
+          <rect x="230" y="180" width="260" height="30" rx="8" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.2"/>
+          <text x="360" y="199" text-anchor="middle" font-size="8.5" fill="#b34700">整合車道:驗證合併後結果(PR)</text>
+          <g stroke="#8a93ad" stroke-width="1.3" fill="none" marker-end="url(#ap)">
+            <path d="M116,158 L300,180"/><path d="M360,158 L360,178"/><path d="M604,158 L420,180"/>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ 可靠模式=三件事分離:協調(誰做哪塊)、worktree(隔離檔案變更)、整合車道(驗證合併結果)。</div>
+    </div>
+    <h3>高手常用的並行招式</h3>
+    <ul>
+      <li><strong>Writer / Reviewer 雙會話</strong>:A 會話寫、B 會話用<strong>全新脈絡</strong>審(不偏袒自己剛寫的碼);把 B 的意見貼回 A 修。測試也可:一個寫測試、另一個寫碼去通過。</li>
+      <li><strong><code>/batch</code> 扇出</strong>:把一個大改動拆成 <strong>5–30 個獨立單元</strong>,每個丟一個背景 subagent 在<strong>獨立 worktree</strong> 裡實作、跑測試、開 PR。</li>
+      <li><strong>headless 腳本扇出</strong>:<code>claude -p "..."</code> 迴圈跑大量檔案(如大遷移),用 <code>--allowedTools "Edit,Bash(git commit *)"</code> 限縮權限;先在 2–3 個檔案試 prompt 再全跑。</li>
+      <li><strong>別開太多</strong>:同時處理的實例不要超出你自己的腦力負荷;各任務間<strong>最好沒有互相依賴</strong>。</li>
+    </ul>
+  </section>
+
+  <!-- 8 -->
+  <section id="skills">
+    <h2><span class="num">⑧</span> 技能、斜線指令與外掛</h2>
+    <p>把「重複的工作」與「領域知識」從 CLAUDE.md 移出去,變成<strong>按需載入</strong>的技能,不必每次會話都塞:</p>
+    <ul>
+      <li><strong>Skills(<code>.claude/skills/SKILL.md</code>)</strong>:給 Claude 專案/團隊/領域知識,相關時自動套用,或 <code>/技能名</code> 直接叫。</li>
+      <li><strong>自訂斜線指令 = 可重複工作流</strong>:把「修 issue」這種流程寫成 SKILL.md,<code>/fix-issue 1234</code> 一鍵跑完(查 issue→找檔→改→測→lint→commit→PR)。有副作用的工作流設 <code>disable-model-invocation: true</code>,只允許手動觸發。</li>
+      <li><strong>自訂 subagent(<code>.claude/agents/*.md</code>)</strong>:定義專才(如 security-reviewer),限定工具與模型,主 Claude 需要時委派。</li>
+      <li><strong>外掛(<code>/plugin</code>)</strong>:把 skills/hooks/subagents/MCP 打包一鍵裝。社群當紅的 <strong>Superpowers</strong>(Jesse Vincent)裝了一整套紀律化工作流——brainstorm、TDD、除錯、code review、skill 撰寫(社群統計逾 80 萬安裝)。typed 語言可裝 code-intelligence 外掛給精準符號導航。</li>
+      <li><strong>團隊共用</strong>:專案技能放 <code>.claude/skills/</code> 並 commit,全隊就有同一套斜線指令、同一套標準。</li>
+    </ul>
+    <div class="callout tip"><strong>怎麼選:</strong>「一定要發生」→ hook;「有時才需要的知識/流程」→ skill;「每次都適用的少量規則」→ CLAUDE.md;「外部系統」→ MCP;「讀很多檔的隔離工作」→ subagent。</div>
+  </section>
+
+  <!-- 9 -->
+  <section id="codex">
+    <h2><span class="num">⑨</span> Codex 這邊怎麼玩(對應做法)</h2>
+    <p>OpenAI Codex 的心法和 Claude Code 高度平行——「給對的脈絡、給明確的合約、驗證後再信任」。要精通的是<strong>五個系統</strong>:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Codex 系統</th><th>作用 / 對應 Claude Code</th></tr></thead>
+      <tbody>
+        <tr><td><code>AGENTS.md</code></td><td>倉庫層級的「長效指引」,別塞進每個 prompt——等同 CLAUDE.md</td></tr>
+        <tr><td><code>config.toml</code></td><td>把 Codex 調成你的工作流(模型、審批、預設)</td></tr>
+        <tr><td>sandbox / 審批模型</td><td>控制它能碰什麼、何時要你核准——對應權限模式/sandbox</td></tr>
+        <tr><td>MCP</td><td>接外部系統(同 Claude Code 的 MCP)</td></tr>
+        <tr><td>skills</td><td>把重複工作變成可重用技能</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Codex 高手的多介面用法</h3>
+    <ul>
+      <li><strong>五個介面各司其職</strong>:Cloud 跑長任務、CLI 做確定性的 repo 操作、IDE 外掛做緊湊編碼迴圈、桌面 App 做規劃協調、瀏覽器外掛做登入態的網頁工作流。</li>
+      <li><strong>長效指引進 AGENTS.md</strong>、把穩定流程變 skills、用 MCP 接外部系統——和 Claude Code 的「精簡 memory + skills + hooks + MCP」是同一套思路。</li>
+      <li><strong>模型/努力度分層</strong>:複雜任務用高階、雜務降階(與 ⑥ 同理)。Codex 也在 2026 走向多模型代號(如 Astra/Sol/Terra/Luna 等命名),請以當下官方推薦為準。</li>
+    </ul>
+    <div class="callout info"><strong>兩邊共通的鐵律:</strong>不管 Claude Code 還 Codex——<strong>給明確合約、能自我驗證、精簡長效指引、把一定要發生的事變成確定性機制、並行時隔離 + 整合驗證</strong>。工具會換,這套心法不太會過時。站內另有 <a href="./codex-usage-calculation.html" style="color:var(--link)">Codex 用量計算</a>、<a href="./codex-chatgpt-web.html" style="color:var(--link)">codex-chatgpt-web</a> 可延伸。</div>
+  </section>
+
+  <!-- 10 -->
+  <section id="notes">
+    <h2><span class="num">⑩</span> 帶走清單 · 反模式 · 來源</h2>
+    <h3>十條可以今天就用的</h3>
+    <ol>
+      <li>把上下文當第一資源:<code>/clear</code> 換題、<code>/compact</code> 收尾、研究丟 subagent。</li>
+      <li>大功能先讓 AI 訪談你 → 寫 <code>SPEC.md</code> → 開新會話實作。</li>
+      <li>永遠給一個能自跑的檢查(測試/build/lint/截圖),要它拿證據不要它宣稱。</li>
+      <li>「一定要發生」的事寫成 hook,不要只寫在 CLAUDE.md。</li>
+      <li>CLAUDE.md 狠狠精簡;老被跳過的那行才加 <code>IMPORTANT</code>。</li>
+      <li>用 <code>SessionStart</code> hook 注入上次狀態,做跨會話記憶 + learner 持續學習。</li>
+      <li>模型分層:貴的放會改變答案的地方,其餘降一階。</li>
+      <li>並行用 worktrees 隔離、Writer/Reviewer 交叉審、<code>/batch</code> 扇出。</li>
+      <li>重複工作變 skill / 斜線指令;有副作用的設手動觸發。</li>
+      <li>Codex 同理:AGENTS.md + config.toml + sandbox + MCP + skills。</li>
+    </ol>
+    <h3>五個要避開的反模式(官方點名)</h3>
+    <ul>
+      <li><strong>雜燴會話</strong>:一個會話塞不相關任務 → <code>/clear</code> 分開。</li>
+      <li><strong>反覆糾錯</strong>:糾兩次還不對 → <code>/clear</code> 重寫更好的 prompt。</li>
+      <li><strong>過長 CLAUDE.md</strong>:規則被淹沒 → 狠刪、能轉 hook 就轉。</li>
+      <li><strong>信而不驗</strong>:看起來對但沒處理邊界 → 沒驗證就別出貨。</li>
+      <li><strong>無邊界探索</strong>:「調查一下」讀爆幾百檔 → 縮窄範圍或丟 subagent。</li>
+    </ul>
+    <div class="related">
+      <a href="./codex-usage-calculation.html">
+        <div class="rel-title">📊 Codex 使用量計算原理</div>
+        <div class="rel-sub">token / 成本 / 配額怎麼算</div>
+      </a>
+      <a href="./slpi-agent-token-optimization.html">
+        <div class="rel-title">💸 SLPI 運行時省令牌</div>
+        <div class="rel-sub">Agent 省 token 的機制拆解</div>
+      </a>
+      <a href="./engineers-adopt-ai.html">
+        <div class="rel-title">🛡️ 讓工程師擁抱 AI</div>
+        <div class="rel-sub">工程護欄:AST/LSP·TDD·雙代理</div>
+      </a>
+      <a href="./matt-pocock-dev-workflow.html">
+        <div class="rel-title">🏭 Matt Pocock AI 開發流程</div>
+        <div class="rel-sub">grill→spec→tickets→TDD→review</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>本頁整合自使用者提供之影片摘要(智用AI《頂尖 Claude Code 用戶怎麼思考?6 個核心思想》)與以下網路研究——官方:<a href="https://code.claude.com/docs/en/best-practices" style="color:var(--link)">Claude Code 最佳實踐</a>、<a href="https://code.claude.com/docs/en/memory" style="color:var(--link)">Memory/CLAUDE.md</a>、<a href="https://code.claude.com/docs/en/agents" style="color:var(--link)">Run agents in parallel</a>、<a href="https://developers.openai.com/codex/learn/best-practices" style="color:var(--link)">OpenAI Codex Best practices</a>;社群:<a href="https://claude.com/plugins/superpowers" style="color:var(--link)">Superpowers 外掛</a>、<a href="https://shipyard.build/blog/codex-cli-cheat-sheet/" style="color:var(--link)">Codex CLI Cheatsheet</a>、<a href="https://www.developersdigest.tech/blog/git-worktrees-claude-code-parallel-agents-guide" style="color:var(--link)">Git Worktrees 並行指南</a>、<a href="https://buildtolaunch.substack.com/p/claude-code-token-optimization" style="color:var(--link)">Token 優化</a>。功能與模型命名以各官方文件當下版本為準;部分社群數字(如外掛安裝數、token 省幅)為單一來源,建議自行查證。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
