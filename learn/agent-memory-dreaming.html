@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>睡一覺還記得：從 CLAUDE.md 到 Dreaming · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+    .badge.teal { color: #9ee8e4; border-color: rgba(42,157,153,.45); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; flex: none; align-self: flex-start; margin-top: 2px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+    section a { color: var(--link); }
+    blockquote.slide { margin: 12px 0 16px; padding: 12px 16px; border-left: 3px solid var(--teal); background: var(--surface); border-radius: 0 10px 10px 0; font-size: 0.86rem; color: var(--charcoal); }
+    blockquote.slide .who { display: block; margin-top: 8px; color: var(--slate); font-size: 0.78rem; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>睡一覺還記得：從 CLAUDE.md 到 Dreaming</h1>
+    <p class="sub">Lamis Mukta（Anthropic Member of Technical Staff）在 AI DevCon by Tessl 的演講整理《Learning while you sleep: Beyond memory to dreaming》</p>
+    <div>
+      <span class="badge blue">Context engineering</span>
+      <span class="badge teal">CLAUDE.md → memory/</span>
+      <span class="badge green">班內記憶 + 班外 dreaming</span>
+      <span class="badge orange">97%／30% 是投影片客戶引言</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">目錄</div>
+    <div class="toc-grid">
+      <a href="#correct">⓪ 轉貼把話講歪了</a>
+      <a href="#who">① 講者與議程</a>
+      <a href="#b1">② 瓶頸一：持續學習</a>
+      <a href="#timeline">③ 過去一年的四步</a>
+      <a href="#b2">④ 瓶頸二：記憶產品化</a>
+      <a href="#principles">⑤ 四條原則</a>
+      <a href="#customers">⑥ 投影片上的客戶引言</a>
+      <a href="#b3">⑦ 瓶頸三：記憶隨時間</a>
+      <a href="#dreaming">⑧ Dreaming 怎麼跑</a>
+      <a href="#unified">⑨ 兩條軌道並存</a>
+      <a href="#takeaways">⑩ 三個 takeaway</a>
+      <a href="#qa">⑪ 問答（短）</a>
+      <a href="#site">⑫ 跟本站其他頁</a>
+      <a href="#sources">⑬ 來源</a>
+    </div>
+  </nav>
+
+  <section id="correct">
+    <h2><span class="num">⓪</span> 轉貼把話講歪了</h2>
+    <p>Hux 的轉貼把這場演講收成兩句口號：「內部已經不怎麼寫 prompt，寫的是循環」，以及「一次通過錯誤少 97%、驗收快 30%」。對照她台上講的內容，兩句都要改回來。</p>
+    <p>她<strong>沒有</strong>說 Anthropic 內部不再寫 prompt。她講的是 <strong>context engineering</strong>：記憶怎麼從一份 <code>CLAUDE.md</code> 走到代理自己管的檔案系統，再加上班外的 dreaming，在兩次會話之間把記憶整理到還能用。</p>
+    <p><strong>97%</strong> 與 <strong>30%</strong> 出現在投影片「What teams see with memory」的<strong>客戶引言標題</strong>，不是她口頭報的實驗室數字。她口頭只做了定性摘要。那張投影片裡的百分比、引言與職稱，見 <a href="#customers">⑥</a>，不要當成 Anthropic 自己的基準。</p>
+    <div class="callout warn"><strong>本頁的用法：</strong>只記她講過、或投影片上標明出處的東西。看片時沒讀準的專有名詞直接略過，不補一個「大概是誰」。</div>
+  </section>
+
+  <section id="who">
+    <h2><span class="num">①</span> 講者與議程</h2>
+    <p><strong>Lamis Mukta</strong>，Anthropic Member of Technical Staff，Applied AI team。這個位子夾在研究、產品與 go-to-market 之間。她跟新創與創辦人一起工作。</p>
+    <p>場合是 <strong>AI DevCon by Tessl</strong>。YouTube 上的標題寫成 AI Native DevCon London／June 2026。投影片上的演講題是 “Learning while you Sleep: Beyond Memory to Dreaming”。</p>
+    <p>議程投影片三點：</p>
+    <ol>
+      <li><strong>Context engineering so far</strong> — 從 prompt 走到自己管理上下文的 agent。</li>
+      <li><strong>State of the art in memory today</strong> — <code>CLAUDE.md</code>、skills，以及代理自己管理的 memory 目錄。</li>
+      <li><strong>Dreaming up the path to continual learning</strong> — 在會話之間、班外，把記憶鞏固起來。</li>
+    </ol>
+    <p>她自己也用這套記憶寫簡報：喜歡怎麼寫、喜歡投影片長什麼樣。所以這不是只給寫程式的機制。她把這裡的 context engineering 放在過去大約一年，而且還沒收斂。</p>
+  </section>
+
+  <section id="b1">
+    <h2><span class="num">②</span> 瓶頸一：持續學習</h2>
+    <p>智力本身不會複利。投影片三點：</p>
+    <ul>
+      <li><strong>Cold start。</strong>每個任務都從零開始。</li>
+      <li><strong>Domain-specific。</strong>讓 agent 做好「你的」工作的那些東西，不會因為模型變大就自己長出來。</li>
+      <li><strong>No compounding。</strong>第 50 個任務並不比第 1 個更好。</li>
+    </ul>
+    <p>她說這一大塊上下文跟模型智力是正交的：換一個新模型，它還是不知道怎麼在你的組織裡把事情做成。Context engineering 的角色，是在模型變聰明時把智力乘上去。</p>
+    <p>熟悉的失敗長這樣：agent 不認識 codebase、不知道使用者偏好、不從錯誤裡學。</p>
+    <div class="callout tip"><strong>她的工作原則：</strong>“Do the simple thing that works.” 後面的時間線講的是過去這一年，起點是 Claude Code 的 <code>CLAUDE.md</code>。</div>
+  </section>
+
+  <section id="timeline">
+    <h2><span class="num">③</span> 過去一年：四步，不是一次設計完</h2>
+    <p>每一步都留下一樣東西，也暴露下一個瓶頸。順序是她排的，不是事後把四個名詞排成產品路線圖。</p>
+
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看演進 →</div>
+      <svg viewBox="0 0 960 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="記憶從 CLAUDE.md 演進到 memory 目錄">
+        <rect width="960" height="430" rx="12" fill="#f6f5f4"/>
+        <defs>
+          <marker id="ev" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#5645d4"/></marker>
+        </defs>
+
+        <rect x="16" y="28" width="210" height="300" rx="14" fill="#0a1530"/>
+        <text x="121" y="64" text-anchor="middle" fill="#9ee8e4" font-size="12" font-weight="700" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">1</text>
+        <text x="121" y="92" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="800" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">CLAUDE.md</text>
+        <text x="121" y="128" text-anchor="middle" fill="#b9c2d6" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">單份 markdown</text>
+        <text x="121" y="150" text-anchor="middle" fill="#b9c2d6" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">會話開始就注入</text>
+        <text x="121" y="186" text-anchor="middle" fill="#ffcf9e" font-size="12" font-weight="700" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">失效：檔案一長</text>
+        <text x="121" y="208" text-anchor="middle" fill="#ffcf9e" font-size="12" font-weight="700" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">上下文膨脹</text>
+        <text x="121" y="250" text-anchor="middle" fill="#b6f0c4" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">留下：人跟代理</text>
+        <text x="121" y="272" text-anchor="middle" fill="#b6f0c4" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">都寫得了的 markdown</text>
+
+        <line x1="226" y1="170" x2="252" y2="170" stroke="#5645d4" stroke-width="2.5" marker-end="url(#ev)"/>
+
+        <rect x="254" y="28" width="210" height="300" rx="14" fill="#5645d4"/>
+        <text x="359" y="64" text-anchor="middle" fill="#e6e0f5" font-size="12" font-weight="700" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">2</text>
+        <text x="359" y="92" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="800" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">memory tool</text>
+        <text x="359" y="128" text-anchor="middle" fill="#e6e0f5" font-size="12" font-family="SF Mono, Menlo, monospace">read / write / edit</text>
+        <text x="359" y="156" text-anchor="middle" fill="#ffffff" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">代理決定何時讀寫</text>
+        <text x="359" y="178" text-anchor="middle" fill="#ffffff" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">班內，在會話裡</text>
+        <text x="359" y="216" text-anchor="middle" fill="#ffe8d4" font-size="12" font-weight="700" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">自主有用</text>
+        <text x="359" y="252" text-anchor="middle" fill="#e6e0f5" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">後來對工具形狀</text>
+        <text x="359" y="274" text-anchor="middle" fill="#e6e0f5" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">不再那麼堅持</text>
+
+        <line x1="464" y1="170" x2="490" y2="170" stroke="#5645d4" stroke-width="2.5" marker-end="url(#ev)"/>
+
+        <rect x="492" y="28" width="210" height="300" rx="14" fill="#e6e0f5" stroke="#5645d4" stroke-width="2"/>
+        <text x="597" y="64" text-anchor="middle" fill="#5645d4" font-size="12" font-weight="700" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">3</text>
+        <text x="597" y="92" text-anchor="middle" fill="#1a1a1a" font-size="16" font-weight="800" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">skills</text>
+        <text x="597" y="128" text-anchor="middle" fill="#37352f" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">你有意見的端到端流程</text>
+        <text x="597" y="156" text-anchor="middle" fill="#37352f" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">先只看 front matter</text>
+        <text x="597" y="178" text-anchor="middle" fill="#37352f" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">需要才載入正文</text>
+        <text x="597" y="216" text-anchor="middle" fill="#dd5b00" font-size="12" font-weight="700" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">瓶頸還在</text>
+        <text x="597" y="252" text-anchor="middle" fill="#5d5b54" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">人跟代理仍要判斷</text>
+        <text x="597" y="274" text-anchor="middle" fill="#5d5b54" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">什麼值得做成 skill</text>
+
+        <line x1="702" y1="170" x2="728" y2="170" stroke="#5645d4" stroke-width="2.5" marker-end="url(#ev)"/>
+
+        <rect x="730" y="28" width="214" height="300" rx="14" fill="#d9f3e1" stroke="#1aae39" stroke-width="2"/>
+        <text x="837" y="64" text-anchor="middle" fill="#1aae39" font-size="12" font-weight="700" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">4 · 他們建議的現況</text>
+        <text x="837" y="92" text-anchor="middle" fill="#1a1a1a" font-size="16" font-weight="800" font-family="SF Mono, Menlo, monospace">memory/</text>
+        <text x="837" y="128" text-anchor="middle" fill="#37352f" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">普通 markdown 檔</text>
+        <text x="837" y="156" text-anchor="middle" fill="#37352f" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">bash、grep，不是</text>
+        <text x="837" y="178" text-anchor="middle" fill="#37352f" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">專用 memory 工具</text>
+        <text x="837" y="216" text-anchor="middle" fill="#1aae39" font-size="12" font-weight="700" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">搜尋＝漸進揭露</text>
+        <text x="837" y="252" text-anchor="middle" fill="#5d5b54" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">可以為這個 store</text>
+        <text x="837" y="274" text-anchor="middle" fill="#5d5b54" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">建索引</text>
+
+        <rect x="16" y="348" width="928" height="58" rx="12" fill="#ffffff" stroke="#e5e3df"/>
+        <text x="480" y="372" text-anchor="middle" fill="#5645d4" font-size="13" font-weight="800" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">The lessons so far</text>
+        <text x="480" y="394" text-anchor="middle" fill="#37352f" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">格式用 Markdown · 閱讀要漸進（front matter 與 grep，不要整庫載入）· 寫入靠自主，代理決定什麼值得留</text>
+      </svg>
+      <div class="figcap">圖 1 · 記憶載體的演進：CLAUDE.md → memory tool → skills → 代理自己管的 memory/。下方三句是「The lessons so far」投影片的措辭。</div>
+    </div>
+
+    <h3>1. CLAUDE.md</h3>
+    <p>一份 markdown，會話一開始注入。裡面是慣例、怎麼交付、偏好。拿來轉向（steering）好用到不合理。失敗模式是檔案變很長之後的 <strong>context bloat</strong>。留下來的是：人讀得懂、人也寫得了、代理也寫得了的 markdown。</p>
+
+    <h3>2. memory tool</h3>
+    <p>介面是 <code>memory_read()</code>、<code>memory_write()</code>、<code>memory_edit()</code>。代理自己決定什麼時候讀、寫、改。這是<strong>班內（in-band）</strong>：發生在這次會話裡面。自主這件事是有效的。後來他們對「工具該長什麼形狀」變得沒那麼有主見。</p>
+
+    <h3>3. skills</h3>
+    <p>程序性記憶，給一條你已經有意見的端到端流程。漸進揭露：代理先只看到 front matter（兩三句），需要時才載入正文。她的比喻是書架——對方講法文，你抽出法文字典，不會把七年法文課一直攤在桌上。</p>
+    <p>瓶頸還在：什麼東西值得做成一個 skill，仍然是人跟代理在下判斷。</p>
+
+    <h3>4. memory/ 檔案系統</h3>
+    <p>這是他們現在建議的做法。就是 markdown 檔。投影片上的例子是 <code>notes/deploy.md</code>、<code>team/rules.md</code>。代理用平常的工具，<code>bash</code> 和 <code>grep</code>，不再走專用的 memory 工具。搜尋對上漸進揭露：不必把整個 store 載進上下文，而且這個 store 可以建索引。</p>
+
+    <h3>「The lessons so far」</h3>
+    <p>這張投影片以看得比較清楚的那次為準。另一次觀看時，同一張片子部分被回顧疊層蓋住，曾把某個詞讀成別的東西；<strong>本頁不採用那個讀法。</strong></p>
+    <ul>
+      <li><strong>Format</strong> — Markdown 行得通（<code>CLAUDE.md</code> → skills → <code>memory/</code>）。</li>
+      <li><strong>Reading</strong> — 漸進載入：front matter 和 grep，不是整庫。</li>
+      <li><strong>Writing</strong> — 自主贏了：值得留下什麼，由代理決定。</li>
+    </ul>
+    <p>她說，如果只做到這裡，單一任務上會感覺到持續學習。一進生產，這套感覺就破。</p>
+  </section>
+
+  <section id="b2">
+    <h2><span class="num">④</span> 瓶頸二：把記憶產品化</h2>
+    <p>要擴到很多 agent、長時間跑、複雜 codebase。投影片列三個破綻：</p>
+    <ol>
+      <li><strong>Concurrent writes。</strong>很多 agent 改同一批檔。</li>
+      <li><strong>Lost attribution。</strong>這條是誰寫的——你，還是 agent——以及什麼時候寫的。</li>
+      <li><strong>Stale and mixed scopes。</strong>組織知識和工作筆記纏在一起；舊上下文污染後來的執行。</li>
+    </ol>
+    <p>她口頭舉的例子：兩個 agent 寫同一個檔；一個 agent 把錯誤事實寫進大家都會讀的組織級上下文；人跟 agent 一起改；記憶會過時、當初就寫錯，或被惡意注入。所以要有護欄。</p>
+  </section>
+
+  <section id="principles">
+    <h2><span class="num">⑤</span> 四條原則</h2>
+
+    <h3>1. Versioning</h3>
+    <p>每次寫入都歸給一個作者、一次會話、一個時間。歷史要能查看、能回滾。也要知道是哪一次會話／哪份 transcript 促成這次更新。</p>
+    <p>投影片圖示以 <code>team/deploy.md</code> 為例：版本 <code>v1</code> <code>v2</code> <code>v3</code> <code>v4</code> <code>HEAD</code>，寫入前有一個 content <code>sha256</code> 前置條件。示例內文是：</p>
+    <blockquote class="slide">Deploy via make ship, not ./deploy.sh. Reason: user corrected this in PRs #432, #431, #212.<span class="who">投影片圖示裡的示例內文，不是本頁另外查到的 PR 紀錄。</span></blockquote>
+    <p>同一張圖上有作者欄位。這次看片沒把那個作者字串讀準，<strong>名字不記</strong>。只保留「圖上有 author 欄位」。</p>
+
+    <h3>2. Concurrency</h3>
+    <p>內容雜湊前置條件做在 <strong>harness</strong>，不放進模型。流程是：agent 先雜湊、起草、寫入前再雜湊一次；對不上，表示別人寫過了，於是重新拉、重寫草稿、再試。她說他們就是用這個，讓數千個 agent 放在同一個 store 上。</p>
+
+    <h3>3. Permissioning</h3>
+    <p>共用的組織知識是唯讀；自己的工作記憶可讀寫。你不會讓一個 agent 改寫組織級上下文；草稿區（scratchpad）才是可寫的。</p>
+    <div class="table-wrap"><table>
+      <thead>
+        <tr><th>範圍</th><th>權限</th><th>投影片上的檔</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>org-conventions</td>
+          <td>read-only</td>
+          <td><code>notes/style-guide.md</code>、<code>security.md</code>、<code>oncall.md</code></td>
+        </tr>
+        <tr>
+          <td>team-memory</td>
+          <td>read-write</td>
+          <td><code>deploy.md</code>、<code>flaky-tests.md</code>、<code>repo-layout.md</code></td>
+        </tr>
+        <tr>
+          <td>會話標籤</td>
+          <td>—</td>
+          <td><code>sess_01</code>、<code>sess_02</code>、<code>sess_03</code></td>
+        </tr>
+      </tbody>
+    </table></div>
+
+    <h3>4. Portability</h3>
+    <p>它就是檔案，加上一支獨立的 API。記憶要能在不同產品表面上移動。策展是組織／使用者／任務各自的，值得保持可取用，而不是鎖在某一個介面裡。</p>
+  </section>
+
+  <section id="customers">
+    <h2><span class="num">⑥</span> 投影片「What teams see with memory」</h2>
+    <p>下面三則是<strong>投影片上的客戶標題與引言</strong>，職稱也是投影片上的。她口頭的摘要是另一件事，而且<strong>沒有唸這些百分比</strong>：</p>
+    <ul>
+      <li>第二次跑更準，因為它記下了哪裡出錯。</li>
+      <li>二階效果是 token 花費和延遲下降，因為 agent 更常一次做對。</li>
+      <li>記憶自己在跑，產品開發者可以把注意力放回產品，持續學習的迴圈照轉。</li>
+    </ul>
+    <div class="callout warn"><strong>不要把它讀成 Anthropic 的實驗室結果。</strong>轉貼裡的「一次通過錯誤少 97%、驗收快 30%」對上的是前兩則的<strong>標題</strong>。第一則引言正文裡還有 27% 成本與 34% 延遲，那同樣是這位客戶的話，不是她報的內部數字。</div>
+
+    <h3>97% fewer first-pass errors</h3>
+    <blockquote class="slide">“Memory lets us put continuous learning into production at scale — at 27% lower cost and 34% lower latency, and learning stays under our control.”<span class="who">GM, AI for Business, global commerce platform</span></blockquote>
+
+    <h3>30% faster verification</h3>
+    <blockquote class="slide">“In our document-verification pipeline, cross-session memory lets agents remember common issues — including ones we didn't think about.”<span class="who">Head of Machine Learning, document AI platform</span></blockquote>
+
+    <h3>Focus on the product</h3>
+    <blockquote class="slide">“A lot of our work is making sense of fast-moving, messy conversations between teams and their agents. Memory lets us stop building memory infrastructure and focus on the product itself.”<span class="who">Founder, early-stage AI startup</span></blockquote>
+  </section>
+
+  <section id="b3">
+    <h2><span class="num">⑦</span> 瓶頸三：記憶放久了</h2>
+    <p>班內記憶會碰到自己的上限。投影片三點，她另外也提到延遲：</p>
+    <ul>
+      <li><strong>Split focus。</strong>agent 要把注意力拆成「把任務做完」和「維護記憶」。</li>
+      <li><strong>Patterns obfuscated。</strong>跨會話、跨 agent 的模式它看不到。</li>
+      <li><strong>Memories go stale。</strong>出現互相矛盾的複本，而且錯得很有把握。</li>
+    </ul>
+    <p>Claude Code 的例子：一次會話主要只看得到自己的上下文。</p>
+    <p>她用學校類比。學生交作業、老師批改；校長有專門的容量，看得到整隊人，也能改課程。班內的 agent 像在改自己那份作業的老師；dreaming 要補的是校長那一層。</p>
+  </section>
+
+  <section id="dreaming">
+    <h2><span class="num">⑧</span> Dreaming：班外的第二層批次</h2>
+    <p>Dreaming 是二階的、班外（out-of-band）的批次工作，有自己的 token 預算，只有一件事：整理記憶，讓它保持有效、保持更新，讓 agent 真的在學。</p>
+    <p>流程：一段時間內的<strong>既有 memory store</strong>加上<strong>session transcripts</strong> → 一個 agent 兩邊都看，找出記憶哪裡可以更好 → 輸出一份<strong>新的</strong> memory store，裡面是提議的變更。隔天的會話因此更聰明。</p>
+
+    <h3>她舉的三個例子</h3>
+    <ul>
+      <li><strong>地理課。</strong>每個學生都錯同一題，因為那個主題根本不在課程裡 → 把主題加進去。</li>
+      <li><strong>GCSE 數學。</strong>所有人都用弧度作答，題目要的是度。對應的做法是告訴他們怎麼設定計算機。Agent 版本：某個工具的設定是錯的，工具呼叫一直失敗。他們看的是工具呼叫和 metadata，不只是聊天文字。</li>
+      <li><strong>組織級。</strong>破折號太多 → 加一條指示不要這樣寫。</li>
+    </ul>
+
+    <h3>一次 dreaming pass 裡面</h3>
+    <p>輸入 store 是 <code>$MEM</code>，複製成輸出 <code>$MEM_OUT</code>。編排器對每份 session transcript 派一個子代理。人可以引導：對這個組織來說什麼重要。編排器只留下夠普遍的模式，提出逐條修改，並附上示例 transcript，以及這個問題有多常見的統計。人來接受或拒絕。她說這樣運作得很好。</p>
+  </section>
+
+  <section id="unified">
+    <h2><span class="num">⑨</span> 合在一起：兩條軌道平行跑</h2>
+    <p>不是用 dreaming 換掉班內記憶。兩條同時在：</p>
+    <ul>
+      <li><strong>Memory，班內、即時。</strong>讓<strong>下一次</strong>會話更早變好。投影片上的檔在 team-memory 底下：<code>deploy.md</code>、<code>flaky_tests.md</code>、<code>repo-layout.md</code>。會話是 agent A／B／C。（檔名拼寫依這張片子；權限那張寫的是 <code>flaky-tests.md</code>。）</li>
+      <li><strong>Dreaming，週期性、在會話之間。</strong>做三件事：Verify、Organise、Enrich。讀的是 session transcripts。</li>
+    </ul>
+
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看兩條軌道 →</div>
+      <svg viewBox="0 0 960 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="班內寫入 team-memory，班外 dreaming 提議新的記憶庫">
+        <rect width="960" height="500" rx="12" fill="#f6f5f4"/>
+        <defs>
+          <marker id="u1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#1a2a52"/></marker>
+          <marker id="u2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#5645d4"/></marker>
+        </defs>
+
+        <text x="24" y="36" fill="#0a1530" font-size="13" font-weight="800" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">軌道 A · 白天 · 班內 · 即時</text>
+        <text x="250" y="36" fill="#5d5b54" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">下一輪會話更快變好</text>
+
+        <rect x="24" y="52" width="120" height="64" rx="10" fill="#dcecfa" stroke="#0075de"/>
+        <text x="84" y="78" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="800" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">Agent A</text>
+        <text x="84" y="98" text-anchor="middle" fill="#5d5b54" font-size="11" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">session</text>
+        <rect x="24" y="128" width="120" height="64" rx="10" fill="#dcecfa" stroke="#0075de"/>
+        <text x="84" y="154" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="800" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">Agent B</text>
+        <text x="84" y="174" text-anchor="middle" fill="#5d5b54" font-size="11" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">session</text>
+        <rect x="24" y="204" width="120" height="64" rx="10" fill="#dcecfa" stroke="#0075de"/>
+        <text x="84" y="230" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="800" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">Agent C</text>
+        <text x="84" y="250" text-anchor="middle" fill="#5d5b54" font-size="11" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">session</text>
+
+        <line x1="144" y1="84" x2="188" y2="150" stroke="#1a2a52" stroke-width="2" marker-end="url(#u1)"/>
+        <line x1="144" y1="160" x2="188" y2="164" stroke="#1a2a52" stroke-width="2" marker-end="url(#u1)"/>
+        <line x1="144" y1="236" x2="188" y2="180" stroke="#1a2a52" stroke-width="2" marker-end="url(#u1)"/>
+
+        <rect x="190" y="72" width="280" height="176" rx="14" fill="#0a1530"/>
+        <text x="330" y="104" text-anchor="middle" fill="#9ee8e4" font-size="12" font-weight="700" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">寫進 team-memory</text>
+        <text x="330" y="140" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="700" font-family="SF Mono, Menlo, monospace">deploy.md</text>
+        <text x="330" y="166" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="700" font-family="SF Mono, Menlo, monospace">flaky_tests.md</text>
+        <text x="330" y="192" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="700" font-family="SF Mono, Menlo, monospace">repo-layout.md</text>
+        <text x="330" y="222" text-anchor="middle" fill="#b9c2d6" font-size="11" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">會話進行中就寫</text>
+
+        <text x="500" y="168" fill="#787671" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">與下軌平行，不互相取代</text>
+
+        <text x="24" y="312" fill="#5645d4" font-size="13" font-weight="800" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">軌道 B · 班外 · 週期 · dreaming</text>
+        <text x="280" y="312" fill="#5d5b54" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">自己的 token 預算 · 只負責整理記憶</text>
+
+        <rect x="24" y="332" width="200" height="130" rx="12" fill="#ffffff" stroke="#c8c4be"/>
+        <text x="124" y="364" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="800" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">讀兩樣東西</text>
+        <text x="124" y="392" text-anchor="middle" fill="#37352f" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">既有 memory store</text>
+        <text x="124" y="416" text-anchor="middle" fill="#37352f" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">一段時間的</text>
+        <text x="124" y="436" text-anchor="middle" fill="#37352f" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">session transcripts</text>
+
+        <line x1="224" y1="396" x2="258" y2="396" stroke="#5645d4" stroke-width="2.5" marker-end="url(#u2)"/>
+
+        <rect x="260" y="332" width="250" height="130" rx="12" fill="#e6e0f5" stroke="#5645d4" stroke-width="2"/>
+        <text x="385" y="364" text-anchor="middle" fill="#5645d4" font-size="13" font-weight="800" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">Dreaming pass</text>
+        <text x="385" y="394" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="700" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">Verify · Organise · Enrich</text>
+        <text x="385" y="418" text-anchor="middle" fill="#5d5b54" font-size="12" font-family="SF Mono, Menlo, monospace">$MEM → $MEM_OUT</text>
+        <text x="385" y="440" text-anchor="middle" fill="#5d5b54" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">每份 transcript 一個子代理</text>
+
+        <line x1="510" y1="396" x2="544" y2="396" stroke="#5645d4" stroke-width="2.5" marker-end="url(#u2)"/>
+
+        <rect x="546" y="332" width="200" height="130" rx="12" fill="#0a1530"/>
+        <text x="646" y="368" text-anchor="middle" fill="#9ee8e4" font-size="12" font-weight="700" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">提議一份新 store</text>
+        <text x="646" y="396" text-anchor="middle" fill="#ffffff" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">逐條修改</text>
+        <text x="646" y="418" text-anchor="middle" fill="#b9c2d6" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">附示例 transcript</text>
+        <text x="646" y="440" text-anchor="middle" fill="#b9c2d6" font-size="12" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">與有多常見</text>
+
+        <line x1="746" y1="396" x2="780" y2="396" stroke="#5645d4" stroke-width="2.5" marker-end="url(#u2)"/>
+
+        <rect x="782" y="332" width="154" height="130" rx="12" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.5"/>
+        <text x="859" y="372" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="800" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">人</text>
+        <text x="859" y="400" text-anchor="middle" fill="#37352f" font-size="13" font-weight="700" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">接受</text>
+        <text x="859" y="424" text-anchor="middle" fill="#37352f" font-size="13" font-weight="700" font-family="PingFang TC, Microsoft JhengHei, Inter, sans-serif">或拒絕</text>
+      </svg>
+      <div class="figcap">圖 2 · 統一系統。上：白天班內，agent 直接寫 team-memory。下：班外 dreaming 讀 transcript 與既有 store，產出提議中的新 store，人接受或拒絕。</div>
+    </div>
+
+    <p>她講的取捨：班內有注意力分裂，視野也窄；dreaming 多花 token，但有效的記憶會把成本降下來，因為 agent 更常一次做對。</p>
+  </section>
+
+  <section id="takeaways">
+    <h2><span class="num">⑩</span> 三個 takeaway</h2>
+    <p>收尾投影片三點：</p>
+    <ol>
+      <li><strong>Do the simple thing that works.</strong>一份好的 <code>CLAUDE.md</code>、定義清楚的 skills、再加上 agent 自己寫的記憶，已經走很遠。</li>
+      <li><strong>為很多長時間運行的 agent 設計。</strong>產品化是一支艦隊：permissioning、versioning、concurrency、portability。</li>
+      <li><strong>加上 dreaming，班外鞏固記憶。</strong>在會話之間做 verify、organise、enrich。</li>
+    </ol>
+    <p>她的收束句是：“Keep thinking, keep learning, keep dreaming.”</p>
+  </section>
+
+  <section id="qa">
+    <h2><span class="num">⑪</span> 問答（只記她答了什麼）</h2>
+
+    <h3>企業要的是記憶庫，不是筆電上的檔案</h3>
+    <p>她前面避開了產品呼籲。然後說：這套架構（versioning、雜湊等）可以透過 <strong>Claude Managed Agents</strong> 的 memory 與 dreaming API 取得。她指向的文件見來源；本頁不把文件裡的參數表摘進來當成演講內容。</p>
+
+    <h3>幾百個使用者時，dreaming 怎麼跟著權限走</h3>
+    <p>提問的人提到一次 Claude Code 外洩。她的回答是：一個 dreaming 工作不一定要吃進某個時間窗裡的每一份 transcript。你選擇要附上哪些 transcript，也可以把 agent 的權限集合鏡射過來。</p>
+
+    <h3>這是不是在重造資料庫</h3>
+    <p>versioning、concurrency、耐久性，看起來像資料庫該做的事。她說他們在畫一條界線：哪些由 agent 自主做，哪些在 harness 裡用程式寫死。一開始是讓 agent 寫 markdown、然後把寫出來的東西提交掉；等這些基本動作被證明有用，雜湊和版本就改成確定性的、寫進程式裡。方向是併回已知的軟體工程，不是重造輪子。</p>
+  </section>
+
+  <section id="site">
+    <h2><span class="num">⑫</span> 跟本站其他頁</h2>
+    <p>Dreaming 是班外整理記憶，不是讓模型自己改權重。驗證心態那頁講的是別把檢查當成通過。</p>
+    <div class="related">
+      <a href="./self-evolving-agents.html">
+        <div class="rel-title">自我演化 Agent 綜述</div>
+        <div class="rel-sub">改的是權重、環境或兩者；跟「整理一份 markdown 記憶」不是同一件事</div>
+      </a>
+      <a href="./agent-verification-mindset.html">
+        <div class="rel-title">驗證心態</div>
+        <div class="rel-sub">檢查跑過 ≠ 通過；別把 dreaming 的「核對」讀成驗收完成</div>
+      </a>
+      <a href="./ai-context-compression.html">
+        <div class="rel-title">上下文壓縮</div>
+        <div class="rel-sub">同一次對話塞爆視窗時怎麼壓；dreaming 處理的是跨會話的 store</div>
+      </a>
+      <a href="./llm-skill-forgetting.html">
+        <div class="rel-title">LLM 為什麼忘掉 Skill</div>
+        <div class="rel-sub">上下文裡的指令會被擠掉；跟「記憶檔過時、互相矛盾」是相鄰的失敗</div>
+      </a>
+    </div>
+  </section>
+
+  <section id="sources">
+    <h2><span class="num">⑬</span> 來源</h2>
+    <ul>
+      <li>演講影片：<a href="https://www.youtube.com/watch?v=tQ41RxfZZVg">Learning While You Sleep: Beyond Memory to Dreaming | Lamis Mukta | AI Native DevCon London 2026</a>。另一個上傳：<a href="https://www.youtube.com/watch?v=tTcxVv8HHNw">youtube.com/watch?v=tTcxVv8HHNw</a>。</li>
+      <li>這次整理所據的轉貼：<a href="https://x.com/huxlab/status/2106027067527901393">x.com/huxlab/status/2106027067527901393</a>。原影片來自 <a href="https://x.com/Dhruvkumar16797/status/2105343744342216900">x.com/Dhruvkumar16797/status/2105343744342216900</a>，約 31 分，是演講加問答的一段。</li>
+      <li>The New Stack 的會議報導，當延伸閱讀：<a href="https://thenewstack.io/anthropic-agent-memory-dreaming/">Anthropic agent memory dreaming</a>。報導裡其他人的評論不要寫成她講的話。</li>
+      <li>問答裡她指向的產品文件：<a href="https://platform.claude.com/docs/en/managed-agents/dreams">Claude Managed Agents · dreams</a>。只記「她指了這個 API」。</li>
+    </ul>
+    <div class="callout info">投影片上的檔名、版本號、<code>sha256</code> 前置條件、PR 編號與客戶引言，都是投影片內容。看片沒讀準的作者名已略去。</div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · 模型訓練 &amp; Agent 架構 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
