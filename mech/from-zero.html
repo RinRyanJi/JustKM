@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>硬體從零：先模擬，再做板 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+    .badge.teal { color: #9ee8e4; border-color: rgba(42,157,153,.45); }
+
+    .lead {
+      background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px;
+      padding: 22px 26px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(16,16,16,0.03);
+    }
+    .lead p { margin: 0; color: var(--ink); font-size: 1.02rem; font-weight: 700; line-height: 1.7; }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; flex: none; align-self: flex-start; margin-top: 2px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section a { color: var(--link); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到電機與機器人</a>
+
+  <div class="hero">
+    <h1>🧭 硬體從零：先模擬，再做板</h1>
+    <p class="sub">從「完全不懂硬體」到看懂一件事：邏輯在決定，馬達在用力。機器人先從讓一顆馬達聽話開始。</p>
+    <div>
+      <span class="badge orange">給硬體小白</span>
+      <span class="badge blue">三種模擬</span>
+      <span class="badge green">先讓馬達轉</span>
+      <span class="badge teal">電路板是最後</span>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>可以先模擬，但要分成三種，不要指望一個軟體同時告訴你「電路對不對」和「機器人走起來好不好看」。</p>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#three">① 三種模擬，各看一件事</a>
+      <a href="#kicad">② KiCad 畫板，不裁判馬達</a>
+      <a href="#chain">③ 腳位 → 驅動 → 馬達</a>
+      <a href="#motors">④ 三種馬達，第一顆選誰</a>
+      <a href="#path">⑤ 這條路不要跳步</a>
+      <a href="#later">⑥ 這區以後會長什麼</a>
+      <a href="#sources">⑦ 來源</a>
+    </div>
+  </nav>
+
+  <section id="three">
+    <h2><span class="num">①</span> 三種模擬，各看一件事</h2>
+    <p>你喜歡馬達、喜歡機器人，這很好。第一件要拆開的事是：電腦螢幕上的「會動」，和桌上那顆馬達「在用力」，不是同一種模擬。</p>
+    <p>下面三格並排。每一格只回答一個問題，也故意答不了另外的問題。</p>
+
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看三格 →</div>
+      <svg viewBox="0 0 960 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="三種模擬：邏輯程式、電路、動作。各格寫著看得到與看不到的事。">
+        <rect width="960" height="430" rx="12" fill="#f6f5f4"/>
+
+        <rect x="20" y="18" width="296" height="394" rx="16" fill="#0a1530"/>
+        <text x="40" y="52" fill="#9ee8e4" font-size="13" font-weight="700" font-family="Inter, PingFang TC, sans-serif">1 · 邏輯／程式</text>
+        <text x="40" y="78" fill="#ffffff" font-size="18" font-weight="800" font-family="Inter, PingFang TC, sans-serif">Wokwi</text>
+        <text x="40" y="100" fill="#b9c2d6" font-size="13" font-family="Inter, PingFang TC, sans-serif">瀏覽器 · 行為模擬</text>
+        <text x="40" y="138" fill="#b6f0c4" font-size="13" font-weight="800" font-family="Inter, PingFang TC, sans-serif">看得到</text>
+        <text x="40" y="164" fill="#e7ebf3" font-size="13" font-family="Inter, PingFang TC, sans-serif">微控制器程式在跑</text>
+        <text x="40" y="186" fill="#e7ebf3" font-size="13" font-family="Inter, PingFang TC, sans-serif">腳位高低、時序對不對</text>
+        <text x="40" y="208" fill="#e7ebf3" font-size="13" font-family="Inter, PingFang TC, sans-serif">伺服這類零件怎麼動</text>
+        <text x="40" y="248" fill="#ffcf9e" font-size="13" font-weight="800" font-family="Inter, PingFang TC, sans-serif">看不到</text>
+        <text x="40" y="274" fill="#b9c2d6" font-size="13" font-family="Inter, PingFang TC, sans-serif">真實電流</text>
+        <text x="40" y="330" fill="#9ee8e4" font-size="13" font-weight="700" font-family="Inter, PingFang TC, sans-serif">這不是真實電路</text>
+        <text x="40" y="354" fill="#b9c2d6" font-size="12" font-family="Inter, PingFang TC, sans-serif">只確認：是你的邏輯在下令</text>
+
+        <rect x="332" y="18" width="296" height="394" rx="16" fill="#e6e0f5" stroke="#5645d4" stroke-width="2"/>
+        <text x="352" y="52" fill="#5645d4" font-size="13" font-weight="700" font-family="Inter, PingFang TC, sans-serif">2 · 電路</text>
+        <text x="352" y="78" fill="#1a1a1a" font-size="18" font-weight="800" font-family="Inter, PingFang TC, sans-serif">Falstad</text>
+        <text x="352" y="100" fill="#5d5b54" font-size="13" font-family="Inter, PingFang TC, sans-serif">瀏覽器 · 免費</text>
+        <text x="352" y="138" fill="#1aae39" font-size="13" font-weight="800" font-family="Inter, PingFang TC, sans-serif">看得到</text>
+        <text x="352" y="164" fill="#37352f" font-size="13" font-family="Inter, PingFang TC, sans-serif">電壓怎麼走</text>
+        <text x="352" y="186" fill="#37352f" font-size="13" font-family="Inter, PingFang TC, sans-serif">電流怎麼走</text>
+        <text x="352" y="208" fill="#37352f" font-size="13" font-family="Inter, PingFang TC, sans-serif">訊號腳 ≠ 馬達那條線</text>
+        <text x="352" y="248" fill="#dd5b00" font-size="13" font-weight="800" font-family="Inter, PingFang TC, sans-serif">看不到</text>
+        <text x="352" y="274" fill="#5d5b54" font-size="13" font-family="Inter, PingFang TC, sans-serif">真實力矩、溫升</text>
+        <text x="352" y="330" fill="#5645d4" font-size="13" font-weight="700" font-family="Inter, PingFang TC, sans-serif">直流馬達只是粗模型</text>
+        <text x="352" y="354" fill="#5d5b54" font-size="12" font-family="Inter, PingFang TC, sans-serif">用來建立直覺，不拿來算真實</text>
+
+        <rect x="644" y="18" width="296" height="394" rx="16" fill="#d9f3e1" stroke="#1aae39" stroke-width="2"/>
+        <text x="664" y="52" fill="#1aae39" font-size="13" font-weight="700" font-family="Inter, PingFang TC, sans-serif">3 · 動作</text>
+        <text x="664" y="78" fill="#1a1a1a" font-size="18" font-weight="800" font-family="Inter, PingFang TC, sans-serif">真的馬達</text>
+        <text x="664" y="100" fill="#5d5b54" font-size="13" font-family="Inter, PingFang TC, sans-serif">不是全自動機器人模擬器</text>
+        <text x="664" y="138" fill="#1aae39" font-size="13" font-weight="800" font-family="Inter, PingFang TC, sans-serif">下一階才看得到</text>
+        <text x="664" y="164" fill="#37352f" font-size="13" font-family="Inter, PingFang TC, sans-serif">麵包板上馬達在轉</text>
+        <text x="664" y="186" fill="#37352f" font-size="13" font-family="Inter, PingFang TC, sans-serif">反轉、停，都是真的</text>
+        <text x="664" y="248" fill="#dd5b00" font-size="13" font-weight="800" font-family="Inter, PingFang TC, sans-serif">上面兩格都演不出</text>
+        <text x="664" y="274" fill="#5d5b54" font-size="13" font-family="Inter, PingFang TC, sans-serif">機器人走起來好不好看</text>
+        <text x="664" y="330" fill="#1a1a1a" font-size="13" font-weight="700" font-family="Inter, PingFang TC, sans-serif">電氣模擬過了就去接</text>
+        <text x="664" y="354" fill="#5d5b54" font-size="12" font-family="Inter, PingFang TC, sans-serif">不要再找一個「會走路的軟體」</text>
+        <text x="664" y="376" fill="#5d5b54" font-size="12" font-family="Inter, PingFang TC, sans-serif">當第一步</text>
+      </svg>
+      <div class="figcap">三種模擬各管一件事。沒有一個軟體同時是電路裁判，又是機器人的舞台。</div>
+    </div>
+
+    <h3>邏輯／程式：Wokwi</h3>
+    <p>瀏覽器裡的 <a href="https://wokwi.com">Wokwi</a> 能跑微控制器程式，接上它提供的零件（含伺服馬達這類），看腳位和時序對不對。程式說「轉到這裡」，畫面上的零件就照做——你是在確認<strong>行為</strong>。</p>
+    <p>這是行為模擬，不是真實電流。腳位在螢幕上「有輸出」，不代表那隻腳餵得動一顆真的馬達。</p>
+
+    <h3>電路：Falstad</h3>
+    <p>瀏覽器裡的 <a href="https://www.falstad.com/circuit/">Falstad</a>（<a href="./falstad.html">Falstad 教學</a>）免費，看得到電壓和電流怎麼走。它夠用來建立一句直覺：<strong>這顆腳是訊號，馬達要的是電流。</strong></p>
+    <div class="callout warn"><strong>直流馬達在這種模擬裡只能當成粗模型。</strong>不要拿它算真實力矩，也不要拿它算溫升。看懂「電流走哪一條線」就夠了。</div>
+
+    <h3>動作：沒有第三個軟體當第一步</h3>
+    <p>上面兩個都不會演出機器人在動。電氣模擬過了，下一階是麵包板接真的馬達，看它轉。不是再找一個「全自動機器人模擬器」當第一步。</p>
+  </section>
+
+  <section id="kicad">
+    <h2><span class="num">②</span> KiCad 畫板，不裁判馬達</h2>
+    <p><a href="https://www.kicad.org/">KiCad</a> 是畫原理圖、排電路板、看 3D、做連線檢查（ERC）和佈局檢查（DRC）、輸出 Gerber 給板廠的工具。你用它把「已經接通過的線」畫成可以寄去製造的檔案。</p>
+    <p>它不負責告訴你馬達會不會乖乖轉。圖畫得很漂亮、3D 看起來很完整，馬達還是可能完全不理你。那不是 KiCad 壞掉，是它本來就不管「用力」這件事。</p>
+    <div class="callout tip"><strong>第一塊板不要從馬達板開始。</strong>馬達板把「線有沒有畫對」和「電流能不能被放大」攪在同一張圖裡。兩件事一起錯，你分不出是哪一件。</div>
+  </section>
+
+  <section id="chain">
+    <h2><span class="num">③</span> 整頁只掛一件事</h2>
+    <p>把這頁收成一條鏈就好：</p>
+    <p><strong>微控制器腳位 → 驅動（中間那塊，負責放大電流）→ 馬達。</strong></p>
+    <p>邏輯在左邊決定「轉、反轉、停」。馬達在右邊用力。中間那塊驅動，就是把「一個小小的訊號」變成「馬達吃得下的電流」。邏輯電源和馬達電源分開畫。腳位只出訊號。</p>
+
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看這條鏈 →</div>
+      <svg viewBox="0 0 960 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="微控制器腳位經由驅動放大電流才到馬達。邏輯電源與馬達電源分開。腳位不可直連馬達。">
+        <rect width="960" height="360" rx="12" fill="#f6f5f4"/>
+
+        <rect x="36" y="28" width="250" height="52" rx="12" fill="#0a1530"/>
+        <text x="161" y="50" text-anchor="middle" fill="#9ee8e4" font-size="12" font-weight="700" font-family="Inter, PingFang TC, sans-serif">邏輯電源</text>
+        <text x="161" y="68" text-anchor="middle" fill="#b9c2d6" font-size="12" font-family="Inter, PingFang TC, sans-serif">只跟著腳位，不餵馬達</text>
+        <line x1="161" y1="80" x2="161" y2="108" stroke="#0a1530" stroke-width="2"/>
+
+        <rect x="674" y="28" width="250" height="52" rx="12" fill="#dd5b00"/>
+        <text x="799" y="50" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700" font-family="Inter, PingFang TC, sans-serif">馬達電源</text>
+        <text x="799" y="68" text-anchor="middle" fill="#fff4ea" font-size="12" font-family="Inter, PingFang TC, sans-serif">跟邏輯電源分開畫</text>
+        <line x1="799" y1="80" x2="799" y2="108" stroke="#dd5b00" stroke-width="3"/>
+
+        <rect x="36" y="108" width="250" height="118" rx="14" fill="#0a1530"/>
+        <text x="161" y="146" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="800" font-family="Inter, PingFang TC, sans-serif">微控制器腳位</text>
+        <text x="161" y="172" text-anchor="middle" fill="#9ee8e4" font-size="13" font-weight="700" font-family="Inter, PingFang TC, sans-serif">只出訊號</text>
+        <text x="161" y="196" text-anchor="middle" fill="#b9c2d6" font-size="12" font-family="Inter, PingFang TC, sans-serif">邏輯在這裡做決定</text>
+
+        <rect x="355" y="108" width="250" height="118" rx="14" fill="#e6e0f5" stroke="#5645d4" stroke-width="2"/>
+        <text x="480" y="146" text-anchor="middle" fill="#5645d4" font-size="16" font-weight="800" font-family="Inter, PingFang TC, sans-serif">驅動</text>
+        <text x="480" y="172" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="700" font-family="Inter, PingFang TC, sans-serif">中間這塊</text>
+        <text x="480" y="196" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter, PingFang TC, sans-serif">負責放大電流</text>
+
+        <rect x="674" y="108" width="250" height="118" rx="14" fill="#d9f3e1" stroke="#1aae39" stroke-width="2"/>
+        <text x="799" y="146" text-anchor="middle" fill="#1a1a1a" font-size="16" font-weight="800" font-family="Inter, PingFang TC, sans-serif">馬達</text>
+        <text x="799" y="172" text-anchor="middle" fill="#1aae39" font-size="13" font-weight="700" font-family="Inter, PingFang TC, sans-serif">在用力</text>
+        <text x="799" y="196" text-anchor="middle" fill="#37352f" font-size="12" font-family="Inter, PingFang TC, sans-serif">轉、反轉、停</text>
+
+        <line x1="286" y1="158" x2="345" y2="158" stroke="#5645d4" stroke-width="2"/>
+        <polygon points="345,152 357,158 345,164" fill="#5645d4"/>
+        <text x="316" y="148" text-anchor="middle" fill="#5645d4" font-size="12" font-weight="700" font-family="Inter, PingFang TC, sans-serif">訊號</text>
+
+        <line x1="605" y1="166" x2="664" y2="166" stroke="#dd5b00" stroke-width="4"/>
+        <polygon points="664,158 678,166 664,174" fill="#dd5b00"/>
+        <text x="636" y="150" text-anchor="middle" fill="#dd5b00" font-size="12" font-weight="700" font-family="Inter, PingFang TC, sans-serif">電流</text>
+
+        <line x1="161" y1="226" x2="161" y2="268" stroke="#e03131" stroke-width="2" stroke-dasharray="5 4"/>
+        <line x1="161" y1="268" x2="799" y2="268" stroke="#e03131" stroke-width="2" stroke-dasharray="5 4"/>
+        <line x1="788" y1="257" x2="810" y2="279" stroke="#e03131" stroke-width="3"/>
+        <line x1="810" y1="257" x2="788" y2="279" stroke="#e03131" stroke-width="3"/>
+
+        <rect x="250" y="292" width="460" height="46" rx="10" fill="#fef7d6" stroke="#dd5b00"/>
+        <text x="480" y="320" text-anchor="middle" fill="#1a1a1a" font-size="13" font-weight="700" font-family="Inter, PingFang TC, sans-serif">卡住時馬達想吸很大的電流 · 不能直接焊到腳位上</text>
+      </svg>
+      <div class="figcap">腳位出訊號，驅動放大電流，馬達才用力。紅色虛線是不要存在的那條直連。</div>
+    </div>
+
+    <div class="callout warn"><strong>不要把馬達直接焊到腳位上。</strong>馬達轉得順的時候就已經比一顆腳位能給的多；卡住時它會想吸很大的電流。那股電流若走腳位，受傷的是微控制器，不是「程式寫錯」。</div>
+    <p>所以中間一定要有一塊現成的驅動，幫腳位把電流放大。你先學會認這三格，比背任何零件名字有用。</p>
+  </section>
+
+  <section id="motors">
+    <h2><span class="num">④</span> 三種馬達，第一顆選誰</h2>
+    <p>名字先認個臉就好。這裡不談快慢的數字，也不談力氣的數字。</p>
+    <ul>
+      <li><strong>直流馬達：</strong>一直轉。方向和快慢好懂。輪子常見的第一顆。</li>
+      <li><strong>伺服馬達：</strong>你告訴它一個角度，它轉到那裡。關節、舵機常用。</li>
+      <li><strong>步進馬達：</strong>一格一格走。適合要數步數的機構。</li>
+    </ul>
+    <div class="callout tip"><strong>第一個機器人先選直流馬達，加一塊現成驅動板（H 橋那一類）。</strong>不要先自己設計功率級。功率級就是「放大電流」那一塊；現成的板子先讓你看到馬達聽話，自己設計是以後的題目。</div>
+    <p>伺服很適合在 Wokwi 裡看「我下的角度，它有沒有到」。第一個機器人仍先用直流馬達加現成驅動，把「轉、反轉、停」做成功。</p>
+  </section>
+
+  <section id="path">
+    <h2><span class="num">⑤</span> 這條路不要跳步</h2>
+    <p>順序就是順序。跳過一步，下一階你會分不出「是邏輯錯了，還是電流根本沒去」。</p>
+
+    <h3>1. 用 Falstad 看兩條線不是同一條</h3>
+    <p>先在 <a href="https://www.falstad.com/circuit/">Falstad</a> 裡看「訊號腳」和「馬達電流」不是同一條線。為什麼不能跳：你若沒親眼看過電流走另外一條路，等下馬達不動，你會以為是程式沒下對指令。其實腳位可能已經在說話，只是沒有人把電流放大。</p>
+
+    <h3>2. 用 Wokwi 確認是你的邏輯</h3>
+    <p>接著用 <a href="https://wokwi.com">Wokwi</a> 讓程式令一個伺服，或一顆腳位，照你的意思動。為什麼不能跳：真零件接上之後，不動有兩種可能——邏輯錯，或接線／電流錯。先在行為模擬裡看到「伺服或腳位照你的意思動」，你才能說：<strong>邏輯是對的，不是零件在神祕。</strong></p>
+
+    <h3>3. 麵包板：轉、反轉、停</h3>
+    <p>麵包板接一顆小直流馬達和現成驅動板。電源用會限電流的供應器。先讓它轉、反轉、停。為什麼不能跳：這是第一次有真的電流、真的用力。電源用會限電流的供應器，因為馬達卡住時會想吸很大的電流。麵包板的線還拔得掉；這一步就是專門用來證明接法，不是用來好看。</p>
+
+    <h3>4. 會轉之後才談電路板</h3>
+    <p>電路板是把已經證明的接法固定下來，不是探索的地方。為什麼不能跳：板子是把接法固定下來的地方。你若在板上才第一次問「這顆馬達到底轉不轉」，線不好改，而且你仍不知道錯在邏輯還是電流。</p>
+    <p>KiCad 的 Hello World——一顆電池座、出 Gerber——是學出圖流程，不是馬達板。先學會「原理圖 → 電路板 → 連線檢查、佈局檢查 → 交給板廠的檔」。馬達板等接法已經在麵包板上證明過，再畫。</p>
+
+    <h3>5. 測試只看三件事</h3>
+    <p>方向對不對、停得下來嗎、有沒有發熱或怪味。怪味，或熱到不能摸，就斷電。為什麼不能跳、也不能改順序：三用電表先量電壓在不在，不要先怪程式。電壓都不在，改程式不會讓馬達出現。先確認電有來，再看方向和能不能停；味道或燙，代表先離開，不是再試一次。</p>
+    <div class="callout warn"><strong>怪味或熱到不能摸就斷電。</strong>不要邊熱邊猜是哪一行程式。先把電拿掉，人離開那顆在用力的東西。</div>
+  </section>
+
+  <section id="later">
+    <h2><span class="num">⑥</span> 這區以後會長什麼</h2>
+    <p>馬達驅動、輪子與關節、感測器、把 Agent 接上 EDA，都會放在「電機與機器人」目錄，不放進 AI 學習區。</p>
+    <p>本頁是地圖，不是那些題目的正文。你現在要帶走的只有：三種模擬各看一件事，以及腳位不直接焊馬達。</p>
+  </section>
+
+  <section id="sources">
+    <h2><span class="num">⑦</span> 來源</h2>
+    <ul>
+      <li>電路模擬：<a href="https://www.falstad.com/circuit/">Falstad</a></li>
+      <li>微控制器行為模擬：<a href="https://wokwi.com">Wokwi</a></li>
+      <li>畫原理圖、排板、檢查、出 Gerber：<a href="https://www.kicad.org/">KiCad</a></li>
+    </ul>
+    <p>上面三個連結就是這頁引用的全部。目錄上預告的題目還沒有頁，本頁也不替它們寫正文。</p>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · 電機與機器人 · <a href="./index.html">← 回到目錄</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
