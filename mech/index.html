@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>電機與機器人 · JustKM</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131826;
+      --bg-card: #1a2138;
+      --bg-code: #0f1424;
+      --border: #2a3454;
+      --text-primary: #e8ecf4;
+      --text-secondary: #9aa3b8;
+      --text-muted: #6b7390;
+      --accent: #4f9eff;
+      --accent-green: #00d68f;
+      --accent-orange: #ff9f43;
+      --accent-red: #ff4d6d;
+      --accent-purple: #a855f7;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--bg-primary); color: var(--text-primary);
+      line-height: 1.7; min-height: 100vh; padding: 40px 20px 80px;
+    }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster {
+      position: fixed; top: 16px; right: 16px; z-index: 999;
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 8px;
+      display: flex; align-items: center; gap: 4px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px);
+    }
+    .font-adjuster button {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-primary); width: 32px; height: 32px; border-radius: 6px;
+      font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .font-adjuster button:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--text-muted); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value {
+      font-size: 0.6875rem; color: var(--accent); font-weight: 700;
+      min-width: 36px; text-align: center; font-family: 'SF Mono', monospace;
+    }
+
+    .hero {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 16px; padding: 36px 32px; margin-bottom: 28px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #ff9f43 0%, #4f9eff 45%, #00d68f 100%);
+    }
+    .hero h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .hero .sub { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 16px; }
+    .badge {
+      display: inline-block; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px; padding: 3px 10px; font-size: 0.6875rem;
+      color: var(--text-secondary); margin-right: 6px; margin-bottom: 6px;
+    }
+    .badge.green { color: var(--accent-green); border-color: var(--accent-green); }
+    .badge.blue { color: var(--accent); border-color: var(--accent); }
+    .badge.orange { color: var(--accent-orange); border-color: var(--accent-orange); }
+
+    .group-title {
+      font-size: 0.9375rem; font-weight: 800; color: var(--text-primary);
+      margin: 26px 0 4px; display: flex; align-items: center; gap: 8px;
+    }
+    .group-sub { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 14px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-bottom: 8px; }
+    .card {
+      display: block; text-decoration: none; color: inherit;
+      background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px;
+      padding: 20px; transition: all 0.18s ease; position: relative; overflow: hidden;
+    }
+    .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .card .ic { font-size: 28px; margin-bottom: 8px; }
+    .card .nm { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+    .card .mt { font-size: 0.6875rem; color: var(--text-muted); margin-bottom: 8px; }
+    .card .ds { font-size: 0.8125rem; color: var(--text-secondary); }
+    .card .status {
+      display: inline-block; font-size: 0.625rem; font-weight: 700; border-radius: 4px;
+      padding: 1px 7px; margin-left: 6px; vertical-align: middle;
+    }
+    .status.ok { background: rgba(0,214,143,0.15); color: var(--accent-green); }
+
+    .soon {
+      list-style: none; margin: 0 0 8px; padding: 0;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;
+    }
+    .soon li {
+      background: var(--bg-secondary); border: 1px dashed var(--border); border-radius: 12px;
+      padding: 18px 20px; color: var(--text-secondary); font-size: 0.9375rem; font-weight: 700;
+    }
+    .soon li span {
+      display: block; margin-top: 6px; font-size: 0.75rem; font-weight: 600; color: var(--text-muted);
+    }
+
+    .back-home {
+      display: inline-block; margin-bottom: 20px; color: var(--accent); text-decoration: none;
+      font-size: 0.875rem; padding: 6px 14px; border: 1px solid var(--border);
+      border-radius: 8px; background: var(--bg-secondary);
+    }
+    .back-home:hover { border-color: var(--accent); }
+    .footer {
+      text-align: center; color: var(--text-muted); font-size: 0.75rem;
+      margin-top: 44px; padding-top: 24px; border-top: 1px solid var(--border);
+    }
+    .footer a { color: var(--accent); text-decoration: none; }
+    @media (max-width: 600px) {
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="../index.html">← 回到 JustKM 首頁</a>
+
+  <div class="hero">
+    <h1>🦾 電機與機器人</h1>
+    <p class="sub">給硬體小白的電機與機器人區。邏輯、模擬、麵包板、電路板、測試都收在這裡。馬達與機械控制是這區的主線。</p>
+    <div>
+      <span class="badge orange">硬體從零</span>
+      <span class="badge blue">先模擬</span>
+      <span class="badge green">馬達是主線</span>
+    </div>
+  </div>
+
+  <div class="group-title">🗺️ 入門地圖</div>
+  <div class="group-sub">現在只有這一張地圖。先把「邏輯」和「用力」分開，再談畫板。</div>
+  <div class="grid">
+    <a class="card" href="./from-zero.html">
+      <div class="ic">🧭</div>
+      <div class="nm">硬體從零：先模擬，再做板<span class="status ok">已建立</span></div>
+      <div class="mt">地圖 · 三種模擬 · 麵包板 · 電路板</div>
+      <div class="ds">邏輯電路、真實電路、模擬能看什麼、馬達為什麼不能直接接腳位、測試時先看什麼。</div>
+    </a>
+  </div>
+
+  <div class="group-title">⏳ 稍後會放</div>
+  <div class="group-sub">下面是預告，還沒有頁面，也不是連結。先不要找。</div>
+  <ul class="soon">
+    <li>KiCad 畫第一塊板<span>尚未開頁</span></li>
+    <li>用 Agent 操作 EDA<span>尚未開頁</span></li>
+  </ul>
+
+  <div class="footer">
+    <p>JustKM · 電機與機器人</p>
+    <p style="margin-top:4px;"><a href="../index.html">← 回到 JustKM 首頁</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP);
+    });
+    document.getElementById('fa-inc').addEventListener('click', () => {
+      const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP);
+    });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) {
+        e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '-') {
+        e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === '0') {
+        e.preventDefault(); apply(DEFAULT);
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>
