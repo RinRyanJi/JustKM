@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Falstad：在瀏覽器裡看電流怎麼走 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+    .side-link { display: inline-block; margin: 0 0 18px 10px; color: var(--link); font-size: 0.8125rem; }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+    .badge.teal { color: #9ee8e4; border-color: rgba(42,157,153,.45); }
+
+    .lead {
+      background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px;
+      padding: 22px 26px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(16,16,16,0.03);
+    }
+    .lead p { margin: 0; color: var(--ink); font-size: 1.02rem; font-weight: 700; line-height: 1.7; }
+    .lead a { color: var(--link); font-weight: 700; }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; flex: none; align-self: flex-start; margin-top: 2px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section a { color: var(--link); }
+    code, kbd { font-family: "SF Mono", ui-monospace, monospace; font-size: 0.86em; background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; color: var(--ink); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+    .callout p:last-child { margin-bottom: 0; }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      .fig { padding: 10px 8px; }
+      .side-link { display: block; margin: -8px 0 16px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到電機與機器人</a>
+  <a class="side-link" href="./from-zero.html">硬體從零地圖</a>
+
+  <div class="hero">
+    <h1>⚡ Falstad：在瀏覽器裡看電流怎麼走</h1>
+    <p class="sub">Circuit Simulator 的介紹、操作，和它背後在解什麼。給還沒碰過硬體的人。</p>
+    <div>
+      <span class="badge orange">給硬體小白</span>
+      <span class="badge blue">不用安裝</span>
+      <span class="badge green">正體中文介面</span>
+      <span class="badge teal">先看一條迴路</span>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>打開 <a href="https://www.falstad.com/circuit/circuitjs.html">全螢幕版</a> 就會看到一條已經在跑的 LRC 電路。這是 Paul Falstad 寫的電路模擬器，原本是 Java applet，後來由 Iain Sharp 移植成瀏覽器裡的 JavaScript（circuitjs1）。不用安裝。離線版在首頁的 Standalone (offline) versions。介面可依系統語言出現正體中文。</p>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#screen">① 畫面在說什麼</a>
+      <a href="#draw">② 畫第一條電路</a>
+      <a href="#save">③ 存檔、分享、匯出</a>
+      <a href="#solve">④ 它在解什麼</a>
+      <a href="#errors">⑤ 它會罵你的幾句話</a>
+      <a href="#not">⑥ 它不是什麼</a>
+      <a href="#more">⑦ 延伸</a>
+    </div>
+  </nav>
+
+  <section id="screen">
+    <h2><span class="num">①</span> 畫面在說什麼</h2>
+    <p>下面的顏色，是作者在 <a href="https://www.falstad.com/circuit/doc/overview.html">操作說明</a> 和 <a href="https://www.falstad.com/circuit/">首頁</a> 寫的。正體中文對照來自程式自己的語言檔 <code>locale_zh-tw.txt</code>。你的畫面若寫得不一樣，以畫面為準。</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 880 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="四個色塊：綠是正電壓，紅是負電壓，灰是接地，黃點是電流。">
+        <rect width="880" height="250" rx="12" fill="#f6f5f4"/>
+        <rect x="24" y="24" width="196" height="150" rx="14" fill="#ffffff" stroke="#e5e3df"/>
+        <rect x="78" y="48" width="88" height="48" rx="8" fill="#1aae39"/>
+        <text x="122" y="132" text-anchor="middle" fill="#1a1a1a" font-size="15" font-weight="800" font-family="Inter, PingFang TC, sans-serif">綠色</text>
+        <text x="122" y="154" text-anchor="middle" fill="#37352f" font-size="13" font-family="Inter, PingFang TC, sans-serif">正電壓。</text>
+
+        <rect x="236" y="24" width="196" height="150" rx="14" fill="#ffffff" stroke="#e5e3df"/>
+        <rect x="290" y="48" width="88" height="48" rx="8" fill="#e03131"/>
+        <text x="334" y="132" text-anchor="middle" fill="#1a1a1a" font-size="15" font-weight="800" font-family="Inter, PingFang TC, sans-serif">紅色</text>
+        <text x="334" y="154" text-anchor="middle" fill="#37352f" font-size="13" font-family="Inter, PingFang TC, sans-serif">負電壓。</text>
+
+        <rect x="448" y="24" width="196" height="150" rx="14" fill="#ffffff" stroke="#e5e3df"/>
+        <rect x="502" y="48" width="88" height="48" rx="8" fill="#9a9690"/>
+        <text x="546" y="132" text-anchor="middle" fill="#1a1a1a" font-size="15" font-weight="800" font-family="Inter, PingFang TC, sans-serif">灰色</text>
+        <text x="546" y="154" text-anchor="middle" fill="#37352f" font-size="13" font-family="Inter, PingFang TC, sans-serif">接地。</text>
+
+        <rect x="660" y="24" width="196" height="150" rx="14" fill="#ffffff" stroke="#e5e3df"/>
+        <line x1="700" y1="72" x2="816" y2="72" stroke="#5645d4" stroke-width="3"/>
+        <circle cx="758" cy="72" r="7" fill="#f5c518"/>
+        <text x="758" y="132" text-anchor="middle" fill="#1a1a1a" font-size="15" font-weight="800" font-family="Inter, PingFang TC, sans-serif">黃點</text>
+        <text x="758" y="154" text-anchor="middle" fill="#37352f" font-size="13" font-family="Inter, PingFang TC, sans-serif">移動的點是電流。</text>
+      </svg>
+      <div class="figcap">四個顏色各一句。這不是示波器，也沒有假的刻度。</div>
+    </div>
+
+    <ul>
+      <li>滑鼠停在元件上，角落會寫出這個元件現在的狀態。作者的說明寫在視窗右下角。</li>
+      <li>右鍵（Mac 用 control-click）選 Edit（編輯），改電阻、電容、電壓、波形。</li>
+      <li>下方圖是示波器。電壓綠色、電流黃色。電流可能被電壓蓋住。右鍵元件選 View in Scope（在示波器中檢視）。</li>
+      <li>Simulation Speed（模擬速度）：模擬算得快或慢。電路裡沒有電容、電感、或會隨時間變的電源時，它沒有作用。</li>
+      <li>Current Speed（電流速度）：只改黃點動畫的快慢，不改變算出來的電流。這一點 Clemson 的教學也特別提醒。</li>
+      <li>點開關就切換。Reset（重置）把電路拉回一個合理狀態。Run/Stop（執行／停止）暫停。</li>
+      <li>Circuits（電路）選單是現成範例，載入後可以改。</li>
+    </ul>
+  </section>
+
+  <section id="draw">
+    <h2><span class="num">②</span> 畫第一條電路</h2>
+    <p>步驟跟著 <a href="http://keejko.blogspot.com/2023/03/circuit-simulator.html">keejko 的正體中文走法</a>（他用的是離線版）。選單的中文以程式語言檔為準：keejko 把電壓錶那一層寫成「輸入和輸出標籤」，語言檔寫的是「輸出和標籤」（Outputs and Labels）。快捷鍵兩邊一樣。</p>
+    <ol>
+      <li>檔案 → 建立新的空白電路（File → New Blank Circuit）。</li>
+      <li>導線：繪製 → 加入導線（Draw → Add Wire），或按 <kbd>w</kbd>。在起點按住拖到終點。</li>
+      <li>電阻：繪製 → 加入電阻器（Draw → Add Resistor），或 <kbd>r</kbd>。</li>
+      <li>電池：繪製 → 輸入和電源 → 加入直流電壓源(二端)（Draw → Inputs and Sources → Add Voltage Source (2-terminal)），或 <kbd>v</kbd>。一端電壓源（加入直流電壓源(單端)，Add Voltage Source (1-terminal)）的另一端是接地，官方說明如此。練習用二端這顆。</li>
+      <li>電壓錶、電流錶：繪製 → 輸出和標籤 → 加入電壓錶／加入電流錶（Draw → Outputs and Labels → Add Voltmeter/Scope Probe／Add Ammeter）。</li>
+      <li>按住空白鍵再用左鍵，才能選取或拖曳。Alt-拖曳移動整張圖。滾輪縮放。</li>
+      <li>右側 執行／停止（Run/Stop）。keejko 的離線版把這顆按鈕放在右側；你的版面若不同，找「執行／停止」這幾個字。</li>
+      <li>右鍵 Edit（編輯）改數值。官方：直流電壓源可改成 DC、AC 正弦、方波、三角、鋸齒、脈衝；不是 DC 還能改頻率和 DC offset。語言檔裡對得上的字是正弦波、方波、三角波、鋸齒波、脈波，以及頻率、直流偏壓（DC Offset）。</li>
+    </ol>
+    <p>要接地：繪製 → 輸入和電源 → 加入接地（Add Ground）。灰色那一點就是地。</p>
+
+    <div class="callout tip">
+      <p><strong>練習，用歐姆定律算，不是跑過模擬抄來的讀數。</strong>電池 5 V、電阻 1 kΩ，串成一個迴路，並接地。電流應約 5 mA。滑鼠停在電阻上，用角落的數字對這個數。若差很多，先看是不是沒接成封閉迴路，或電壓源被短路。</p>
+    </div>
+
+    <div class="callout info">
+      <p>Clemson 的入門 PDF 補了兩句。Current Speed 純視覺，不影響模擬結果。游標讀到的電壓差是絕對值，跟該元件的示波器極性無關（原文是 oscilloscope polarity，不是另外一支探棒）。那份 PDF 的介面比較舊，讀數框寫在左上角；作者現在的說明是右下角。位置以你打開的畫面為準。<a href="https://www.clemson.edu/cecas/departments/ece/document_resource/undergrad/circuit/tutorial1.pdf">Clemson tutorial 1 PDF</a></p>
+    </div>
+  </section>
+
+  <section id="save">
+    <h2><span class="num">③</span> 存檔、分享、匯出</h2>
+    <ul>
+      <li><kbd>Ctrl</kbd>+<kbd>S</kbd>，或檔案 → 儲存（File → Save）。存的是純文字，不是圖片。</li>
+      <li>File 選單可把電路匯出成連結來分享，連結可以縮短。正體中文是檔案 → 匯出連結…（Export As Link...），縮短是建立短網址（Create short URL）。</li>
+      <li>檔案選單有匯出圖片(PNG)…（Save As Image...）、匯出向量圖(SVG)…（Save As SVG...）。keejko 也寫了這兩項。</li>
+      <li>File → Recover Auto-Save（檔案 → 回復自動儲存的檔案）可救回關掉視窗弄丟的電路；不行就 Edit → Undo（編輯 → 復原）。</li>
+      <li>File → Find DC Operating Point（檔案 → 尋找直流工作點）：電路要很久才穩態時，這個選項會立刻把電容充到該有的狀態。</li>
+    </ul>
+  </section>
+
+  <section id="solve">
+    <h2><span class="num">④</span> 它在解什麼</h2>
+    <p>這段照專案自己的筆記講，路徑就是 <a href="https://github.com/pfalstad/circuitjs1/blob/master/INTERNALS.md">pfalstad/circuitjs1 的 INTERNALS.md</a>。這個網址打得開，不是改放別的檔。用白話，不展開電感怎麼進矩陣。</p>
+    <p>每個接點有一個未知的電壓。接地那點被訂成 0，不然整張電路可以一起上下平移，方程式沒有唯一解。筆記的講法是：接地若還留在矩陣裡，矩陣會 singular，因為每一點都可以一起加同一個電壓，答案就不只一組。</p>
+    <p>方法叫 modified nodal analysis。電阻放進矩陣時用的是電導（1/R）。電壓源要多一列，強迫兩端電壓差等於你設的值，同時多一個未知數：它送出的電流。</p>
+    <p>解出來的是各點電壓，電流再由此算出。線性電路可以先做 LU 分解，每一步只更新右邊。二極體這類非線性零件要在每一步反覆解，直到收斂。</p>
+    <p>時間是一小步一小步往前。Edit → Other Options（編輯 → 其他選項…）裡的 time step（時基）愈小愈準、愈慢；頻率高的電路需要更小的 time step。</p>
+  </section>
+
+  <section id="errors">
+    <h2><span class="num">⑤</span> 它會罵你的幾句話</h2>
+    <p>英文是作者操作說明裡的句子。括號裡是語言檔的正體中文，方便你對畫面。電壓源那一句，說明書寫 Voltage source loop with no resistance；語言檔的英文鍵稍長，是 Voltage source/wire loop with no resistance!。</p>
+    <ul>
+      <li><strong>Voltage source loop with no resistance!</strong>（偵測到短路的電壓源/導線迴路！）：電壓源被短路，每個電壓源兩端都要有電阻。</li>
+      <li><strong>Capacitor loop with no resistance!</strong>（無電阻的電容迴路！）：電容組成的迴路裡沒有電阻。並聯電容不被允許，要串一顆電阻。電容短路則可以。</li>
+      <li><strong>Singular matrix!</strong>（奇異矩陣！）：電路矛盾（兩個不同電壓源接在一起），或某點電壓沒有定義。元件腳還沒接上也會。</li>
+      <li><strong>Convergence failed!</strong>（收斂失敗！）：算不出來。按 Reset（重置）。太複雜或只是例題也會偶發。</li>
+      <li><strong>Transmission line delay too large!</strong>（傳輸線延遲太大！）／<strong>Need to ground transmission line!</strong>（傳輸線需要接地！）：傳輸線延遲相對 time step 太大，或傳輸線下方兩條線必須接地。初學可以先忽略傳輸線。</li>
+    </ul>
+  </section>
+
+  <section id="not">
+    <h2><span class="num">⑥</span> 它不是什麼</h2>
+    <p>官方說明裡就能加電晶體，也能加運算放大器。運算放大器預設電源極限 ±15 V，畫面不畫出這組電源，Edit 可改。Circuits（電路）選單的範例裡有邏輯。零件不只有電阻和電池。</p>
+    <ul>
+      <li>零件是通用模型，不是某家料號的規格書。沒有購物按鈕，也對不上嘉立創或 DigiKey 的庫。</li>
+      <li>接錯時它仍可能畫出很有信心的圖。新手要會用上面的錯誤訊息和歐姆定律抽查，不要把動畫當真。</li>
+      <li>黃點速度不是電流大小的唯一線索，看旁邊的數字。</li>
+      <li>跟本站 <a href="./from-zero.html">from-zero</a> 的分工：Falstad 看電壓和電流。它不演出機器人在動，也不產出 Gerber。直流馬達在這裡只能先當成一顆電阻看「這條線要多少電流」，不能拿來算力矩或溫升。</li>
+    </ul>
+  </section>
+
+  <section id="more">
+    <h2><span class="num">⑦</span> 延伸</h2>
+    <ul>
+      <li><a href="https://www.falstad.com/circuit/doc/overview.html">官方操作說明</a>：作者寫的顏色、示波器、錯誤訊息。</li>
+      <li><a href="https://www.falstad.com/circuit/">首頁</a>：全螢幕版、離線版、Iain Sharp 的移植說明都從這裡進。</li>
+      <li><a href="http://keejko.blogspot.com/2023/03/circuit-simulator.html">正體中文操作（離線版、快捷鍵）</a>：空白電路、畫線、存純文字、匯出 PNG 和 SVG。</li>
+      <li><a href="https://hanmajor.blogspot.com/2017/07/falstad-circuit-simulatior-applet.html">使用心得與限制</a>：別人用過之後怎麼看這個模擬器。</li>
+      <li><a href="https://physicslabs.ucd.ie/documentation/Falstad_circuit_sim/">UCD 物理實驗</a>：示波器、匯出點量的是對地電壓。</li>
+      <li><a href="https://www.clemson.edu/cecas/departments/ece/document_resource/undergrad/circuit/tutorial1.pdf">Clemson 入門 PDF</a>：Current Speed 純視覺，游標電壓差是絕對值。</li>
+      <li><a href="http://prubin.physics.gmu.edu/courses/261/Falstad_Circuit_Simulator_Training.pdf">GMU 練習 PDF</a>：另一份課堂練習。</li>
+      <li><a href="https://github.com/pfalstad/circuitjs1/blob/master/INTERNALS.md">模擬器內部說明</a>：modified nodal analysis 的專案筆記。</li>
+      <li>影片。2013 年的 <a href="https://www.youtube.com/watch?v=aFJ6yZQ7myQ">Falstad Circuit Sim. Mini Tutorial</a> 還在講 Java applet，介面舊，但操作概念還在。GP Vanier 四支比較完整：<a href="https://www.youtube.com/watch?v=_I3r5rYDQ7g">建立電路</a>、<a href="https://www.youtube.com/watch?v=qVkE6krOkCw">分析</a>、<a href="https://www.youtube.com/watch?v=1wSrRbg-2fU">選項</a>、<a href="https://www.youtube.com/watch?v=FKI4dkX6sQM">匯入匯出</a>。GMU 作業附的入門片：<a href="https://www.youtube.com/watch?v=6M1pqnqkYuo">https://www.youtube.com/watch?v=6M1pqnqkYuo</a>。</li>
+    </ul>
+    <p>這裡只放連結，不嵌影片。</p>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · 電機與機器人 · <a href="./index.html">← 回到目錄</a> · <a href="./from-zero.html">硬體從零</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
