@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Falstad 電路範例：逐則看什麼 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+    .side-link { display: inline-block; margin: 0 0 18px 10px; color: var(--link); font-size: 0.8125rem; }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+    .badge.teal { color: #9ee8e4; border-color: rgba(42,157,153,.45); }
+
+    .lead {
+      background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px;
+      padding: 22px 26px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(16,16,16,0.03);
+    }
+    .lead p { margin: 0; color: var(--ink); font-size: 1.02rem; font-weight: 700; line-height: 1.7; }
+    .lead a { color: var(--link); font-weight: 700; }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; flex: none; align-self: flex-start; margin-top: 2px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section a { color: var(--link); }
+    code, kbd { font-family: "SF Mono", ui-monospace, monospace; font-size: 0.86em; background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; color: var(--ink); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+    .callout p:last-child { margin-bottom: 0; }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      .fig { padding: 10px 8px; }
+      .side-link { display: block; margin: -8px 0 16px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  
+    .en-title { font-weight: 650; color: #c5d0e6; font-size: 0.72em; margin-left: 8px; letter-spacing: 0; }
+    section h2 .en-title { color: var(--steel); font-weight: 650; }
+    .group-blurb { color: var(--slate); font-size: 0.86rem; margin: 0 0 8px; }
+    .nest { margin: 18px 0 8px; padding: 2px 0 2px 14px; border-left: 3px solid var(--hairline-strong); }
+    h3.subhead { font-size: 1.12rem; font-weight: 800; color: var(--ink); margin: 8px 0 6px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    h3.subhead .en-title { color: var(--steel); }
+    .ex { padding: 13px 0 2px; border-top: 1px solid var(--hairline-soft); }
+    .ex h3 { font-size: 1.02rem; font-weight: 800; color: var(--ink); margin: 0 0 2px; padding: 0; border: none; }
+    .ex .en { font-size: 0.78rem; color: var(--steel); margin: 0 0 6px; }
+    .ex p { margin-bottom: 6px; }
+    a.open { font-weight: 700; }
+    .lead p + p { margin-top: 10px; font-weight: 650; }
+
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到電機與機器人</a>
+  <a class="side-link" href="./falstad.html">怎麼讀顏色和按鈕</a>
+
+  <div class="hero">
+    <h1>Falstad 電路範例：逐則看什麼</h1>
+    <p class="sub">索引上的每一則示範。給還沒碰過硬體的人：先知道它在做什麼，再去看動畫。</p>
+    <div>
+      <span class="badge orange">給硬體小白</span>
+      <span class="badge blue">199 則</span>
+      <span class="badge green">正體中文</span>
+      <span class="badge teal">電路仍在 falstad.com</span>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>這是 <a href="https://www.falstad.com/circuit/e-index.html">Falstad 電路示範索引</a>的逐則導讀。每一則只說明這個電路是做什麼的，以及動畫上要看電壓顏色、電流黃點，還是下方示波器。不寫零件數值，也不寫模擬讀數。活的電路仍留在 falstad.com，這裡不內嵌。</p>
+    <p>怎麼讀綠色、紅色、灰色和黃點，以及示波器和按鈕，先看 <a href="./falstad.html">Falstad：在瀏覽器裡看電流怎麼走</a>。索引頁的原文仍寫 these demonstrations use a java applet。下面「開原電路」用的是那份 HTML 裡真正的連結，對到 <a href="https://www.falstad.com/circuit/">falstad.com/circuit/</a>。點進去若已是瀏覽器裡的 JavaScript 模擬，以你打開的畫面為準。</p>
+  </div>
+
+  <div class="callout info">
+    <p>分組照索引 HTML 的粗體小標，連同它原本的巢狀，不另起一套分類。同名的兩組（振盪器、邏輯）用括號標出它掛在誰底下。每一則的英文是索引上的可見名稱。</p>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">目錄</div>
+    <div class="toc-grid">
+      <a href="#g-basics">基礎</a><a href="#g-basics-series-parallel">· 串聯與並聯</a><a href="#g-a-c-circuits">交流電路</a><a href="#g-passive-filters">被動濾波器</a><a href="#g-other-passive-circuits">其他被動電路</a><a href="#g-other-passive-circuits-transformers">· 變壓器</a><a href="#g-diodes">二極體</a><a href="#g-diodes-zener-diodes">· 齊納二極體</a><a href="#g-diodes-voltage-multipliers">· 倍壓電路</a><a href="#g-op-amps">運算放大器</a><a href="#g-op-amps-amplifiers">· 放大器</a><a href="#g-op-amps-oscillators">· 振盪器（運算放大器）</a><a href="#g-mosfets">MOSFET</a><a href="#g-mosfets-logic">· 邏輯（MOSFET）</a><a href="#g-transistors-bipolar">雙極性電晶體</a><a href="#g-transistors-bipolar-differential-amplifiers">· 差動放大器</a><a href="#g-transistors-bipolar-push-pull-follower">· 推挽隨耦器</a><a href="#g-transistors-bipolar-multivibrators">· 多諧振盪器</a><a href="#g-transistors-bipolar-oscillators">· 振盪器（雙極性電晶體）</a><a href="#g-transistors-bipolar-logic">· 邏輯（雙極性電晶體）</a><a href="#g-combinational-logic">組合邏輯</a><a href="#g-sequential-logic">序向邏輯</a><a href="#g-sequential-logic-flip-flops">· 正反器</a><a href="#g-sequential-logic-counters">· 計數器</a><a href="#g-555-timer-chip">555 計時器</a><a href="#g-transmission-lines">傳輸線</a><a href="#g-memristors">憶阻器</a><a href="#g-tunnel-diodes">穿隧二極體</a><a href="#g-spark-gaps">火花隙</a>
+    </div>
+  </nav>
+
+  <section id="g-basics">
+  <h2><span class="num">1</span> 基礎 <span class="en-title">Basics</span></h2>
+  <p class="group-blurb">電阻、電容、電感，以及把它們串在一起時電壓和電流怎麼走。共 12 則。</p>
+<article class="ex" id="ohms">
+  <h3>歐姆定律</h3>
+  <p class="en">Ohm's Law</p>
+  <p>同一條迴路上，電阻兩端的電壓愈高，黃點（電流）愈密。看導線從電池正端的綠色怎麼往下變，以及示波器上電壓和電流是不是一起變。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-ohms.html">開原電路</a></p>
+</article>
+<article class="ex" id="resistors">
+  <h3>電阻</h3>
+  <p class="en">Resistors</p>
+  <p>幾顆電阻串聯或並聯時，電流怎麼分、電壓怎麼掉。看哪一條支路的黃點比較密，以及各段導線的綠紅深淺。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-resistors.html">開原電路</a></p>
+</article>
+<article class="ex" id="cap">
+  <h3>電容</h3>
+  <p class="en">Capacitor</p>
+  <p>電容把電荷存起來，電壓不會一下子跳變。看充電時黃點湧進去、電壓顏色慢慢變，充滿後電流點變少；示波器上電壓是慢慢爬的。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-cap.html">開原電路</a></p>
+</article>
+<article class="ex" id="induct">
+  <h3>電感</h3>
+  <p class="en">Inductor</p>
+  <p>電感不讓電流突然改變。看電源或開關變化時黃點不是立刻到位，示波器上電流是慢慢上升或下降。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-induct.html">開原電路</a></p>
+</article>
+<article class="ex" id="lrc">
+  <h3>RLC 電路</h3>
+  <p class="en">RLC Circuit</p>
+  <p>電阻、電容、電感接在一起，會振盪再慢慢停下來。看電容兩端的顏色來回換綠紅，黃點方向跟著反覆，示波器是逐漸變小的波浪。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-lrc.html">開原電路</a></p>
+</article>
+<article class="ex" id="voltdivide">
+  <h3>分壓器</h3>
+  <p class="en">Voltage Divider</p>
+  <p>兩顆電阻串接，從中間取出比電源低的電壓。看中間那一點的顏色比電源端淡，兩顆電阻上的黃點是同一條電流。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-voltdivide.html">開原電路</a></p>
+</article>
+<div class="nest" id="g-basics-series-parallel">
+  <h3 class="subhead">串聯與並聯 <span class="en-title">Series/Parallel</span></h3>
+  <p class="group-blurb">同一種零件串起來或並起來，電流是走同一條路，還是分頭走。共 4 則。</p>
+<article class="ex" id="indseries">
+  <h3>電感串聯</h3>
+  <p class="en">Inductors in Series</p>
+  <p>電感一顆接一顆，電流只能走同一條路，總效果比單顆更拖。看兩顆電感上的黃點一樣密，示波器上電流爬得更慢。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-indseries.html">開原電路</a></p>
+</article>
+<article class="ex" id="indpar">
+  <h3>電感並聯</h3>
+  <p class="en">Inductors in Parallel</p>
+  <p>電流可以分進幾顆電感。看黃點在各支路分開走，總電流比只走一顆時更容易建立起來。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-indpar.html">開原電路</a></p>
+</article>
+<article class="ex" id="capseries">
+  <h3>電容串聯</h3>
+  <p class="en">Capacitors in Series</p>
+  <p>電容串起來，能存的電荷變少，電壓分到每一顆上。看同一串黃點依序經過每顆電容，各段電壓顏色不同。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-capseries.html">開原電路</a></p>
+</article>
+<article class="ex" id="cappar">
+  <h3>電容並聯</h3>
+  <p class="en">Capacitors in Parallel</p>
+  <p>並聯的電容一起充電，等於容量變大。看黃點分進各支路，並聯電容上的電壓顏色一起變。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-cappar.html">開原電路</a></p>
+</article>
+</div>
+<article class="ex" id="thevenin">
+  <h3>戴維寧定理</h3>
+  <p class="en">Thevenin's Theorem</p>
+  <p>對外面那顆負載來說，左邊一整團可以看成一顆電壓源串一顆電阻。比較原電路和等效電路時，看負載上的電壓顏色和黃點並沒有因為「換一種畫法」而變。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-thevenin.html">開原電路</a></p>
+</article>
+<article class="ex" id="norton">
+  <h3>諾頓定理</h3>
+  <p class="en">Norton's Theorem</p>
+  <p>同一件事的另一種看法：左邊可以看成一顆電流源並一顆電阻。看負載上的電壓顏色和電流點，跟原電路對得起來。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-norton.html">開原電路</a></p>
+</article>
+</section>
+<section id="g-a-c-circuits">
+  <h2><span class="num">2</span> 交流電路 <span class="en-title">A/C Circuits</span></h2>
+  <p class="group-blurb">交流之下，電容和電感會讓電流領先或落後電壓，也會在某個頻率特別有感覺。共 9 則。</p>
+<article class="ex" id="capac">
+  <h3>電容的交流響應</h3>
+  <p class="en">A/C Response of Capacitor</p>
+  <p>交流加在電容上，電流會領先電壓。看示波器：電流波形的波峰比電壓波峰早到。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-capac.html">開原電路</a></p>
+</article>
+<article class="ex" id="inductac">
+  <h3>電感的交流響應</h3>
+  <p class="en">A/C Response of Inductor</p>
+  <p>交流加在電感上，電流會落後電壓。看示波器上電流波形比電壓波形晚一點到峰。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-inductac.html">開原電路</a></p>
+</article>
+<article class="ex" id="capmultcaps">
+  <h3>不同電容值並排</h3>
+  <p class="en">Caps of Various Capacitances</p>
+  <p>同樣的交流，電容愈大，流過的電流愈多。看幾條支路上黃點疏密不同，也可以把各路放進示波器比。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-capmultcaps.html">開原電路</a></p>
+</article>
+<article class="ex" id="capmultfreq">
+  <h3>同一顆電容、不同頻率</h3>
+  <p class="en">Caps w/ Various Frequencies</p>
+  <p>頻率愈高，電容愈容易讓交流過去。看頻率較高的那路黃點比較密。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-capmultfreq.html">開原電路</a></p>
+</article>
+<article class="ex" id="indmultind">
+  <h3>不同電感值並排</h3>
+  <p class="en">Inductors of Various Inductances</p>
+  <p>同樣的交流，電感愈大，電流愈小。看各支路黃點疏密，和電容那則的趨勢相反。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-indmultind.html">開原電路</a></p>
+</article>
+<article class="ex" id="indmultfreq">
+  <h3>同一顆電感、不同頻率</h3>
+  <p class="en">Inductors w/ Various Frequencies</p>
+  <p>頻率愈高，電感愈擋交流。看高頻那路的黃點變稀。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-indmultfreq.html">開原電路</a></p>
+</article>
+<article class="ex" id="impedance">
+  <h3>大小相同的阻抗</h3>
+  <p class="en">Impedances of Same Magnitude</p>
+  <p>電阻、電容、電感的阻擋程度可以調到一樣大，但相位不一樣。看三者電流大小接近，示波器上的波形卻左右錯開。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-impedance.html">開原電路</a></p>
+</article>
+<article class="ex" id="res-series">
+  <h3>串聯諧振</h3>
+  <p class="en">Series Resonance</p>
+  <p>三條一樣的 RLC 並排，各用不同頻率去推，中間那條在諧振頻率。看中間那條的電壓顏色擺得比上下兩條大很多。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-res-series.html">開原電路</a></p>
+</article>
+<article class="ex" id="res-par">
+  <h3>並聯諧振</h3>
+  <p class="en">Parallel Resonance</p>
+  <p>同樣三條電路，但電感、電容、電阻改成並聯。諧振時阻抗最高，所以看中間那條從電源來的黃點比另外兩條稀。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-res-par.html">開原電路</a></p>
+</article>
+</section>
+<section id="g-passive-filters">
+  <h2><span class="num">3</span> 被動濾波器 <span class="en-title">Passive Filters</span></h2>
+  <p class="group-blurb">只用電阻、電容、電感，讓某些頻率過、某些頻率過不去。共 9 則。</p>
+<article class="ex" id="filt-hipass">
+  <h3>高通濾波器（RC）</h3>
+  <p class="en">High-Pass Filter (RC)</p>
+  <p>讓變得快的電壓過去，把慢的直流擋下。看輸入若慢慢變，輸出顏色幾乎不動；變得快時，輸出才跟著動。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-filt-hipass.html">開原電路</a></p>
+</article>
+<article class="ex" id="filt-hipass-af">
+  <h3>高通濾波器的頻率響應（RC）</h3>
+  <p class="en">High-Pass Filter response (RC)</p>
+  <p>同一顆高通濾波器，畫出一段頻率的響應。點響應圖上的某個頻率，電路就改用那個頻率跑，看輸出變大或變小。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-filt-hipass-af.html">開原電路</a></p>
+</article>
+<article class="ex" id="filt-lopass">
+  <h3>低通濾波器（RC）</h3>
+  <p class="en">Low-Pass Filter (RC)</p>
+  <p>慢的變化過得去，快的變化被電容吃掉。看輸出顏色比輸入平，示波器上高頻被削下來。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-filt-lopass.html">開原電路</a></p>
+</article>
+<article class="ex" id="filt-hipass-l">
+  <h3>高通濾波器（RL）</h3>
+  <p class="en">High-Pass Filter (RL)</p>
+  <p>用電感做高通：慢的變化出不來，快的變化比較容易出現在輸出。看輸出對快速變化有反應，對直流幾乎沒有。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-filt-hipass-l.html">開原電路</a></p>
+</article>
+<article class="ex" id="filt-lopass-l">
+  <h3>低通濾波器（RL）</h3>
+  <p class="en">Low-Pass Filter (RL)</p>
+  <p>電感擋高頻、放低頻。看低頻時輸出顏色跟得上輸入，高頻時輸出變小。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-filt-lopass-l.html">開原電路</a></p>
+</article>
+<article class="ex" id="bandpass">
+  <h3>帶通濾波器</h3>
+  <p class="en">Band-Pass Filter</p>
+  <p>只讓中間一段頻率過去，太低和太高都變小。看掃頻時輸出在中間頻率明顯變大，兩邊變小。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-bandpass.html">開原電路</a></p>
+</article>
+<article class="ex" id="notch">
+  <h3>陷波濾波器</h3>
+  <p class="en">Notch Filter</p>
+  <p>大多數頻率都過，只有很窄的一段被挖掉。看掃頻時輸出在某個頻率突然變得很小。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-notch.html">開原電路</a></p>
+</article>
+<article class="ex" id="twint">
+  <h3>雙 T 濾波器</h3>
+  <p class="en">Twin-T Filter</p>
+  <p>兩組 T 形的電阻電容做成陷波，用來去掉某個頻率。看那個頻率附近輸出顏色幾乎不動，示波器的振幅掉下去。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-twint.html">開原電路</a></p>
+</article>
+<article class="ex" id="crossover">
+  <h3>分音器</h3>
+  <p class="en">Crossover</p>
+  <p>三路濾波器，把低音、中音、高音分給不同的喇叭。看頻率改變時，黃點換到不同的那一路。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-crossover.html">開原電路</a></p>
+</article>
+</section>
+<section id="g-other-passive-circuits">
+  <h2><span class="num">4</span> 其他被動電路 <span class="en-title">Other Passive Circuits</span></h2>
+  <p class="group-blurb">開關、電橋、微分、阻尼，以及還沒用到二極體的那些接法。共 17 則。</p>
+<article class="ex" id="3way">
+  <h3>三路燈開關</h3>
+  <p class="en">3-Way Light Switches</p>
+  <p>兩處開關控制同一盞燈，兩端都能開也能關。點任一個開關，看燈的電壓顏色跟著亮或滅，黃點只在接通的那條路上跑。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-3way.html">開原電路</a></p>
+</article>
+<article class="ex" id="4way">
+  <h3>三路加四路燈開關</h3>
+  <p class="en">3- and 4-Way Light Switches</p>
+  <p>兩端各一個三路開關，中間再加四路開關，三處都能控同一盞燈。看中間開關把兩條線對調之後，燈的亮滅跟著變。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-4way.html">開原電路</a></p>
+</article>
+<article class="ex" id="diff">
+  <h3>微分器</h3>
+  <p class="en">Differentiator</p>
+  <p>輸出跟著輸入變得多快，不是跟著輸入本身的高低。看輸入若是慢慢的斜坡，輸出只是一小段；輸入突然跳，輸出就冒出尖脈衝。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-diff.html">開原電路</a></p>
+</article>
+<article class="ex" id="wheatstone">
+  <h3>惠斯登電橋</h3>
+  <p class="en">Wheatstone Bridge</p>
+  <p>四顆電阻接成菱形，用來比較未知電阻。平衡時看中間那條橋上幾乎沒有黃點，兩邊電壓顏色一樣。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-wheatstone.html">開原電路</a></p>
+</article>
+<article class="ex" id="lrc-critical">
+  <h3>臨界阻尼的 RLC</h3>
+  <p class="en">Critically Damped RLC</p>
+  <p>電阻剛好大到讓它不再來回振盪，電壓以不再衝過終點的方式回到穩態。看示波器：電壓回到最終的顏色，中間不再翻來覆去。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-lrc-critical.html">開原電路</a></p>
+</article>
+<article class="ex" id="currentsrcelm">
+  <h3>電流源</h3>
+  <p class="en">Current Source</p>
+  <p>理想電流源盡量送出固定的電流，電壓則隨負載改。看黃點疏密幾乎不變，換負載時導線顏色在變。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-currentsrcelm.html">開原電路</a></p>
+</article>
+<div class="nest" id="g-other-passive-circuits-transformers">
+  <h3 class="subhead">變壓器 <span class="en-title">Transformers</span></h3>
+  <p class="group-blurb">兩個線圈靠磁場，把交流從一邊送到另一邊。共 5 則。</p>
+<article class="ex" id="transformer">
+  <h3>變壓器</h3>
+  <p class="en">Transformer</p>
+  <p>兩個線圈靠磁場交連，交流可以送到二次側，穩恆直流不行。看一次側黃點來回時，二次側也出現電流點，兩邊的電壓顏色都在交變。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-transformer.html">開原電路</a></p>
+</article>
+<article class="ex" id="transformerup">
+  <h3>升壓變壓器</h3>
+  <p class="en">Step-Up Transformer</p>
+  <p>二次側圈數較多，交流電壓被抬高，電流變小。看二次側電壓顏色擺得比一次側大，黃點比較稀。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-transformerup.html">開原電路</a></p>
+</article>
+<article class="ex" id="transformerdown">
+  <h3>降壓變壓器</h3>
+  <p class="en">Step-Down Transformer</p>
+  <p>二次側圈數較少，電壓變低，電流可以比較大。看二次側顏色擺幅變小，黃點變密。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-transformerdown.html">開原電路</a></p>
+</article>
+<article class="ex" id="longdist">
+  <h3>長途輸電</h3>
+  <p class="en">Long Distance Power Transmission</p>
+  <p>先升壓再送、到遠端再降壓，線路上的電流比較小。看高壓那一段黃點稀、電壓顏色擺大，降壓之後黃點變密。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-longdist.html">開原電路</a></p>
+</article>
+<article class="ex" id="transformerdc">
+  <h3>變壓器加上直流</h3>
+  <p class="en">Transformer w/ DC</p>
+  <p>理想變壓器有時能送一下直流，真實線圈有電阻、電感也有限，直流送不久就會消退。看一次側是直流時，二次側可能先有一點反應，然後電壓顏色和黃點慢慢消失。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-transformerdc.html">開原電路</a></p>
+</article>
+</div>
+<article class="ex" id="inductkick">
+  <h3>電感反衝</h3>
+  <p class="en">Inductive Kickback</p>
+  <p>切斷電感電流時，電感會把電壓衝高，想維持原來的電流。看開關打開的瞬間，電感兩端顏色突然變深，示波器冒出尖脈衝。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-inductkick.html">開原電路</a></p>
+</article>
+<article class="ex" id="inductkick-snub">
+  <h3>擋住電感反衝（緩衝）</h3>
+  <p class="en">Blocking Inductive Kickback</p>
+  <p>在電感旁邊加一條路，讓關斷時的能量有地方去，尖峰變小。對照沒有這條路時的尖脈衝，看示波器上的尖峰被壓下來。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-inductkick-snub.html">開原電路</a></p>
+</article>
+<article class="ex" id="powerfactor1">
+  <h3>功率因數</h3>
+  <p class="en">Power Factor</p>
+  <p>這一則的顏色不是平常的電壓顏色：紅代表零件在消耗功率，綠代表它在送出功率。看電感性負載讓能量在電源和負載之間來回流，示波器上電壓和電流也錯開。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-powerfactor1.html">開原電路</a></p>
+</article>
+<article class="ex" id="powerfactor2">
+  <h3>功率因數修正</h3>
+  <p class="en">Power Factor Correction</p>
+  <p>在電感負載旁加一顆電容，讓電壓和電流比較同步，電源線上浪費的能量變少。看示波器上兩條波比上一則更齊。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-powerfactor2.html">開原電路</a></p>
+</article>
+<article class="ex" id="ladder">
+  <h3>LC 階梯</h3>
+  <p class="en">LC Ladder</p>
+  <p>用一串電感和電容模仿傳輸線，脈衝像波一樣往前走；末端電阻剛好配合時脈衝會被吃掉，不對就反射。看黃點和電壓顏色是一節一節傳，不是整條同時變。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-ladder.html">開原電路</a></p>
+</article>
+<article class="ex" id="phaseseq">
+  <h3>相序網路</h3>
+  <p class="en">Phase-Sequence Network</p>
+  <p>產生一組相位依序錯開四分之一週的正弦。看示波器上幾條波的波峰不在同一個時間。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-phaseseq.html">開原電路</a></p>
+</article>
+</section>
+<section id="g-diodes">
+  <h2><span class="num">5</span> 二極體 <span class="en-title">Diodes</span></h2>
+  <p class="group-blurb">二極體讓電流偏愛一個方向。整流和限幅都從這裡開始。共 18 則。</p>
+<article class="ex" id="diodevar">
+  <h3>二極體</h3>
+  <p class="en">Diode</p>
+  <p>二極體只讓電流往一個方向走。看黃點只在順向時出現，反向時幾乎停住。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-diodevar.html">開原電路</a></p>
+</article>
+<article class="ex" id="diodecurve">
+  <h3>二極體的電流－電壓曲線</h3>
+  <p class="en">Diode I/V Curve</p>
+  <p>電壓慢慢掃過二極體，看電流什麼時候才開始大量流動。示波器上過了某一側曲線才陡升，另一側幾乎貼著零。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-diodecurve.html">開原電路</a></p>
+</article>
+<article class="ex" id="rectify">
+  <h3>半波整流</h3>
+  <p class="en">Half-Wave Rectifier</p>
+  <p>交流只有一半能通過二極體。看輸入顏色綠紅交替，輸出只有其中半周有電壓和黃點，另半周是平的。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-rectify.html">開原電路</a></p>
+</article>
+<article class="ex" id="fullrect">
+  <h3>全波整流</h3>
+  <p class="en">Full-Wave Rectifier</p>
+  <p>把交流的負半周也翻成正的。看輸出電壓顏色維持在同一側，負載上的黃點不再反向，示波器的波谷被翻上來。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-fullrect.html">開原電路</a></p>
+</article>
+<article class="ex" id="fullrectf">
+  <h3>加上濾波的全波整流</h3>
+  <p class="en">Full-Wave Rectifier w/ Filter</p>
+  <p>整流後再加電容，把一凹一凹的波形補平，比較像直流。看電容上的電壓顏色只小幅起伏，黃點在二極體導通的短時間內衝進去充電。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-fullrectf.html">開原電路</a></p>
+</article>
+<article class="ex" id="diodelimit">
+  <h3>二極體限幅</h3>
+  <p class="en">Diode Limiter</p>
+  <p>電壓想衝過門檻時被二極體箝住，輸出不再跟著輸入一直變大。看輸入很大時輸出顏色停在某個深度，示波器頂部被削平。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-diodelimit.html">開原電路</a></p>
+</article>
+<div class="nest" id="g-diodes-zener-diodes">
+  <h3 class="subhead">齊納二極體 <span class="en-title">Zener Diodes</span></h3>
+  <p class="group-blurb">齊納二極體反向導通時，電壓會停在一個大致固定的地方。共 3 則。</p>
+<article class="ex" id="zeneriv">
+  <h3>齊納二極體的電流－電壓曲線</h3>
+  <p class="en">Zener I/V Curve</p>
+  <p>正向像普通二極體；反向到達齊納電壓後會導通，並把電壓箝住。看示波器曲線在反向那一側突然轉折。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-zeneriv.html">開原電路</a></p>
+</article>
+<article class="ex" id="zenerref">
+  <h3>齊納電壓參考</h3>
+  <p class="en">Zener Voltage Reference</p>
+  <p>利用反向導通時電壓幾乎不變，做出一個穩的參考電壓。看輸入或負載變時，齊納兩端的顏色深度差不多停在原地。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-zenerref.html">開原電路</a></p>
+</article>
+<article class="ex" id="zenerreffollow">
+  <h3>加上隨耦器的齊納參考</h3>
+  <p class="en">Zener Voltage Reference w/ Follower</p>
+  <p>齊納電壓再經過幾乎不吃電流的隨耦級送出去，比較不會被負載拖垮。看齊納那一段黃點很稀，輸出的電壓顏色仍跟著參考。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-zenerreffollow.html">開原電路</a></p>
+</article>
+</div>
+<article class="ex" id="dcrestoration">
+  <h3>直流恢復</h3>
+  <p class="en">DC Restoration</p>
+  <p>用二極體把交流整個往上搬，讓它差不多都變成正電壓。看波形形狀還在，整條波在示波器上的位置被抬高。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-dcrestoration.html">開原電路</a></p>
+</article>
+<article class="ex" id="inductkick-block">
+  <h3>擋住電感反衝（二極體）</h3>
+  <p class="en">Blocking Inductive Kickback</p>
+  <p>關斷時讓電感電流改走二極體，不要去衝開關。看開關打開後黃點改從二極體那條路繼續跑一小段。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-inductkick-block.html">開原電路</a></p>
+</article>
+<article class="ex" id="spikegen">
+  <h3>尖脈衝產生器</h3>
+  <p class="en">Spike Generator</p>
+  <p>用微分器和一顆二極體，只留下正的尖脈衝。看輸入突然變高時輸出冒出一根正的尖，變低時那根負的尖被拿掉。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-spikegen.html">開原電路</a></p>
+</article>
+<div class="nest" id="g-diodes-voltage-multipliers">
+  <h3 class="subhead">倍壓電路 <span class="en-title">Voltage Multipliers</span></h3>
+  <p class="group-blurb">用二極體和電容，把交流的峰值一層層疊高。共 3 則。</p>
+<article class="ex" id="voltdouble">
+  <h3>倍壓器</h3>
+  <p class="en">Voltage Doubler</p>
+  <p>用二極體和電容把交流的峰值堆高，得到比輸入峰值更高的直流。看後面電容的電壓顏色比輸入擺得更深，黃點在充電的半周才灌進去。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-voltdouble.html">開原電路</a></p>
+</article>
+<article class="ex" id="volttriple">
+  <h3>三倍壓</h3>
+  <p class="en">Voltage Tripler</p>
+  <p>同一套堆疊再加一級，輸出再高一截。看每一級電容的顏色一層比一層深。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-volttriple.html">開原電路</a></p>
+</article>
+<article class="ex" id="voltquad">
+  <h3>四倍壓</h3>
+  <p class="en">Voltage Quadrupler</p>
+  <p>再堆一級。看電容由輸入端往輸出端，電壓顏色逐級變深，黃點只在對應的半周流動。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-voltquad.html">開原電路</a></p>
+</article>
+</div>
+<article class="ex" id="amdetect">
+  <h3>調幅檢波</h3>
+  <p class="en">AM Detector</p>
+  <p>這是礦石收音機：調諧取出載波，二極體整流，電容再把高頻濾掉，剩下廣播的包絡。看示波器從密密的高頻變成緩慢起伏。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-amdetect.html">開原電路</a></p>
+</article>
+<article class="ex" id="diodeclip">
+  <h3>波形切除器</h3>
+  <p class="en">Waveform Clipper</p>
+  <p>用二極體把三角波超過某一側的部分切掉。看示波器頂部變成平的，被切到的那一段有黃點流過二極體。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-diodeclip.html">開原電路</a></p>
+</article>
+<article class="ex" id="sinediode">
+  <h3>三角波轉正弦</h3>
+  <p class="en">Triangle-to-Sine Converter</p>
+  <p>用二極體網路把三角波的尖角修圓，讓它比較像正弦。看輸入是筆直的三角，輸出拐角變圓，兩條可以疊在示波器上比。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-sinediode.html">開原電路</a></p>
+</article>
+</section>
+<section id="g-op-amps">
+  <h2><span class="num">6</span> 運算放大器 <span class="en-title">Op-Amps</span></h2>
+  <p class="group-blurb">運算放大器把兩個輸入的差放得很大。加上回授之後，才變成好用的放大或運算。共 28 則。</p>
+<article class="ex" id="opamp">
+  <h3>運算放大器</h3>
+  <p class="en">Op-Amp</p>
+  <p>把兩個輸入的差放得很大，輸出會很快被推到電源的某一側。看兩個輸入只要有一點差別，輸出顏色就衝到很深的綠或紅。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-opamp.html">開原電路</a></p>
+</article>
+<article class="ex" id="opampfeedback">
+  <h3>運算放大器的回授</h3>
+  <p class="en">Op-Amp Feedback</p>
+  <p>把輸出拉回輸入之後，放大器不再一直頂到電源極端，而是讓兩個輸入的電壓顏色幾乎一樣。看閉迴路之後輸出變得溫和，跟得上輸入。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-opampfeedback.html">開原電路</a></p>
+</article>
+<div class="nest" id="g-op-amps-amplifiers">
+  <h3 class="subhead">放大器 <span class="en-title">Amplifiers</span></h3>
+  <p class="group-blurb">用回授把運算放大器收成放大、加總和緩衝。共 7 則。</p>
+<article class="ex" id="amp-invert">
+  <h3>反相放大器</h3>
+  <p class="en">Inverting Amplifier</p>
+  <p>輸出跟輸入反方向，大小由兩顆電阻的比例決定。看輸入變綠時輸出變紅，示波器兩條波上下顛倒。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-amp-invert.html">開原電路</a></p>
+</article>
+<article class="ex" id="amp-noninvert">
+  <h3>非反相放大器</h3>
+  <p class="en">Noninverting Amplifier</p>
+  <p>輸出跟輸入同一方向，而且比輸入大。看兩邊顏色一起變深變淺，示波器同相，輸出擺得比較大。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-amp-noninvert.html">開原電路</a></p>
+</article>
+<article class="ex" id="amp-follower">
+  <h3>隨耦器</h3>
+  <p class="en">Follower</p>
+  <p>輸出緊跟著輸入，幾乎不放大，但可以供給負載，輸入幾乎不吃電流。看兩點顏色一起走，輸入側黃點很稀，輸出側才有負載電流。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-amp-follower.html">開原電路</a></p>
+</article>
+<article class="ex" id="amp-diff">
+  <h3>差動放大器</h3>
+  <p class="en">Differential Amplifier</p>
+  <p>只放大兩個輸入的差，兩邊一起上下的部分會被消掉。看兩個輸入做同樣的變動時輸出幾乎不動；只有一邊動時輸出才明顯變。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-amp-diff.html">開原電路</a></p>
+</article>
+<article class="ex" id="amp-sum">
+  <h3>加法放大器</h3>
+  <p class="en">Summing Amplifier</p>
+  <p>幾路輸入依電阻比例加在一起，從反相端送出。分別動每一路，看輸出顏色是幾路疊起來，而且方向相反。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-amp-sum.html">開原電路</a></p>
+</article>
+<article class="ex" id="logconvert">
+  <h3>對數放大器</h3>
+  <p class="en">Log Amplifier</p>
+  <p>輸出跟著輸入的負對數走，不是等比例放大。看輸入成倍增加時，輸出顏色只往反方向移動一小階。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-logconvert.html">開原電路</a></p>
+</article>
+<article class="ex" id="classd">
+  <h3>D 類放大器</h3>
+  <p class="en">Class-D Amplifier</p>
+  <p>電晶體只當開關，用很快的脈衝寬度代表類比訊號，再濾成平滑輸出。看開關節點是密密的方波，負載上的電壓顏色則是慢的波形。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-classd.html">開原電路</a></p>
+</article>
+</div>
+<article class="ex" id="amp-rect">
+  <h3>反相半波整流</h3>
+  <p class="en">Half-Wave Rectifier (inverting)</p>
+  <p>用運算放大器和二極體做整流，小訊號也不會整個被二極體門檻吃掉。看輸入的一個半周出現在輸出，另一半是平的。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-amp-rect.html">開原電路</a></p>
+</article>
+<article class="ex" id="amp-fullrect">
+  <h3>全波整流（運算放大器）</h3>
+  <p class="en">Full-Wave Rectifier</p>
+  <p>正負半周都折到同一側。看輸入綠紅交替時，輸出顏色只往一邊跑，示波器的負半周被翻上來。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-amp-fullrect.html">開原電路</a></p>
+</article>
+<article class="ex" id="peak-detect">
+  <h3>峰值檢出器</h3>
+  <p class="en">Peak Detector</p>
+  <p>電容記住輸入到過的最高點，直到被放掉。看輸入起伏時，輸出電壓顏色停在最近的峰值，不跟著每一個波谷掉下去。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-peak-detect.html">開原電路</a></p>
+</article>
+<article class="ex" id="amp-integ">
+  <h3>反相積分器</h3>
+  <p class="en">Integrator (inverting)</p>
+  <p>輸出是輸入對時間的累積，方向相反。看輸入若是定值，輸出顏色以穩定斜率往反方向走，示波器上定電壓變成斜線。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-amp-integ.html">開原電路</a></p>
+</article>
+<article class="ex" id="amp-dfdx">
+  <h3>反相微分器</h3>
+  <p class="en">Differentiator (inverting)</p>
+  <p>輸出跟著輸入變化的快慢，方向相反。看輸入是斜坡時輸出差不多是定值，輸入突然轉折時輸出冒出尖脈衝。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-amp-dfdx.html">開原電路</a></p>
+</article>
+<article class="ex" id="amp-schmitt">
+  <h3>施密特觸發器</h3>
+  <p class="en">Schmitt Trigger</p>
+  <p>輸出只有高低兩態，而且往上翻和往下翻的門檻不在同一個點。看輸入慢慢掃過時，輸出顏色是突然跳過去，不是跟著斜坡走。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-amp-schmitt.html">開原電路</a></p>
+</article>
+<div class="nest" id="g-op-amps-oscillators">
+  <h3 class="subhead">振盪器 <span class="en-title">Oscillators · 在 運算放大器 底下</span></h3>
+  <p class="group-blurb">讓電路自己產生三角波、鋸齒波或正弦，不靠外面一直餵波形。共 7 則。</p>
+<article class="ex" id="relaxosc">
+  <h3>弛張振盪器</h3>
+  <p class="en">Relaxation Oscillator</p>
+  <p>電容慢慢充電，到達門檻就很快放掉，再重新來，於是自己產生週期波形。看電容電壓顏色慢慢爬、突然掉，示波器上的形狀一直重複。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-relaxosc.html">開原電路</a></p>
+</article>
+<article class="ex" id="triangle">
+  <h3>三角波產生器</h3>
+  <p class="en">Triangle Wave Generator</p>
+  <p>積分器和施密特觸發器互相追逐，做出直線上升下降的三角波。看示波器一個輸出是三角、另一個是方波。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-triangle.html">開原電路</a></p>
+</article>
+<article class="ex" id="sawtooth">
+  <h3>鋸齒波產生器</h3>
+  <p class="en">Sawtooth Wave Generator</p>
+  <p>電容以穩定的方式充電，然後很快放電，波形一邊斜、一邊陡。看示波器是鋸齒，放電那一瞬間黃點特別密。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-sawtooth.html">開原電路</a></p>
+</article>
+<article class="ex" id="sine">
+  <h3>正弦波產生器</h3>
+  <p class="en">Sine Wave Generator</p>
+  <p>兩個積分器頭尾相接：正弦的積分是餘弦，餘弦再積分又回到正弦。看示波器上兩條平滑的波相位錯開，不是方波。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-sine.html">開原電路</a></p>
+</article>
+<article class="ex" id="vco">
+  <h3>電壓控制振盪器</h3>
+  <p class="en">Voltage-Controlled Oscillator</p>
+  <p>用一個電壓改變振盪有多快。看控制電壓被拉高時，示波器的波變密，黃點來回變快。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-vco.html">開原電路</a></p>
+</article>
+<article class="ex" id="phaseshiftosc">
+  <h3>相移振盪器</h3>
+  <p class="en">Phase-Shift Oscillator</p>
+  <p>幾段 RC 把相位轉夠，再送回反相輸入，電路就自己振盪。看每一段的波形依序錯開，輸出是正弦。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-phaseshiftosc.html">開原電路</a></p>
+</article>
+<article class="ex" id="phaseoscfilt">
+  <h3>相移振盪器的濾波網路</h3>
+  <p class="en">Phase-Shift Oscillator Filter</p>
+  <p>單獨看相移振盪器裡那段濾波，在振盪頻率附近相位轉了半週。看示波器上進去和出來的波上下顛倒。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-phaseoscfilt.html">開原電路</a></p>
+</article>
+</div>
+<article class="ex" id="nic-r">
+  <h3>負阻抗轉換器</h3>
+  <p class="en">Negative Impedance Converter</p>
+  <p>從外面看進去像一顆負的電阻：電壓升高時電流反而倒灌。看示波器上電壓和電流的方向，跟普通電阻相反。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-nic-r.html">開原電路</a></p>
+</article>
+<article class="ex" id="gyrator">
+  <h3>迴轉器</h3>
+  <p class="en">Gyrator</p>
+  <p>用運算放大器把一顆電容看成一顆電感。看它對交流的反應像電感：電流落後電壓，示波器上錯開的方向跟電容相反。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-gyrator.html">開原電路</a></p>
+</article>
+<article class="ex" id="capmult">
+  <h3>電容倍增器</h3>
+  <p class="en">Capacitance Multiplier</p>
+  <p>讓一顆小電容對前面的電路看起來大很多。看負載變化時，輸出電壓顏色比只有那顆小電容時更穩、動得更慢。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-capmult.html">開原電路</a></p>
+</article>
+<article class="ex" id="howland">
+  <h3>霍蘭德電流源</h3>
+  <p class="en">Howland Current Source</p>
+  <p>不論負載電壓怎麼變，都盡量送出由輸入決定的電流。看負載改變時黃點疏密差不多，負載兩端的顏色則在變。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-howland.html">開原電路</a></p>
+</article>
+<article class="ex" id="itov">
+  <h3>電流轉電壓</h3>
+  <p class="en">Current-to-Voltage Converter</p>
+  <p>把流進來的電流變成成比例的電壓。看輸入黃點變密時，輸出電壓顏色跟著變深。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-itov.html">開原電路</a></p>
+</article>
+<article class="ex" id="opamp-regulator">
+  <h3>電壓調節器</h3>
+  <p class="en">Voltage Regulator</p>
+  <p>齊納二極體提供一個不動的參考，運算放大器把輸出拉回這個目標，負載變了電壓仍盡量停住。看負載電流點變多時，輸出顏色仍停在附近。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-opamp-regulator.html">開原電路</a></p>
+</article>
+</section>
+<section id="g-mosfets">
+  <h2><span class="num">7</span> MOSFET <span class="en-title">MOSFETs</span></h2>
+  <p class="group-blurb">用閘極的電壓決定通道開不開。閘極幾乎不吃電流。共 26 則。</p>
+<article class="ex" id="nmosfet">
+  <h3>n 通道 MOSFET</h3>
+  <p class="en">n-MOSFET</p>
+  <p>閘極比源極高到一定程度，通道才打開。看閘極顏色往正的方向變深時黃點才出現，閘極本身幾乎沒有黃點。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-nmosfet.html">開原電路</a></p>
+</article>
+<article class="ex" id="pmosfet">
+  <h3>p 通道 MOSFET</h3>
+  <p class="en">p-MOSFET</p>
+  <p>閘極比源極低時通道才打開，方向和 n 通道相反。看閘極往紅的方向走時，通道上才有黃點。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-pmosfet.html">開原電路</a></p>
+</article>
+<article class="ex" id="mosswitch">
+  <h3>開關</h3>
+  <p class="en">Switch</p>
+  <p>閘極把 MOSFET 當成開關。看閘極那條線的顏色跳變時，負載支路的黃點跟著有或沒有。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-mosswitch.html">開原電路</a></p>
+</article>
+<article class="ex" id="mosfollower">
+  <h3>源極隨耦器</h3>
+  <p class="en">Source Follower</p>
+  <p>源極電壓跟著閘極，用來緩衝。看源極顏色緊跟閘極，負載電流從汲極來，閘極幾乎沒有電流點。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-mosfollower.html">開原電路</a></p>
+</article>
+<article class="ex" id="moscurrentsrc">
+  <h3>電流源</h3>
+  <p class="en">Current Source</p>
+  <p>閘極電壓固定時，汲極電流差不多維持一定。看負載電壓顏色變時，黃點疏密變化不大。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-moscurrentsrc.html">開原電路</a></p>
+</article>
+<article class="ex" id="moscurrentramp">
+  <h3>電流斜坡</h3>
+  <p class="en">Current Ramp</p>
+  <p>用電流源在開關合上時把電容充成一條電壓斜坡。看開關合上後電容顏色以穩定速度變深，黃點在充電期間差不多一樣密。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-moscurrentramp.html">開原電路</a></p>
+</article>
+<article class="ex" id="mosmirror">
+  <h3>電流鏡</h3>
+  <p class="en">Current Mirror</p>
+  <p>一邊定好的電流被複製到另一邊。看兩條支路的黃點疏密接近，就算另一邊的電壓顏色不同。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-mosmirror.html">開原電路</a></p>
+</article>
+<article class="ex" id="mosfetamp">
+  <h3>共源極放大器</h3>
+  <p class="en">Common-Source Amplifier</p>
+  <p>小的閘極變化，在汲極變成比較大而且反相的電壓。看輸入微微變色時，輸出顏色擺得更大、方向相反。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-mosfetamp.html">開原電路</a></p>
+</article>
+<article class="ex" id="cmosinverter">
+  <h3>CMOS 反相器</h3>
+  <p class="en">CMOS Inverter</p>
+  <p>上面一顆 p 通道、下面一顆 n 通道：輸入低則輸出高，輸入高則輸出低。看兩端顏色總是相反，穩態時中間幾乎沒有從電源直通地的黃點。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-cmosinverter.html">開原電路</a></p>
+</article>
+<article class="ex" id="cmosinvertercap">
+  <h3>帶電容的 CMOS 反相器</h3>
+  <p class="en">CMOS Inverter (w/capacitance)</p>
+  <p>比上一則多算了閘極附近的寄生電容，狀態一切換就要充電。看跳變時才有一串黃點，穩態時中間幾乎又不耗電。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-cmosinvertercap.html">開原電路</a></p>
+</article>
+<article class="ex" id="cmosinverterslow">
+  <h3>慢速切換的 CMOS 反相器</h3>
+  <p class="en">CMOS Inverter (slow transition)</p>
+  <p>輸入慢慢爬過中間時，上下兩顆會同時開一下，電源到地出現短暫電流。看切換過程中間那條路徑突然有黃點。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-cmosinverterslow.html">開原電路</a></p>
+</article>
+<article class="ex" id="cmostransgate">
+  <h3>CMOS 傳輸閘</h3>
+  <p class="en">CMOS Transmission Gate</p>
+  <p>n 和 p 一起當一個可以雙向通過的類比開關。看閘打開時兩邊電壓顏色變成一樣，黃點可以往任一方向走。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-cmostransgate.html">開原電路</a></p>
+</article>
+<article class="ex" id="mux">
+  <h3>CMOS 多工器</h3>
+  <p class="en">CMOS Multiplexer</p>
+  <p>從幾路輸入裡選一路送到輸出。看選擇線的顏色改變時，輸出改跟被選中的那一路走。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-mux.html">開原電路</a></p>
+</article>
+<article class="ex" id="samplenhold">
+  <h3>取樣與保持</h3>
+  <p class="en">Sample-and-Hold</p>
+  <p>開關短暫合上，電容記住當時的電壓，打開之後電壓留在電容上。看合上時電容顏色追上輸入，打開後顏色停住，即使輸入繼續變。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-samplenhold.html">開原電路</a></p>
+</article>
+<article class="ex" id="delayrc">
+  <h3>延遲緩衝</h3>
+  <p class="en">Delayed Buffer</p>
+  <p>用電阻電容把邊緣拖慢，再經過反相器整形成比較晚到的方波。看輸出顏色的跳變比輸入晚一拍，中間電容的顏色是斜斜爬的。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-delayrc.html">開原電路</a></p>
+</article>
+<article class="ex" id="leadingedge">
+  <h3>前緣偵測器</h3>
+  <p class="en">Leading-Edge Detector</p>
+  <p>只在輸入從低變高的那一瞬間送出一個短脈衝。看示波器：輸入是寬的方波，輸出只有上升沿那一根窄脈衝。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-leadingedge.html">開原電路</a></p>
+</article>
+<article class="ex" id="switchfilter">
+  <h3>可切換的濾波器</h3>
+  <p class="en">Switchable Filter</p>
+  <p>用多工器切換截止頻率，而不是只有開或關。看控制腳改變時，同一個輸入在輸出示波器上的平滑程度不一樣。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-switchfilter.html">開原電路</a></p>
+</article>
+<article class="ex" id="voltinvert">
+  <h3>電壓反相器</h3>
+  <p class="en">Voltage Inverter</p>
+  <p>用四個類比開關和電容，依時脈把輸入電壓的正負反過來。看時脈高低切換時，輸出顏色跟輸入相反。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-voltinvert.html">開原電路</a></p>
+</article>
+<article class="ex" id="invertamp">
+  <h3>反相器放大器</h3>
+  <p class="en">Inverter Amplifier</p>
+  <p>用 CMOS 反相器當一個簡單的放大級，回授決定放多大。看小的輸入變化在輸出變成比較大、反相的顏色擺動。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-invertamp.html">開原電路</a></p>
+</article>
+<article class="ex" id="inv-osc">
+  <h3>反相器振盪器</h3>
+  <p class="en">Inverter Oscillator</p>
+  <p>兩顆 CMOS 反相器加上回授，就會自己振盪。看輸出顏色週期性翻轉，示波器是方波。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-inv-osc.html">開原電路</a></p>
+</article>
+<div class="nest" id="g-mosfets-logic">
+  <h3 class="subhead">邏輯 <span class="en-title">Logic · 在 MOSFET 底下</span></h3>
+  <p class="group-blurb">用 MOSFET 拼出來的 CMOS 邏輯閘和正反器。共 6 則。</p>
+<article class="ex" id="cmosnand">
+  <h3>CMOS 反及閘</h3>
+  <p class="en">CMOS NAND</p>
+  <p>兩個輸入都是高，輸出才是低；其餘情況輸出是高。點兩個輸入，看輸出是不是只在「兩個都高」時翻低。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-cmosnand.html">開原電路</a></p>
+</article>
+<article class="ex" id="cmosnor">
+  <h3>CMOS 反或閘</h3>
+  <p class="en">CMOS NOR</p>
+  <p>任一輸入為高，輸出就是低；兩個都低時輸出才高。看只要有一個輸入變高，輸出顏色就翻到另一側。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-cmosnor.html">開原電路</a></p>
+</article>
+<article class="ex" id="cmosxor">
+  <h3>CMOS 互斥或閘</h3>
+  <p class="en">CMOS XOR</p>
+  <p>兩個輸入不一樣時輸出為高，一樣時為低。看兩輸入同色時輸出在一側，異色時翻到另一側。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-cmosxor.html">開原電路</a></p>
+</article>
+<article class="ex" id="cmosff">
+  <h3>CMOS 正反器</h3>
+  <p class="en">CMOS Flip-Flop</p>
+  <p>兩個反閘交叉耦合，記住一個位元。看某一側被觸發後，兩個輸出顏色維持相反，觸發拿掉也還留著。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-cmosff.html">開原電路</a></p>
+</article>
+<article class="ex" id="cmosmsff">
+  <h3>CMOS 主從正反器</h3>
+  <p class="en">CMOS Master-Slave Flip-Flop</p>
+  <p>時脈的一個相位先把資料收進主級，另一個相位才送到輸出。看時脈翻轉時，輸出不是立刻跟著資料腳走，而是等下一個相位才更新。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-cmosmsff.html">開原電路</a></p>
+</article>
+<article class="ex" id="3-invert">
+  <h3>三值邏輯反相器</h3>
+  <p class="en">Ternary Logic Inverter</p>
+  <p>三值邏輯除了高和低還有中間一檔；反相器把高低對調，中間那一檔通常仍留在中間。看輸入在三種深淺之間切時輸出怎麼對應，不要把它當成只有高低的普通反相器。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-3-invert.html">開原電路</a></p>
+</article>
+</div>
+</section>
+<section id="g-transistors-bipolar">
+  <h2><span class="num">8</span> 雙極性電晶體 <span class="en-title">Transistors (Bipolar)</span></h2>
+  <p class="group-blurb">雙極性電晶體用比較小的基極電流，去控制比較大的集極電流。共 27 則。</p>
+<article class="ex" id="npn">
+  <h3>NPN 電晶體</h3>
+  <p class="en">NPN Transistor (Bipolar)</p>
+  <p>小的基極電流流進去，集極到射極才放行比較大的電流。看基極那條支路黃點很少，集極支路的黃點明顯較密。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-npn.html">開原電路</a></p>
+</article>
+<article class="ex" id="pnp">
+  <h3>PNP 電晶體</h3>
+  <p class="en">PNP Transistor (Bipolar)</p>
+  <p>電流方向和 NPN 相反：電流從射極進來，基極電流是流出基極。看黃點的方向跟 NPN 那則相反，基極仍只佔一小部分。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-pnp.html">開原電路</a></p>
+</article>
+<article class="ex" id="transswitch">
+  <h3>開關</h3>
+  <p class="en">Switch</p>
+  <p>基極有足夠電流時電晶體飽和，負載幾乎接到另一端；沒有基極電流就關掉。看基極出現黃點時，負載支路跟著導通。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-transswitch.html">開原電路</a></p>
+</article>
+<article class="ex" id="follower">
+  <h3>射極隨耦器</h3>
+  <p class="en">Emitter Follower</p>
+  <p>射極電壓跟著基極，只低一個二極體的順向壓降，用來緩衝。看射極顏色緊貼基極，負載電流大、基極電流小。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-follower.html">開原電路</a></p>
+</article>
+<article class="ex" id="ceamp">
+  <h3>共射極放大器</h3>
+  <p class="en">Common-Emitter Amplifier</p>
+  <p>小的基極變化在集極變成比較大而且反相的電壓。看輸入輕輕變色，集極顏色擺幅更大、綠紅相反。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-ceamp.html">開原電路</a></p>
+</article>
+<article class="ex" id="phasesplit">
+  <h3>單位增益分相器</h3>
+  <p class="en">Unity-Gain Phase Splitter</p>
+  <p>集極和射極各送出一個大小接近、相位相反的訊號。看兩邊示波器一上一下，擺幅差不多。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-phasesplit.html">開原電路</a></p>
+</article>
+<article class="ex" id="schmitt">
+  <h3>施密特觸發器</h3>
+  <p class="en">Schmitt Trigger</p>
+  <p>往上翻和往下翻的門檻不同，所以對慢慢掃過的輸入會突然切換。看輸入慢慢變化時，輸出顏色突然跳，來回的翻轉點不在同一個地方。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-schmitt.html">開原電路</a></p>
+</article>
+<article class="ex" id="currentsrc">
+  <h3>電流源</h3>
+  <p class="en">Current Source</p>
+  <p>把電流定在某個值，負載電壓變了電流仍差不多。看黃點疏密穩定，負載兩端顏色可以變。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-currentsrc.html">開原電路</a></p>
+</article>
+<article class="ex" id="currentsrcramp">
+  <h3>電流源斜坡</h3>
+  <p class="en">Current Source Ramp</p>
+  <p>定電流對電容充電，電壓就以直線上升。看電容顏色以穩定速度變深，充電期間黃點差不多一樣密。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-currentsrcramp.html">開原電路</a></p>
+</article>
+<article class="ex" id="mirror">
+  <h3>電流鏡</h3>
+  <p class="en">Current Mirror</p>
+  <p>參考支路的電流被複製到輸出支路。看兩邊黃點疏密接近。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-mirror.html">開原電路</a></p>
+</article>
+<div class="nest" id="g-transistors-bipolar-differential-amplifiers">
+  <h3 class="subhead">差動放大器 <span class="en-title">Differential Amplifiers</span></h3>
+  <p class="group-blurb">兩顆電晶體分同一份電流，只放大兩邊輸入的差。共 3 則。</p>
+<article class="ex" id="trans-diffamp">
+  <h3>差動放大器</h3>
+  <p class="en">Differential Amplifier</p>
+  <p>兩顆電晶體共用射極電流，只放大兩邊基極的差。看只有一邊輸入在變時，兩個集極的顏色往相反方向走。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-trans-diffamp.html">開原電路</a></p>
+</article>
+<article class="ex" id="trans-diffamp-common">
+  <h3>差動放大器的共模輸入</h3>
+  <p class="en">Differential Amplifier: Common-Mode Input</p>
+  <p>兩邊輸入一起上下，理想上輸出不該動。看兩個輸入顏色一起變時，集極輸出比只動一邊時安靜很多。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-trans-diffamp-common.html">開原電路</a></p>
+</article>
+<article class="ex" id="trans-diffamp-cursrc">
+  <h3>共模輸入加上電流源</h3>
+  <p class="en">Differential Amplifier: Common-Mode w/Current Source</p>
+  <p>射極改接電流源後，兩邊一起上下更不容易漏到輸出。對照上一則，看共模變化時輸出顏色更穩。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-trans-diffamp-cursrc.html">開原電路</a></p>
+</article>
+</div>
+<div class="nest" id="g-transistors-bipolar-push-pull-follower">
+  <h3 class="subhead">推挽隨耦器 <span class="en-title">Push-Pull Follower</span></h3>
+  <p class="group-blurb">一顆負責正半周、一顆負責負半周，用來推比較大的負載。共 2 則。</p>
+<article class="ex" id="pushpullxover">
+  <h3>簡單的推挽隨耦，帶有交越失真</h3>
+  <p class="en">Simple Push-Pull Follower, with Distortion</p>
+  <p>NPN 和 PNP 輪流負責正負半周，交接處兩顆都不太導通，波形中間缺一塊。看示波器在零點附近有一個缺口，那一小段黃點幾乎停住。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-pushpullxover.html">開原電路</a></p>
+</article>
+<article class="ex" id="pushpull">
+  <h3>改進的推挽隨耦</h3>
+  <p class="en">Improved Push-Pull Follower</p>
+  <p>兩顆電晶體先被偏到剛好要導通，交接處的缺口被補上。對照看波形過零時黃點還在，比較連續。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-pushpull.html">開原電路</a></p>
+</article>
+</div>
+<div class="nest" id="g-transistors-bipolar-multivibrators">
+  <h3 class="subhead">多諧振盪器 <span class="en-title">Multivibrators</span></h3>
+  <p class="group-blurb">兩個狀態互相推：可以記住、可以自己振盪，或只產生一根脈衝。共 3 則。</p>
+<article class="ex" id="multivib-bi">
+  <h3>雙穩態多諧振盪器（正反器）</h3>
+  <p class="en">Bistable Multivibrator (Flip-Flop)</p>
+  <p>有兩個穩定狀態，要外來脈衝才會翻到另一邊。看觸發後兩個集極的顏色對調，然後停住。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-multivib-bi.html">開原電路</a></p>
+</article>
+<article class="ex" id="multivib-a">
+  <h3>無穩態多諧振盪器</h3>
+  <p class="en">Astable Multivibrator (Oscillator)</p>
+  <p>沒有穩定狀態，兩邊輪流導通，自己產生方波。看兩個集極顏色輪流一高一低，示波器是週期脈衝。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-multivib-a.html">開原電路</a></p>
+</article>
+<article class="ex" id="multivib-mono">
+  <h3>單穩態多諧振盪器（單擊）</h3>
+  <p class="en">Monostable Multivibator (One-Shot)</p>
+  <p>平時停在一個狀態，收到觸發就翻過去待一小段時間，再自己回來。看一次觸發對應一根脈衝，不是一直振盪。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-multivib-mono.html">開原電路</a></p>
+</article>
+</div>
+<div class="nest" id="g-transistors-bipolar-oscillators">
+  <h3 class="subhead">振盪器 <span class="en-title">Oscillators · 在 雙極性電晶體 底下</span></h3>
+  <p class="group-blurb">用電感和電容決定頻率的電晶體振盪器。共 3 則。</p>
+<article class="ex" id="colpitts">
+  <h3>考畢子振盪器</h3>
+  <p class="en">Colpitts Oscillator</p>
+  <p>用電容分壓把一部分輸出送回去，和電感一起決定頻率。看迴路上的電壓顏色以正弦方式交替，回授的兩個電容相位不同。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-colpitts.html">開原電路</a></p>
+</article>
+<article class="ex" id="hartley">
+  <h3>哈特萊振盪器</h3>
+  <p class="en">Hartley Oscillator</p>
+  <p>跟考畢子類似，改用電感抽頭做回授。看線圈兩段的電壓顏色和電流點，輸出仍是正弦。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-hartley.html">開原電路</a></p>
+</article>
+<article class="ex" id="eclosc">
+  <h3>射極耦合 LC 振盪器</h3>
+  <p class="en">Emitter-Coupled LC Oscillator</p>
+  <p>兩顆電晶體的射極接在一起，LC 槽路決定頻率。看槽路上的電壓顏色在振盪，兩顆電晶體輪流比較導通。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-eclosc.html">開原電路</a></p>
+</article>
+</div>
+<div class="nest" id="g-transistors-bipolar-logic">
+  <h3 class="subhead">邏輯 <span class="en-title">Logic · 在 雙極性電晶體 底下</span></h3>
+  <p class="group-blurb">早期的邏輯家族：RTL、DTL、TTL、ECL。看電晶體怎麼做成閘。共 6 則。</p>
+<article class="ex" id="rtlinverter">
+  <h3>RTL 反相器</h3>
+  <p class="en">RTL Inverter</p>
+  <p>電阻－電晶體邏輯：輸入高則電晶體導通，輸出被拉低。看輸入為高時輸出顏色翻低，集極有黃點流到地。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-rtlinverter.html">開原電路</a></p>
+</article>
+<article class="ex" id="rtlnand">
+  <h3>RTL 反及閘</h3>
+  <p class="en">RTL NAND</p>
+  <p>所有輸入都是高，輸出才被拉低；有一個是低，輸出就是高。看你點輸入時，輸出顏色是不是只在全部為高時翻低。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-rtlnand.html">開原電路</a></p>
+</article>
+<article class="ex" id="dtlnand">
+  <h3>DTL 反及閘</h3>
+  <p class="en">DTL NAND</p>
+  <p>二極體做輸入的「及」，電晶體再反相。看輸入有一個為低時，電流從二極體那側走，輸出維持高。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-dtlnand.html">開原電路</a></p>
+</article>
+<article class="ex" id="ttlnand">
+  <h3>TTL 反及閘</h3>
+  <p class="en">TTL NAND</p>
+  <p>電晶體－電晶體邏輯的反及閘。看兩個輸入都高時輸出變低，其他組合輸出為高。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-ttlnand.html">開原電路</a></p>
+</article>
+<article class="ex" id="ttlnor">
+  <h3>TTL 反或閘</h3>
+  <p class="en">TTL NOR</p>
+  <p>任一輸入為高就把輸出拉低。看只要一邊輸入變高，輸出顏色就翻低。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-ttlnor.html">開原電路</a></p>
+</article>
+<article class="ex" id="eclnor">
+  <h3>ECL 反或／或閘</h3>
+  <p class="en">ECL NOR/OR</p>
+  <p>射極耦合邏輯不讓電晶體進入飽和，切換比較快，同時有反或和或兩個輸出。看兩個輸出顏色相反，邊緣很乾脆。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-eclnor.html">開原電路</a></p>
+</article>
+</div>
+</section>
+<section id="g-combinational-logic">
+  <h2><span class="num">9</span> 組合邏輯 <span class="en-title">Combinational Logic</span></h2>
+  <p class="group-blurb">輸出只看現在的輸入，沒有記憶。共 8 則。</p>
+<article class="ex" id="xor">
+  <h3>互斥或</h3>
+  <p class="en">Exclusive OR</p>
+  <p>兩個輸入不同才輸出高，用邏輯閘拼出來。看兩輸入一高一低時輸出變高，兩個一樣時輸出為低。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-xor.html">開原電路</a></p>
+</article>
+<article class="ex" id="halfadd">
+  <h3>半加器</h3>
+  <p class="en">Half Adder</p>
+  <p>把兩個位元相加，送出和與進位，不管下一位送上來的進位。看兩個都是高時和為低、進位變高；只有一個高時和為高、進位為低。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-halfadd.html">開原電路</a></p>
+</article>
+<article class="ex" id="fulladd">
+  <h3>全加器</h3>
+  <p class="en">Full Adder</p>
+  <p>半加器再加一個進位輸入，三個位元一起相加。看進位輸入也會改變和、以及往上送的進位顏色。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-fulladd.html">開原電路</a></p>
+</article>
+<article class="ex" id="decoder">
+  <h3>一對四解碼器</h3>
+  <p class="en">1-of-4 Decoder</p>
+  <p>兩位元輸入選中四條輸出線中的一條。看輸入組合改變時，四條輸出只有一條顏色翻轉。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-decoder.html">開原電路</a></p>
+</article>
+<article class="ex" id="mux3state">
+  <h3>二對一多工器</h3>
+  <p class="en">2-to-1 Mux</p>
+  <p>用兩個三態緩衝器選一路送到輸出，沒被選到的那路進入高阻抗，不影響輸出。看選擇線翻轉時，輸出改跟另一路走，沒選中的緩衝器上沒有黃點硬拉。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-mux3state.html">開原電路</a></p>
+</article>
+<article class="ex" id="majority">
+  <h3>多數決</h3>
+  <p class="en">Majority Logic</p>
+  <p>三個輸入裡至少兩個為高，輸出才為高。點輸入時數一數高電位有幾個，對照輸出顏色。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-majority.html">開原電路</a></p>
+</article>
+<article class="ex" id="digcompare">
+  <h3>二位元比較器</h3>
+  <p class="en">2-Bit Comparator</p>
+  <p>比兩個二位元數誰大、誰小，或是相等。看你改兩邊的位元時，結果線裡對應的那條變高。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-digcompare.html">開原電路</a></p>
+</article>
+<article class="ex" id="7segdecoder">
+  <h3>七段顯示器解碼器</h3>
+  <p class="en">7-Segment LED Decoder</p>
+  <p>把數字的位元變成七段顯示哪幾段該亮。看輸入改變時，對應的段亮起，那些段上有電壓顏色和電流點。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-7segdecoder.html">開原電路</a></p>
+</article>
+</section>
+<section id="g-sequential-logic">
+  <h2><span class="num">10</span> 序向邏輯 <span class="en-title">Sequential Logic</span></h2>
+  <p class="group-blurb">電路會記住以前的狀態。正反器和計數器是這裡的小標；除法、紅綠燈和動態記憶體直接掛在這一層。共 15 則。</p>
+<div class="nest" id="g-sequential-logic-flip-flops">
+  <h3 class="subhead">正反器 <span class="en-title">Flip-Flops</span></h3>
+  <p class="group-blurb">記住一個位元的基本單元。共 5 則。</p>
+<article class="ex" id="nandff">
+  <h3>SR 正反器</h3>
+  <p class="en">SR Flip-Flop</p>
+  <p>用反及閘做的置位－復位正反器：一邊的脈衝把它設成高，另一邊把它清成低，然後它會記住。看脈衝結束後，兩個輸出顏色仍維持相反。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-nandff.html">開原電路</a></p>
+</article>
+<article class="ex" id="clockedsrff">
+  <h3>有時脈的 SR 正反器</h3>
+  <p class="en">Clocked SR Flip-Flop</p>
+  <p>S 和 R 要等時脈允許才起作用。看時脈不允許時你改 S、R，輸出顏色不動；時脈允許才更新。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-clockedsrff.html">開原電路</a></p>
+</article>
+<article class="ex" id="masterslaveff">
+  <h3>主從正反器</h3>
+  <p class="en">Master-Slave Flip-Flop</p>
+  <p>主級在時脈的一邊吃進資料，從級在另一邊才送到輸出。看輸出顏色比輸入晚半個時脈才變。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-masterslaveff.html">開原電路</a></p>
+</article>
+<article class="ex" id="edgedff">
+  <h3>邊緣觸發 D 正反器</h3>
+  <p class="en">Edge-Triggered D Flip-Flop</p>
+  <p>只在時脈邊緣那一瞬間，把 D 抄到輸出。看時脈停在高或低時你改 D，輸出不變；只有邊緣那一下才跳。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-edgedff.html">開原電路</a></p>
+</article>
+<article class="ex" id="jkff">
+  <h3>JK 正反器</h3>
+  <p class="en">JK Flip-Flop</p>
+  <p>只在時脈從高變低時更新：兩個都低就記住，只有 J 高就設成高，只有 K 高就清成低，兩個都高就翻轉。看輸出顏色是不是只在下降沿才變。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-jkff.html">開原電路</a></p>
+</article>
+</div>
+<div class="nest" id="g-sequential-logic-counters">
+  <h3 class="subhead">計數器 <span class="en-title">Counters</span></h3>
+  <p class="group-blurb">把正反器串起來數脈衝。原索引裡，除以二和除以三不在這個小標下。共 6 則。</p>
+<article class="ex" id="counter">
+  <h3>四位元漣波計數器</h3>
+  <p class="en">4-Bit Ripple Counter</p>
+  <p>每一級的輸出當下一級的時脈，四個位元依序翻轉。看最低位最快閃，愈高的位元顏色翻得愈慢。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-counter.html">開原電路</a></p>
+</article>
+<article class="ex" id="counter8">
+  <h3>八位元漣波計數器</h3>
+  <p class="en">8-Bit Ripple Counter</p>
+  <p>同樣的漣波，拉長到八級。看最低位很忙，最高位很久才翻一次。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-counter8.html">開原電路</a></p>
+</article>
+<article class="ex" id="synccounter">
+  <h3>同步計數器</h3>
+  <p class="en">Synchronous Counter</p>
+  <p>所有正反器共用同一個時脈，靠邏輯決定誰該翻。看時脈每跳一次，該變的位元一起更新，而不是一個等一個。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-synccounter.html">開原電路</a></p>
+</article>
+<article class="ex" id="deccounter">
+  <h3>十進計數器</h3>
+  <p class="en">Decimal Counter</p>
+  <p>數完十個狀態就回到起點，不把四位元的十六個狀態走完。看輸出位元的顏色在一輪結束時回到開頭。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-deccounter.html">開原電路</a></p>
+</article>
+<article class="ex" id="graycode">
+  <h3>格雷碼計數器</h3>
+  <p class="en">Gray Code Counter</p>
+  <p>相鄰兩個數只有一個位元不同。看每一拍通常只有一條輸出線的顏色在翻。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-graycode.html">開原電路</a></p>
+</article>
+<article class="ex" id="johnsonctr">
+  <h3>強生計數器／十進計數器</h3>
+  <p class="en">Johnson Counter / Decade Counter</p>
+  <p>最後一級反相後送回最前面，高電位沿著各級走；這個標題也包含十進用法。看每一拍顏色怎麼往前移，以及什麼時候回到起點。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-johnsonctr.html">開原電路</a></p>
+</article>
+</div>
+<article class="ex" id="divideby2">
+  <h3>除以二</h3>
+  <p class="en">Divide-by-2</p>
+  <p>輸出每兩個時脈才完成一個週期，頻率是輸入的一半。看示波器：輸出方波比時脈寬一倍。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-divideby2.html">開原電路</a></p>
+</article>
+<article class="ex" id="divideby3">
+  <h3>除以三</h3>
+  <p class="en">Divide-by-3</p>
+  <p>三個時脈才完成輸出的一個週期。看輸出脈衝比時脈稀，三拍一個循環。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-divideby3.html">開原電路</a></p>
+</article>
+<article class="ex" id="traffic">
+  <h3>紅綠燈</h3>
+  <p class="en">Traffic Light</p>
+  <p>555 提供時脈，十進計數器驅動兩組紅綠燈。看燈的顏色輪流亮，黃點只出現在正在亮的燈上。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-traffic.html">開原電路</a></p>
+</article>
+<article class="ex" id="dram">
+  <h3>動態隨機存取記憶體</h3>
+  <p class="en">Dynamic RAM</p>
+  <p>這個簡單模型把位元存在電容上，用列選擇決定讀寫哪一位。看寫入後電容顏色慢慢變淡，所以要再寫一次才記得住。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-dram.html">開原電路</a></p>
+</article>
+</section>
+<section id="g-555-timer-chip">
+  <h2><span class="num">11</span> 555 計時器 <span class="en-title">555 Timer Chip</span></h2>
+  <p class="group-blurb">一顆常用的計時晶片。內部是分壓、比較器和正反器，外面用電阻和電容決定時間。共 9 則。</p>
+<article class="ex" id="555square">
+  <h3>555 方波產生器</h3>
+  <p class="en">555 Square Wave Generator</p>
+  <p>電容在兩個門檻之間充電、放電，輸出是方波。看電容電壓顏色在兩道門檻之間來回，輸出顏色則是乾脆的高低。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-555square.html">開原電路</a></p>
+</article>
+<article class="ex" id="555int">
+  <h3>555 內部</h3>
+  <p class="en">555 Internals</p>
+  <p>把裡面的分壓、比較器和正反器畫開來。看電容電壓碰到上、下門檻時，是哪一個比較器翻轉，正反器怎麼改輸出。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-555int.html">開原電路</a></p>
+</article>
+<article class="ex" id="555saw">
+  <h3>555 鋸齒波振盪器</h3>
+  <p class="en">555 Sawtooth Oscillator</p>
+  <p>充電走一條路，放電很快走另一條，電容電壓變成鋸齒。看示波器一邊斜、一邊陡。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-555saw.html">開原電路</a></p>
+</article>
+<article class="ex" id="555lowduty">
+  <h3>555 低工作週期振盪器</h3>
+  <p class="en">555 Low-duty-cycle Oscillator</p>
+  <p>高電位只佔週期的一小段。看輸出顏色大部分時間停在一側，只有短短一下跳到另一側。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-555lowduty.html">開原電路</a></p>
+</article>
+<article class="ex" id="555monostable">
+  <h3>555 單穩態</h3>
+  <p class="en">555 Monostable Multivibrator</p>
+  <p>平時輸出在一個狀態，觸發後翻到另一邊待一段時間再回來。看一次觸發對應一根脈衝，電容顏色在那段時間爬到門檻。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-555monostable.html">開原電路</a></p>
+</article>
+<article class="ex" id="555sequencer">
+  <h3>555 脈衝序列</h3>
+  <p class="en">555 Pulse Sequencer</p>
+  <p>幾個單穩態串起來，一個結束就觸發下一個。看高電位的顏色沿著各級依序點亮。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-555sequencer.html">開原電路</a></p>
+</article>
+<article class="ex" id="555pulsemod">
+  <h3>555 脈衝寬度調變</h3>
+  <p class="en">555 Pulse Width Modulator</p>
+  <p>用一個電壓改變脈衝有多寬。看控制電壓被拉動時，示波器上高電位的寬度跟著變。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-555pulsemod.html">開原電路</a></p>
+</article>
+<article class="ex" id="555schmitt">
+  <h3>555 反相施密特觸發器</h3>
+  <p class="en">555 Schmitt Trigger (inverting)</p>
+  <p>兩個門檻拿來做施密特：輸入慢慢變化時，輸出突然反相跳變。看輸入是斜坡，輸出仍是乾脆的高低，而且上下翻轉點不同。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-555schmitt.html">開原電路</a></p>
+</article>
+<article class="ex" id="555missing">
+  <h3>555 遺失脈衝偵測器</h3>
+  <p class="en">555 Missing Pulse Detector</p>
+  <p>輸入的方波若按時回到低電位，電容會被清掉；脈衝停住不再回來，單穩態就動作，輸出被拉低。看脈衝正常時輸出不動，輸入停住後輸出顏色才翻。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-555missing.html">開原電路</a></p>
+</article>
+</section>
+<section id="g-transmission-lines">
+  <h2><span class="num">12</span> 傳輸線 <span class="en-title">Transmission Lines</span></h2>
+  <p class="group-blurb">線長到不能忽略時，電壓和電流要走一段時間才到另一頭，也會反射。共 10 則。</p>
+<article class="ex" id="tl">
+  <h3>簡單傳輸線</h3>
+  <p class="en">Simple Transmission Lines</p>
+  <p>電壓和電流要花時間才從這一頭走到那一頭。看一個脈衝的顏色和黃點沿著線移動，不是瞬間出現在遠端。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-tl.html">開原電路</a></p>
+</article>
+<article class="ex" id="tlstand">
+  <h3>傳輸線上的駐波</h3>
+  <p class="en">Standing Wave on a Transmission Line</p>
+  <p>反射波和去波疊在一起，有的位置振幅很大，有的位置幾乎不動。看線上某些點的顏色一直大幅擺動，某些點幾乎是灰的。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-tlstand.html">開原電路</a></p>
+</article>
+<article class="ex" id="tlterm">
+  <h3>傳輸線的終端</h3>
+  <p class="en">Termination of a Transmission Line</p>
+  <p>末端若接上和線一樣的阻抗，波會被吸收，不再反射。看末端不再把脈衝彈回來。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-tlterm.html">開原電路</a></p>
+</article>
+<article class="ex" id="tlmismatch">
+  <h3>不匹配的傳輸線（脈衝）</h3>
+  <p class="en">Mismatched transmission lines (Pulse)</p>
+  <p>末端阻抗不對，一部分脈衝被反射，極性可能翻轉。看脈衝走到頭又有一個比較小的脈衝跑回來。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-tlmismatch.html">開原電路</a></p>
+</article>
+<article class="ex" id="tlmis1">
+  <h3>不匹配的傳輸線（駐波）</h3>
+  <p class="en">Mismatched transmission lines (Standing Wave)</p>
+  <p>持續的交流在不匹配的線上形成駐波。看線上各點的擺幅不一樣，波腹和波節差很多。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-tlmis1.html">開原電路</a></p>
+</article>
+<article class="ex" id="tlmatch1">
+  <h3>阻抗匹配（L 形網路）</h3>
+  <p class="en">Impedance Matching (L-Section)</p>
+  <p>用一顆電感和一顆電容把負載調到跟線一樣，反射變小。看匹配後線上的顏色擺幅比較均勻，不再有明顯的波節。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-tlmatch1.html">開原電路</a></p>
+</article>
+<article class="ex" id="tlmatch2">
+  <h3>阻抗匹配（並聯短截線）</h3>
+  <p class="en">Impedance Matching (Shunt Stub)</p>
+  <p>用一段短線當可調的電抗，把反射消掉。看接上短截線後，主線上的駐波變小。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-tlmatch2.html">開原電路</a></p>
+</article>
+<article class="ex" id="tlfreq">
+  <h3>短截線的頻率響應</h3>
+  <p class="en">Stub Frequency Response</p>
+  <p>一根開路、一根短路的短線，頻率不同，看起來像開路或短路的程度也不同。看掃頻時兩端的電壓顏色和電流點隨頻率變化，兩條示波器不一樣。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-tlfreq.html">開原電路</a></p>
+</article>
+<article class="ex" id="tllopass">
+  <h3>低通濾波器</h3>
+  <p class="en">Low-Pass Filter</p>
+  <p>用好幾段長短、阻抗不同的傳輸線接成低通。看頻率升高時，輸出的電壓顏色擺得比輸入小。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-tllopass.html">開原電路</a></p>
+</article>
+<article class="ex" id="tllight">
+  <h3>電燈開關</h3>
+  <p class="en">Light Switch</p>
+  <p>把傳輸線想成一條很長的燈線，開關打開後電壓要走一陣子才到燈泡。看脈衝沿線前進，燈的顏色不是立刻變。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-tllight.html">開原電路</a></p>
+</article>
+</section>
+<section id="g-memristors">
+  <h2><span class="num">13</span> 憶阻器 <span class="en-title">Memristors</span></h2>
+  <p class="group-blurb">電阻記得過去流過的電荷，所以電流－電壓圖會畫出一個環，而不是一條線。共 6 則。</p>
+<article class="ex" id="mr">
+  <h3>憶阻器</h3>
+  <p class="en">Memristor</p>
+  <p>它像電阻，但電阻會跟著過去流過的電流改變：電流流過之後電阻下降，反向時又升回去。看示波器上的電流－電壓是一個環，不是一條直線。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-mr.html">開原電路</a></p>
+</article>
+<article class="ex" id="mr-sine">
+  <h3>憶阻器對正弦波的反應</h3>
+  <p class="en">Memristor Response to Sine Wave</p>
+  <p>正弦電壓掃過憶阻器，電流波形會扭曲。看示波器上的環，以及黃點不是單純跟著電壓縮放。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-mr-sine.html">開原電路</a></p>
+</article>
+<article class="ex" id="mr-square">
+  <h3>憶阻器對方波的反應</h3>
+  <p class="en">Memristor Response to Square Wave</p>
+  <p>方波讓它在不同電阻狀態之間切。看每個平頂期間黃點疏密不一樣，代表當時的電阻不同。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-mr-square.html">開原電路</a></p>
+</article>
+<article class="ex" id="mr-triangle">
+  <h3>憶阻器對三角波的反應</h3>
+  <p class="en">Memristor Response to Triangle Wave</p>
+  <p>三角波以等速度掃電壓，比較容易看出電阻怎麼跟著過去改。看電流－電壓環，電流本身不是三角。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-mr-triangle.html">開原電路</a></p>
+</article>
+<article class="ex" id="mr-sine2">
+  <h3>憶阻器硬切換 1</h3>
+  <p class="en">Memristor Hard-Switching 1</p>
+  <p>正弦掃得比較大時，憶阻器會頂到最低電阻，電流冒出尖峰。看電流－電壓環，以及黃點在尖峰那一瞬間變密。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-mr-sine2.html">開原電路</a></p>
+</article>
+<article class="ex" id="mr-sine3">
+  <h3>憶阻器硬切換 2</h3>
+  <p class="en">Memristor Hard-Switching 2</p>
+  <p>這一則會同時頂到最低和最高電阻，電流一樣冒尖峰。看環形和黃點的尖峰，和前一則哪裡不同以畫面為準。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-mr-sine3.html">開原電路</a></p>
+</article>
+</section>
+<section id="g-tunnel-diodes">
+  <h2><span class="num">14</span> 穿隧二極體 <span class="en-title">Tunnel Diodes</span></h2>
+  <p class="group-blurb">穿隧二極體有一段是電壓升高、電流反而下降。共 2 則。</p>
+<article class="ex" id="tdiode">
+  <h3>穿隧二極體的電流－電壓曲線</h3>
+  <p class="en">Tunnel Diode I/V Curve</p>
+  <p>有一小段是電壓升高、電流反而下降的負電阻。看示波器曲線爬上去之後有一段往下掉，再重新上升。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-tdiode.html">開原電路</a></p>
+</article>
+<article class="ex" id="tdrelax">
+  <h3>穿隧二極體弛張振盪器</h3>
+  <p class="en">Tunnel Diode Relaxation Oscillator</p>
+  <p>把穿隧二極體偏在負電阻那一段，電感上的電流會讓電路自己振盪。看電壓顏色在曲線的兩支之間跳，不是平滑的正弦。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-tdrelax.html">開原電路</a></p>
+</article>
+</section>
+<section id="g-spark-gaps">
+  <h2><span class="num">15</span> 火花隙 <span class="en-title">Spark Gaps</span></h2>
+  <p class="group-blurb">電壓高到火花隙打通，電荷就一下子洩掉。共 3 則。</p>
+<article class="ex" id="spark-sawtooth">
+  <h3>鋸齒波振盪器</h3>
+  <p class="en">Sawtooth Oscillator</p>
+  <p>電壓慢慢爬高，直到火花隙打通，電荷很快洩掉，再重新爬。看電壓顏色慢慢變深，導通時黃點突然很密、電壓掉下去。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-spark-sawtooth.html">開原電路</a></p>
+</article>
+<article class="ex" id="tesla">
+  <h3>特斯拉線圈</h3>
+  <p class="en">Tesla Coil</p>
+  <p>兩個頻率接近的諧振電路靠磁場交連，能量在兩邊來回，二次側可以出現很高的電壓。看一次側和二次側的電壓顏色輪流變深。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-tesla.html">開原電路</a></p>
+</article>
+<article class="ex" id="spark-marx">
+  <h3>馬克思產生器</h3>
+  <p class="en">Marx Generator</p>
+  <p>幾顆電容先並聯充電，火花隙串通後變成串聯，電壓疊加。看充電時各電容顏色一起變深，放電瞬間末端顏色突然深很多，黃點沿火花路徑衝過去。</p>
+  <p><a class="open" href="https://www.falstad.com/circuit/e-spark-marx.html">開原電路</a></p>
+</article>
+</section>
+
+
+  <div class="footer">
+    <p>JustKM · 電機與機器人 · 199 則，連結取自 Falstad 索引頁 · <a href="./index.html">← 回到目錄</a> · <a href="./falstad.html">怎麼讀 Falstad</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
