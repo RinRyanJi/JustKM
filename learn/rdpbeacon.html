@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>RDPBeacon:用一像素滑鼠微動保住 VDI 連線的 Rust 守護程式 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🖱️ RDPBeacon:用一像素滑鼠微動保住 VDI 連線的 Rust 守護程式</h1>
+    <p class="sub">名字看起來像惡意軟體,其實是個無害的「防閒置」小工具:一個用 Rust 寫的跨平台 CLI 守護程式,每隔幾分鐘對 Omnissa Horizon(VDI/虛擬桌面)視窗送一個「1 像素滑鼠微動再移回」的保活訊號,避免因閒置被斷線。本頁從原始碼拆解它的架構、一個 beacon 週期怎麼跑、三個平台後端各用什麼系統 API,以及它誠實標明「做不到什麼」。</p>
+    <div>
+      <span class="badge blue">Rust 2021 · Apache-2.0 · CLI daemon</span>
+      <span class="badge green">X11 · Wayland · Windows 三後端</span>
+      <span class="badge orange">防閒置保活 · 非惡意 beacon</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結(先澄清名字)</a>
+      <a href="#why">① 它解決什麼問題</a>
+      <a href="#arch">② 架構總覽</a>
+      <a href="#cycle">③ 一個 beacon 週期怎麼跑</a>
+      <a href="#backends">④ 三個平台後端</a>
+      <a href="#match">⑤ 視窗比對的聰明處</a>
+      <a href="#config">⑥ 設定項</a>
+      <a href="#limits">⑦ 誠實邊界與政策合規</a>
+      <a href="#notes">⑧ 重點 · 關聯 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結(先澄清名字)</h2>
+    <p><strong>RDPBeacon 不是 C2、不是木馬</strong>——雖然「Beacon」這字在資安界常指惡意回連。它其實是個<strong>防閒置(anti-idle / keep-alive)</strong>工具:讓你已登入的 <strong>Omnissa Horizon Client</strong>(就是前身 VMware Horizon 的 VDI 用戶端)不會因為你暫時沒操作而被伺服器斷線。做法很單純——每隔幾分鐘,對 Horizon 視窗注入一個<strong>極小且無害的模擬輸入</strong>(預設是把滑鼠游標推 1 像素再推回來),騙過閒置計時器。</p>
+    <div class="callout info"><strong>為什麼值得讀:</strong>它是一個麻雀雖小、五臟俱全的 Rust CLI 範例——<strong>trait 抽象的後端、跨 X11/Wayland/Windows 的輸入注入、焦點保存/還原、隨機抖動排程</strong>,而且 README 很誠實地標出它「做不到什麼」。拿來學「跨平台系統程式怎麼分層」很合適。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="why">
+    <h2><span class="num">①</span> 它解決什麼問題</h2>
+    <p>用 VDI(虛擬桌面)上班的人常遇到:開著 Horizon 連到遠端桌面,但你切去本機處理別的事、或離開一下,遠端 session 因為「閒置逾時」被強制斷線,回來得重連、重開應用、丟掉現場。RDPBeacon 就是定期製造一點「你還在」的輸入訊號,把閒置計時器往後推。</p>
+    <ul>
+      <li><strong>保活的是「輸入閒置計時器」</strong>,不是什麼都繞過(見 ⑦)。</li>
+      <li><strong>你真的在用 Horizon 時會自動跳過</strong>:你的打字本身就讓 session 活著,不需要多此一舉。</li>
+      <li><strong>背景的 Horizon session 照樣保活</strong>:就算你在本機別的視窗工作,背景那個遠端桌面也不會被放生。</li>
+    </ul>
+  </section>
+
+  <!-- 2 -->
+  <section id="arch">
+    <h2><span class="num">②</span> 架構總覽:一個 crate,trait 解耦後端</h2>
+    <p>整個工具是單一 Rust crate,用 <strong>trait 把「平台相關的髒活」和「平台無關的邏輯」切開</strong>:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 250" role="img" aria-label="架構分層：config 解析 TOML 設定；scheduler 核心迴圈管理隨機睡眠、檢查閒置、呼叫後端；Backend trait 定義閒置偵測/找窗/切焦點/注入四個介面，由 X11、Wayland、Windows 三個後端實作">
+        <defs><marker id="aa" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">平台無關邏輯 ↔ 平台相關後端(trait 解耦)</text>
+
+          <rect x="16" y="44" width="150" height="56" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="800" fill="#005bb0">config</text>
+          <text x="91" y="83" text-anchor="middle" font-size="8" fill="#5d5b54">serde + toml</text>
+          <text x="91" y="95" text-anchor="middle" font-size="8" fill="#5d5b54">時間字串 "4m"/"20s"</text>
+
+          <rect x="210" y="44" width="170" height="56" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="295" y="66" text-anchor="middle" font-size="10.5" font-weight="800" fill="#3a2a99">scheduler(核心迴圈)</text>
+          <text x="295" y="83" text-anchor="middle" font-size="8" fill="#37352f">隨機睡眠 interval±jitter</text>
+          <text x="295" y="95" text-anchor="middle" font-size="8" fill="#37352f">查閒置 · 呼叫後端 · 重試/退出</text>
+
+          <rect x="430" y="44" width="274" height="56" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="567" y="66" text-anchor="middle" font-size="10.5" font-weight="800" fill="#b34700">Backend trait(標準介面)</text>
+          <text x="567" y="83" text-anchor="middle" font-size="8" fill="#5d5b54">idle_time · find_horizon_window</text>
+          <text x="567" y="95" text-anchor="middle" font-size="8" fill="#5d5b54">active_window · 切焦點 · 注入 beacon</text>
+
+          <rect x="430" y="140" width="86" height="80" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+          <text x="473" y="164" text-anchor="middle" font-size="9.5" font-weight="700" fill="#137a29">X11</text>
+          <text x="473" y="181" text-anchor="middle" font-size="7" fill="#5d5b54">x11rb</text>
+          <text x="473" y="193" text-anchor="middle" font-size="7" fill="#5d5b54">XTest/EWMH</text>
+          <text x="473" y="205" text-anchor="middle" font-size="7" fill="#5d5b54">XScreenSaver</text>
+
+          <rect x="524" y="140" width="92" height="80" rx="9" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.4"/>
+          <text x="570" y="164" text-anchor="middle" font-size="9.5" font-weight="700" fill="#c02d80">Wayland</text>
+          <text x="570" y="181" text-anchor="middle" font-size="7" fill="#5d5b54">evdev</text>
+          <text x="570" y="193" text-anchor="middle" font-size="7" fill="#5d5b54">/dev/uinput</text>
+          <text x="570" y="205" text-anchor="middle" font-size="7" fill="#5d5b54">全域注入</text>
+
+          <rect x="624" y="140" width="80" height="80" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/>
+          <text x="664" y="164" text-anchor="middle" font-size="9.5" font-weight="700" fill="#005bb0">Windows</text>
+          <text x="664" y="181" text-anchor="middle" font-size="7" fill="#5d5b54">Win32</text>
+          <text x="664" y="193" text-anchor="middle" font-size="7" fill="#5d5b54">SendInput</text>
+          <text x="664" y="205" text-anchor="middle" font-size="7" fill="#5d5b54">EnumWindows</text>
+
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#aa)">
+            <path d="M166,72 L208,72"/><path d="M380,72 L428,72"/>
+            <path d="M540,100 L495,138"/><path d="M567,100 L570,138"/><path d="M594,100 L650,138"/>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ <code>scheduler</code> 不知道自己在哪個平台;它只對著 <code>Backend</code> trait 呼叫,實際由三個後端其中一個實作。想加 macOS?再實作一個 Backend 就好。</div>
+    </div>
+    <ul>
+      <li><strong><code>config</code></strong>:<code>serde</code> + <code>toml</code> 強型別設定,用 <code>humantime_serde</code> 吃人類友善的時間字串(<code>"4m"</code>、<code>"20s"</code>);<code>deny_unknown_fields</code> 防打錯設定名。</li>
+      <li><strong><code>scheduler</code></strong>:核心迴圈。管理<strong>隨機化睡眠</strong>(<code>interval ± jitter</code>,夾下限 1 秒)、比對系統閒置時間與 <code>idle_threshold</code>、呼叫後端、並在連續找不到視窗時依 <code>max_misses</code> 退出。</li>
+      <li><strong><code>backend</code>(<code>Backend</code> trait)</strong>:閒置偵測、找視窗、切焦點、注入 beacon 的標準介面——三平台各自實作。</li>
+    </ul>
+    <h3>三個子命令</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>子命令</th><th>做什麼</th></tr></thead>
+      <tbody>
+        <tr><td><code>run</code></td><td>啟動守護迴圈,閒置時定期送 beacon;連續 <code>max_misses</code> 次找不到 Horizon 就報錯退出;<code>Ctrl-C</code> 乾淨關閉。</td></tr>
+        <tr><td><code>once</code></td><td>立刻跑一個 beacon 週期(忽略 <code>idle_threshold</code>),印出結果(<code>Sent</code> / <code>SkippedNoWindow</code> / <code>SkippedActive</code>)。</td></tr>
+        <tr><td><code>check</code></td><td>檢查環境:回報偵測到的後端、目前系統閒置時間、Horizon 視窗狀態。</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 3 -->
+  <section id="cycle">
+    <h2><span class="num">③</span> 一個 beacon 週期怎麼跑(<code>run_cycle</code>)</h2>
+    <p>每一輪的邏輯都圍繞一個目標:<strong>只在「需要時」送、送完把你的環境還原得像沒發生過</strong>。原始碼裡一個週期回傳三種結果之一:<code>Sent</code>、<code>SkippedActive</code>(你正在用)、<code>SkippedNoWindow</code>(找不到 Horizon)。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 300" role="img" aria-label="一個 beacon 週期流程：先查系統閒置時間與找 Horizon 視窗；找不到就回 SkippedNoWindow；若 Horizon 是當前焦點且你正在打字則回 SkippedActive；否則保存目前焦點視窗、把焦點切到 Horizon、等約 250 毫秒讓輸入鉤子就緒、注入 1 像素滑鼠微動或按鍵、停留約 150 毫秒確保傳到遠端、再把焦點還原回原視窗，回 Sent">
+        <defs><marker id="ac" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">run_cycle:查 → 判斷 → 存焦點 → 注入 → 還原</text>
+
+          <rect x="20" y="40" width="150" height="38" rx="8" fill="#dcecfa" stroke="#0075de" stroke-width="1.3"/>
+          <text x="95" y="63" text-anchor="middle" font-size="9" fill="#005bb0">查閒置 + 找 Horizon 視窗</text>
+
+          <rect x="20" y="104" width="150" height="38" rx="8" fill="#fde0ec" stroke="#e03131" stroke-width="1.2"/>
+          <text x="95" y="121" text-anchor="middle" font-size="8.5" fill="#c0261b">找不到視窗</text>
+          <text x="95" y="134" text-anchor="middle" font-size="8" font-weight="700" fill="#c0261b">→ SkippedNoWindow</text>
+
+          <rect x="20" y="162" width="150" height="38" rx="8" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.2"/>
+          <text x="95" y="179" text-anchor="middle" font-size="8.5" fill="#b34700">Horizon 已聚焦+你在打字</text>
+          <text x="95" y="192" text-anchor="middle" font-size="8" font-weight="700" fill="#b34700">→ SkippedActive</text>
+
+          <rect x="250" y="88" width="160" height="40" rx="9" fill="#f0eeec" stroke="#a4a097" stroke-width="1.3"/>
+          <text x="330" y="105" text-anchor="middle" font-size="9" font-weight="700" fill="#37352f">① 保存目前焦點視窗</text>
+          <text x="330" y="119" text-anchor="middle" font-size="7.5" fill="#5d5b54">active_window()</text>
+
+          <rect x="250" y="140" width="160" height="40" rx="9" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.3"/>
+          <text x="330" y="157" text-anchor="middle" font-size="9" font-weight="700" fill="#3a2a99">② 焦點切到 Horizon</text>
+          <text x="330" y="171" text-anchor="middle" font-size="7.5" fill="#5d5b54">等 ~250ms 讓鉤子就緒</text>
+
+          <rect x="250" y="192" width="160" height="40" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="330" y="209" text-anchor="middle" font-size="9" font-weight="700" fill="#137a29">③ 注入 beacon</text>
+          <text x="330" y="223" text-anchor="middle" font-size="7.5" fill="#5d5b54">滑鼠 +1px/-1px 或按鍵</text>
+
+          <rect x="250" y="244" width="160" height="40" rx="9" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.3"/>
+          <text x="330" y="261" text-anchor="middle" font-size="9" font-weight="700" fill="#b34700">④ 停留 ~150ms + 還原焦點</text>
+          <text x="330" y="275" text-anchor="middle" font-size="7.5" fill="#5d5b54">確保傳到遠端後切回原視窗</text>
+
+          <rect x="470" y="192" width="150" height="40" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="545" y="216" text-anchor="middle" font-size="10" font-weight="800" fill="#137a29">→ Sent</text>
+
+          <g stroke="#8a93ad" stroke-width="1.5" fill="none" marker-end="url(#ac)">
+            <path d="M95,78 L95,102"/>
+            <path d="M170,118 L250,108"/>
+            <path d="M330,128 L330,138"/><path d="M330,180 L330,190"/><path d="M330,232 L330,242"/>
+            <path d="M410,212 L468,212"/>
+          </g>
+          <text x="210" y="100" font-size="7" fill="#787671">否則</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 「存焦點 → 切 Horizon → 等鉤子就緒 → 注入 → 停留確保送達 → 還原」整套只花約 100ms,對你幾乎無感。若 Horizon 本來就是焦點且你在打字,就直接跳過。</div>
+    </div>
+    <h3>排程的小細節:為什麼要抖動(jitter)</h3>
+    <p><code>next_sleep</code> 用 <code>rng.gen_range(low..=high)</code> 在 <code>interval ± jitter</code> 之間取隨機睡眠(夾下限 1 秒)。固定節奏的機械式輸入很容易被辨識成「自動化」;加點隨機抖動讓它更像真人的不規則操作。</p>
+  </section>
+
+  <!-- 4 -->
+  <section id="backends">
+    <h2><span class="num">④</span> 三個平台後端:各用什麼系統 API</h2>
+    <p>同一個 <code>Backend</code> trait,三種截然不同的系統底層:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>能力</th><th>Linux (X11)</th><th>Linux (Wayland)</th><th>Windows</th></tr></thead>
+      <tbody>
+        <tr><td>函式庫</td><td><code>x11rb</code></td><td><code>evdev</code> + <code>/dev/uinput</code></td><td><code>windows</code> crate(Win32)</td></tr>
+        <tr><td>閒置偵測</td><td>XScreenSaver</td><td>❌ 無法跨 client 查(見下)</td><td><code>GetLastInputInfo</code></td></tr>
+        <tr><td>找視窗</td><td>EWMH:<code>_NET_CLIENT_LIST</code></td><td>❌ 無法查別 app 視窗</td><td><code>EnumWindows</code> + <code>GetWindowTextW</code></td></tr>
+        <tr><td>切焦點</td><td>EWMH:<code>_NET_ACTIVE_WINDOW</code></td><td>❌ 不允許切別 app 焦點</td><td><code>SetForegroundWindow</code>(+<code>AttachThreadInput</code> 後備)</td></tr>
+        <tr><td>注入輸入</td><td>XTest <code>fake_input</code></td><td><code>/dev/uinput</code> 虛擬裝置(全域)</td><td><code>SendInput</code></td></tr>
+      </tbody>
+    </table></div>
+    <h3>Wayland 的安全模型逼出的取捨</h3>
+    <p>Wayland 刻意隔離各應用、禁止跨 client 操作視窗或切焦點。RDPBeacon 繞法是用核心的 <code>/dev/uinput</code> 介面「從底層」造一個虛擬輸入裝置——<strong>不需要 root 或顯示伺服器權限</strong>(設好 udev 規則 + 加入 <code>input</code> 群組即可)。代價是兩個限制:</p>
+    <ul>
+      <li><strong>不能切焦點</strong>:事件只會送到「當前作用中的視窗」,無法自動把 Horizon 拉到前景——所以 Wayland 下得自己確保 Horizon 在前景。</li>
+      <li><strong>不能查全域閒置</strong>:因此 Wayland 下 beacon 會<strong>無條件</strong>按固定間隔觸發,不管你本機在不在忙。</li>
+    </ul>
+    <div class="callout info"><strong>零快取設計:</strong>每個週期都重新查一次視窗(不快取 window id),所以 Horizon 重啟、視窗標題改變都能自動適應。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="match">
+    <h2><span class="num">⑤</span> 視窗比對的聰明處(<code>title_matches</code>)</h2>
+    <p>怎麼認出「這個視窗是 Horizon」?預設 <code>window_match = "Omnissa Horizon Client"</code>,但原始碼的比對不只是比標題:</p>
+    <ul>
+      <li><strong>標題或 WM_CLASS 任一命中</strong>(X11 會一起看 WM_CLASS),<strong>大小寫不敏感的子字串</strong>比對。</li>
+      <li><strong>特別處理遠端 session 視窗</strong>:當 matcher 含 <code>horizon</code>/<code>vmware</code>/<code>view</code> 時,也會比對那些 class 是 <code>HorizonUnityWindow</code>/<code>UnityWindow</code>/<code>MKSWindow</code> 的實際遠端桌面視窗——因為真正要保活的是那個遠端畫面,而不只是外層的 client 殼。</li>
+      <li>還會辨識工具列視窗(標題 <code>BBar</code>)等,避免誤判。</li>
+    </ul>
+    <p>這類「兼容多種視窗命名」的小細節,正是讓工具在不同 Horizon 版本、不同語系下還能穩定找到目標的關鍵。</p>
+  </section>
+
+  <!-- 6 -->
+  <section id="config">
+    <h2><span class="num">⑥</span> 設定項(TOML)</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>欄位</th><th>型別</th><th>預設</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>interval</code></td><td>duration</td><td><code>"4m"</code></td><td>每輪之間的基礎間隔。</td></tr>
+        <tr><td><code>jitter</code></td><td>duration</td><td><code>"20s"</code></td><td>間隔上下的隨機變動(<code>interval ± jitter</code>,最少 1 秒)。</td></tr>
+        <tr><td><code>idle_threshold</code></td><td>duration</td><td><code>"3m"</code></td><td>Horizon 聚焦時,閒置多久才送 beacon;你在裡面打字就跳過。背景 session 不受此限,照樣保活。</td></tr>
+        <tr><td><code>mode</code></td><td>string</td><td><code>"mouse"</code></td><td><code>"mouse"</code>(游標 +1px/-1px)或 <code>"key"</code>(按放一個鍵)。mouse 模式需游標在 Horizon 桌面內。</td></tr>
+        <tr><td><code>key</code></td><td>string</td><td><code>"Shift_L"</code></td><td><code>key</code> 模式用的鍵;推薦 <code>Shift_L</code>——不產生字元、跨鍵盤佈局乾淨。</td></tr>
+        <tr><td><code>window_match</code></td><td>string</td><td><code>"Omnissa Horizon Client"</code></td><td>比對視窗標題(X11 含 WM_CLASS)的大小寫不敏感子字串,每輪重查。</td></tr>
+        <tr><td><code>max_misses</code></td><td>integer</td><td><code>5</code></td><td>連續找不到 Horizon 幾次後 <code>run</code> 報錯退出。</td></tr>
+        <tr><td><code>backend</code></td><td>string</td><td>自動</td><td>強制後端(<code>x11</code>/<code>wayland</code>/<code>windows</code>),預設自動偵測。</td></tr>
+      </tbody>
+    </table></div>
+    <pre><code><span class="cm"># 快速試跑:10 秒間隔,方便觀察</span>
+rdpbeacon --config &lt;(printf 'interval = "10s"\nidle_threshold = "5s"\njitter = "2s"\n') run
+
+<span class="cm"># 先檢查環境(後端 / 閒置時間 / 有沒有找到 Horizon)</span>
+rdpbeacon check
+<span class="cm"># 立刻測一發</span>
+rdpbeacon once</code></pre>
+  </section>
+
+  <!-- 7 -->
+  <section id="limits">
+    <h2><span class="num">⑦</span> 誠實邊界與政策合規(很重要)</h2>
+    <p>這頁最值得學的態度:README 很老實地列出它<strong>做不到什麼</strong>,不浮誇。</p>
+    <ul>
+      <li><strong>只擋「閒置逾時」,擋不了「硬性 session 上限」</strong>:它模擬的是本機輸入,防的是 inactivity timeout;無法繞過 Horizon 連線伺服器或身分供應商設的「最長 session 壽命」(例如 8 小時強制登出)。</li>
+      <li><strong>會順便重置你本機的鎖屏/螢保計時器</strong>:因為注入的是真的 OS 輸入,連本機閒置計時也被重置——可能讓本機螢幕保護/自動鎖屏不會啟動。<strong>離開座位務必手動鎖屏</strong>(<code>Win+L</code> / <code>Super+L</code>)。</li>
+      <li><strong>遠端桌面被鎖定時不保證有效</strong>:本機輸入注入無法確認「被鎖定的遠端 Windows 桌面」真的收到事件、真的重置了它的閒置計時。</li>
+      <li><strong>這是「自用」生產力工具</strong>:作者明言你要自行確保使用它<strong>符合公司的 IT 資安、可接受使用(AUP)與遠距工作政策</strong>。繞過公司刻意設定的逾時策略前,請先確認你被允許這麼做。</li>
+    </ul>
+    <div class="callout warn"><strong>為什麼不是「作弊掛機」工具:</strong>它的定位是「我人在、只是手沒一直動,別把我踢掉」,而不是「假裝我在但其實人不在」。這兩者的差別,就落在你有沒有照 ⑦ 的提醒<strong>離開就鎖屏</strong>、以及你公司政策允不允許。</div>
+  </section>
+
+  <!-- 8 -->
+  <section id="notes">
+    <h2><span class="num">⑧</span> 重點 · 關聯 · 來源</h2>
+    <h3>六個帶得走的重點</h3>
+    <ol>
+      <li>名字嚇人,本質是<strong>防閒置保活</strong>:對 Omnissa Horizon 視窗送 1 像素滑鼠微動,避免 VDI 閒置斷線。</li>
+      <li>單一 Rust crate,用 <strong><code>Backend</code> trait</strong> 把平台無關邏輯(scheduler)與平台後端(X11/Wayland/Windows)解耦。</li>
+      <li>一個週期:<strong>存焦點 → 切 Horizon → 等鉤子 → 注入 → 停留送達 → 還原</strong>;你在用就跳過,背景 session 照保。</li>
+      <li>三後端系統 API 各異:X11 用 XTest/EWMH/XScreenSaver、Wayland 用 <code>/dev/uinput</code>、Windows 用 <code>SendInput</code>/<code>GetLastInputInfo</code>。</li>
+      <li>排程有 <strong>jitter 隨機抖動</strong>、視窗比對兼容多種 Horizon 視窗 class、零快取每輪重查。</li>
+      <li>誠實標明做不到:擋不了硬性 session 上限、會重置本機鎖屏(<strong>離開要手動鎖</strong>)、須符合公司政策。</li>
+    </ol>
+    <div class="related">
+      <a href="./git-worktree.html">
+        <div class="rel-title">🌳 Git Worktree 觀念與實務</div>
+        <div class="rel-sub">另一個開發基礎工具頁</div>
+      </a>
+      <a href="./find-corporate-ca-cert.html">
+        <div class="rel-title">🔐 找到公司憑證(企業 CA)</div>
+        <div class="rel-sub">企業環境/VDI 常見的另一題</div>
+      </a>
+      <a href="./network-basics.html">
+        <div class="rel-title">🌐 網路小白入門</div>
+        <div class="rel-sub">REST / WebSocket 基礎</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>內容取自開源專案 <a href="https://github.com/hclhls/RDPBeacon" style="color:var(--link)">github.com/hclhls/RDPBeacon</a>(Apache-2.0)的 README 與原始碼(<code>src/scheduler.rs</code>、<code>src/backend/mod.rs</code>、<code>src/config.rs</code> 等)。「Omnissa Horizon」為 VMware Horizon 更名後的 VDI 產品。本頁為中立的技術/教學整理,非使用建議;是否運行、是否合乎貴公司政策,請自行判斷與確認。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
