@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>REA(Reverse Engineer Anything):給 AI 代理的逆向工程 MCP · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🔬 REA(Reverse Engineer Anything):給 AI 代理的逆向工程 MCP</h1>
+    <p class="sub">看到某個 app 有個你想要的功能,想懂它「到底怎麼做到的」——甚至做一個自己的版本?REA 是一個 MCP 伺服器,把你的 AI 代理接上一整套逆向工程工具:原生二進位、JavaScript/Electron、.NET、Android、網站、封包、韌體……都能在<strong>本機</strong>分析,而且每個結論都附上<strong>證據與限制</strong>。本頁拆解它的運作迴圈、能分析什麼、兩種分析模式,以及合法使用的界線。</p>
+    <div>
+      <span class="badge blue">MCP · npm rea-agents · MIT</span>
+      <span class="badge green">Claude Code / Codex / Cursor / Gemini CLI</span>
+      <span class="badge orange">證據導向 · 本機分析 · ~20 種目標</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#why">① 它解決什麼問題</a>
+      <a href="#how">② 它怎麼運作(MCP 迴圈)</a>
+      <a href="#what">③ 能分析什麼(能力全景)</a>
+      <a href="#providers">④ 深度原生分析:Hopper/Ghidra/IDA</a>
+      <a href="#modes">⑤ 兩種模式:靜態 vs 執行時</a>
+      <a href="#principles">⑥ 設計原則:證據與本機</a>
+      <a href="#showcases">⑦ 實戰案例</a>
+      <a href="#start">⑧ 怎麼上手</a>
+      <a href="#notes">⑨ 重點 · 合法界線 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>REA = 「Reverse Engineer Anything」,一個把 AI 代理接上逆向工程工具的 MCP。</strong>它的賣點是一條迴圈:<strong>看到功能 → 懂它怎麼做(深到 binary 層)→ 用證據支持 → 幫你做一個</strong>。你的代理透過 MCP 呼叫 REA 去檢查、追蹤目標,REA 回傳「findings + 證據 + 還不確定的地方」,代理再據此解釋行為、或動手實作並測試。分析在<strong>本機</strong>進行,同樣的工具也能從終端機直接用。</p>
+    <div class="callout info"><strong>定位:</strong>它不是單一反編譯器,而是一層「編排器 + 統一介面」——把 Hopper/Ghidra/IDA、JADX、WABT、TShark、mitmproxy、binwalk 這些既有工具,包成代理可呼叫的 MCP 工具,並強制「附證據」。MIT 授權、npm 套件 <code>rea-agents</code>、支援 Claude Code / Codex / Cursor / Gemini CLI 等。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="why">
+    <h2><span class="num">①</span> 它解決什麼問題</h2>
+    <p>逆向工程門檻高:你要會用反編譯器、看得懂組語、知道怎麼追 IPC、怎麼拆 APK……每種目標一套工具、一套知識。REA 把這些<strong>收斂成「問代理一句話」</strong>:</p>
+    <pre><code>理解 Notes app 的搜尋功能怎麼運作,給我看證據,
+然後幫我的專案做一個類似的功能。</code></pre>
+    <p>代理在背後呼叫 REA,對那個 app 做分析(不需要原始碼),解釋功能怎麼實作、<strong>秀出支持結論的證據</strong>,再幫你實作一版。價值有三:</p>
+    <ul>
+      <li><strong>降低門檻</strong>:不必自己記每種工具的指令,代理替你驅動。</li>
+      <li><strong>可稽核</strong>:結論附證據與「還不確定的地方」,不是黑箱猜測。</li>
+      <li><strong>可行動</strong>:findings 直接餵給代理去寫、去測一個實作。</li>
+    </ul>
+  </section>
+
+  <!-- 2 -->
+  <section id="how">
+    <h2><span class="num">②</span> 它怎麼運作:一條 MCP 迴圈</h2>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 230" role="img" aria-label="REA 運作迴圈：你的代理透過 MCP 把問題交給 REA；REA 用分析工具檢查並追蹤本機目標；回傳 findings、證據、參考與還不確定的地方；代理據此解釋行為、提出後續問題，或撰寫並測試實作；需要時再回頭追問，形成迴圈">
+        <defs><marker id="ah" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">代理 ↔ MCP ↔ REA:檢查 → 附證據回傳 → 解釋/實作/測試</text>
+
+          <rect x="16" y="50" width="150" height="60" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="91" y="74" text-anchor="middle" font-size="10.5" font-weight="800" fill="#005bb0">你的 AI 代理</text>
+          <text x="91" y="92" text-anchor="middle" font-size="8" fill="#5d5b54">Claude Code / Codex …</text>
+
+          <rect x="285" y="50" width="150" height="60" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="360" y="74" text-anchor="middle" font-size="10.5" font-weight="800" fill="#3a2a99">REA(MCP 伺服器)</text>
+          <text x="360" y="92" text-anchor="middle" font-size="8" fill="#5d5b54">編排分析工具</text>
+
+          <rect x="554" y="50" width="150" height="60" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="629" y="74" text-anchor="middle" font-size="10.5" font-weight="800" fill="#137a29">本機目標</text>
+          <text x="629" y="92" text-anchor="middle" font-size="8" fill="#5d5b54">binary / app / 流量…</text>
+
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#ah)">
+            <path d="M166,72 L283,72"/><path d="M435,72 L552,72"/>
+          </g>
+          <text x="224" y="64" text-anchor="middle" font-size="7.5" fill="#787671">MCP 呼叫</text>
+          <text x="494" y="64" text-anchor="middle" font-size="7.5" fill="#787671">檢查 / 追蹤</text>
+
+          <rect x="150" y="140" width="420" height="40" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/>
+          <text x="360" y="158" text-anchor="middle" font-size="9.5" font-weight="700" fill="#b34700">回傳 findings:程式碼/參考 + 證據 + 還不確定的地方(unknowns)</text>
+          <text x="360" y="173" text-anchor="middle" font-size="8" fill="#5d5b54">代理據此:解釋行為 · 追問 · 撰寫並測試實作</text>
+          <g stroke="#8a93ad" stroke-width="1.6" fill="none" marker-end="url(#ah)">
+            <path d="M435,110 L400,138"/><path d="M285,138 L120,112"/>
+          </g>
+          <text x="150" y="128" font-size="7.5" fill="#787671">迴圈:需要時再追問</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ CLI 用的是同一套 workflow——你也能直接在終端機跑這些分析,不透過代理。</div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section id="what">
+    <h2><span class="num">③</span> 能分析什麼:能力全景(~20 種目標)</h2>
+    <p>REA 的廣度是它最驚人的地方。依目標大致分三群:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 240" role="img" aria-label="REA 能力三大群：原生與低階（原生二進位、ELF、Go、WASM、EVM、韌體、Linux 當機）；應用層（JS/Electron、.NET、Android APK/裝置、Flutter、JEB、Apktool、Apple bundle）；網路與執行時（網站、網路捕獲、封包、邏輯訊號、SQLite、行程行為）">
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">三大群,涵蓋從組語到流量</text>
+          <rect x="16" y="40" width="222" height="188" rx="11" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="127" y="62" text-anchor="middle" font-size="10.5" font-weight="800" fill="#005bb0">原生 / 低階</text>
+          <text x="127" y="86" text-anchor="middle" font-size="8.5" fill="#37352f">原生二進位(偽碼/組語/符號)</text>
+          <text x="127" y="104" text-anchor="middle" font-size="8.5" fill="#37352f">ELF 版面 · Go 二進位</text>
+          <text x="127" y="122" text-anchor="middle" font-size="8.5" fill="#37352f">WASM · EVM bytecode</text>
+          <text x="127" y="140" text-anchor="middle" font-size="8.5" fill="#37352f">韌體(binwalk/unblob)</text>
+          <text x="127" y="158" text-anchor="middle" font-size="8.5" fill="#37352f">Linux 當機記錄</text>
+          <text x="127" y="182" text-anchor="middle" font-size="7.5" fill="#5d5b54">多半需 Hopper/Ghidra/IDA</text>
+          <text x="127" y="198" text-anchor="middle" font-size="7.5" fill="#5d5b54">或 pwntools/WABT 等</text>
+
+          <rect x="249" y="40" width="222" height="188" rx="11" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="360" y="62" text-anchor="middle" font-size="10.5" font-weight="800" fill="#3a2a99">應用層</text>
+          <text x="360" y="86" text-anchor="middle" font-size="8.5" fill="#37352f">JavaScript / Electron</text>
+          <text x="360" y="104" text-anchor="middle" font-size="8.5" fill="#37352f">.NET(CIL,純靜態)</text>
+          <text x="360" y="122" text-anchor="middle" font-size="8.5" fill="#37352f">Android APK(JADX)/ 裝置(adb)</text>
+          <text x="360" y="140" text-anchor="middle" font-size="8.5" fill="#37352f">Flutter · JEB · Apktool</text>
+          <text x="360" y="158" text-anchor="middle" font-size="8.5" fill="#37352f">Apple bundle / 套件資源</text>
+          <text x="360" y="186" text-anchor="middle" font-size="7.5" fill="#5d5b54">JS/.NET 靜態:不需原生引擎</text>
+
+          <rect x="482" y="40" width="222" height="188" rx="11" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="593" y="62" text-anchor="middle" font-size="10.5" font-weight="800" fill="#137a29">網路 / 執行時</text>
+          <text x="593" y="86" text-anchor="middle" font-size="8.5" fill="#37352f">網站(Chrome)</text>
+          <text x="593" y="104" text-anchor="middle" font-size="8.5" fill="#37352f">網路捕獲(HAR/SAZ/mitmproxy)</text>
+          <text x="593" y="122" text-anchor="middle" font-size="8.5" fill="#37352f">封包(TShark)/ 封包摘要</text>
+          <text x="593" y="140" text-anchor="middle" font-size="8.5" fill="#37352f">邏輯訊號(sigrok)</text>
+          <text x="593" y="158" text-anchor="middle" font-size="8.5" fill="#37352f">SQLite · 行程行為(PTY)</text>
+          <text x="593" y="186" text-anchor="middle" font-size="7.5" fill="#5d5b54">執行時捕獲以你的權限運行</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 每種目標各有工具前提(例如 Android 要 JADX + JDK、封包要 TShark);REA 統一介面、各自回傳帶證據的結果。</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>目標(選列)</th><th>REA 回傳什麼</th></tr></thead>
+      <tbody>
+        <tr><td>原生二進位</td><td>偽碼、組語、字串、符號、呼叫與參考</td></tr>
+        <tr><td>Go 二進位</td><td>內嵌編譯器版本、模組、replace、build 設定(內建靜態檢查,免裝 Go)</td></tr>
+        <tr><td>JavaScript / Electron</td><td>模組、imports、source maps、routes、IPC、原生 add-on 關係</td></tr>
+        <tr><td>.NET 組件</td><td>metadata、CIL 指令、宣告的原生相依、build 比對(純靜態)</td></tr>
+        <tr><td>Android APK</td><td>manifest、classes、反編譯方法與參考(headless JADX + JDK)</td></tr>
+        <tr><td>網站</td><td>頁面結構、腳本、網路觀察、指定截圖(Chrome)</td></tr>
+        <tr><td>SQLite 資料庫</td><td>表/欄/索引/view/trigger,與選取的一般表資料列</td></tr>
+        <tr><td>行程行為</td><td>終端輸出、互動、退出與檔案系統觀察、多次執行比對(Linux/macOS PTY)</td></tr>
+      </tbody>
+    </table></div>
+    <p class="figcap" style="text-align:left;">(完整清單約 20 種,還含 WASM、EVM、韌體、Linux 當機、JEB、Flutter、封包/邏輯訊號等——以官方 README 的能力表為準。)</p>
+  </section>
+
+  <!-- 4 -->
+  <section id="providers">
+    <h2><span class="num">④</span> 深度原生分析:Hopper / Ghidra / IDA 三選一</h2>
+    <p>要對原生二進位做「深度」分析(偽碼、組語、交叉參考),REA 需要接一個<strong>原生分析引擎(provider)</strong>:</p>
+    <ul>
+      <li><strong>三選一</strong>:Hopper、Ghidra、或 IDA。setup 可在你同意後幫你裝 Hopper;Ghidra/IDA 用你現有安裝。</li>
+      <li><strong>按需啟動</strong>:REA 在某個操作需要時才啟動 Hopper(macOS 首次可能跳授權/demo 對話框,要先完成)。</li>
+      <li><strong>靜態 JS / .NET 不需要引擎</strong>:這兩類靜態檢查直接讀檔即可。</li>
+      <li><strong>進階</strong>:Ghidra 還支援 16-bit DOS 分析、實驗性 Windows 支援;大型 binary 可用 <code>REA_GHIDRA_STARTUP_TIMEOUT_MS</code> / <code>REA_HOPPER_STARTUP_TIMEOUT_MS</code> 拉長啟動期限。</li>
+    </ul>
+  </section>
+
+  <!-- 5 -->
+  <section id="modes">
+    <h2><span class="num">⑤</span> 兩種分析模式:靜態讀檔 vs 執行時捕獲</h2>
+    <p>這個分野很重要,攸關安全與你該有的心理預期:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 190" role="img" aria-label="兩種模式對照：靜態分析只讀取提供的檔案、不執行應用（如 JS、.NET、Flutter、ELF 版面）；執行時捕獲會以你的使用者權限實際運行或互動目標（如行程行為、網站、Android 裝置），每個執行時指南都會說明其副作用">
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">讀檔(安全) vs 執行(以你的權限跑)</text>
+          <rect x="16" y="42" width="330" height="128" rx="11" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.6"/>
+          <text x="181" y="66" text-anchor="middle" font-size="11" font-weight="800" fill="#137a29">靜態分析</text>
+          <text x="181" y="88" text-anchor="middle" font-size="9" fill="#37352f">只讀取你提供的檔案</text>
+          <text x="181" y="106" text-anchor="middle" font-size="9" fill="#37352f"><strong>不執行</strong>應用程式</text>
+          <text x="181" y="128" text-anchor="middle" font-size="8.5" fill="#5d5b54">例:JS / .NET / Flutter / ELF 版面</text>
+          <text x="181" y="148" text-anchor="middle" font-size="8" fill="#137a29">副作用最小,最安全</text>
+
+          <rect x="374" y="42" width="330" height="128" rx="11" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.6"/>
+          <text x="539" y="66" text-anchor="middle" font-size="11" font-weight="800" fill="#b34700">執行時捕獲</text>
+          <text x="539" y="88" text-anchor="middle" font-size="9" fill="#37352f">實際<strong>運行 / 互動</strong>目標</text>
+          <text x="539" y="106" text-anchor="middle" font-size="9" fill="#37352f">以<strong>你的使用者權限</strong>執行</text>
+          <text x="539" y="128" text-anchor="middle" font-size="8.5" fill="#5d5b54">例:行程行為 / 網站 / Android 裝置</text>
+          <text x="539" y="148" text-anchor="middle" font-size="8" fill="#b34700">每個執行時指南都會說明其副作用</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 靜態只讀、不跑;執行時會真的運行目標。分析不受信任的樣本時,優先靜態,執行時務必在隔離環境並讀清楚該指南的副作用。</div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section id="principles">
+    <h2><span class="num">⑥</span> 設計原則:證據導向 + 本機分析</h2>
+    <ul>
+      <li><strong>每個結論都附證據與限制</strong>:findings 帶著「支持它的程式碼/參考」與「還不確定的地方」,讓代理(和你)不會把猜測當事實。</li>
+      <li><strong>分析在本機</strong>:REA 不上傳你的 app;它在本機跑分析、把結果交給代理。<strong>但要注意:</strong>你的代理模型供應商有自己的資料政策——findings 一旦進了代理對話,就受那個供應商的政策管。</li>
+      <li><strong>統一介面、既有工具</strong>:它不重造反編譯器,而是編排 Hopper/Ghidra/IDA/JADX/TShark 等成熟工具,降低跨工具的認知負擔。</li>
+      <li><strong>CLI = 同一套 workflow</strong>:不想透過代理?同樣的分析能從終端機直接跑、可腳本化(見 ⑧)。</li>
+    </ul>
+  </section>
+
+  <!-- 7 -->
+  <section id="showcases">
+    <h2><span class="num">⑦</span> 實戰案例(官方 Showcases)</h2>
+    <ul>
+      <li><strong>DX-Ball:重建音效聲道(pan)計算</strong>——追一個音效呼叫進它的「位置→聲道」helper,看指令、把不完整的偽碼補成 C。重建版<strong>通過 3,205 個原始 x86 案例、重現全部 63 個編譯後函式位元組</strong>。</li>
+      <li><strong>Notion:追 Electron 剪貼簿橋接</strong>——從 renderer 的剪貼簿 API,一路經 preload 與 IPC 追進 main 行程,檢視豐富剪貼簿格式。</li>
+      <li><strong>TH04:復原 DOS 子彈環計算</strong>——檢視 PC-98 遊戲的 16-bit 指令,復原固定與瞄準角度計算,再把重建的 C++ 和當年的編譯器輸出比對。</li>
+    </ul>
+    <div class="callout tip"><strong>共同模式:</strong>不是「反編譯完就結束」,而是<strong>反編譯 → 理解 → 重建 → 用可驗證的方式證明重建正確</strong>(通過原始案例、重現位元組)。這正是 REA 強調「證據」的體現。</div>
+  </section>
+
+  <!-- 8 -->
+  <section id="start">
+    <h2><span class="num">⑧</span> 怎麼上手</h2>
+    <p>需要 Node.js(22.x ≥22.19、24.x ≥24.11、或 26+)與 npm。</p>
+    <pre><code><span class="cm"># 1) 設定你的代理:註冊 REA 的 MCP + 安裝對應的 workflow 指令</span>
+npx rea-agents setup
+<span class="cm">#    選代理、檢視並核准變更(會備份原設定)、重啟代理</span>
+
+<span class="cm"># 2) 直接問代理(把 Notes 換成你的目標 app 與功能)</span>
+<span class="cm">#    「理解 X app 的 Y 功能怎麼運作,給我證據,再幫我做一個」</span>
+
+<span class="cm"># 3) 或從終端機直接用(分析已解壓的 JS/Electron 目錄或 ASAR)</span>
+npx -y rea-agents@latest analyze-javascript-application /abs/path/to/app --json
+
+<span class="cm"># 4) 想常用就全域安裝</span>
+npm install --global rea-agents
+rea --help
+rea update   <span class="cm"># 常更新,新版常修 bug</span></code></pre>
+    <p>支援 Claude Code、Codex、Cursor、Gemini CLI、Grok Build 等;其他支援本機 MCP 的客戶端可手動註冊。原生分析要先設定一個 provider(Hopper/Ghidra/IDA)。</p>
+  </section>
+
+  <!-- 9 -->
+  <section id="notes">
+    <h2><span class="num">⑨</span> 重點 · 合法界線 · 來源</h2>
+    <h3>六個帶得走的重點</h3>
+    <ol>
+      <li>REA = 把 AI 代理接上逆向工程工具的 <strong>MCP</strong>;一條迴圈:看到功能 → 懂它 → 附證據 → 幫你重建。</li>
+      <li>廣度驚人:~20 種目標,從原生二進位/組語到 JS/Electron、Android、網站、封包、韌體。</li>
+      <li>深度原生分析需 <strong>Hopper/Ghidra/IDA</strong> 三選一;靜態 JS/.NET 不需引擎。</li>
+      <li>兩種模式:<strong>靜態只讀檔</strong> vs <strong>執行時以你的權限運行</strong>——不受信任樣本優先靜態、並隔離。</li>
+      <li>原則:<strong>證據 + 限制、本機分析</strong>(但 findings 進代理後受模型供應商資料政策管)。</li>
+      <li>CLI 與代理共用同一套 workflow;npm <code>rea-agents</code>、MIT。</li>
+    </ol>
+    <div class="callout warn"><strong>合法與倫理界線(務必自負責任):</strong>逆向工程在許多情境是正當的——<strong>互通、資安研究、學習、除錯、相容性</strong>;但也受<strong>著作權、授權條款、軟體 EULA/服務條款、以及當地法律</strong>約束。分析前請確認:你有權分析該目標、你的用途合法、且重建不會侵犯他人的授權或智慧財產。REA 只是工具,如何使用與後果由使用者承擔。</div>
+    <div class="related">
+      <a href="./ai-coding-agent-power-techniques.html">
+        <div class="rel-title">🚀 頂尖 AI 編程者的進階技巧</div>
+        <div class="rel-sub">MCP / 代理工作流的全圖</div>
+      </a>
+      <a href="./codex-chatgpt-web.html">
+        <div class="rel-title">🔌 拆解 codex-chatgpt-web</div>
+        <div class="rel-sub">另一個 MCP + 代理整合的拆解</div>
+      </a>
+      <a href="./oh-my-pi.html">
+        <div class="rel-title">🥧 拆解 oh-my-pi</div>
+        <div class="rel-sub">把 RE/除錯做成原生工具的 Agent</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>內容取自開源專案 <a href="https://github.com/morluto/rea" style="color:var(--link)">github.com/morluto/rea</a>(MIT)的 README 與官方網站 <a href="https://rea.tools/" style="color:var(--link)">rea.tools</a>。能力清單、工具前提、showcase 數據(DX-Ball 3,205 案例/63 位元組等)均引自上述來源;功能與版本需求會隨版本變動,請以最新官方文件為準。本頁為中立技術整理,非使用建議。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
