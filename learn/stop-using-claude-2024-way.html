@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>別再用 2024 年的方式用 Claude:Anthropic 工程負責人談思維轉變 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🗓️ 別再用 2024 年的方式用 Claude:Anthropic 工程負責人談思維轉變</h1>
+    <p class="sub">一支訪談摘要:當模型能力大躍進後,很多「2024 年的好習慣」反而變成拖累。Anthropic 的 Claude 工程負責人提出該淘汰的舊用法(角色扮演、繁瑣 Skills 條框、孤立數據切片),以及新的協同工作流(高頻原型、紅藍對抗治幻覺、隱性知識沉澱成準則),並談到「能力增強 &gt; 自動化」與商業壁壘的轉移。本頁把這些觀點整理成可操作的教學。</p>
+    <div>
+      <span class="badge blue">思維轉變 · 協同工作流</span>
+      <span class="badge green">去角色扮演 · 全景資料 · 紅藍對抗</span>
+      <span class="badge orange">訪談觀點 · 認知邊界 · 2026</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#drop">① 要淘汰的三個 2024 舊習</a>
+      <a href="#principle">② 新用法的共同原則</a>
+      <a href="#proto">③ 高頻原型探索</a>
+      <a href="#redteam">④ 紅藍對抗治幻覺</a>
+      <a href="#tacit">⑤ 隱性知識沉澱成準則</a>
+      <a href="#augment">⑥ 自動化 vs 能力增強</a>
+      <a href="#moat">⑦ 商業壁壘的轉移</a>
+      <a href="#notes">⑧ 帶走清單 · 關聯 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>模型變強了,你的用法要跟著升級;很多舊技巧現在是反效果。</strong>核心轉變是:<strong>少「框住」模型、多「給它全景並放手」</strong>。別再開頭寫「你是一位資深分析師」,別再堆為上一代模型定制的繁瑣約束,也別把資料切碎了餵——改成給完整環境 + 清楚的工具說明,讓模型自主排查。品質則靠<strong>紅藍對抗</strong>(多個對抗實例挑錯 + 獨立裁判)而不是讓它自評。</p>
+    <div class="callout info"><strong>怎麼讀這頁:</strong>這是一支訪談的<strong>觀點整理</strong>,不是官方文件;人名/頭銜/數字都以影片所述為準(見 ⑧)。想要更成體系、對照官方文件的進階技巧,搭配站內 <a href="./ai-coding-agent-power-techniques.html" style="color:var(--link)">頂尖 AI 編程者進階全圖</a> 一起看。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="drop">
+    <h2><span class="num">①</span> 要淘汰的三個 2024 舊習</h2>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 230" role="img" aria-label="三個該淘汰的舊習與對應新做法：角色扮演頭銜改成直接講任務不加頭銜；為上一代模型定制的繁瑣 Skills 條框改成刪掉多餘約束放手讓模型自主；把資料切碎餵改成給完整全局資料環境加清楚的工具調用說明">
+        <defs><marker id="ad" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">舊習(2024) → 新做法(現在)</text>
+
+          <rect x="16" y="42" width="300" height="48" rx="9" fill="#fde0ec" stroke="#e03131" stroke-width="1.2"/>
+          <text x="30" y="62" font-size="9.5" font-weight="700" fill="#c0261b">✗「你是一位資深資料分析師…」</text>
+          <text x="30" y="79" font-size="8" fill="#5d5b54">角色扮演 → 形式化、滿嘴術語、執行力變弱</text>
+          <rect x="404" y="42" width="300" height="48" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.3"/>
+          <text x="418" y="62" font-size="9.5" font-weight="700" fill="#137a29">✓ 直接講任務,不加頭銜</text>
+          <text x="418" y="79" font-size="8" fill="#5d5b54">通用全能模型,講清楚要什麼就好</text>
+
+          <rect x="16" y="104" width="300" height="48" rx="9" fill="#fde0ec" stroke="#e03131" stroke-width="1.2"/>
+          <text x="30" y="124" font-size="9.5" font-weight="700" fill="#c0261b">✗ 一堆為舊模型定制的 Skills/條框</text>
+          <text x="30" y="141" font-size="8" fill="#5d5b54">短期約束綁手綁腳</text>
+          <rect x="404" y="104" width="300" height="48" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.3"/>
+          <text x="418" y="124" font-size="9.5" font-weight="700" fill="#137a29">✓ 刪掉多餘約束,放手讓它自主</text>
+          <text x="418" y="141" font-size="8" fill="#5d5b54">新模型往往可直接拿掉舊限制</text>
+
+          <rect x="16" y="166" width="300" height="48" rx="9" fill="#fde0ec" stroke="#e03131" stroke-width="1.2"/>
+          <text x="30" y="186" font-size="9.5" font-weight="700" fill="#c0261b">✗ 把資料切碎、孤立切片餵</text>
+          <text x="30" y="203" font-size="8" fill="#5d5b54">模型只看到局部,難排查</text>
+          <rect x="404" y="166" width="300" height="48" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.3"/>
+          <text x="418" y="186" font-size="9.5" font-weight="700" fill="#137a29">✓ 給完整全局環境 + 工具說明</text>
+          <text x="418" y="203" font-size="8" fill="#5d5b54">讓它用全景視野自主排查</text>
+
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#ad)">
+            <path d="M318,66 L402,66"/><path d="M318,128 L402,128"/><path d="M318,190 L402,190"/>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ 三個舊習有同一個病根:都在「替模型預設框架」。新模型夠通用,框架常是多餘的枷鎖。</div>
+    </div>
+    <h3>1. 別再「角色扮演」</h3>
+    <p>在提示詞開頭寫「你是一位資深資料分析師」這類頭銜,是一種心理偷懶。現代頂尖模型是<strong>通用全能</strong>的;硬塞職業頭銜,反而容易讓它陷入<strong>形式化、滿嘴術語卻削弱實際執行力</strong>的泥沼。直接把任務、脈絡、要什麼講清楚更有效。</p>
+    <h3>2. 拋棄過時的 Skills / 繁瑣條框</h3>
+    <p>特別為<strong>上一代模型</strong>定制的短期技能約束,在更新一代的模型上<strong>往往可以直接刪除</strong>,讓模型發揮更強的自主性。定期回頭檢視:哪些規則其實是在補舊模型的短板?新模型不需要了就拿掉。</p>
+    <h3>3. 拒絕孤立的數據切片</h3>
+    <p>不要把資料切得碎碎的餵給 AI。盡量提供<strong>完整的全局數據環境 + 清晰的工具調用說明</strong>,讓模型擁有<strong>全景視野</strong>去自主排查,而不是在你預先切好的局部裡盲人摸象。</p>
+  </section>
+
+  <!-- 2 -->
+  <section id="principle">
+    <h2><span class="num">②</span> 新用法的共同原則:少框住、多給全景、再放手</h2>
+    <p>把 ① 的三點串起來,其實是同一條原則。2024 的直覺是「怕模型做不好,所以替它設好角色、規則、切好資料」;現在的直覺應該反過來:</p>
+    <ul>
+      <li><strong>信任能力</strong>:預設模型能處理複雜、完整的情境,除非證明它不行,才加約束。</li>
+      <li><strong>給環境而非給答案框架</strong>:把「全局資料 + 可用工具 + 目標」擺好,讓它自己決定怎麼查、怎麼做。</li>
+      <li><strong>約束要能被淘汰</strong>:每條規則/Skill 都該定期問「新模型還需要嗎?」,不需要就刪。</li>
+    </ul>
+    <div class="callout tip"><strong>一句心法:</strong>從「幫模型想好每一步」轉成「給它舞台和工具,然後檢驗結果」——後者的槓桿大得多。</div>
+  </section>
+
+  <!-- 3 -->
+  <section id="proto">
+    <h2><span class="num">③</span> 高頻原型探索:生成上千變體,人類來挑</h2>
+    <p>當「構建時間與維護成本」被壓到極低,開發方式就變了:與其精雕一個原型,不如<strong>讓模型快速生成上千個產品原型變體</strong>,人類再從中挑選、評估。軟體開發進入<strong>極簡的高頻迭代</strong>——先大量發散,再快速收斂。</p>
+    <ul>
+      <li><strong>人類的角色從「建造者」變「評審/品味提供者」</strong>:你的價值在於判斷哪個變體對、為什麼對。</li>
+      <li><strong>可拋棄式原型</strong>:因為構建便宜,原型可以用完即丟,不必背維護包袱。</li>
+    </ul>
+  </section>
+
+  <!-- 4 -->
+  <section id="redteam">
+    <h2><span class="num">④</span> 紅藍對抗治幻覺:別讓它自評</h2>
+    <p>解決幻覺的關鍵心法:<strong>永遠不要讓同一個 Claude 實例去「自我評審」</strong>——它會偏袒自己剛產出的東西。正確做法是分離「做」與「審」:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 240" role="img" aria-label="紅藍對抗流程：主模型完成方案後，派生 5 到 10 個平行的對抗實例（可用更小更便宜的模型）專門挑毛病找漏洞，最後交由獨立裁判交叉驗證並修正，而不是讓同一實例自評">
+        <defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">做的人 ≠ 審的人 ≠ 判的人</text>
+
+          <rect x="16" y="46" width="150" height="56" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.6"/>
+          <text x="91" y="70" text-anchor="middle" font-size="10" font-weight="800" fill="#3a2a99">主模型</text>
+          <text x="91" y="88" text-anchor="middle" font-size="8" fill="#5d5b54">完成方案</text>
+
+          <rect x="250" y="30" width="220" height="92" rx="11" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.6"/>
+          <text x="360" y="52" text-anchor="middle" font-size="10" font-weight="800" fill="#c02d80">5–10 個對抗實例(平行)</text>
+          <text x="360" y="72" text-anchor="middle" font-size="8.5" fill="#37352f">專門挑毛病、找漏洞</text>
+          <text x="360" y="90" text-anchor="middle" font-size="8.5" fill="#37352f">可用更小、更便宜的模型</text>
+          <text x="360" y="108" text-anchor="middle" font-size="8" fill="#c02d80">紅隊視角,不偏袒作者</text>
+
+          <rect x="554" y="46" width="150" height="56" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.6"/>
+          <text x="629" y="70" text-anchor="middle" font-size="10" font-weight="800" fill="#137a29">獨立裁判</text>
+          <text x="629" y="88" text-anchor="middle" font-size="8" fill="#5d5b54">交叉驗證 → 修正</text>
+
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#ar)">
+            <path d="M166,74 L248,74"/><path d="M470,74 L552,74"/>
+          </g>
+
+          <rect x="150" y="150" width="420" height="40" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.3"/>
+          <text x="360" y="168" text-anchor="middle" font-size="9.5" font-weight="700" fill="#b34700">✗ 反模式:同一個實例「你再檢查一下自己的答案」</text>
+          <text x="360" y="183" text-anchor="middle" font-size="8" fill="#5d5b54">它幾乎只會肯定自己——等於沒審</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 便宜模型當紅隊、貴模型當主力與裁判,是「以量治幻覺」又控成本的組合。</div>
+    </div>
+    <p>這點和站內 <a href="./ai-coding-agent-power-techniques.html" style="color:var(--link)">進階技巧頁</a> 的「對抗式審查 subagent」、以及 <a href="./engineers-adopt-ai.html" style="color:var(--link)">工程護欄</a> 的「雙代理審查」是同一個精神:<strong>驗證要由沒有立場的第三方來做</strong>。</p>
+  </section>
+
+  <!-- 5 -->
+  <section id="tacit">
+    <h2><span class="num">⑤</span> 把隱性知識沉澱成準則</h2>
+    <p>你每天給出的<strong>歷史批改意見、溝通反饋</strong>,其實是寶貴的隱性知識。做法:把這些餵給模型,讓它<strong>提煉成核心業務準則與評判清單(rubric)</strong>,之後就能當作<strong>自動化把關與品質審查的標準</strong>。</p>
+    <ul>
+      <li><strong>把「我每次都會抓的錯」變成清單</strong>:讓紅隊/裁判(④)照這份清單審,品質才穩定。</li>
+      <li><strong>準則會複利</strong>:用得越久、修得越準,等於把你的判斷力外部化成可重複使用的資產。</li>
+    </ul>
+    <div class="callout info">這其實就是 Claude Code 的 <code>skills</code> / 評審 rubric 的精神——但重點是<strong>「從你真實的反饋裡長出來」</strong>,而不是憑空寫一堆規則(呼應 ① 的「別堆繁瑣條框」)。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="augment">
+    <h2><span class="num">⑥</span> 自動化 vs 能力增強:後者才是顛覆</h2>
+    <p>一個重要的區分:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="自動化與能力增強對照：自動化只是消除耗時雜物、把你已經會做的事做更快，停在同一層；能力增強讓你跨界完成過去做不到的事，例如指揮 Claude 調用 Blender 製作高品質 3D 動畫，是能力的躍升">
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">做更快(自動化) vs 做得到以前做不到的(增強)</text>
+          <rect x="16" y="44" width="330" height="128" rx="11" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="181" y="68" text-anchor="middle" font-size="11" font-weight="800" fill="#005bb0">自動化(Automation)</text>
+          <text x="181" y="92" text-anchor="middle" font-size="9" fill="#37352f">消除耗時雜物</text>
+          <text x="181" y="110" text-anchor="middle" font-size="9" fill="#37352f">把你<strong>已經會</strong>的事做更快</text>
+          <text x="181" y="132" text-anchor="middle" font-size="8.5" fill="#5d5b54">停在同一層,省時間</text>
+          <text x="181" y="156" text-anchor="middle" font-size="8" fill="#0075de">價值:效率</text>
+
+          <rect x="374" y="44" width="330" height="128" rx="11" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.7"/>
+          <text x="539" y="68" text-anchor="middle" font-size="11" font-weight="800" fill="#137a29">能力增強(Augmentation)</text>
+          <text x="539" y="92" text-anchor="middle" font-size="9" fill="#37352f">跨界做<strong>過去做不到</strong>的事</text>
+          <text x="539" y="110" text-anchor="middle" font-size="9" fill="#37352f">例:指揮 Claude 用 Blender</text>
+          <text x="539" y="128" text-anchor="middle" font-size="9" fill="#37352f">做出高品質 3D 動畫</text>
+          <text x="539" y="156" text-anchor="middle" font-size="8" fill="#137a29">價值:能力躍升(顛覆性)</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 自動化讓你跑更快;能力增強讓你去到以前到不了的地方。真正的槓桿在後者。</div>
+    </div>
+    <p>自動化只是幫人消除耗時雜物;而真正的顛覆性在於<strong>「能力增強」</strong>——讓人<strong>跨界</strong>完成過去遙不可及的事。例子:不會 3D 建模的人,也能直接<strong>指揮 Claude 調用專業開源軟體(如 Blender)製作高品質 3D 動畫</strong>。重點不是「省下建模時間」,而是「本來根本做不到,現在做得到」。</p>
+  </section>
+
+  <!-- 7 -->
+  <section id="moat">
+    <h2><span class="num">⑦</span> 商業壁壘的轉移:當執行成本趨近於零</h2>
+    <p>當執行成本被壓縮到接近於零(影片觀點:<strong>一兩個人的極簡團隊也有潛力做出 10 億美元級別的企業</strong>),「能不能把東西做出來」就不再是護城河——因為大家都做得出來。競爭優勢會整個移到:</p>
+    <ul>
+      <li><strong>對用戶的深刻「同理心」</strong>:誰更懂使用者真正的痛、真正想要什麼。</li>
+      <li><strong>對傳統實體產業痛點的洞察</strong>:誰看得到那些還沒被數位化、還很痛的真實問題。</li>
+    </ul>
+    <div class="callout warn"><strong>怎麼看待這段:</strong>這是訪談者的前瞻<strong>觀點與推論</strong>,不是既成事實——「10 億美元/兩人團隊」是用來凸顯「執行力不再稀缺、洞察力才稀缺」的誇飾。當成思考方向,別當成保證。</div>
+  </section>
+
+  <!-- 8 -->
+  <section id="notes">
+    <h2><span class="num">⑧</span> 帶走清單 · 關聯 · 來源</h2>
+    <h3>七條可以今天就改的</h3>
+    <ol>
+      <li>刪掉提示詞開頭的「你是一位 OO 專家」——直接講任務。</li>
+      <li>回頭檢視你的 Skills/規則,把為舊模型補短板的那些拿掉。</li>
+      <li>別切碎資料;給全局環境 + 工具說明,讓它自主排查。</li>
+      <li>預設信任能力:先放手,證明不行才加約束。</li>
+      <li>要品質就高頻生成多個變體,你來當評審。</li>
+      <li>幻覺用紅藍對抗治:5–10 個對抗實例(可小模型)+ 獨立裁判,絕不自評。</li>
+      <li>把你的歷史反饋煉成 rubric,當自動化把關標準。</li>
+    </ol>
+    <div class="related">
+      <a href="./ai-coding-agent-power-techniques.html">
+        <div class="rel-title">🚀 頂尖 AI 編程者進階全圖</div>
+        <div class="rel-sub">官方文件 + 社群實戰的成體系版</div>
+      </a>
+      <a href="./engineers-adopt-ai.html">
+        <div class="rel-title">🛡️ 讓工程師擁抱 AI</div>
+        <div class="rel-sub">工程護欄:雙代理審查治幻覺</div>
+      </a>
+      <a href="./slpi-agent-token-optimization.html">
+        <div class="rel-title">💸 SLPI 運行時省令牌</div>
+        <div class="rel-sub">多實例並行時的成本面</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>本頁整理自 YouTube 頻道「認知邊界」的一支訪談摘要——《Claude 工程負責人:別再用 2024 年的方式使用 Claude 了》(受訪者為 Anthropic 的 Claude 工程負責人,影片音譯 Felix Riegger／菲克斯)。原片為 YouTube,於本執行環境無法連線,內容以<strong>使用者提供之摘要</strong>為準。文中人名、頭銜與數字(如「5–10 個對抗實例」「10 億美元/兩人團隊」)皆為影片所述之<strong>受訪者觀點</strong>,屬單一來源、未經獨立查證;各項做法請結合你自己的情境與官方文件判斷。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
