@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>環形 XY 繪圖機的軟體:逆運動學、可微描繪與偏移補正(kohya-ss/ring-xy-plotter) · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🧮 環形 XY 繪圖機的軟體:逆運動學、可微描繪與偏移補正</h1>
+    <p class="sub">這是前一篇「硬體製作篇」的另一半:<code>kohya-ss/ring-xy-plotter</code> 是驅動那台環形繪圖機的 PC 端 Python 軟體。它把線稿圖變成 G-code(三段指令),用閉式逆運動學把 (x, y) 換成兩個角度,並用一整套「量測→建模→補正」把一台組不準的機器調到亞毫米精度。本頁拆解它的工具鏈、運動學、可微影像貼合,以及最精彩的兩層較正與偏移補正。</p>
+    <div>
+      <span class="badge blue">Python · MIT · 機器專用</span>
+      <span class="badge green">閉式逆運動學 · 可微描繪器 · PyTorch</span>
+      <span class="badge orange">兩層較正 · 偏移模型 · GRBL G-code</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#pipeline">① 工具鏈:三段指令</a>
+      <a href="#ik">② 逆運動學:閉式解</a>
+      <a href="#img2svg">③ img2svg:從線稿抽線</a>
+      <a href="#refine">④ refine-passes:可微貼合影像</a>
+      <a href="#calib">⑤ 兩層較正</a>
+      <a href="#deflect">⑥ 偏移模型與補正</a>
+      <a href="#numbers">⑦ 量測實例:精度怎麼降下來</a>
+      <a href="#safety">⑧ 安全與送出的約定</a>
+      <a href="#map">⑨ 檔案地圖 · 設計取向 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>硬體把筆帶到某個角度,軟體負責「要去哪個角度」以及「怎麼補償機器的不準」。</strong>倉庫是這台環形繪圖機的 PC 端軟體:三段指令把線稿圖變成 G-code(<code>img2svg</code> → <code>refine-passes</code> → <code>svg2ring</code>),一支 <code>grbl_send.py</code> 送到機器;核心是<strong>閉式逆運動學</strong>(把紙面座標換成 A、B 兩個角度)與一整套<strong>較正 / 偏移補正</strong>腳本——把一台「組不準、還會隨畫的方向偏」的機器,壓到線中央最大 0.05mm 的誤差。</p>
+    <div class="callout info"><strong>和前一篇的關係:</strong>這頁是 <a href="./ring-xy-plotter-plarail.html" style="color:var(--link)">硬體製作篇</a> 的軟體與精度另一半。作者說明:這是<strong>個人工作記錄、不收 PR、且專屬這台機器</strong>;文中數字是作者機器(環半徑 ~231mm、A4)的實測,換機器就會變。授權 MIT。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="pipeline">
+    <h2><span class="num">①</span> 工具鏈:三段指令把圖變成 G-code</h2>
+    <p>從一張線稿圖到機器動起來,是三段(手上已有 SVG 就只需第 3 段):</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 210" role="img" aria-label="工具鏈：線稿 PNG 經 img2svg 抽出線條成 lines.svg；經 refine-passes 用 PyTorch 把以筆寬描繪的像貼合原圖成 refined.svg；經 svg2ring 以較正參數與偏移補正轉成 G-code 與預覽；再由 grbl_send.py 送到 GRBL 機器。手上已有 SVG 可直接從 svg2ring 開始">
+        <defs><marker id="ap" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">線稿 → G-code 的三段 +送出</text>
+          <rect x="12" y="46" width="96" height="48" rx="8" fill="#f0eeec" stroke="#a4a097" stroke-width="1.3"/>
+          <text x="60" y="68" text-anchor="middle" font-size="9" fill="#37352f">線稿 PNG</text>
+          <text x="60" y="84" text-anchor="middle" font-size="8" fill="#787671">(或手上的 SVG)</text>
+          <rect x="140" y="46" width="112" height="48" rx="8" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="196" y="66" text-anchor="middle" font-size="9.5" font-weight="700" fill="#005bb0">img2svg</text>
+          <text x="196" y="83" text-anchor="middle" font-size="7.5" fill="#5d5b54">抽線 → lines.svg</text>
+          <rect x="284" y="46" width="120" height="48" rx="8" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="344" y="66" text-anchor="middle" font-size="9.5" font-weight="700" fill="#3a2a99">refine-passes</text>
+          <text x="344" y="83" text-anchor="middle" font-size="7.5" fill="#5d5b54">貼合 → refined.svg</text>
+          <rect x="436" y="46" width="116" height="48" rx="8" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="494" y="66" text-anchor="middle" font-size="9.5" font-weight="700" fill="#137a29">svg2ring</text>
+          <text x="494" y="83" text-anchor="middle" font-size="7.5" fill="#5d5b54">→ G-code+預覽</text>
+          <rect x="584" y="46" width="124" height="48" rx="8" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="646" y="66" text-anchor="middle" font-size="9.5" font-weight="700" fill="#b34700">grbl_send.py</text>
+          <text x="646" y="83" text-anchor="middle" font-size="7.5" fill="#5d5b54">→ 機器(GRBL)</text>
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#ap)">
+            <path d="M108,70 L138,70"/><path d="M252,70 L282,70"/><path d="M404,70 L434,70"/><path d="M552,70 L582,70"/>
+          </g>
+          <path d="M60,94 C60,150 440,150 480,96" fill="none" stroke="#1aae39" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#ap)"/>
+          <text x="250" y="150" text-anchor="middle" font-size="8" fill="#137a29">已有 SVG → 直接 svg2ring</text>
+          <rect x="20" y="168" width="688" height="32" rx="8" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.1"/>
+          <text x="360" y="188" text-anchor="middle" font-size="9" fill="#b34700">座標系:SVG 中心對齊環心,SVG 下方 = α 0°(手前);單位 mm。塗滿忽略,只畫線;文字先在 Inkscape 轉路徑。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ <code>svg2ring</code> 與 <code>ring-preview</code> 會把產生的 G-code <strong>讀回來自我檢查</strong>(範圍、速度、纜線扭轉),有問題以 exit code 1 列出。</div>
+    </div>
+    <p>G-code 的約定:<strong>X = A 角 α、Y = B 角 β(度),G90</strong>;抬筆 <code>M5</code>、落筆 <code>M3 S110</code>,之後 <code>G4 P&lt;待時&gt;</code>;從擋塊原點 <code>X0 Y88</code> 開始、結束回到該處。送速以「筆尖以 <code>--speed</code>(預設 15mm/s)移動」反推每段的 F。作者日常用 <code>--speed 30 --fmax 2250 --accel 200</code>。</p>
+  </section>
+
+  <!-- 2 -->
+  <section id="ik">
+    <h2><span class="num">②</span> 逆運動學:把 (x, y) 換成兩個角度(閉式解)</h2>
+    <p><code>kinematics.py</code> 提供閉式的順/逆運動學,沒有數值搜尋。模型:A 的銷 = <code>R·(cos α', sin α')</code>(α'=α−90°),筆尖 = A 銷 + <code>d·u + e·n</code>(u 是 A→B 單位向量、n 垂直於 u)。設 <code>L = hypot(d, e)</code>(A 銷到筆尖的距離)、<code>γ = atan2(e, d)</code>。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 260" role="img" aria-label="逆運動學：給定筆尖 P 與環心 O，距離 r = OP、L = A 到筆尖；用餘弦定理求 O 處夾角 psi，得到 A 的兩個鏡像候選；對每個候選算出棒的方向與 B 的角度，取角度差 Δ 落在 88 到 180 度範圍內的分支">
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">餘弦定理 → A 的兩個鏡像候選 → 選 Δ 合法的分支</text>
+          <circle cx="250" cy="150" r="110" fill="none" stroke="#4f9eff" stroke-width="2" opacity="0.6"/>
+          <circle cx="250" cy="150" r="3.5" fill="#1a1a1a"/><text x="250" y="140" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1a1a">O</text>
+          <circle cx="330" cy="92" r="5" fill="none" stroke="#e03131" stroke-width="2"/><circle cx="330" cy="92" r="1.5" fill="#e03131"/>
+          <text x="338" y="90" font-size="10" font-weight="700" fill="#c0261b">P 筆尖</text>
+          <line x1="250" y1="150" x2="330" y2="92" stroke="#8a93ad" stroke-width="1.3"/><text x="280" y="112" font-size="9" fill="#5d5b54">r</text>
+          <!-- two A candidates on ring -->
+          <circle cx="210" cy="47" r="4.5" fill="#5645d4"/><text x="190" y="42" font-size="9" font-weight="700" fill="#3a2a99">A₁</text>
+          <circle cx="358" cy="196" r="4.5" fill="#7b3ff2"/><text x="366" y="200" font-size="9" font-weight="700" fill="#7b3ff2">A₂(鏡像)</text>
+          <line x1="210" y1="47" x2="330" y2="92" stroke="#5645d4" stroke-width="1.6"/><text x="252" y="58" font-size="8" fill="#3a2a99">L</text>
+          <line x1="358" y1="196" x2="330" y2="92" stroke="#7b3ff2" stroke-width="1.3" stroke-dasharray="4 3"/>
+          <line x1="250" y1="150" x2="210" y2="47" stroke="#8a93ad" stroke-width="1.1" stroke-dasharray="3 3"/>
+          <line x1="250" y1="150" x2="358" y2="196" stroke="#8a93ad" stroke-width="1.1" stroke-dasharray="3 3"/>
+          <text x="236" y="100" font-size="9" fill="#005bb0">ψ</text>
+          <!-- formula panel -->
+          <rect x="430" y="44" width="276" height="196" rx="10" fill="#f6f5f4" stroke="#e5e3df"/>
+          <text x="444" y="66" font-size="10" font-weight="800" fill="#3a2a99">inverse_all(x, y)</text>
+          <text x="444" y="88" font-size="9.5" fill="#1a1a1a" font-family="monospace">r = hypot(x, y)</text>
+          <text x="444" y="107" font-size="9.5" fill="#1a1a1a" font-family="monospace">cosψ = (R²+r²−L²)/(2Rr)</text>
+          <text x="444" y="126" font-size="9.5" fill="#1a1a1a" font-family="monospace">φ = atan2(y, x)</text>
+          <text x="444" y="145" font-size="9.5" fill="#1a1a1a" font-family="monospace">a = φ ± ψ   (兩個鏡像)</text>
+          <text x="444" y="166" font-size="8.7" fill="#5d5b54">對每個 a:算棒向 w=atan2(..)−γ,</text>
+          <text x="444" y="182" font-size="8.7" fill="#5d5b54">沿 w 與環相交得 B,Δ = β − α</text>
+          <text x="444" y="203" font-size="8.7" fill="#137a29">保留 Δ ∈ [88°, 180°] 的分支</text>
+          <text x="444" y="223" font-size="8.3" fill="#b34700">沿路徑時傳入前一個 α 保持同一分支</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 同一筆尖位置有兩個鏡像擺法。中心附近(半徑約 9mm 內)兩個分支都有效,所以畫線時要<strong>傳入前一點的 α 保持分支</strong>,否則會每點跳枝、α 跳近 180°(紙上變成一個圈)。</div>
+    </div>
+    <p>到達範圍:<code>r &lt; |R−L|</code> 是中心畫不到的洞;<code>|cosψ| &gt; 1</code> 則搆不到,丟 <code>Unreachable</code>。程式碼裡的預設參數(作者機器、十月初較正值):<code>R=230.778, d=229.190, e=6.428</code>(mm)——這些是<strong>較正算出來的值,不是設計值</strong>,換機器/換筆就重測。</p>
+  </section>
+
+  <!-- 3 -->
+  <section id="img2svg">
+    <h2><span class="num">③</span> img2svg:從線稿圖抽出可畫的線</h2>
+    <p>把點陣線稿變成折線 SVG(<code>raster.py</code> / <code>img2svg.py</code>):</p>
+    <ul>
+      <li><strong>二值化</strong>:Otsu 自動(<code>--threshold</code> 指定、<code>--invert</code> 白線)。</li>
+      <li><strong>線 / 塗分離</strong>:比 <code>--fill-width</code>(預設 1.5mm)粗的算「塗」、細的算「線」;線細線化(thinning)成中心線。</li>
+      <li><strong>線的整理</strong>:交點切斷、去短鬚(<code>--spur</code>)、直線相接(<code>--join</code>)、平滑(<code>--smooth</code>)、間引點(<code>--simplify</code>);短於 <code>--min-length</code> 丟掉。</li>
+      <li><strong>塗的畫法</strong>:<code>--fill hatch|outline|none|skeleton</code>;若要交給 refine-passes,用 <code>none</code> 即可(塗由第 2 段生成)。</li>
+      <li><strong>粗細不同的線</strong>:給 <code>--pen-width</code> 時,比筆寬粗的線用「沿中心線橫移的平行路徑」描(1 本在 <code>strokes</code> 層、其餘在 <code>passes</code> 層,刪掉就回到單線版)。</li>
+      <li>輸出 SVG 分層(線/平行路徑/輪廓/ハッチング),可在 Inkscape 直接改。</li>
+    </ul>
+  </section>
+
+  <!-- 4 -->
+  <section id="refine">
+    <h2><span class="num">④</span> refine-passes:用「可微描繪器」把折線貼合影像</h2>
+    <p>這是全軟體最漂亮的一招。<code>img2svg</code> 的「線塗分離」有癖(切面長出輪廓線、殘鬚、本數段差)。<code>refine-passes</code> 改用<strong>可微分的描繪器</strong>,以 img2svg 的線為初值,移動折線頂點讓「以筆寬描出的像」貼合原圖。A4 一張在 RTX 4090 上約 20 秒。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 240" role="img" aria-label="refine-passes 迴圈：以 img2svg 的線為初值，每一輪做三步，最佳化頂點（用 Adam 下降把以筆寬描繪、縁模糊的像貼近目標灰階）、刪除消掉也幾乎不增誤差的線、在缺墨處追加線，重複數輪後輸出 refined.svg 與 render、residual、target 圖">
+        <defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">每輪三步:最佳化 → 刪除 → 追加(預設 3 輪)</text>
+          <rect x="16" y="52" width="120" height="50" rx="9" fill="#f0eeec" stroke="#a4a097" stroke-width="1.3"/>
+          <text x="76" y="74" text-anchor="middle" font-size="9" fill="#37352f">初值</text>
+          <text x="76" y="90" text-anchor="middle" font-size="8" fill="#787671">img2svg 的線</text>
+          <rect x="176" y="40" width="150" height="74" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.6"/>
+          <text x="251" y="62" text-anchor="middle" font-size="9.5" font-weight="700" fill="#3a2a99">① 最佳化頂點</text>
+          <text x="251" y="79" text-anchor="middle" font-size="7.8" fill="#37352f">縁模糊的可微像</text>
+          <text x="251" y="94" text-anchor="middle" font-size="7.8" fill="#37352f">Adam 下降頂點</text>
+          <text x="251" y="108" text-anchor="middle" font-size="7.5" fill="#5d5b54">損失=二乘+形狀+伸縮</text>
+          <rect x="366" y="40" width="130" height="74" rx="10" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.6"/>
+          <text x="431" y="62" text-anchor="middle" font-size="9.5" font-weight="700" fill="#c02d80">② 刪除</text>
+          <text x="431" y="80" text-anchor="middle" font-size="7.8" fill="#37352f">消掉也幾乎不增</text>
+          <text x="431" y="94" text-anchor="middle" font-size="7.8" fill="#37352f">誤差的線</text>
+          <rect x="536" y="40" width="168" height="74" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.6"/>
+          <text x="620" y="62" text-anchor="middle" font-size="9.5" font-weight="700" fill="#137a29">③ 追加</text>
+          <text x="620" y="80" text-anchor="middle" font-size="7.8" fill="#37352f">缺墨:粗→流線、細→中心線</text>
+          <text x="620" y="94" text-anchor="middle" font-size="7.8" fill="#37352f">孤立塊→點</text>
+          <g stroke="#8a93ad" stroke-width="1.7" fill="none" marker-end="url(#ar)">
+            <path d="M136,77 L174,77"/><path d="M326,77 L364,77"/><path d="M496,77 L534,77"/>
+          </g>
+          <path d="M620,114 C620,150 251,150 251,116" fill="none" stroke="#8a93ad" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#ar)"/>
+          <text x="430" y="150" text-anchor="middle" font-size="8" fill="#787671">重複 --rounds 次</text>
+          <rect x="120" y="178" width="480" height="48" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.1"/>
+          <text x="360" y="198" text-anchor="middle" font-size="9" font-weight="700" fill="#b34700">目標像:把細於筆寬的線「太到筆寬」當目標(否則細線會被判定刪掉誤差較小)</text>
+          <text x="360" y="215" text-anchor="middle" font-size="8.3" fill="#5d5b54">流線塗:由鄰線切線建方向場,等間隔引流線(Jobard–Lefer)→ 像人手塗、方向一致</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 描繪器把每段線畫成「縁 c = sigmoid((w/2 − d)/τ)」、以 1 − Π(1 − c) 合成;縁模糊 ⇒ 頂點往哪動能減誤差可用微分求出。</div>
+    </div>
+    <ul>
+      <li><strong>塗內間隔</strong>(<code>--cover</code>):只用二乘誤差,塗線會被間引到筆寬極限,畫出時微偏就露白筋;所以把「用稍細的筆是否填滿」也放進損失。</li>
+      <li><strong>線的向向</strong>:相鄰線反向畫會讓「隨向偏移」相反、易露白筋,所以追加的線<strong>方向一致</strong>;要保持方向畫需 <code>svg2ring --keep-direction</code>(回程移動變多、時間約多 3 成)。</li>
+      <li>輸出:SVG(<code>strokes</code>+<code>added</code> 層)、<code>_render.png</code>、<code>_residual.png</code>(紅=缺、藍=多)、<code>_target.png</code>。</li>
+    </ul>
+  </section>
+
+  <!-- 5 -->
+  <section id="calib">
+    <h2><span class="num">⑤</span> 兩層較正:先抓「與向無關」,再抓「隨向變化」</h2>
+    <p>機器組不準、畫的方向也會讓筆尖偏。軟體把誤差<strong>拆成兩層</strong>分開量:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 210" role="img" aria-label="兩層較正：第一層與方向無關，打點格子掃描後擬合出環半徑 R、沿桿距離 d、橫偏 e，輸出 fit_params.json；第二層隨方向變化，畫無補正的鋸齒模樣兩枚量測，擬合出偏移係數 a、b、λ、c_speed，輸出 deflect_params.json；再畫逐線抬筆模樣一枚擬合線端係數 c_end">
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">把誤差拆成兩層,各自量、各自擬合</text>
+          <rect x="16" y="42" width="336" height="150" rx="11" fill="#dcecfa" stroke="#0075de" stroke-width="1.6"/>
+          <text x="184" y="64" text-anchor="middle" font-size="10.5" font-weight="800" fill="#005bb0">第 1 層:與方向無關</text>
+          <text x="184" y="88" text-anchor="middle" font-size="9" fill="#37352f">打「點的格子」→ 掃描 → 擬合</text>
+          <text x="184" y="108" text-anchor="middle" font-size="9" fill="#37352f">得 R、d、e(機器的幾何)</text>
+          <text x="184" y="130" text-anchor="middle" font-size="8.5" fill="#5d5b54">gen_dots.py → fit_dots.py</text>
+          <text x="184" y="150" text-anchor="middle" font-size="8.5" fill="#137a29">→ fit_params.json(rms ~0.13mm)</text>
+          <text x="184" y="172" text-anchor="middle" font-size="8" fill="#787671">--ellipse 還量環被壓成橢圓的程度</text>
+
+          <rect x="368" y="42" width="336" height="150" rx="11" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.6"/>
+          <text x="536" y="64" text-anchor="middle" font-size="10.5" font-weight="800" fill="#3a2a99">第 2 層:隨方向變化</text>
+          <text x="536" y="88" text-anchor="middle" font-size="9" fill="#37352f">畫無補正的鋸齒模樣 2 枚 → 量</text>
+          <text x="536" y="108" text-anchor="middle" font-size="9" fill="#37352f">得 a、b、λ、c_speed(偏移模型)</text>
+          <text x="536" y="130" text-anchor="middle" font-size="8.5" fill="#5d5b54">gen/measure_hatch_patches → fit_deflection</text>
+          <text x="536" y="150" text-anchor="middle" font-size="8.5" fill="#137a29">→ deflect_params.json(rms ~0.015mm)</text>
+          <text x="536" y="172" text-anchor="middle" font-size="8" fill="#787671">再畫逐線抬筆 1 枚擬合線端 c_end</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 換筆、換紙、動過擋塊或軌道固定,就從第 1 層重做。掃描 600 dpi、白地黑線、紙心對環心。量測用的速度/加速度要和之後畫圖一致(偏移補正的速度係數靠它)。</div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section id="deflect">
+    <h2><span class="num">⑥</span> 偏移模型與補正:把物理寫進公式再補回去</h2>
+    <p>硬體製作篇提到「陰影線往復差 0.4mm」的謎題——真因是<strong>機器的柔軟 + 隨方向反轉的摩擦</strong>。軟體把它建成一個模型:<strong>筆尖只沿桿的方向偏</strong>,偏移量用兩個係數表示。</p>
+    <pre><code><span class="cm"># 偏移(沿桿方向 u)</span>
+偏移 = ( a·sin²(Δ/2)·g(v·u) + b·sign(ċ) )·u
+
+<span class="cm"># v=進向, u=棒向, ċ=兩台間距伸縮, Δ=兩台角差</span>
+<span class="cm"># g 從 g(x)=x 改成 g(x)=sign(x)·√|x|(小 x 快立、再頭打)</span></code></pre>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 210" role="img" aria-label="偏移補正：沿路徑細步前進，偏移狀態 δ 以 δ += (目標 − δ)(1 − exp(−ds/λ)) 逐步逼近，逆運動學餵入「目標點 − δ」；抬筆移動也延續狀態；線起點加 lead-in 3mm 先沿同向進入消掉起點彎曲，線終點加 lead-out 0.15mm 補回拖尾縮短，並用速度係數在加減速區縮小偏移">
+        <defs><marker id="ad" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">沿路徑更新偏移狀態 δ,逆運動學餵「目標 − δ」</text>
+          <rect x="20" y="44" width="300" height="56" rx="9" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="170" y="66" text-anchor="middle" font-size="9.5" font-weight="700" fill="#3a2a99">狀態更新(細步前進 ds)</text>
+          <text x="170" y="86" text-anchor="middle" font-size="9" fill="#1a1a1a" font-family="monospace">δ += (δ目標 − δ)(1 − e^(−ds/λ))</text>
+          <rect x="400" y="44" width="300" height="56" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="550" y="66" text-anchor="middle" font-size="9.5" font-weight="700" fill="#137a29">逆運動學輸入</text>
+          <text x="550" y="86" text-anchor="middle" font-size="9" fill="#1a1a1a" font-family="monospace">IK(目標點 − δ)</text>
+          <line x1="320" y1="72" x2="398" y2="72" stroke="#8a93ad" stroke-width="1.7" marker-end="url(#ad)"/>
+          <rect x="20" y="120" width="216" height="72" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.2"/>
+          <text x="128" y="140" text-anchor="middle" font-size="9" font-weight="700" fill="#b34700">lead-in 3mm</text>
+          <text x="128" y="158" text-anchor="middle" font-size="7.8" fill="#5d5b54">落筆前先沿同向進入</text>
+          <text x="128" y="173" text-anchor="middle" font-size="7.8" fill="#5d5b54">消掉起點的彎曲</text>
+          <rect x="252" y="120" width="216" height="72" rx="9" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.2"/>
+          <text x="360" y="140" text-anchor="middle" font-size="9" font-weight="700" fill="#b34700">lead-out 0.15mm</text>
+          <text x="360" y="158" text-anchor="middle" font-size="7.8" fill="#5d5b54">筆被紙拖尾 → 線會短</text>
+          <text x="360" y="173" text-anchor="middle" font-size="7.8" fill="#5d5b54">終點沿末向延長補回</text>
+          <rect x="484" y="120" width="216" height="72" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.2"/>
+          <text x="592" y="140" text-anchor="middle" font-size="9" font-weight="700" fill="#005bb0">速度係數 c_speed/c_end</text>
+          <text x="592" y="158" text-anchor="middle" font-size="7.8" fill="#5d5b54">加減速區偏移變小</text>
+          <text x="592" y="173" text-anchor="middle" font-size="7.8" fill="#5d5b54">乘 f(v) 修正</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 轉向後偏移要走距離 λ(1–2mm)才長起來,所以用「指數逼近」更新狀態;抬筆移動也延續狀態。預覽畫的是補正後的指令路徑,所以會看起來和 SVG 差最多 0.5mm。</div>
+    </div>
+    <p>速度係數:加減速區速度越高偏移越小,目標乘 <code>f(v)=1 − c_speed·max(0, 1 − v/v_ref)</code>,線兩端再乘 <code>(1 − c_end·max(0, 1 − v/v_c))</code>。速度由 <code>timing.py</code> 跑 GRBL 的台形加減速逐段算出。</p>
+  </section>
+
+  <!-- 7 -->
+  <section id="numbers">
+    <h2><span class="num">⑦</span> 量測實例:精度怎麼一路降下來</h2>
+    <p>作者機器的歷程(當作「數字量級 + 什麼有效」的參考):</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>階段</th><th>結果</th></tr></thead>
+      <tbody>
+        <tr><td>最初量測(113 處)</td><td>a=+0.53、b=+0.08mm、λ=1.9mm;殘差 rms 0.03mm(無補正則 0.16)。不乘 sin² 的版本在近中心側補正少約 3 成</td></tr>
+        <tr><td>重固定軌道後</td><td>a=+0.59、b=+0.08、λ=1.4;補正後線中央殘差 rms 0.036、最大 0.10mm</td></tr>
+        <tr><td>g 改成 √ 形</td><td>係數數目不變,擬合 rms 0.038 → 0.015mm;畫出的中央殘差 rms 0.014、最大 0.047mm</td></tr>
+        <tr><td>lead-in 3mm</td><td>起點彎 ≥0.15mm 的線 30% → 10%</td></tr>
+        <tr><td>速度係數</td><td>c_speed=0.17,慢的中心殘差消失;兩端不足故另分 c_end(~0.4)</td></tr>
+        <tr><td><strong>最終設定</strong></td><td>a=0.444、b=0.099、λ=0.93、c_speed 0.15、c_end 0.4、lead-in 3、lead-out 0.15;線中央偏移<strong>最大 0.052mm</strong>、起點彎 ≥0.15mm 的線 5%、終點不足 +0.002mm</td></tr>
+      </tbody>
+    </table></div>
+    <h3>「發現了什麼」</h3>
+    <ul>
+      <li><strong>a 的符號為正</strong>:筆尖在進向上是「超前」而非「落後」——不能只用摩擦拖曳解釋。</li>
+      <li>同模樣畫兩枚的差 rms 0.004–0.03mm,殘差大致在量測可重現性之內。</li>
+      <li><strong>軌溝貼膠帶想抑振那天,偏移整體變 1.4 倍</strong>——機器變軟就多偏(呼應硬體篇)。</li>
+      <li>線寬常比公稱粗(公稱 0.5mm 實測 0.72–0.74mm);量端點要用實測線寬。</li>
+      <li>加速度 100→200 度/秒² 讓模樣 1 枚 10:22→9:15、絵 1 枚 19:32→16:59;300 以上頭打。</li>
+    </ul>
+  </section>
+
+  <!-- 8 -->
+  <section id="safety">
+    <h2><span class="num">⑧</span> 安全與送出的約定(踩過的坑都寫進檢查)</h2>
+    <ul>
+      <li><strong>送前三步</strong>:看 <code>svg2ring</code> 的預覽與統計(搆不到的線、α/β 範圍、時間)→ 實機送 <code>G92 X0 Y88</code> 原點、先抬筆空跑一遍 → 沒問題再裝筆畫。</li>
+      <li><strong>自我檢查</strong>:兩台角差 Δ 不可出 88–180°;纜線扭轉(自原點旋角)要在 ±400° 內;各軸速度不可超 GRBL 上限。有問題 exit code 1 列出。</li>
+      <li><strong>脫調檢查</strong>:<code>--dry-run X Y</code> 空跑前後在 (X,Y) 各畫一個 4mm 十字,兩個十字重合=沒掉步。</li>
+      <li><strong>G-code 只能 ASCII</strong>:GRBL 會把 ≥0x80 的位元組(即使在註解裡)當即時命令(0x84=安全門、0x90 台=override)。混進日文或「°」會卡 <code>[MSG:Check Door]</code> 或改變送速。<code>grbl_send.py</code> 送前會去掉註解、殘留非 ASCII 就停。</li>
+    </ul>
+    <div class="callout warn"><strong>一個典型的「把事故變成檢查」:</strong>硬體篇那次差點燒馬達、這裡的 ASCII 之坑、脫調、角差守備——都被寫成程式會自動攔的檢查或 <code>--dry-run</code>。這是「個人工作記錄」難得的嚴謹:每個教訓都固化成不會再犯的護欄。</div>
+  </section>
+
+  <!-- 9 -->
+  <section id="map">
+    <h2><span class="num">⑨</span> 檔案地圖 · 設計取向 · 來源</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>模組(ring_plotter/)</th><th>角色</th></tr></thead>
+      <tbody>
+        <tr><td><code>kinematics.py</code></td><td>順/逆運動學(閉式)、到達範圍、R/d/e 預設</td></tr>
+        <tr><td><code>svg_input.py</code> / <code>gcode.py</code></td><td>讀 SVG→折線;折線→G-code(細分、逆運動學、排序、回向選擇、每段 F、lead-in/out)</td></tr>
+        <tr><td><code>simulate.py</code> / <code>timing.py</code></td><td>G-code→順運動學還原紙上線(守備/扭轉/速度檢查);GRBL 台形加減速的時間推估</td></tr>
+        <tr><td><code>deflection.py</code> / <code>endfit.py</code></td><td>偏移量測模樣、掃描讀取、力的模型;線端係數擬合(帶速度走 G-code)</td></tr>
+        <tr><td><code>raster.py</code> / <code>img2svg.py</code> / <code>refine_passes.py</code> / <code>hatch.py</code></td><td>線稿→折線;可微貼合;流線塗(Jobard–Lefer)</td></tr>
+        <tr><td><code>svg2ring.py</code> / <code>preview.py</code></td><td>主指令與預覽</td></tr>
+      </tbody>
+    </table></div>
+    <p><code>scripts/</code> 則是依「組裝後驗證順序」編號的腳本:<code>gen_circles</code>(同心圓)、<code>gen_arcs</code>(圓弧)、<code>gen_dots</code>/<code>fit_dots</code>(R/d/e)、<code>gen_shapes</code>(方與圓)、<code>gen_overdraw</code>/<code>measure_overdraw</code>(往復重畫量帶寬)、<code>gen_hatch_patches</code>/<code>measure_hatch_patches</code>/<code>fit_deflection</code>/<code>fit_end_effect</code>(偏移係數)、<code>compare_drawing_scan</code>(成品比對)、<code>grbl_send</code>(送出且擋角差越界)。</p>
+    <h3>可以偷師的設計取向</h3>
+    <ul>
+      <li><strong>把物理的不完美拆層、分別量測、用公式補回</strong>——而不是硬在機械上消除(呼應硬體篇「e 不要靠機械消、在公式端處理」)。</li>
+      <li><strong>可微描繪器</strong>:把「畫出來像不像」變成可用梯度下降的目標,是把 ML 思維用在筆畫最佳化的漂亮例子。</li>
+      <li><strong>每個坑都變成自動檢查</strong>:ASCII、角差、脫調、時間推估一致性。</li>
+    </ul>
+    <div class="related">
+      <a href="./ring-xy-plotter-plarail.html">
+        <div class="rel-title">🖋️ 環形 XY 繪圖機(硬體製作篇)</div>
+        <div class="rel-sub">這台機器的機械結構另一半</div>
+      </a>
+      <a href="./slm-document-segmentation.html">
+        <div class="rel-title">✂️ 用小模型找長文最佳斷點</div>
+        <div class="rel-sub">另一個「把任務變可最佳化目標」的例子</div>
+      </a>
+      <a href="./stop-using-claude-2024-way.html">
+        <div class="rel-title">🗓️ 別再用 2024 年的方式用 Claude</div>
+        <div class="rel-sub">人機協同的思維</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>分析自 GitHub 倉庫 <a href="https://github.com/kohya-ss/ring-xy-plotter" style="color:var(--link)">kohya-ss/ring-xy-plotter</a>(MIT)的 README 與原始碼(<code>ring_plotter/kinematics.py</code> 等)。作者聲明:個人工作記錄、不收 PR、專屬作者那台機器;數字為其機器(環半徑 ~231mm、A4)實測,換機器會變。公式、係數與檔案角色均引自倉庫;若要照做請以倉庫最新內容為準。配套的機構與緣由見作者 note 文章與本站硬體製作篇。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
