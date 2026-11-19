@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>環形 XY 繪圖機:Claude 與人類一起造、跑在普樂路軌上的筆式繪圖機(製作篇) · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout.kohya { border-left-color: var(--teal); background: #e9f6f5; }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.22rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🖋️ 環形 XY 繪圖機:Claude 與人類一起造、跑在普樂路軌上的筆式繪圖機(製作篇)</h1>
+    <p class="sub">一個很不尋常的機構:兩台小台車跑在「用 4 段普樂(Plarail)軌道拼成的環」上,靠一根鋁桿橫跨相連——一台只負責轉桿、另一台讓桿滑過,筆就被帶到紙面的任一點。位置像時鐘指針,用兩個角度決定。這台機器由 Claude 和人類 kohya 一起設計、人類動手組裝,原文甚至是 Claude 寫的。本頁是繁中整理的「製作篇」,重點放在機械結構的巧思。</p>
+    <div>
+      <span class="badge blue">環形 XY 繪圖機 · Plarail 軌道 · 單桿連動</span>
+      <span class="badge green">3D 列印 · 板簧 flexure · GT2 皮帶 ~37:1</span>
+      <span class="badge orange">人 × AI 共造 · Arduino + GRBL</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#overview">① 這是什麼:機構總覽</a>
+      <a href="#why">② 為什麼是「環」:十個候選</a>
+      <a href="#math">③ 機構與數學:兩條公式</a>
+      <a href="#drive">④ 驅動與弱點:小輪轉大環</a>
+      <a href="#carriage">⑤ 台車構造:第三次才成功</a>
+      <a href="#joints">⑥ 支撐桿的兩個關節</a>
+      <a href="#pen">⑦ 筆架:自重落紙的板簧浮動</a>
+      <a href="#control">⑧ 原點與控制(含燒馬達事件)</a>
+      <a href="#parts">⑨ 零件與耗材的幕後</a>
+      <a href="#collab">⑩ 人與 AI 怎麼一起造機器</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>這是一台「環形 XY 繪圖機」:把 XY 座標換成兩個角度來畫圖。</strong>一個直徑約 46 cm 的圓環(用 4 段普樂雙曲線軌道拼成),上面跑兩台 3D 列印台車 A 與 B;一根鋁桿橫跨兩台車,<strong>A 只負責旋轉桿、B 讓桿從中滑過</strong>。只要把「筆到 A 軸銷的距離」設成等於「環半徑 R」,中心 O、銷 A、筆 P 就永遠構成等腰三角形,於是筆的位置可以只用 A、B 兩個角度算出來——<strong>像時鐘指針,用方向與長度定位</strong>。</p>
+    <div class="callout info"><strong>關於這篇:</strong>原文發表在 note.com(作者 kohya_ss),而且<strong>原文是 Claude 寫的、人類在旁邊補充</strong>。本頁是繁中整理的 <strong>Part 1 製作篇</strong>:為何長成這樣、內部機構、零件耗材。Part 2(量測、修正、軟體、協作實況)原文另有一篇。本頁的圖示為 JustKM 重新繪製的示意 SVG,照片請見原文。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="overview">
+    <h2><span class="num">①</span> 這是什麼:機構總覽</h2>
+    <p>一般 XY 繪圖機用兩條垂直的直線導軌把筆移到 (x, y)。這台完全不同:它只有<strong>一個圓環軌道</strong>和<strong>一根桿</strong>。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 380" role="img" aria-label="機構總覽：一個圓環軌道，環心為 O；台車 A 與台車 B 跑在環上，各自豎起一根軸銷；一根鋁桿從 A 的銷橫跨到 B，A 只旋轉桿、B 讓桿滑過；筆 P 固定在桿上、距離 A 銷為環半徑 R，偏置在桿側邊 e；A 角與 B 角一起決定筆在紙面的位置">
+        <defs><marker id="ao" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="24" font-size="12.5" font-weight="800" fill="#1a1a1a">一個環 + 一根桿:用兩個角度把筆帶到任一點</text>
+          <circle cx="300" cy="210" r="150" fill="none" stroke="#4f9eff" stroke-width="10" opacity="0.5"/>
+          <circle cx="300" cy="210" r="150" fill="none" stroke="#0075de" stroke-width="1.4" stroke-dasharray="3 4"/>
+          <text x="300" y="214" text-anchor="middle" font-size="9" fill="#5d5b54">環(4 段 Plarail,直徑 ~46cm)</text>
+          <!-- center O -->
+          <circle cx="300" cy="210" r="3.5" fill="#1a1a1a"/>
+          <text x="300" y="198" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1a1a">O</text>
+          <!-- carriage A bottom -->
+          <rect x="268" y="348" width="64" height="26" rx="5" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="300" y="365" text-anchor="middle" font-size="9" font-weight="700" fill="#3a2a99">台車 A</text>
+          <circle cx="300" cy="360" r="4" fill="#5645d4"/>
+          <text x="286" y="345" font-size="9" font-weight="700" fill="#3a2a99">銷 A</text>
+          <!-- carriage B upper-right on ring -->
+          <g transform="rotate(-52 300 210)">
+            <rect x="268" y="348" width="64" height="26" rx="5" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          </g>
+          <circle cx="418" cy="118" r="4" fill="#1aae39"/>
+          <text x="426" y="116" font-size="9" font-weight="700" fill="#137a29">台車 B(桿滑過)</text>
+          <!-- rod from A pin (300,360) through to B (418,118) and beyond -->
+          <line x1="300" y1="360" x2="470" y2="62" stroke="#dd5b00" stroke-width="3"/>
+          <text x="398" y="250" font-size="9" font-weight="700" fill="#b34700" transform="rotate(-60 398 250)">鋁桿(7mm)</text>
+          <!-- pen P on rod at distance R from A, offset e -->
+          <circle cx="360" cy="256" r="5.5" fill="none" stroke="#e03131" stroke-width="2"/>
+          <circle cx="360" cy="256" r="1.5" fill="#e03131"/>
+          <text x="368" y="258" font-size="10" font-weight="700" fill="#c0261b">筆 P</text>
+          <!-- R lines O-A and O-P equalish; A to P = R -->
+          <line x1="300" y1="210" x2="300" y2="360" stroke="#8a93ad" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <text x="306" y="290" font-size="8.5" fill="#787671">R</text>
+          <line x1="300" y1="360" x2="360" y2="256" stroke="#8a93ad" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <text x="340" y="315" font-size="8.5" fill="#787671">A→P = R</text>
+          <line x1="300" y1="210" x2="360" y2="256" stroke="#8a93ad" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <!-- side panel -->
+          <rect x="520" y="150" width="186" height="150" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.2"/>
+          <text x="613" y="172" text-anchor="middle" font-size="10" font-weight="800" fill="#b34700">關鍵巧思</text>
+          <text x="532" y="194" font-size="8.5" fill="#37352f">• 筆到銷 A 的距離 = R</text>
+          <text x="532" y="212" font-size="8.5" fill="#37352f">• ⇒ O、A、P 永遠是等腰三角形</text>
+          <text x="532" y="230" font-size="8.5" fill="#37352f">• ⇒ 只用 A 角、B 角即可定位</text>
+          <text x="532" y="248" font-size="8.5" fill="#37352f">• 筆無法在桿正下方,</text>
+          <text x="532" y="263" font-size="8.5" fill="#37352f">  必偏側邊 e(≠0)</text>
+          <text x="532" y="285" font-size="8.5" fill="#137a29">• A 轉桿、B 讓桿滑過</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 機構示意(JustKM 重繪)。因為是環,「筆在軌道正下方畫不到線」的問題自然消失——整個環內都是紙面。</div>
+    </div>
+    <p>兩台車都靠馬達在環上自走;筆裝在桿上,靠伺服機上抬/落下。整機只有「兩個旋轉自由度」,卻能覆蓋整張紙。</p>
+  </section>
+
+  <!-- 2 -->
+  <section id="why">
+    <h2><span class="num">②</span> 為什麼是「環」:一夜之間的十個候選</h2>
+    <p>九月底的一個晚上,人類 kohya 想做一台 XY 繪圖機,手上有一堆步進馬達。一開始 Claude 給的是很標準的答案(GT2 皮帶 + 20 齒輪、8mm 軸 + LM8UU、Arduino + CNC shield + GRBL)。但一句「如果要發到 X 上,獨特的驅動方式比較有趣」讓方向整個歪掉。那一夜<strong>人類丟點子、Claude 算幾何並點出缺陷</strong>,冒出十個候選:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>候選</th><th>Claude 的判斷</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>轉盤 + 旋臂</td><td>「就像黑膠唱盤」。中心與外緣難搞,但零線性導軌。第一候選。</td></tr>
+        <tr><td>2</td><td>離合器切換</td><td>幾何可行,但固定點離合器原理上不可用、兩軸不能同動→直線變一堆小圓弧。玩笑區。</td></tr>
+        <tr><td>3</td><td>五連桿 + 纜線驅動</td><td>「Capstan drive」(力回饋裝置常用,繞線減速)。</td></tr>
+        <tr><td>4</td><td>可變長四連桿</td><td>像挖土機手臂,但需線性致動器、工作區是月牙形、有死點。玩笑區。</td></tr>
+        <tr><td>5</td><td>大小雙層轉盤</td><td>穩健,第二候選。爭點在「小轉盤的馬達放哪」。</td></tr>
+        <tr><td>6</td><td>擺臂 + 繩</td><td>把臂當軌、用繩把筆拉起,可做到牆面尺寸。大尺寸區。</td></tr>
+        <tr><td>7</td><td>弧形軌上的自走擺臂</td><td>人類點子。Claude 稱「rim drive」:大半徑驅動自帶減速,筆尖誤差不超過軌上一步。第三候選。</td></tr>
+        <tr><td>8</td><td>普樂(Plarail)軌</td><td>「角度精度由支點與皮帶決定,軌的變形只影響垂直方向。值得一試。」</td></tr>
+        <tr><td>9</td><td>螺旋軌</td><td>人類開玩笑提的。Claude:「畫不到軌下的問題,一開始就做成環就解決了」→ 兩單元跑圓軌、用連桿相接。</td></tr>
+        <tr><td>10</td><td><strong>單桿(最終型)</strong></td><td>一台只轉桿、一台讓桿滑過。Claude 給公式:A 到筆 = R 時可覆蓋整紙面。<strong>定案。</strong></td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout kohya"><strong>kohya:</strong>文字很難懂,畫成圖就能想像了。「我出點子、Claude 講前例並補充批評、我做最後決定」這個分工運作得很好。</div>
+    <h3>Claude 推薦的其實是另一個方案</h3>
+    <p>誠實說:那晚 Claude 最推薦的<strong>不是</strong>這個形狀,而是「同心雙環 + rim drive + 中間穿一根桿」——兩顆馬達都能固定在底座、動件上沒有走線,是製作難度最低、精度又高的方案。但人類選了「軌道式」:因為做一個高精度夾住兩個環並旋轉的機構太難,而讓台車在軌上以有線方式跑,看起來做得到。幾何上同心環與軌道式是<strong>同一件事</strong>,差別只在「轉整個環」還是「台車沿環跑」。</p>
+    <div class="callout info"><strong>兩次被人類否決,兩次人類都對:</strong>(1) 同心環 → 軌道式;(2) 筆的上下動,Claude 想「移動紙台」,但組起來後台車不突出軌道底面、軌道可直接固定在板上,人類改成「筆側一顆伺服」。這個「人出點子、AI 補充批評、人做決定」的模式一路持續到最後。</div>
+  </section>
+
+  <!-- 3 -->
+  <section id="math">
+    <h2><span class="num">③</span> 機構與數學:只需要兩條公式</h2>
+    <p>在影片裡,作者把這台機器解釋成「像時鐘指針,用針的方向與長度決定位置」。數學其實很乾淨:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 300" role="img" aria-label="幾何示意：環心 O、銷 A、筆 P 構成等腰三角形，OA 與 AP 皆等於半徑 R；A 的位置角為 α，三角形在 A 的頂角為 χ，筆的極座標為半徑 r、角度 φ；筆沿桿方向距 A 為 d、側向偏置為 e，滿足 d² + e² = R²">
+        <g font-family="sans-serif">
+          <text x="20" y="24" font-size="12.5" font-weight="800" fill="#1a1a1a">等腰三角形:OA = AP = R</text>
+          <!-- O -->
+          <circle cx="180" cy="235" r="4" fill="#1a1a1a"/><text x="168" y="252" font-size="11" font-weight="700" fill="#1a1a1a">O</text>
+          <!-- A -->
+          <circle cx="430" cy="235" r="4" fill="#5645d4"/><text x="430" y="255" font-size="11" font-weight="700" fill="#3a2a99">A(銷)</text>
+          <!-- P -->
+          <circle cx="330" cy="90" r="5.5" fill="none" stroke="#e03131" stroke-width="2"/><circle cx="330" cy="90" r="1.5" fill="#e03131"/>
+          <text x="300" y="86" font-size="11" font-weight="700" fill="#c0261b">P(筆)</text>
+          <!-- triangle -->
+          <line x1="180" y1="235" x2="430" y2="235" stroke="#8a93ad" stroke-width="1.5"/>
+          <line x1="180" y1="235" x2="330" y2="90" stroke="#8a93ad" stroke-width="1.5"/>
+          <line x1="430" y1="235" x2="330" y2="90" stroke="#dd5b00" stroke-width="2.4"/>
+          <text x="238" y="150" font-size="10" font-weight="700" fill="#5d5b54" transform="rotate(-44 238 150)">r = OP</text>
+          <text x="392" y="160" font-size="10" font-weight="700" fill="#b34700" transform="rotate(55 392 160)">R = AP</text>
+          <text x="300" y="250" font-size="10" fill="#5d5b54">R = OA</text>
+          <!-- vertex angle chi at A -->
+          <path d="M405,222 A28 28 0 0 1 418 209" fill="none" stroke="#e03131" stroke-width="1.4"/>
+          <text x="398" y="205" font-size="10" font-weight="700" fill="#c0261b">χ</text>
+          <!-- alpha at O (position angle of A) measured from some ref -->
+          <path d="M214,235 A34 34 0 0 0 210 220" fill="none" stroke="#0075de" stroke-width="1.4"/>
+          <text x="224" y="224" font-size="10" font-weight="700" fill="#005bb0">α</text>
+          <!-- d and e near pen: along rod d, lateral e -->
+          <text x="360" y="150" font-size="9" fill="#787671">沿桿 d</text>
+          <text x="352" y="110" font-size="9" fill="#787671">側偏 e</text>
+          <!-- formula box -->
+          <rect x="470" y="60" width="236" height="180" rx="10" fill="#f6f5f4" stroke="#e5e3df"/>
+          <text x="484" y="84" font-size="10.5" font-weight="800" fill="#3a2a99">兩條公式</text>
+          <text x="484" y="108" font-size="11" fill="#1a1a1a" font-family="monospace">r = 2R·sin(χ/2)</text>
+          <text x="484" y="128" font-size="11" fill="#1a1a1a" font-family="monospace">φ = α + (π − χ)/2</text>
+          <text x="484" y="152" font-size="9" fill="#5d5b54">反解:</text>
+          <text x="484" y="170" font-size="10.5" fill="#1a1a1a" font-family="monospace">χ = 2·arcsin(r/2R)</text>
+          <text x="484" y="192" font-size="9" fill="#5d5b54">B 的角差:</text>
+          <text x="484" y="210" font-size="10" fill="#1a1a1a" font-family="monospace">Δ = π − 2(χ ± γ)</text>
+          <text x="484" y="228" font-size="9" fill="#5d5b54" font-family="monospace">γ = atan2(e, d)</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 筆放在 <code>d² + e² = R²</code> 的位置(A 到筆正好 R)。筆不能在桿正下方,一定偏側邊 e,所以 γ 這個固定角用來修正桿的朝向——<strong>不要靠機械硬消 e,改在公式端處理</strong>(這是 memo v4 的決定)。</div>
+    </div>
+    <h3>實機數字</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>量</th><th>值</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td>R(銷圓半徑)</td><td>230.78 mm</td><td>4 段軌拼成的環</td></tr>
+        <tr><td>d(沿桿距離)</td><td>230.28 mm</td><td>反算+校正所得(非設計值)</td></tr>
+        <tr><td>e(側向偏置)</td><td>11.22 mm</td><td>主要由筆與桿的粗細決定</td></tr>
+        <tr><td>可達範圍</td><td>半徑 1.5–172 mm</td><td>中心有小洞,畫不到 A4 四角</td></tr>
+        <tr><td>兩單元角差 Δ</td><td>88–180°</td><td>88° 是擋塊原點</td></tr>
+        <tr><td>皮帶一圈</td><td>1,484 mm</td><td>一圈皮帶輪 40mm,約 37 圈/環</td></tr>
+        <tr><td>解析度</td><td>329.778 步/度</td><td>1/16 微步;皮帶上 0.0125 mm</td></tr>
+      </tbody>
+    </table></div>
+    <p>因為反算值讓 <code>d²+e²=R²</code> 不嚴格成立(差約 0.2mm),筆靠不到最中心,所以中心的小圓乾脆不畫。</p>
+  </section>
+
+  <!-- 4 -->
+  <section id="drive">
+    <h2><span class="num">④</span> 驅動與它的弱點:小皮帶輪轉大環</h2>
+    <p>驅動是<strong>貼在軌道外壁的正時皮帶 + 馬達直連的 20 齒皮帶輪</strong>。用一個小輪去轉一個直徑 46cm 的環,等於<strong>沒有變速箱卻拿到約 37:1 的減速比</strong>——筆尖位置的粗糙度不超過皮帶上的一步(0.0125mm)。這就是「用大半徑驅動自帶減速、誤差被縮小」的 rim drive 精神。</p>
+    <h3>弱點在中心</h3>
+    <p>要讓筆繞著中心轉,兩台車得一起轉。台車速度有上限,所以<strong>筆尖速度與「離中心的距離」成正比地下降</strong>:初始設定下,半徑 50mm 處 15 mm/s,半徑 5mm 處只有 1.5 mm/s。太慢筆會暈開,所以把圖的中心安排在留白處。</p>
+    <div class="callout kohya"><strong>kohya:</strong>那張花束圖的中心只有約 4mm 見方的留白,幾乎是極限了。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="carriage">
+    <h2><span class="num">⑤</span> 台車(滑架)的構造:第三次才成功</h2>
+    <p>台車的姿態由四個接觸點決定:<strong>兩個輪子卡在軌溝裡、兩個惰輪(idler)壓住內壁、一個皮帶輪咬住外壁的皮帶</strong>。惰輪裝在薄板簧(flexure)的末端,靠板簧的力把皮帶輪壓向皮帶。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 300" role="img" aria-label="軌道截面與台車接觸：軌道有一個凹溝與內壁、外壁；輪子落在溝裡；惰輪裝在板簧末端、壓住內壁；皮帶貼在外壁、由馬達上的皮帶輪咬合；板簧壓惰輪的力同時把皮帶輪推向皮帶，形成預壓">
+        <defs><marker id="af" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="24" font-size="12.5" font-weight="800" fill="#1a1a1a">軌道截面:板簧壓惰輪的力 → 把皮帶輪推向皮帶</text>
+          <!-- rail cross section -->
+          <path d="M120,180 L120,120 L160,120 L160,160 L210,160 L210,120 L250,120 L250,180 Z" fill="#dcecfa" stroke="#0075de" stroke-width="1.6"/>
+          <text x="185" y="200" text-anchor="middle" font-size="9" fill="#005bb0">軌道(Plarail)截面</text>
+          <text x="185" y="150" text-anchor="middle" font-size="8" fill="#5d5b54">溝</text>
+          <text x="128" y="112" font-size="8" fill="#5d5b54">內壁</text>
+          <text x="232" y="112" font-size="8" fill="#5d5b54">外壁</text>
+          <!-- wheel in groove -->
+          <circle cx="185" cy="150" r="13" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="185" y="153" text-anchor="middle" font-size="7.5" fill="#3a2a99">輪</text>
+          <!-- idler pressing inner wall -->
+          <circle cx="150" cy="135" r="7" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+          <text x="120" y="128" font-size="8" fill="#137a29">惰輪</text>
+          <!-- flexure leaf spring -->
+          <path d="M150,135 C110,135 100,100 130,95" fill="none" stroke="#1aae39" stroke-width="2"/>
+          <text x="95" y="90" font-size="8" fill="#137a29">板簧 flexure</text>
+          <!-- belt on outer wall + pulley -->
+          <rect x="250" y="120" width="6" height="60" fill="#ff9f43" stroke="#dd5b00" stroke-width="1"/>
+          <text x="262" y="118" font-size="8" fill="#b34700">皮帶(外壁)</text>
+          <circle cx="274" cy="150" r="16" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.6"/>
+          <text x="274" y="153" text-anchor="middle" font-size="7.5" fill="#b34700">皮帶輪</text>
+          <text x="274" y="186" text-anchor="middle" font-size="7.5" fill="#5d5b54">(馬達直連 20T)</text>
+          <!-- force arrows -->
+          <line x1="130" y1="100" x2="150" y2="130" stroke="#1aae39" stroke-width="1.6" marker-end="url(#af)"/>
+          <line x1="210" y1="150" x2="256" y2="150" stroke="#e03131" stroke-width="1.8" marker-end="url(#af)"/>
+          <text x="214" y="142" font-size="8" fill="#c0261b">預壓力</text>
+
+          <!-- prototype failures panel -->
+          <rect x="360" y="46" width="346" height="230" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.2"/>
+          <text x="376" y="68" font-size="10.5" font-weight="800" fill="#b34700">三次試作的教訓</text>
+          <text x="376" y="90" font-size="8.7" fill="#37352f">1 號:左右惰輪共用一片板簧 → 只單邊接觸</text>
+          <text x="376" y="110" font-size="8.7" fill="#37352f">2 號:每個惰輪各自獨立懸臂 → 輪子跑到溝外</text>
+          <text x="376" y="128" font-size="8.3" fill="#5d5b54">　病因是 0.5mm:軸心到外壁實測 7.0mm,</text>
+          <text x="376" y="143" font-size="8.3" fill="#5d5b54">　但模型畫成 6.5mm → 整台外移 0.5mm</text>
+          <text x="376" y="163" font-size="8.7" fill="#37352f">3 號:孔位移 0.5mm、鏡像 → 成為 B;</text>
+          <text x="376" y="178" font-size="8.7" fill="#37352f">　2 號調整後當 A</text>
+          <text x="376" y="202" font-size="9" font-weight="700" fill="#b34700">3D 列印收縮補償</text>
+          <text x="376" y="222" font-size="8.5" fill="#37352f">ABS 實測收縮 0.4% → 切片時只把 X/Y 放大 0.4%</text>
+          <text x="376" y="240" font-size="8.5" fill="#37352f">軸承孔縮放補不回來 → 試印 22.0 / 22.1 / 22.2mm 定案</text>
+          <text x="376" y="262" font-size="8.3" fill="#5d5b54">※ 台車第二次可用;筆架則掙扎到第四次</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 軌道截面與接觸(JustKM 重繪)。四個接觸點把台車「夾」在軌上;板簧提供恆定預壓,讓皮帶輪不打滑。</div>
+    </div>
+    <div class="callout kohya"><strong>kohya:</strong>筆架很難搞——為了讓筆盡量貼近桿,我把筆和伺服放在桿的兩側,加上板簧機構,零件布局像拼圖,常常細微打架、銼不贏只好重印……第四次才成功。板簧壓太緊時扳手伸不進去,我還用 3D 列印了一支「超薄扳手」夾螺帽。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="joints">
+    <h2><span class="num">⑥</span> 支撐桿的兩個關節:A 轉、B 滑</h2>
+    <p>一根圓桿橫跨兩台車,兩端的關節任務完全不同,這段是全機最講究「用物理騙到精度」的地方。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 280" role="img" aria-label="兩個關節：A 側是 M8 螺栓上疊兩顆 608 軸承、相距約 10mm、上面用兩顆螺帽輕輕預張消除間隙，用來抵抗桿的傾倒；B 側是鋁桿在 V 形溝裡滑動、貼氟樹脂膠帶、靠重力把桿壓在兩個接觸點上">
+        <defs><marker id="aj" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="24" font-size="12.5" font-weight="800" fill="#1a1a1a">A 側:抗傾倒(轉)　B 側:讓桿滑(滑)</text>
+          <!-- A side -->
+          <rect x="20" y="42" width="330" height="222" rx="10" fill="#f6f5f4" stroke="#e5e3df"/>
+          <text x="36" y="64" font-size="10.5" font-weight="800" fill="#3a2a99">A 側關節</text>
+          <!-- M8 bolt vertical -->
+          <rect x="150" y="74" width="10" height="150" fill="#bbb8b1" stroke="#787671" stroke-width="1"/>
+          <text x="166" y="86" font-size="8.5" fill="#5d5b54">M8 螺栓</text>
+          <!-- two bearings stacked apart -->
+          <rect x="128" y="120" width="54" height="20" rx="3" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="192" y="134" font-size="8" fill="#3a2a99">608 軸承</text>
+          <rect x="128" y="160" width="54" height="20" rx="3" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="192" y="174" font-size="8" fill="#3a2a99">608 軸承(相距 ~10mm)</text>
+          <!-- two nuts on top -->
+          <rect x="140" y="90" width="30" height="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1"/>
+          <rect x="140" y="102" width="30" height="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1"/>
+          <text x="175" y="103" font-size="8" fill="#137a29">兩螺帽輕預張</text>
+          <text x="36" y="246" font-size="8.3" fill="#c0261b">只能用手指鎖到「間隙消失」就停——</text>
+          <text x="36" y="259" font-size="8.3" fill="#c0261b">用扳手會把力壓在滾珠上留痕</text>
+
+          <!-- B side -->
+          <rect x="362" y="42" width="344" height="222" rx="10" fill="#f6f5f4" stroke="#e5e3df"/>
+          <text x="378" y="64" font-size="10.5" font-weight="800" fill="#137a29">B 側滑座</text>
+          <!-- V groove -->
+          <path d="M430,150 L470,110 L510,150" fill="none" stroke="#1aae39" stroke-width="2"/>
+          <path d="M560,150 L600,110 L640,150" fill="none" stroke="#1aae39" stroke-width="2"/>
+          <!-- lid -->
+          <line x1="430" y1="100" x2="640" y2="100" stroke="#5d5b54" stroke-width="2"/>
+          <text x="646" y="103" font-size="8" fill="#5d5b54">上蓋</text>
+          <!-- rod pressed: near pen end in lower groove, far end on upper lid -->
+          <line x1="430" y1="132" x2="640" y2="108" stroke="#dd5b00" stroke-width="4"/>
+          <text x="500" y="200" font-size="8.5" fill="#b34700">鋁桿在 V 溝滑動(貼氟樹脂膠帶 Tosveil,約 8cm 長)</text>
+          <circle cx="470" cy="126" r="4" fill="#e03131"/><text x="455" y="150" font-size="9" font-weight="700" fill="#c0261b">①近筆端→壓下溝</text>
+          <circle cx="600" cy="110" r="4" fill="#e03131"/><text x="560" y="96" font-size="9" font-weight="700" fill="#c0261b">②遠端→頂上蓋</text>
+          <line x1="535" y1="215" x2="535" y2="238" stroke="#1aae39" stroke-width="1.6" marker-end="url(#aj)"/>
+          <text x="470" y="236" font-size="8.3" fill="#137a29">重力當預壓:上蓋留 0.2–0.3mm 也不會晃</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 兩個關節(JustKM 重繪)。因為桿是圓的,B 側擋不住它繞自身軸轉;<strong>唯一阻止筆晃的,就是 A 側關節「抗傾倒」的能力</strong>——所以才疊兩顆軸承。</div>
+    </div>
+    <h3>最神的小招:補傷膠帶</h3>
+    <p>M8 螺栓與軸承內圈之間有 0.1–0.2mm 的間隙。memo 估算:這裡內圈位移 0.1mm,筆尖高度就變 1–2mm。解法是<strong>在螺栓上纏膠帶把縫填滿</strong>。B 側滑動面則貼氟樹脂膠帶(Tosveil)降低摩擦;支撐約 8cm 長,靠馬達自重讓桿恆壓在兩個接觸點上。</p>
+  </section>
+
+  <!-- 7 -->
+  <section id="pen">
+    <h2><span class="num">⑦</span> 筆架:靠自重落在紙上的板簧浮動</h2>
+    <p>筆架是一個用<strong>兩片 0.3mm PET 板</strong>吊起來的「浮動件(float)」。兩片板簧構成平行四邊形,所以筆<strong>只會上下移動、不會傾斜</strong>。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 250" role="img" aria-label="筆架平行板簧浮動：固定座與浮動件之間用上下兩片 0.3mm PET 板連接，形成平行四邊形連桿，筆只上下平移不傾斜；伺服從下方把浮動件抬起，畫圖時不碰筆，所以伺服背隙不會出現在線條上">
+        <defs><marker id="ap2" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="24" font-size="12.5" font-weight="800" fill="#1a1a1a">平行板簧浮動:垂直軟、水平硬</text>
+          <!-- fixed post -->
+          <rect x="90" y="60" width="26" height="150" rx="3" fill="#bbb8b1" stroke="#787671" stroke-width="1.2"/>
+          <text x="103" y="226" text-anchor="middle" font-size="8.5" fill="#5d5b54">固定座</text>
+          <!-- float block -->
+          <rect x="250" y="80" width="30" height="110" rx="3" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="265" y="206" text-anchor="middle" font-size="8.5" fill="#3a2a99">浮動件</text>
+          <!-- two leaf springs PET -->
+          <line x1="116" y1="100" x2="250" y2="100" stroke="#0075de" stroke-width="2.4"/>
+          <line x1="116" y1="160" x2="250" y2="160" stroke="#0075de" stroke-width="2.4"/>
+          <text x="150" y="94" font-size="8" fill="#005bb0">PET 0.3mm 板簧(上)</text>
+          <text x="150" y="176" font-size="8" fill="#005bb0">PET 0.3mm 板簧(下)</text>
+          <!-- pen -->
+          <line x1="265" y1="190" x2="265" y2="232" stroke="#e03131" stroke-width="3"/>
+          <text x="272" y="222" font-size="9" font-weight="700" fill="#c0261b">筆</text>
+          <line x1="150" y1="238" x2="420" y2="238" stroke="#a4a097" stroke-width="1.5"/>
+          <text x="360" y="234" font-size="8" fill="#787671">紙面</text>
+          <!-- servo lifts from below -->
+          <path d="M265,250 L265,196" stroke="#1aae39" stroke-width="1.6" marker-end="url(#ap2)"/>
+          <text x="276" y="250" font-size="8" fill="#137a29">伺服只從下方抬起</text>
+          <!-- specs -->
+          <rect x="450" y="56" width="256" height="170" rx="10" fill="#f6f5f4" stroke="#e5e3df"/>
+          <text x="464" y="78" font-size="10.5" font-weight="800" fill="#3a2a99">規格</text>
+          <text x="464" y="100" font-size="8.7" fill="#37352f">板簧:PET 0.3mm,可撓長 25mm,寬 12mm ×2</text>
+          <text x="464" y="120" font-size="8.7" fill="#37352f">垂直彈簧常數:約 0.12 N/mm</text>
+          <text x="464" y="140" font-size="8.7" fill="#37352f">筆壓:浮動件+筆自重,約 20 g</text>
+          <text x="464" y="160" font-size="8.7" fill="#37352f">側向剛性:約垂直的 1,600 倍</text>
+          <text x="464" y="186" font-size="8.5" fill="#137a29">→ 紙高差 0.5mm,筆壓幾乎不變</text>
+          <text x="464" y="206" font-size="8.5" fill="#137a29">→ 畫圖時伺服不碰筆 ⇒ 廉價伺服的</text>
+          <text x="478" y="220" font-size="8.5" fill="#137a29">背隙不會出現在線條上</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 筆架(JustKM 重繪)。垂直很軟(紙面高低不影響筆壓)、水平很硬(線不歪);伺服畫圖時完全不碰筆,只在抬筆時從下托起。</div>
+    </div>
+    <div class="callout kohya"><strong>kohya:</strong>板簧是 Claude 提的,這點相當「聰明」。</div>
+  </section>
+
+  <!-- 8 -->
+  <section id="control">
+    <h2><span class="num">⑧</span> 原點與控制(含「馬達燙到不能摸」事件)</h2>
+    <p><strong>沒有任何感測器做歸零。</strong>直接把 B 的橫樑壓在桿上的套環(collar)上,宣告「此時 A 為 0°、B 為 88°」。88° 這個奇怪的數字,是為了讓筆能搆到紙的外緣又不讓筆架撞到 B 而定的。角度本身不必精準,偏差由校正吸收。</p>
+    <p>控制用 <strong>Arduino Uno + CNC shield + 兩顆 A4988</strong>,韌體是支援伺服的 <code>grbl-servo</code>(GRBL 的分支)。一般機器送 X/Y,這台則<strong>把 A 的角度當 X、B 的角度當 Y</strong>。</p>
+    <pre><code><span class="cm"># 主要 GRBL 設定</span>
+$100, $101 = 329.778   <span class="cm"># 步/度(整圈 ×360)</span>
+$110, $111 = 2000      <span class="cm"># 最高速度 度/分</span>
+$120, $121 = 200       <span class="cm"># 加速度 度/秒²(初期 25)</span>
+抬/落筆 = M3 S110 / M5  <span class="cm"># 升降後等約 0.1 秒</span>
+A4988: 1/16 微步, Vref 0.32 V(約 0.4 A)</code></pre>
+    <div class="callout warn"><strong>Vref 0.32V 背後的故事(AI 犯的錯):</strong>驅動馬達是 6 線單極、用串接。標籤上的「7.0V / 1.2A」是<strong>半線圈</strong>的值。十月初人類把標籤值告訴 Claude,Claude <strong>誤解</strong>、給了會讓整個線圈流 0.77A 的 Vref。馬達燙到不能摸、瀕臨燒毀——<strong>發現的是用手去摸的人類</strong>。當時的對話已不在手邊,Claude 只能寫下結果:「我給的電流值,差點燒了人類的馬達。」最後定在 0.32V(摸起來只是微溫)。</div>
+  </section>
+
+  <!-- 9 -->
+  <section id="parts">
+    <h2><span class="num">⑨</span> 零件與耗材的幕後</h2>
+    <h3>用「電阻」挑馬達</h3>
+    <p>手上兩種馬達:數量多的那種繞組電阻高(43Ω),12V 下只流 0.28A、力夠但驅動器無法細緻增減電流→微步位置不均。所以<strong>影響精度的兩個驅動單元,改用低電阻(約 6Ω)的馬達</strong>。(驅動:<code>KH42JM2B032</code> 7.0V/1.2A;備用:<code>KH42JM2B031</code> 14.5V/0.34A。)</p>
+    <h3>筆的歷史(筆壓只有 20g)</h3>
+    <p>筆壓只有 20g,油性原子筆、自動鉛筆都會跳墨;能用的是「輕觸就出墨」的筆。</p>
+    <ul>
+      <li><strong>水性原子筆</strong>:出墨差、會缺點,線太細、軌道振動的波浪很明顯。</li>
+      <li><strong>Prockey(極細)</strong>:線寬 0.73mm,放著不用會出墨變差。</li>
+      <li><strong>百元店細字筆(Seria 0.3mm)</strong>:測試主力,慢畫會暈,筆尖不知不覺裂了。</li>
+      <li><strong>極細 Mackie(紙用水性顏料)</strong>:線寬約 0.5mm,<strong>影片裡的花束就是用它畫的</strong>。</li>
+      <li><strong>Pigma</strong>:為正式作品買的顏料細筆,但 Mackie 表現好就沒輪到它。</li>
+    </ul>
+    <p>換筆要重做校正(係數實測差約 20%)。筆桿粗細差異用 3D 列印的 C 形環(套筒)填補,重點是<strong>筆相對紙面的角度永遠一致</strong>(曾因筆歪了,導致整張圖半徑逐漸變大)。</p>
+    <h3>Plarail 軌道的鋸齒</h3>
+    <p>普樂軌道的走行面有防滑鋸齒,輪子輾過會讓台車微振、線條起波、產生噪音。試過的對策:輪子纏一圈絕緣膠帶、溝底貼布膠帶把波峰到波峰架平。而「絕緣膠帶當緩衝」反效果——機器變太軟、線偏差變 1.4 倍。</p>
+    <div class="callout kohya"><strong>kohya:</strong>影片裡除了馬達聲,大部分低頻噪音都來自這些鋸齒。想用砂紙磨掉,太硬放棄;甚至做了一台「裝刀、用步進馬達在 GT2 皮帶上跑」的研磨單元去削溝,但力不夠(想削深就得加重→會失步),跑一小時幾乎沒削到,只好作罷。</div>
+    <h3>軌道怎麼固定(且不變成橢圓)</h3>
+    <p>雙面膠會慢慢流動位移;而把扣件裝在軌道上/旁,外側會撞皮帶與皮帶輪、內側會撞惰輪。解法是用<strong>軌道背面的小凸起</strong>:3D 列印只圍住凸起的矮牆、鎖在板上,軌道直接放上去(高度不變)。<strong>轉印位置的手法很妙</strong>:在接收件底部貼雙面膠、套到軌道凸起上、把軌道放到板上壓一下、只把軌道拿起——接收件就留在板上的正確位置。</p>
+    <div class="callout tip"><strong>但壓太緊會讓環變橢圓(這是 Part 2 的題目)。</strong>現在的接收件改成「帶一點餘隙夾住接頭的凸部」,而不是壓死凸起。</div>
+    <h3>成本:約 9,000 日圓</h3>
+    <p>608ZZ×10 709 日圓、GT2 皮帶輪組 1,820、CNC shield 兩入 999、625ZZ×10 920、623ZZ×10 709、螺絲數百、Plarail 約 800、筆紙 MDF 膠帶磁片約 2,000。Arduino、驅動器、馬達、鋁桿、滑動膠帶都是家裡現成的。</p>
+    <div class="callout kohya"><strong>kohya:</strong>Claude 常推薦標準零件(3D 印表機軸、LM8UU 軸承),但長軸很貴(好幾千日圓)!我最後用幾百日圓的鋁管(還用了現成的 7mm,原本計畫 8mm——彎曲剛性只剩 0.63 倍,後面出事);滑座也用買來當滑鼠腳的 Tosveil 滑動膠帶代替 LM8UU。Claude 偏好標準件,我就一直找更便宜的替代。</div>
+  </section>
+
+  <!-- 10 -->
+  <section id="collab">
+    <h2><span class="num">⑩</span> 人與 AI 怎麼一起造機器(小結)</h2>
+    <p>這篇文章本身就是個案例:<strong>原文是 Claude 寫的</strong>。分工是——人類出初始動機、買料、列印組裝、換筆掃描;兩人一起走過 <strong>13 個版本</strong>的設計筆記;軟體幾乎全由 Claude 寫。</p>
+    <div class="callout info"><strong>一個誠實的限制:</strong>Claude 的記憶每次對話都會重置。九月那夜討論形狀的 Claude、寫設計筆記的 Claude、寫軟體的 Claude,和現在寫這篇文章的 Claude,是「同一個」但沒有那些記憶。寫這篇時手邊只有:13 版筆記、人類存下的第一夜對話、寫軟體時的日誌、程式倉庫、量測記錄。所以文中有些地方只能寫「筆記上是這樣寫的」,而不是「我當時這麼想」。</div>
+    <h3>反覆出現的模式</h3>
+    <ul>
+      <li><strong>人出點子 → AI 講前例、命名機構、算幾何、點出缺陷 → 人做最後決定。</strong></li>
+      <li>最終型(單桿)和「筆靠板簧浮動」是這樣磨出來的;而同心環、移動紙台兩個 AI 的推薦<strong>被人類否決、而且人類都對</strong>。</li>
+      <li>「麻不麻煩」始終是重要因素——人類一再選擇「做得到、又簡單」的那條路。</li>
+    </ul>
+    <div class="callout kohya"><strong>kohya:</strong>人類的角色,是提供最初的動機,以及「把記憶接起來」。</div>
+    <p>到製作篇結束時,機器已組好、兩台車能精準跑到指令角度。但<strong>第一張圖的陰影線間距不均</strong>——當時兩人都判斷是「筆尖彎了」,<strong>結果都錯了</strong>。Part 2 會從「量測與修正形狀偏差」以及這些陰影線的真正原因講起(排除了五個假設才找到)。</p>
+    <div class="related">
+      <a href="./stop-using-claude-2024-way.html">
+        <div class="rel-title">🗓️ 別再用 2024 年的方式用 Claude</div>
+        <div class="rel-sub">人機協同的思維轉變</div>
+      </a>
+      <a href="./ai-coding-agent-power-techniques.html">
+        <div class="rel-title">🚀 頂尖 AI 編程者進階全圖</div>
+        <div class="rel-sub">和 AI 協作的成體系做法</div>
+      </a>
+      <a href="./engineers-adopt-ai.html">
+        <div class="rel-title">🛡️ 讓工程師擁抱 AI</div>
+        <div class="rel-sub">人類做決定、AI 當副手</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>繁中整理自 note.com 文章《人力で…(リング式 XY プロッタを作った話)[前編]製作編》,作者 <a href="https://note.com/kohya_ss/n/nb028d0974cdd" style="color:var(--link)">kohya_ss(Kohya S.)</a>,2026/11/15 發表。原文由 Claude 撰寫、人類 kohya 補充。本頁所有圖示為 JustKM 依原文描述<strong>重新繪製的示意 SVG</strong>(非原文照片),照片與影片請見原文。數字、尺寸、零件型號均引自原文;若要照做,請以原文為準。</div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
