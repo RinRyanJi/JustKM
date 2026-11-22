@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>agent-desktop:讓 AI 代理用「無障礙樹」操作桌面 app(Vercel Labs) · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🪟 agent-desktop:讓 AI 代理用「無障礙樹」操作桌面 app</h1>
+    <p class="sub">Vercel Labs 的開源工具:給 AI 代理「電腦操作能力」,但<strong>不靠截圖、不靠像素比對</strong>。它讀作業系統的無障礙樹(accessibility tree),把 UI 變成一棵帶 ref 的 JSON;代理對某個 ref 點擊或輸入,再讀一次確認結果,如此循環。工具本身<strong>不含模型</strong>——迴圈在你的代理裡。跨 macOS / Windows / Linux,附 CLI、C 函式庫與 MCP。</p>
+    <div>
+      <span class="badge blue">Rust · Apache-2.0 · CLI / C lib / MCP</span>
+      <span class="badge green">無障礙樹 · 不截圖 · headless</span>
+      <span class="badge orange">macOS AX · Windows UIA · Linux AT-SPI</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#why">① 核心:讀樹,不看截圖</a>
+      <a href="#loop">② 操作迴圈:snapshot → ref → act</a>
+      <a href="#arch">③ 架構:Rust core + 三平台</a>
+      <a href="#commands">④ 指令與介面</a>
+      <a href="#correct">⑤ 讓它「可靠」的硬功夫</a>
+      <a href="#vs">⑥ 和截圖式 computer use 比</a>
+      <a href="#start">⑦ 上手與隱私</a>
+      <a href="#notes">⑧ 重點 · 關聯 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>把「看螢幕點像素」換成「讀 UI 的結構樹、對元素 ref 操作」。</strong>agent-desktop 透過 OS 的無障礙 API 讀出 app 的 UI 樹,回成 JSON,每個可操作元素帶一個 <code>ref</code>(如 <code>@s8f3k2p9:e8</code>);代理在 ref 上 <code>click</code> / <code>type</code>,再 <code>snapshot</code> 一次驗證,重複。<strong>預設 headless</strong>(用無障礙 API,不移動游標也不搶焦點),需要真實輸入才加 <code>--headed</code>。每個指令印出一個 JSON 信封。</p>
+    <div class="callout info"><strong>定位:</strong>它是「代理的手與眼」,但<strong>沒有腦</strong>——沒有內建模型,決策迴圈在你的代理。附 CLI、C 函式庫(FFI,可同進程呼叫)、以及 <code>agent-desktop mcp</code>(把每個指令變成 MCP 工具)。Rust 寫的,核心一份、各 OS 一個平台轉接器。授權 Apache-2.0。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="why">
+    <h2><span class="num">①</span> 核心想法:讀無障礙樹,不看截圖/像素</h2>
+    <p>多數「computer use」是:截圖 → 模型看圖找按鈕 → 算座標點下去。這條路脆弱:改版、縮放、主題、動畫都會讓像素對不上,而且每一步都要模型「看圖」,慢又貴。agent-desktop 走另一條:<strong>直接問 OS「這個視窗裡有哪些元件、各是什麼、能做什麼」</strong>。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 240" role="img" aria-label="兩條路對照：左邊截圖加像素比對，模型看圖找按鈕算座標，遇到改版縮放主題就壞；右邊讀無障礙樹，OS 直接給出帶角色、名稱、可用動作與 ref 的結構化 JSON，不需看圖、可 headless、穩定">
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">截圖找像素(舊路) vs 讀結構樹(agent-desktop)</text>
+          <rect x="16" y="42" width="330" height="178" rx="11" fill="#fde0ec" stroke="#e03131" stroke-width="1.4"/>
+          <text x="181" y="64" text-anchor="middle" font-size="10.5" font-weight="800" fill="#c0261b">截圖 + 像素比對</text>
+          <rect x="40" y="78" width="130" height="86" rx="6" fill="#fff" stroke="#e03131" stroke-width="1"/>
+          <text x="105" y="122" text-anchor="middle" font-size="8" fill="#787671">螢幕截圖</text>
+          <text x="300" y="100" text-anchor="end" font-size="8.5" fill="#37352f">模型看圖找按鈕</text>
+          <text x="300" y="120" text-anchor="end" font-size="8.5" fill="#37352f">估座標再點</text>
+          <text x="181" y="186" text-anchor="middle" font-size="8.3" fill="#c0261b">改版/縮放/主題/動畫就錯位</text>
+          <text x="181" y="204" text-anchor="middle" font-size="8.3" fill="#c0261b">每步都要看圖,慢又貴</text>
+
+          <rect x="374" y="42" width="330" height="178" rx="11" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+          <text x="539" y="64" text-anchor="middle" font-size="10.5" font-weight="800" fill="#137a29">讀無障礙樹 → JSON+ref</text>
+          <rect x="396" y="78" width="286" height="92" rx="6" fill="#fff" stroke="#1aae39" stroke-width="1"/>
+          <text x="406" y="96" font-size="8" font-family="monospace" fill="#37352f">role: "treeitem"</text>
+          <text x="406" y="112" font-size="8" font-family="monospace" fill="#37352f">name: "Documents"</text>
+          <text x="406" y="128" font-size="8" font-family="monospace" fill="#3a2a99">ref_id: "@s8f3k2p9:e8"</text>
+          <text x="406" y="144" font-size="8" font-family="monospace" fill="#37352f">available_actions: ["Click"]</text>
+          <text x="539" y="190" text-anchor="middle" font-size="8.3" fill="#137a29">不用看圖、可 headless、穩定</text>
+          <text x="539" y="208" text-anchor="middle" font-size="8.3" fill="#137a29">每元素有角色/名稱/可用動作</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 無障礙樹本來是給螢幕報讀軟體(給視障者用)的;agent-desktop 把它當成「代理操作 UI 的事實來源」。</div>
+    </div>
+    <p>好處:<strong>結構化</strong>(role/name/可用動作都在)、<strong>可 headless</strong>(不搶你的滑鼠鍵盤)、<strong>穩</strong>(不隨像素飄移)、<strong>省</strong>(不必每步截圖給模型看)。</p>
+  </section>
+
+  <!-- 2 -->
+  <section id="loop">
+    <h2><span class="num">②</span> 操作迴圈:snapshot → 對 ref 動作 → 再觀察</h2>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 220" role="img" aria-label="操作迴圈：snapshot 讀出帶 ref 的樹，對某個 ref click 或 type，再 snapshot 驗證結果，重複；ref 綁定它的 snapshot，UI 變了動作會回 STALE_REF 或 AMBIGUOUS_TARGET，就重新 snapshot 取新的 ref">
+        <defs><marker id="al" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">觀察 → 動作 → 再觀察(迴圈在你的代理裡)</text>
+          <rect x="30" y="52" width="160" height="56" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="110" y="76" text-anchor="middle" font-size="10" font-weight="700" fill="#005bb0">snapshot</text>
+          <text x="110" y="94" text-anchor="middle" font-size="8" fill="#5d5b54">讀樹 → 每元素一個 ref</text>
+          <rect x="280" y="52" width="160" height="56" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="360" y="76" text-anchor="middle" font-size="10" font-weight="700" fill="#3a2a99">對 ref 動作</text>
+          <text x="360" y="94" text-anchor="middle" font-size="8" fill="#5d5b54">click / type / select …</text>
+          <rect x="530" y="52" width="160" height="56" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="610" y="76" text-anchor="middle" font-size="10" font-weight="700" fill="#137a29">再 snapshot</text>
+          <text x="610" y="94" text-anchor="middle" font-size="8" fill="#5d5b54">驗證結果</text>
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#al)">
+            <path d="M190,80 L278,80"/><path d="M440,80 L528,80"/>
+          </g>
+          <path d="M610,108 C610,150 110,150 110,110" fill="none" stroke="#8a93ad" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#al)"/>
+          <text x="360" y="150" text-anchor="middle" font-size="8" fill="#787671">重複</text>
+          <rect x="60" y="172" width="600" height="38" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.1"/>
+          <text x="360" y="190" text-anchor="middle" font-size="9" font-weight="700" fill="#b34700">ref 綁定它的 snapshot:UI 一變,動作回 STALE_REF / AMBIGUOUS_TARGET</text>
+          <text x="360" y="205" text-anchor="middle" font-size="8.3" fill="#5d5b54">→ 重新 snapshot 拿新 ref(光裸的 @e8 會被 INVALID_ARGS 拒絕)</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ <code>ref</code> 是「這次觀察裡的這個元素」,不是永久 id。多視窗時回 <code>AMBIGUOUS_TARGET</code> 並在 <code>error.details</code> 列候選,用 <code>--window-id</code> 指定。</div>
+    </div>
+    <pre><code>agent-desktop snapshot --app Finder -i      <span class="cm"># 可互動元素,各帶 ref</span>
+agent-desktop click @s8f3k2p9:e8            <span class="cm"># 對該 snapshot 的 ref 動作</span>
+agent-desktop snapshot --app Finder -i      <span class="cm"># 再觀察一次驗證</span></code></pre>
+    <ul>
+      <li><strong>密集的 app</strong>:先 <code>snapshot --skeleton ... --compact</code> 畫骨架,再 <code>snapshot --root @...:e3</code> 鑽進某區(drill-down,只讀子樹)。</li>
+      <li><strong>只在失敗且 <code>error.disposition.retry</code> 為 <code>safe</code> 時才重試</strong>——錯誤信封自帶「能不能安全重試」。</li>
+      <li>敏感文字用 <code>--stdin</code> 從管道餵(避免出現在行程參數裡);PowerShell 要把 ref 加引號(裸 <code>@token</code> 是展開運算子)。</li>
+    </ul>
+  </section>
+
+  <!-- 3 -->
+  <section id="arch">
+    <h2><span class="num">③</span> 架構:一份 Rust core,三個平台轉接器</h2>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 250" role="img" aria-label="架構：呼叫端代理透過 CLI、C 函式庫（FFI）或 MCP 進入 agent-desktop-core；core 只經由 PlatformAdapter trait 接觸作業系統；編譯期選定一個 OS 的平台 crate，macOS 走 AX API、Windows 走 UI Automation、Linux 走 AT-SPI；core 內沒有模型">
+        <defs><marker id="aa" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">三種入口 → 同一 core → PlatformAdapter → 一個 OS API</text>
+          <rect x="250" y="40" width="220" height="34" rx="8" fill="#f0eeec" stroke="#a4a097" stroke-width="1.3"/>
+          <text x="360" y="62" text-anchor="middle" font-size="9.5" font-weight="700" fill="#37352f">你的 AI 代理(決策迴圈)</text>
+          <rect x="60" y="94" width="160" height="30" rx="7" fill="#dcecfa" stroke="#0075de" stroke-width="1.3"/>
+          <text x="140" y="114" text-anchor="middle" font-size="9" fill="#005bb0">CLI</text>
+          <rect x="280" y="94" width="160" height="30" rx="7" fill="#dcecfa" stroke="#0075de" stroke-width="1.3"/>
+          <text x="360" y="114" text-anchor="middle" font-size="9" fill="#005bb0">C 函式庫(FFI,同進程)</text>
+          <rect x="500" y="94" width="160" height="30" rx="7" fill="#dcecfa" stroke="#0075de" stroke-width="1.3"/>
+          <text x="580" y="114" text-anchor="middle" font-size="9" fill="#005bb0">MCP(agent-desktop mcp)</text>
+          <rect x="230" y="142" width="260" height="38" rx="9" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="360" y="162" text-anchor="middle" font-size="10" font-weight="800" fill="#3a2a99">agent-desktop-core(無模型)</text>
+          <text x="360" y="176" text-anchor="middle" font-size="7.5" fill="#5d5b54">經 PlatformAdapter trait 才碰 OS</text>
+          <rect x="30" y="200" width="206" height="40" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+          <text x="133" y="218" text-anchor="middle" font-size="9" font-weight="700" fill="#137a29">macOS:AX API</text>
+          <text x="133" y="232" text-anchor="middle" font-size="7.5" fill="#5d5b54">agent-desktop-macos</text>
+          <rect x="257" y="200" width="206" height="40" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/>
+          <text x="360" y="218" text-anchor="middle" font-size="9" font-weight="700" fill="#b34700">Windows:UI Automation</text>
+          <text x="360" y="232" text-anchor="middle" font-size="7.5" fill="#5d5b54">agent-desktop-windows</text>
+          <rect x="484" y="200" width="206" height="40" rx="9" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.4"/>
+          <text x="587" y="218" text-anchor="middle" font-size="9" font-weight="700" fill="#c02d80">Linux:AT-SPI</text>
+          <text x="587" y="232" text-anchor="middle" font-size="7.5" fill="#5d5b54">agent-desktop-linux</text>
+          <g stroke="#8a93ad" stroke-width="1.6" fill="none" marker-end="url(#aa)">
+            <path d="M140,124 L300,140"/><path d="M360,124 L360,140"/><path d="M580,124 L420,140"/>
+            <path d="M330,180 L160,198"/><path d="M360,180 L360,198"/><path d="M390,180 L560,198"/>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ 每個二進位只為一個 OS 編譯、只接那個 OS 的無障礙 API。開發時 cargo 要限定在本機 OS 的套件(macOS 不會編 Windows 的 crate)。</div>
+    </div>
+    <p>這個分層的好處:三平台的差異全被關在各自的 adapter 裡,core 只處理一套「平台中立」的詞彙(見 ⑤);想加平台,再實作一個 <code>PlatformAdapter</code> 就好。</p>
+  </section>
+
+  <!-- 4 -->
+  <section id="commands">
+    <h2><span class="num">④</span> 指令與介面</h2>
+    <p>共 61 個指令名(57 個可操作;另 4 個 <code>key-down/up</code>、<code>mouse-down/up</code> 要有常駐程式能釋放按鍵才會跑)。分組:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>群組</th><th>指令(節選)</th></tr></thead>
+      <tbody>
+        <tr><td>觀察</td><td><code>snapshot</code>、<code>find</code>、<code>get</code>、<code>is</code>、<code>screenshot</code>、<code>list-surfaces</code></td></tr>
+        <tr><td>對 ref 動作</td><td><code>click</code>、<code>type</code>、<code>set-value</code>、<code>select</code>、<code>toggle</code>、<code>check</code>、<code>expand</code>、<code>scroll-to</code> …</td></tr>
+        <tr><td>鍵鼠</td><td><code>press</code>、<code>hover</code>、<code>drag</code>、<code>mouse-move/click/wheel</code> …</td></tr>
+        <tr><td>app / 視窗</td><td><code>launch</code>、<code>list-apps</code>、<code>list-windows</code>、<code>focus-window</code>、<code>resize/move-window</code>、<code>minimize/maximize</code> …</td></tr>
+        <tr><td>通知 / 剪貼簿</td><td><code>list-notifications</code>、<code>notification-action</code>;<code>clipboard-get/set/clear</code></td></tr>
+        <tr><td>工作階段 / 沙盒 / 系統</td><td><code>session</code>、<code>trace</code>、<code>sandbox</code>、<code>status</code>、<code>permissions</code>、<code>batch</code>、<code>skills</code></td></tr>
+      </tbody>
+    </table></div>
+    <p><strong>三種用法</strong>:(1) CLI 一次一個 JSON 信封;(2) <code>libagent_desktop_ffi</code> 同進程呼叫(Python <code>ctypes</code> 範例在 README);(3) <code>agent-desktop mcp</code> 把每個指令變成 MCP 工具(<code>desktop_snapshot</code>、<code>desktop_click</code>…)。另外二進位自帶給代理讀的技能:<code>agent-desktop skills get desktop</code>(迴圈/ref/驗證/重試規則)、<code>skills get platform</code>(該 OS 的差異)。</p>
+  </section>
+
+  <!-- 5 -->
+  <section id="correct">
+    <h2><span class="num">⑤</span> 讓它「可靠」的硬功夫(最值得偷師的部分)</h2>
+    <p>無障礙樹聽起來乾淨,但不同 app、不同 OS 的實作天差地別。這個專案真正的深度,在於一堆<strong>「怎麼不被騙」</strong>的設計決定。挑幾個最有啟發的:</p>
+    <h3>證據三態:Known / Absent / Unknown,絕不壓成兩態</h3>
+    <p>每個屬性的讀取結果有三種,而且<strong>永遠不合併</strong>:<code>Known</code>(讀到了)、<code>Absent</code>(問了,它說沒有)、<code>Unknown</code>(讀失敗 / 不可信)。<strong><code>Absent</code> 是個答案,<code>Unknown</code> 是沒有答案。</strong>角色/狀態/能力只在「正面宣稱」時才給;讀失敗就不給。把三態壓成 <code>bool</code> 很危險——在「否定」方向會把「我不確定」偷偷改寫成「一定沒有」。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 170" role="img" aria-label="證據三態：Known 讀到了、Absent 問了但沒有、Unknown 讀失敗或不可信；Absent 可通過完整性檢查，Unknown 不行，所以沒答過的目標不會被當成答了『沒有』">
+        <g font-family="sans-serif">
+          <text x="20" y="24" font-size="12.5" font-weight="800" fill="#1a1a1a">三態不可壓成兩態</text>
+          <rect x="30" y="44" width="200" height="96" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="130" y="68" text-anchor="middle" font-size="11" font-weight="800" fill="#137a29">Known</text>
+          <text x="130" y="90" text-anchor="middle" font-size="8.5" fill="#37352f">讀到了、可信</text>
+          <text x="130" y="112" text-anchor="middle" font-size="8" fill="#5d5b54">正面宣稱 → 給角色/狀態/能力</text>
+          <rect x="260" y="44" width="200" height="96" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="360" y="68" text-anchor="middle" font-size="11" font-weight="800" fill="#005bb0">Absent</text>
+          <text x="360" y="90" text-anchor="middle" font-size="8.5" fill="#37352f">問了,它說「沒有」</text>
+          <text x="360" y="112" text-anchor="middle" font-size="8" fill="#5d5b54">是答案 → 可通過完整性檢查</text>
+          <rect x="490" y="44" width="200" height="96" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="590" y="68" text-anchor="middle" font-size="11" font-weight="800" fill="#b34700">Unknown</text>
+          <text x="590" y="90" text-anchor="middle" font-size="8.5" fill="#37352f">讀失敗 / 不可信</text>
+          <text x="590" y="112" text-anchor="middle" font-size="8" fill="#5d5b54">不是答案 → 不可通過完整性</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 「沒讀到」和「確定沒有」是兩回事。很多自動化 bug 就來自把它們當一樣。</div>
+    </div>
+    <h3>視窗身分:handle 會被回收,所以綁上「行程世代」</h3>
+    <p>OS 的視窗 handle 會在視窗銷毀後<strong>被回收給別的視窗</strong>,光憑 handle 在「churn」之後會指到錯的視窗。所以身分 = handle + <strong>行程世代 token</strong>(由擁有者行程的建立時間導出):handle 相同但行程世代對不上,就 fail-closed 而不是認錯對象。而且<strong>每次寫入前都要重驗一次</strong>(觀察與動作之間隨時可能失效),成功檢查也要「身分限定」,否則回收發生在縫隙尾端會對錯誤對象回報成功。</p>
+    <h3>Web 包裝層跳過:Chromium/Electron 的匿名容器不算深度</h3>
+    <p>網頁技術(Chromium/Electron、WebView)會把內容包在一堆沒名字、沒動作的匿名容器裡(UIA <code>Group/Custom/Pane</code>、AX groups、AT-SPI panel…)。這些「透明鷹架」會<strong>吃掉深度預算卻沒資訊</strong>。agent-desktop 用「空元素測試」略過它們的邏輯深度——否則一個密集 web app 的可達內容會被低估一個數量級。Windows 上還特別只對偵測到 Chromium 來源(root class <code>Chrome_WidgetWin_1</code>)才套用,免得把原生堆疊也誤跳。</p>
+    <div class="callout tip"><strong>還有:</strong><strong>部分觀察(Partial Observation)</strong>——走訪超時就回「已看到的部分」而非整個丟掉,並在每個被截斷的節點標註完整性,讓讀者能從根走到邊界;<strong>Surface</strong>——選單/sheet/popover/alert 可當獨立 UI 層單獨觀察;<strong>名稱/角色/狀態詞彙由 core 擁有</strong>,三平台各自把自己的分類「映射」上來、絕不自創 token。這些都是「把雜亂的現實收斂成一致契約」的工程。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="vs">
+    <h2><span class="num">⑥</span> 和「截圖式 computer use」比</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>面向</th><th>截圖 + 像素(如多數 computer use)</th><th>agent-desktop(無障礙樹)</th></tr></thead>
+      <tbody>
+        <tr><td>看 UI 的方式</td><td>螢幕畫面 → 模型看圖</td><td>OS 結構樹 → JSON + ref</td></tr>
+        <tr><td>穩定性</td><td>改版/縮放/主題易錯位</td><td>綁語意元素,較穩</td></tr>
+        <tr><td>成本/速度</td><td>每步截圖給模型,慢且貴</td><td>不必每步看圖,快</td></tr>
+        <tr><td>背景執行</td><td>多半要前景、會動游標</td><td>預設 headless、不搶焦點</td></tr>
+        <tr><td>看得到的東西</td><td>畫面上的像素(含 canvas 繪製)</td><td>有無障礙資訊的元件(canvas/純繪製看不到)</td></tr>
+        <tr><td>需要</td><td>一個會看圖的模型</td><td>app 有正確的無障礙標註</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><strong>誠實的限制:</strong>無障礙路線的罩門是「app 沒好好做無障礙」——純 canvas 繪製、遊戲、無標註的自繪 UI 會看不到或只剩空殼。這時仍得回頭靠截圖/像素(兩者其實互補:結構樹為主、截圖當後備與人工除錯)。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="start">
+    <h2><span class="num">⑦</span> 上手與隱私</h2>
+    <pre><code>npm install -g agent-desktop          <span class="cm"># 也支援 bun/yarn/pnpm;macOS/Linux 可 brew install</span>
+agent-desktop status                  <span class="cm"># 平台、權限、支援的介面</span>
+agent-desktop permissions --guide     <span class="cm"># macOS:引導你授予「輔助使用」權限</span>
+
+<span class="cm"># 裝進代理(AGENTS.md):首次使用前先讀技能</span>
+<span class="cm"># Use `agent-desktop` ... run `agent-desktop skills get desktop` first</span></code></pre>
+    <ul>
+      <li><strong>平台需求</strong>:macOS 13+(AX API)、Windows 10 1809+(UIA)、Ubuntu 24.04+ X11/Wayland(AT-SPI)。各平台頁列出哪些 headless 可用、哪些要 <code>--headed</code>、哪些拒絕。</li>
+      <li><strong>沙盒</strong>:<code>sandbox</code> 可在「provider 建立管理的獨立桌面」裡跑指令,和主機桌面分開。</li>
+    </ul>
+    <div class="callout warn"><strong>隱私提醒(官方特別標註):</strong>snapshot、剪貼簿讀取、截圖、指令輸出、除錯產物<strong>可能含私人桌面內容</strong>,別放進公開 log 或上傳。祕密步驟分開跑(批次 JSON 文字會出現在行程參數裡);敏感輸入用 <code>--stdin</code>。</div>
+  </section>
+
+  <!-- 8 -->
+  <section id="notes">
+    <h2><span class="num">⑧</span> 重點 · 關聯 · 來源</h2>
+    <h3>六個帶得走的重點</h3>
+    <ol>
+      <li>用<strong>無障礙樹</strong>而非截圖操作桌面:結構化、headless、穩、省。</li>
+      <li>迴圈:<strong>snapshot → 對 ref 動作 → 再 snapshot 驗證</strong>;ref 綁 snapshot,UI 變了要重拍。</li>
+      <li>工具<strong>無模型</strong>,決策在你的代理;附 CLI / C 函式庫 / MCP。</li>
+      <li>Rust 一份 core + <code>PlatformAdapter</code> → macOS AX / Windows UIA / Linux AT-SPI。</li>
+      <li>可靠性靠硬功夫:<strong>證據三態、視窗身分(抗 handle 回收)、Web 包裝層跳過、部分觀察</strong>。</li>
+      <li>罩門是「app 沒做無障礙」;與截圖式互補,不是完全取代。</li>
+    </ol>
+    <div class="related">
+      <a href="./rea-reverse-engineer-anything.html">
+        <div class="rel-title">🔬 REA:逆向工程 MCP</div>
+        <div class="rel-sub">另一個給代理的「看懂 app」MCP</div>
+      </a>
+      <a href="./rdpbeacon.html">
+        <div class="rel-title">🖱️ RDPBeacon</div>
+        <div class="rel-sub">同樣碰 OS 視窗/輸入注入的工具</div>
+      </a>
+      <a href="./ai-coding-agent-power-techniques.html">
+        <div class="rel-title">🚀 頂尖 AI 編程者進階全圖</div>
+        <div class="rel-sub">MCP / 代理工作流</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>整理自 GitHub 倉庫 <a href="https://github.com/vercel-labs/agent-desktop" style="color:var(--link)">vercel-labs/agent-desktop</a>(Apache-2.0)的 README 與 <code>CONCEPTS.md</code>,官方文件站 <a href="https://agent-browser.dev/desktop" style="color:var(--link)">agent-browser.dev/desktop</a>。指令數(61/57)、平台需求、概念(證據三態、視窗身分、Web 包裝層等)均引自上述來源;版本演進會變,請以倉庫最新內容為準。本頁為中立技術整理。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
