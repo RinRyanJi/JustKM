@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Microduck:用強化學習走路的迷你雙足機器人,它的「大腦」怎麼設計(Pollen Robotics) · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🦆 Microduck:用強化學習走路的迷你雙足機器人,它的「大腦」怎麼設計</h1>
+    <p class="sub">Pollen Robotics 的開源機器人:約 25cm、800g 的小雙足,靠<strong>強化學習策略</strong>走路。這個倉庫是「鴨子的大腦」——一塊 Rockchip RK3566 上跑一串 Rust daemon:50 Hz 控制迴圈從神經策略驅動 15 顆伺服,還管無線電、相機,以及「不會把機器人更新到變磚」的升級機制。策略在隔壁 <code>microduck_rl</code> 用 MuJoCo + PPO 訓練、sim2real、匯出 ONNX 給它載。本頁拆它的系統架構——那是整個專案最漂亮的部分。</p>
+    <div>
+      <span class="badge blue">RK3566 · Rust · 15 伺服 · 50Hz</span>
+      <span class="badge green">RL 策略 · MuJoCo+PPO · sim2real · ONNX</span>
+      <span class="badge orange">多 daemon · JSON-RPC · 可回滾更新</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#what">① 這是什麼 · 會做什麼</a>
+      <a href="#rl">② 大腦從哪來:sim2real 管線</a>
+      <a href="#system">③ 系統全貌:一板、一串 daemon</a>
+      <a href="#robotd">④ robotd:唯一能碰馬達的人</a>
+      <a href="#recovery">⑤ 設計靈魂:為「壞掉也能救」而生</a>
+      <a href="#state">⑥ 狀態分層:更新不弄丟你的設定</a>
+      <a href="#transport">⑦ 傳輸層什麼都不擁有</a>
+      <a href="#notes">⑧ 重點 · 關聯 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>一隻用神經策略走路的玩具大小雙足機器人,而這個倉庫是它的「作業系統 + 大腦」。</strong>硬體:RK3566 單板、15 顆 Dynamixel 伺服 + IMU 共用一條序列匯流排、頭上一顆 8×8 ToF 深度、相機。軟體:一群 Rust daemon,<strong><code>robotd</code> 跑 50 Hz 控制迴圈</strong>、從 RL 策略算出每顆伺服的動作;其餘 daemon 分別管無線電、相機、設定與更新。走路/翻滾的「本事」是在模擬裡用強化學習訓練出來、再匯成 ONNX 載進來的。</p>
+    <div class="callout info"><strong>為什麼值得讀:</strong>它會走會翻會自己站起來很酷,但真正精彩的是<strong>系統設計</strong>——「只有一個行程能碰馬達」「三個 daemon 專門為了『控制迴圈掛了也能救回來』而存在」「更新是整包換、驗簽、健康閘門、能自動回滾」。這是一份很好的<strong>機器人/嵌入式系統工程</strong>教材。授權與硬體細節以倉庫為準。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="what">
+    <h2><span class="num">①</span> 這是什麼 · 會做什麼</h2>
+    <p>Microduck 約 25cm、800g。拿起手把就能開它走;換上輪子、切到 roller 模式,它會<strong>載入「另一個大腦」</strong>(另一組策略)用滾的。它還會:</p>
+    <ul>
+      <li><strong>走路</strong>(手把駕駛)、<strong>翻滾</strong>(裝輪子+roller 模式)、<strong>撿東西</strong>(喙碰地、一顆鍵)、<strong>自己站起來</strong>(被推倒會自行起身)。</li>
+      <li>還會坐下、踢球、聽指令前滾,以及用「牠自己的聲音」呱呱叫。</li>
+      <li>切模式可以用 <strong>NFC 標籤</strong>碰頭(切 walk / roller / laser / soccer,或配對手把);也能用 <code>duckctl</code> 透過藍牙從筆電操作,<strong>不用網路也不用 ssh</strong>。</li>
+    </ul>
+    <p>硬體重點:Rockchip <strong>RK3566</strong> 單板;<strong>15 顆伺服 + IMU</strong> 共用一條 UART(Dynamixel 匯流排);頭部 <strong>8×8 ToF 深度</strong>感測;相機(經 WebRTC 串流)。</p>
+  </section>
+
+  <!-- 2 -->
+  <section id="rl">
+    <h2><span class="num">②</span> 大腦從哪來:sim2real 強化學習管線</h2>
+    <p>走路這種事不用手寫控制律,而是<strong>在模擬裡用強化學習訓練出策略</strong>,再搬到真機(sim2real)。訓練在隔壁倉庫 <code>microduck_rl</code>:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="sim2real 管線：在 MuJoCo 模擬裡用 PPO 強化學習訓練走路策略，加域隨機化讓策略能跨越模擬與真實的落差，匯出成 ONNX，由真機上的 robotd 以 50Hz 控制迴圈載入並驅動 15 顆伺服">
+        <defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">模擬裡學會 → 搬到真鴨子身上</text>
+          <rect x="16" y="52" width="150" height="70" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="91" y="76" text-anchor="middle" font-size="10" font-weight="700" fill="#005bb0">MuJoCo 模擬</text>
+          <text x="91" y="94" text-anchor="middle" font-size="8" fill="#5d5b54">PPO 強化學習</text>
+          <text x="91" y="110" text-anchor="middle" font-size="8" fill="#5d5b54">學走/翻/起身…</text>
+          <rect x="196" y="52" width="150" height="70" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="271" y="76" text-anchor="middle" font-size="10" font-weight="700" fill="#3a2a99">域隨機化</text>
+          <text x="271" y="94" text-anchor="middle" font-size="8" fill="#5d5b54">隨機化質量/摩擦/延遲</text>
+          <text x="271" y="110" text-anchor="middle" font-size="8" fill="#5d5b54">→ 跨越 sim2real 落差</text>
+          <rect x="376" y="52" width="150" height="70" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="451" y="76" text-anchor="middle" font-size="10" font-weight="700" fill="#b34700">匯出 ONNX</text>
+          <text x="451" y="94" text-anchor="middle" font-size="8" fill="#5d5b54">策略變成可攜模型</text>
+          <text x="451" y="110" text-anchor="middle" font-size="8" fill="#5d5b54">給真機載入</text>
+          <rect x="556" y="52" width="150" height="70" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.6"/>
+          <text x="631" y="72" text-anchor="middle" font-size="10" font-weight="700" fill="#137a29">robotd 50Hz</text>
+          <text x="631" y="90" text-anchor="middle" font-size="8" fill="#5d5b54">每 20ms 推論一次</text>
+          <text x="631" y="106" text-anchor="middle" font-size="8" fill="#5d5b54">→ 15 伺服動作</text>
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#ar)">
+            <path d="M166,87 L194,87"/><path d="M346,87 L374,87"/><path d="M526,87 L554,87"/>
+          </g>
+          <rect x="120" y="156" width="480" height="32" rx="8" fill="#f0eeec" stroke="#a4a097" stroke-width="1.1"/>
+          <text x="360" y="176" text-anchor="middle" font-size="9" fill="#37352f">每種本事 = 一個策略「大腦」:walk / roller… 切模式就換載另一個 ONNX</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ sim2real 的關鍵是<strong>域隨機化</strong>:訓練時刻意亂動物理參數,逼策略學出對「模擬和真實的差異」不敏感的動作,下真機才不會垮。</div>
+    </div>
+    <p>所以「換模式」本質是<strong>換一個策略</strong>:walk 一個、roller 一個;<code>autod</code> 則是「自主大腦」——它跟手把一樣只是個送 intent 的客戶端,開了才動。</p>
+  </section>
+
+  <!-- 3 -->
+  <section id="system">
+    <h2><span class="num">③</span> 系統全貌:一塊板、一串 daemon、一條匯流排</h2>
+    <p>板上跑約十個 daemon,全部透過 <strong>Unix socket</strong> 以 <strong>JSON-RPC 2.0(一行一個物件)</strong>溝通。重點是:<strong>手把、手機、你的筆電、你的腳本——送的是同一組 API 呼叫</strong>(<code>robot.*</code> / <code>update.*</code> / <code>net.*</code> / <code>pad.*</code> / <code>system.*</code>)。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 300" role="img" aria-label="系統全貌：手把經 padd、手機經 btd(BLE)、筆電經 robotctl(ssh)、遠端對等經 mediad(WebRTC)、GitHub release 經 https 進入；各傳輸送同一組 API 到 Unix socket 的 JSON-RPC 匯流排；核心三 daemon robotd、configd、updaterd 各自管馬達控制、設定、更新；tofd 發布深度、誰都不讀">
+        <defs><marker id="as" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">五種入口 → 同一組 API → 三個核心 daemon</text>
+          <!-- inputs row -->
+          <g font-size="8">
+            <rect x="16" y="40" width="110" height="38" rx="7" fill="#dcecfa" stroke="#0075de" stroke-width="1.2"/>
+            <text x="71" y="56" text-anchor="middle" font-weight="700" fill="#005bb0">手把</text>
+            <text x="71" y="70" text-anchor="middle" fill="#5d5b54">padd (BLE/USB)</text>
+            <rect x="140" y="40" width="110" height="38" rx="7" fill="#dcecfa" stroke="#0075de" stroke-width="1.2"/>
+            <text x="195" y="56" text-anchor="middle" font-weight="700" fill="#005bb0">手機</text>
+            <text x="195" y="70" text-anchor="middle" fill="#5d5b54">btd (BLE)</text>
+            <rect x="264" y="40" width="120" height="38" rx="7" fill="#dcecfa" stroke="#0075de" stroke-width="1.2"/>
+            <text x="324" y="56" text-anchor="middle" font-weight="700" fill="#005bb0">筆電</text>
+            <text x="324" y="70" text-anchor="middle" fill="#5d5b54">robotctl (ssh)</text>
+            <rect x="398" y="40" width="130" height="38" rx="7" fill="#dcecfa" stroke="#0075de" stroke-width="1.2"/>
+            <text x="463" y="56" text-anchor="middle" font-weight="700" fill="#005bb0">遠端對等</text>
+            <text x="463" y="70" text-anchor="middle" fill="#5d5b54">mediad (WebRTC)</text>
+            <rect x="542" y="40" width="162" height="38" rx="7" fill="#f0eeec" stroke="#a4a097" stroke-width="1.2"/>
+            <text x="623" y="56" text-anchor="middle" font-weight="700" fill="#37352f">GitHub release</text>
+            <text x="623" y="70" text-anchor="middle" fill="#5d5b54">https → updaterd</text>
+          </g>
+          <!-- bus -->
+          <rect x="16" y="110" width="528" height="34" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/>
+          <text x="280" y="131" text-anchor="middle" font-size="9.5" font-weight="700" fill="#b34700">一服務一個 Unix socket · JSON-RPC 2.0(一行一物件)· 大家送同一組 API</text>
+          <g stroke="#8a93ad" stroke-width="1.4" fill="none" marker-end="url(#as)">
+            <path d="M71,78 L71,108"/><path d="M195,78 L195,108"/><path d="M324,78 L324,108"/><path d="M463,78 L463,108"/>
+          </g>
+          <!-- core daemons -->
+          <rect x="16" y="172" width="168" height="76" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.8"/>
+          <text x="100" y="192" text-anchor="middle" font-size="10" font-weight="800" fill="#137a29">robotd</text>
+          <text x="100" y="210" text-anchor="middle" font-size="8" fill="#37352f">robot.* · 50Hz 迴圈</text>
+          <text x="100" y="224" text-anchor="middle" font-size="8" fill="#37352f">策略 · 安全層</text>
+          <text x="100" y="240" text-anchor="middle" font-size="7.5" fill="#5d5b54">→ 15 伺服 + IMU</text>
+          <rect x="200" y="172" width="168" height="76" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="284" y="192" text-anchor="middle" font-size="10" font-weight="800" fill="#3a2a99">configd</text>
+          <text x="284" y="210" text-anchor="middle" font-size="8" fill="#37352f">net.* pad.* system.*</text>
+          <text x="284" y="226" text-anchor="middle" font-size="8" fill="#37352f">wifi · 名稱 · 配對</text>
+          <rect x="384" y="172" width="168" height="76" rx="10" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.5"/>
+          <text x="468" y="192" text-anchor="middle" font-size="10" font-weight="800" fill="#c02d80">updaterd</text>
+          <text x="468" y="210" text-anchor="middle" font-size="8" fill="#37352f">update.* · 驗簽</text>
+          <text x="468" y="226" text-anchor="middle" font-size="8" fill="#37352f">換版 · 健康閘門 · 回滾</text>
+          <g stroke="#8a93ad" stroke-width="1.4" fill="none" marker-end="url(#as)">
+            <path d="M100,144 L100,170"/><path d="M284,144 L284,170"/><path d="M468,144 L468,170"/>
+            <path d="M623,78 L623,170 L554,210" stroke-dasharray="4 3"/>
+          </g>
+          <!-- tofd -->
+          <rect x="568" y="172" width="138" height="76" rx="10" fill="#f6f5f4" stroke="#a4a097" stroke-width="1.3"/>
+          <text x="637" y="192" text-anchor="middle" font-size="9.5" font-weight="700" fill="#37352f">tofd</text>
+          <text x="637" y="210" text-anchor="middle" font-size="7.5" fill="#5d5b54">發布 8×8 深度</text>
+          <text x="637" y="224" text-anchor="middle" font-size="7.5" fill="#5d5b54">誰都不讀它以外</text>
+          <text x="637" y="240" text-anchor="middle" font-size="7.5" fill="#5d5b54">(robotd/mediad 讀)</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 傳輸(padd/btd/mediad)只是把同一組 API 從 BLE/WebRTC 轉到對應 socket。「app 會用的 API 每天都被手把、腳本跑到」,所以不會悄悄爛掉。</div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section id="robotd">
+    <h2><span class="num">④</span> robotd:唯一能碰馬達的人(意圖 → 安全層 → 可執行)</h2>
+    <p>整個系統裡<strong>只有 <code>robotd</code> 能命令馬達</strong>。15 顆伺服 + IMU 共用一條序列匯流排,由 50 Hz 控制迴圈獨佔。所有客戶端送的是<strong>意圖(intent)</strong>——「用這個速度走」「看那邊」「站起來」——<code>robotd</code> 裡的<strong>安全層</strong>才決定「實際上能不能、該怎麼執行」。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 180" role="img" aria-label="robotd 作為唯一馬達權威：手把、自主大腦、app 都只送意圖，進入 robotd 的 50Hz 迴圈，安全層把意圖夾成可執行的指令，策略推論出動作，再經 Dynamixel 匯流排送到 15 顆伺服；其他行程都無法命令馬達">
+        <defs><marker id="am" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">大家只能送「意圖」,安全層當守門人</text>
+          <rect x="16" y="46" width="150" height="100" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.3"/>
+          <text x="91" y="66" text-anchor="middle" font-size="9" font-weight="700" fill="#005bb0">意圖來源</text>
+          <text x="91" y="86" text-anchor="middle" font-size="8" fill="#5d5b54">手把 padd</text>
+          <text x="91" y="102" text-anchor="middle" font-size="8" fill="#5d5b54">自主 autod</text>
+          <text x="91" y="118" text-anchor="middle" font-size="8" fill="#5d5b54">app / 腳本</text>
+          <text x="91" y="136" text-anchor="middle" font-size="7.5" fill="#787671">「走這麼快/站起來」</text>
+          <rect x="226" y="46" width="300" height="100" rx="11" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.8"/>
+          <text x="376" y="66" text-anchor="middle" font-size="10" font-weight="800" fill="#137a29">robotd(50Hz 控制迴圈)</text>
+          <text x="376" y="88" text-anchor="middle" font-size="8.5" fill="#37352f">安全層:判斷意圖可不可執行</text>
+          <text x="376" y="106" text-anchor="middle" font-size="8.5" fill="#37352f">策略推論(ONNX)→ 關節動作</text>
+          <text x="376" y="124" text-anchor="middle" font-size="8.5" fill="#37352f">讀 IMU / ToF 回授</text>
+          <rect x="570" y="46" width="134" height="100" rx="10" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.4"/>
+          <text x="637" y="78" text-anchor="middle" font-size="9" font-weight="700" fill="#b34700">15 伺服 + IMU</text>
+          <text x="637" y="96" text-anchor="middle" font-size="8" fill="#5d5b54">一條 Dynamixel UART</text>
+          <text x="637" y="118" text-anchor="middle" font-size="7.5" fill="#5d5b54">別的行程碰不到</text>
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#am)">
+            <path d="M166,96 L224,96"/><path d="M526,96 L568,96"/>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ 「單一馬達權威 + 意圖/安全分離」是這台機器人安全的核心:不管誰下指令,最後都要過同一個安全層,硬體只有一個擁有者。</div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section id="recovery">
+    <h2><span class="num">⑤</span> 設計靈魂:為「壞掉也能救回來」而生</h2>
+    <p>這份架構最聰明的地方,是假設<strong>控制迴圈<em>會</em>壞</strong>,然後圍著這個前提設計。</p>
+    <h3>三個 daemon 專門活過「robotd 死掉」</h3>
+    <p><code>configd</code>、<code>updaterd</code>、<code>btd</code> <strong>不依賴 <code>robotd</code></strong>(沒有 systemd 相依、沒有 ML runtime、沒有媒體堆疊)——因為「控制迴圈起不來的機器人」正是那個你需要去<strong>重設定、更新、回滾</strong>的機器人。這也是為什麼設定放在 <code>configd</code> 而不是 <code>robotd</code>。相機(<code>mediad</code>)和手把(<code>padd</code>)可以依賴 <code>robotd</code>——「沒相機沒手把的機器人,還是個你能更新的機器人」。</p>
+    <h3>更新是「整包換」,而且驗簽、健康閘門、能回滾</h3>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 190" role="img" aria-label="更新流程：新版整包落在 releases 版本目錄；updaterd 驗證簽章、移動 current 符號連結、重啟各單元、再問 robotd 健康；健康就保留，不健康就把舊版放回去；就算騙過健康閘門，開機計數器也會抓到 crash-loop">
+        <defs><marker id="au" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">換版 → 驗簽 → 健康閘門 → 保留或回滾</text>
+          <rect x="16" y="46" width="138" height="54" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.3"/>
+          <text x="85" y="68" text-anchor="middle" font-size="8.5" font-weight="700" fill="#005bb0">整包落地</text>
+          <text x="85" y="84" text-anchor="middle" font-size="7.5" fill="#5d5b54">releases/&lt;版本&gt;/</text>
+          <rect x="178" y="46" width="138" height="54" rx="9" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.3"/>
+          <text x="247" y="64" text-anchor="middle" font-size="8.5" font-weight="700" fill="#3a2a99">驗簽 + 換 current</text>
+          <text x="247" y="80" text-anchor="middle" font-size="7.5" fill="#5d5b54">移動符號連結、重啟</text>
+          <rect x="340" y="46" width="138" height="54" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/>
+          <text x="409" y="64" text-anchor="middle" font-size="8.5" font-weight="700" fill="#b34700">健康閘門</text>
+          <text x="409" y="80" text-anchor="middle" font-size="7.5" fill="#5d5b54">問 robot.health</text>
+          <rect x="502" y="40" width="200" height="30" rx="8" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+          <text x="602" y="59" text-anchor="middle" font-size="8.5" font-weight="700" fill="#137a29">健康 → 保留</text>
+          <rect x="502" y="78" width="200" height="30" rx="8" fill="#fde0ec" stroke="#e03131" stroke-width="1.4"/>
+          <text x="602" y="97" text-anchor="middle" font-size="8.5" font-weight="700" fill="#c0261b">不健康 → 放回舊版</text>
+          <g stroke="#8a93ad" stroke-width="1.6" fill="none" marker-end="url(#au)">
+            <path d="M154,73 L176,73"/><path d="M316,73 L338,73"/><path d="M478,65 L500,58"/><path d="M478,82 L500,90"/>
+          </g>
+          <rect x="120" y="140" width="480" height="34" rx="8" fill="#f0eeec" stroke="#a4a097" stroke-width="1.1"/>
+          <text x="360" y="161" text-anchor="middle" font-size="9" fill="#37352f">就算騙過健康閘門:<tspan font-weight="700" fill="#b34700">開機計數器</tspan>會抓到 crash-loop,自己回到能開機的版本</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 版本整包放 <code>/opt/robot/daemon/releases/&lt;版本&gt;/</code>,<code>current</code> 是指向當前版的符號連結。換版=原子地移動連結;出事=把連結指回舊版。每次更新都<strong>驗證、健康閘門、可逆</strong>。</div>
+    </div>
+    <div class="callout tip"><strong>可偷師的原則:</strong>把「負責自我修復的部分」和「可能壞掉的主功能」<strong>隔離</strong>,讓前者永遠不依賴後者;更新用「整包換 + 可回滾」而不是「就地打補丁」;並且<strong>自動驗證新版健康、不健康就自己退回去</strong>。這套思路在任何需要 OTA 更新的嵌入式/機器人產品都適用。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="state">
+    <h2><span class="num">⑥</span> 狀態分層:更新不會弄丟你改過的設定</h2>
+    <p>哪些東西更新後還在、哪些會被換掉?規則一句話:<strong><code>releases/&lt;版本&gt;/</code> 以外的全部,更新與回滾都保留。</strong>設定分兩層:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>層</th><th>位置</th><th>誰決定</th></tr></thead>
+      <tbody>
+        <tr><td>基底(image)</td><td><code>/etc/robot/robotd.toml</code></td><td>映像檔/安裝器寫,OS 更新會換掉</td></tr>
+        <tr><td>使用者層(owner)</td><td><code>/var/lib/robot/robotd.toml</code></td><td>只放「這台被改過的鍵」,更新/回滾都留著</td></tr>
+      </tbody>
+    </table></div>
+    <p>兩層由 <code>robotd_params::Params::load</code> <strong>逐鍵合併</strong>(表逐鍵、其餘整個取代)。好處:映像檔可以把自己的預設往前演進,而你改過的值仍然成立。更聰明的是:<strong>使用者層壞掉不會讓機器人停擺</strong>——它被擱置、機器人用基底跑,<code>robotd</code> 回報 <em>degraded</em> 並點名那個檔,<strong>而不是 <em>unhealthy</em></strong>(否則會為了一個「沒有任何版本能修的檔」把每個版本都回滾掉)。基底壞了才是致命(那是壞映像)。</p>
+    <div class="callout info"><strong>這個區分很有洞見:</strong>「擁有者決定的」和「映像檔決定的」分放兩個地方,A/B 雙槽 OS 更新時,<code>/etc</code> 跟著映像換、<code>/var/lib/robot</code>(自己的分割區)留著。所以「設定更新後不見了」這種經典痛點,從檔案分層就被根除。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="transport">
+    <h2><span class="num">⑦</span> 傳輸層什麼都不擁有 + 一套統一 API</h2>
+    <p>一堆 daemon 其實<strong>不擁有機器人的任何東西</strong>,它們只是傳輸:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>daemon</th><th>角色</th></tr></thead>
+      <tbody>
+        <tr><td><code>btd</code></td><td>把 API 的子集從 BLE 轉給會回應的 socket(手機用)</td></tr>
+        <tr><td><code>padd</code> / <code>netpadd</code></td><td>讀手把 → 送和 app 一樣的意圖(<code>netpadd</code> 走 LAN UDP)</td></tr>
+        <tr><td><code>mediad</code></td><td>相機/音訊管線 + WebRTC 遠端門面(一張原始影格 ~1.8 MiB,刻意不走控制通道)</td></tr>
+        <tr><td><code>autod</code></td><td>自主大腦,和 <code>padd</code> 一樣只是意圖客戶端,沒開就閒置</td></tr>
+        <tr><td><code>tofd</code> / <code>mapd</code></td><td><code>tofd</code> 發布 8×8 深度、誰都不讀;<code>mapd</code> 當訂閱者持地圖,對機器人不下任何指令</td></tr>
+        <tr><td><code>robotctl</code></td><td>CLI,<strong>必須在壞掉的機器人上也能用</strong>的工具</td></tr>
+      </tbody>
+    </table></div>
+    <p>因為「傳輸只搬同一組 API」,它們<strong>全都可以抽換而不碰機器人行為</strong>,而且每天都被用到,所以 app 要用的 API 不會悄悄腐爛。沒有真機?<code>scripts/duck-sim</code> 把<strong>真正的 daemon</strong> 跑在 MuJoCo 的身體上——一隻鴨子在視窗裡,或四隻當成你能登入的機器。</p>
+  </section>
+
+  <!-- 8 -->
+  <section id="notes">
+    <h2><span class="num">⑧</span> 重點 · 關聯 · 來源</h2>
+    <h3>七個帶得走的重點</h3>
+    <ol>
+      <li>~25cm/800g 的 RL 雙足鴨;這個倉庫是它的「作業系統 + 大腦」(Rust、RK3566)。</li>
+      <li>本事來自 <strong>sim2real</strong>:MuJoCo + PPO + 域隨機化 → ONNX → <code>robotd</code> 50Hz 載入。</li>
+      <li>換模式 = 換一個策略「大腦」(walk/roller…)。</li>
+      <li>約十個 daemon,Unix socket + JSON-RPC,<strong>所有客戶端送同一組 API</strong>。</li>
+      <li><strong>只有 <code>robotd</code> 能碰馬達</strong>;大家送意圖,安全層決定可執行。</li>
+      <li>為「壞掉也能救」設計:三 daemon 活過 <code>robotd</code> 死;更新整包換、驗簽、健康閘門、可回滾、開機計數器兜底。</li>
+      <li>狀態分層(image vs owner)讓更新/回滾不弄丟你的設定。</li>
+    </ol>
+    <div class="related">
+      <a href="./esp32-groq-voice-assistant.html">
+        <div class="rel-title">🔊 ESP32-S3 + Groq 語音助手</div>
+        <div class="rel-sub">另一個嵌入式 AI 裝置拆解</div>
+      </a>
+      <a href="./train-slm-single-task.html">
+        <div class="rel-title">🧠 訓練小模型做單一任務</div>
+        <div class="rel-sub">訓練/部署的方法論</div>
+      </a>
+      <a href="./ring-xy-plotter-software.html">
+        <div class="rel-title">🧮 環形繪圖機的軟體</div>
+        <div class="rel-sub">另一個硬體+控制軟體的讀碼案例</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>整理自 GitHub 倉庫 <a href="https://github.com/pollen-robotics/microduck" style="color:var(--link)">pollen-robotics/microduck</a> 的 README 與設計文件 <code>docs/design/architecture.md</code>,訓練側見 <a href="https://github.com/pollen-robotics/microduck_rl" style="color:var(--link)">microduck_rl</a>。架構文件標為「draft,針對首個出貨版本」,細節(daemon 清單、硬體、路徑)會隨版本演進,請以倉庫最新內容為準。授權與購買資訊見倉庫與 <a href="https://pollen-robotics.com/microduck" style="color:var(--link)">官方頁</a>。本頁為中立技術整理。
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
