@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>openGym:自己託管的健身追蹤 App(資料就是一個資料夾) · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #a3e635 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #60a5fa 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🏋️ openGym:自己託管的健身追蹤 App(資料就是一個資料夾)</h1>
+    <p class="sub">大多數健身 App 把你的資料鎖在它的伺服器、逼你訂閱、公司收掉就消失。openGym 反過來:<strong>跑在你自己的機器上,資料放在你掌控的一個資料夾裡,隨你 fork</strong>。它仍然像一個現代 App——裝到主畫面(PWA)、Passkey 登入、離線可用、手機和筆電之間同步。沒有別人伺服器上的帳號、沒有訂閱、沒有廣告、沒有遙測,一行 <code>docker compose up</code> 就跑起來。AGPL-3.0。</p>
+    <div>
+      <span class="badge green">自託管 · 無訂閱 · 無遙測 · AGPL-3.0</span>
+      <span class="badge blue">Node.js + JSON 檔 · 備份一個資料夾就帶走</span>
+      <span class="badge orange">PWA · Passkey · 5,600+ 動作 · 可選 AI 教練/MCP</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#why">① 為什麼自託管:資料是你的</a>
+      <a href="#arch">② 架構:輕到只有三個依賴</a>
+      <a href="#sync">③ 同步怎麼運作(最漂亮的部分)</a>
+      <a href="#plan">④ 規劃與訓練</a>
+      <a href="#progress">⑤ 進度追蹤</a>
+      <a href="#modern">⑥ 像個現代 App:PWA/Passkey/手機手錶</a>
+      <a href="#ai">⑦ 可選的 AI 教練與 MCP</a>
+      <a href="#notes">⑧ 資料所有權 · 授權 · 重點 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>一個「你自己擁有」的健身紀錄與訓練規劃系統。</strong>它把現代健身 App 該有的功能(5,600+ 帶動畫的動作、漸進規則、PR 偵測、肌肉圖、手機/手錶 App)都做了,但關鍵差別在<strong>資料主權</strong>:後端是輕量 Node.js,資料<strong>直接以結構化 JSON 存在你機器上的一個資料夾</strong>——備份那個資料夾,就等於完整帶走你全部的訓練史。AI 完全是可選的:預設安裝不呼叫任何 AI 服務。</p>
+    <div class="callout info"><strong>它為什麼值得放進這份筆記:</strong>openGym 是一個「自託管架構 + 離線優先同步」的漂亮範例——尤其它的<strong>欄位級合併同步</strong>(見 ③)和「資料即 JSON 檔」的設計很值得學。另外它本身<strong>大量用 Claude Code 開發</strong>(repo 帶 CLAUDE.md),還提供可選的 AI 教練與 MCP 伺服器,正好扣住這份筆記的主題。官網 <a href="https://opengym.ch" style="color:var(--link)">opengym.ch</a>(有線上 demo),原作者 <code>DuarteSantos8/openGym</code>。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="why">
+    <h2><span class="num">①</span> 為什麼自託管:資料是你的,不是別人伺服器上的</h2>
+    <p>商業健身 App 的三個老問題:資料在它伺服器、逼訂閱、公司倒了 App 就沒了。openGym 的設計哲學就是逐條反掉:</p>
+    <ul>
+      <li><strong>資料在你掌控的資料夾</strong>:全部存在 host 上的 <code>./data</code>,是人類可讀的 JSON。沒有綁定雲端、沒有專有資料庫。</li>
+      <li><strong>備份 = 複製一個資料夾</strong>:把 <code>./data</code> 複製走,就備份了一切(見 ⑧ 的檔案清單)。要搬家、要 fork、要離開,都隨時。</li>
+      <li><strong>無訂閱、無廣告、無遙測</strong>:AGPL、沒有付費層、沒有為贊助者保留的功能。預設安裝<strong>不呼叫任何 AI 服務</strong>。</li>
+      <li><strong>一行跑起來</strong>:<code>docker compose up</code>,開 <code>http://localhost:8080</code>,建 profile 就進去了。動作動畫打包在映像裡,沒有別的要下載。</li>
+    </ul>
+    <div class="callout tip"><strong>要從手機用 Passkey:</strong>需要 HTTPS + 一個網域(<code>.env</code> 改兩行)。官方自託管指南涵蓋 Cloudflare Tunnel、Caddy、Traefik、nginx,另有 LAN HTTPS、Mac + Tailscale、Kubernetes 的專門指南。登入出問題幾乎都是 <code>RP_ID</code>/<code>ORIGIN</code> 對不上(Passkey 綁定主機名)。</div>
+  </section>
+
+  <!-- 2 -->
+  <section id="arch">
+    <h2><span class="num">②</span> 架構:輕到 API 只有三個依賴</h2>
+    <p>整個系統拆成三塊,刻意保持極簡——後端甚至是裸的 <code>node:http</code>:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 230" role="img" aria-label="openGym 架構：手機/瀏覽器透過 HTTPS 連到 web 容器(nginx);nginx 提供 React/Vite 建置出的靜態前端,並把 /api 反向代理到 api 容器,讓整個 App 在同一個 origin（Passkey 要求同源）;api 是裸 node:http,只有三個依賴——SimpleWebAuthn（Passkey）、web-push（通知）、undici（AI 教練呼叫供應商);所有資料以 JSON 存在 host 的 ./data 資料夾;動作動畫媒體打包在 web 映像裡;AI 教練與 MCP 伺服器是可選、不在預設 Docker build 內">
+        <defs><marker id="ar1" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <rect x="16" y="88" width="120" height="54" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/>
+          <text x="76" y="110" text-anchor="middle" font-size="9.5" font-weight="700" fill="#005bb0">手機 / 瀏覽器</text>
+          <text x="76" y="127" text-anchor="middle" font-size="7.3" fill="#5d5b54">PWA · Passkey</text>
+          <rect x="196" y="74" width="170" height="82" rx="11" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.6"/>
+          <text x="281" y="96" text-anchor="middle" font-size="9.5" font-weight="800" fill="#137a29">web 容器(nginx)</text>
+          <text x="281" y="113" text-anchor="middle" font-size="7.4" fill="#5d5b54">提供 React/Vite 靜態前端</text>
+          <text x="281" y="127" text-anchor="middle" font-size="7.4" fill="#5d5b54">反代 /api → 同一 origin</text>
+          <text x="281" y="143" text-anchor="middle" font-size="7" fill="#787671">動作動畫媒體打包在此映像</text>
+          <rect x="430" y="74" width="180" height="82" rx="11" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="520" y="94" text-anchor="middle" font-size="9.5" font-weight="800" fill="#3a2a99">api(裸 node:http)</text>
+          <text x="520" y="110" text-anchor="middle" font-size="7.2" fill="#37352f">依賴只有三個:</text>
+          <text x="520" y="123" text-anchor="middle" font-size="7.2" fill="#5d5b54">SimpleWebAuthn · web-push</text>
+          <text x="520" y="135" text-anchor="middle" font-size="7.2" fill="#5d5b54">undici(AI 教練呼叫用)</text>
+          <text x="520" y="149" text-anchor="middle" font-size="7" fill="#787671">純函式訓練邏輯 + OpenAPI</text>
+          <rect x="430" y="178" width="180" height="40" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.3"/>
+          <text x="520" y="197" text-anchor="middle" font-size="9" font-weight="700" fill="#b34700">./data(host 上)</text>
+          <text x="520" y="211" text-anchor="middle" font-size="7.3" fill="#5d5b54">全部是 JSON 檔,備份即帶走</text>
+          <g stroke="#8a93ad" stroke-width="1.7" fill="none" marker-end="url(#ar1)">
+            <path d="M136,115 L194,115"/><path d="M366,115 L428,115"/><path d="M520,156 L520,176"/>
+          </g>
+          <text x="166" y="108" text-anchor="middle" font-size="6.8" fill="#787671">HTTPS</text>
+          <text x="398" y="108" text-anchor="middle" font-size="6.8" fill="#787671">/api</text>
+          <text x="360" y="30" text-anchor="middle" font-size="12" font-weight="800" fill="#1a1a1a">三塊:前端(React/Vite)· web(nginx)· api(node:http)</text>
+          <text x="360" y="50" text-anchor="middle" font-size="8" fill="#787671">主機上不需要 Node;AI 教練與 MCP 伺服器可選、不在預設 Docker build 內</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 前端是 React 19 + Vite(React Router、Zustand),建成靜態檔;api 是裸 <code>node:http</code>,只靠三個依賴;web 用 nginx 把前端與 <code>/api</code> 收在同一 origin(Passkey 要求同源)。</div>
+    </div>
+    <p>訓練邏輯(漸進規則、1RM、如何回讀一場已記錄的訓練)刻意寫成 <code>frontend/src/lib/</code> 下的<strong>純函式,旁邊就是測試</strong>——這是「AI 或人寫的程式看起來對、其實錯」的防線。HTTP API 有 OpenAPI 規格。</p>
+  </section>
+
+  <!-- 3 -->
+  <section id="sync">
+    <h2><span class="num">③</span> 同步怎麼運作:欄位級合併,不是整碗覆蓋</h2>
+    <p>自託管 + 多裝置最難的就是同步衝突。openGym 的做法乾淨又好懂:<strong>每個 profile 的資料是一份文件,帶一個伺服器修訂號(revision)</strong>。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 220" role="img" aria-label="同步流程：裝置存檔時,附上它最後看到的 revision 與這次的變更。若期間沒有別的裝置寫入,伺服器接受並遞增 revision。若另一台裝置在期間寫入了,伺服器拒絕(回 409)並把目前的文件送回;裝置拿到後做欄位級合併——每個變更帶自己的時間戳,小到單一設定或單一 routine 欄位,合併時保留每個欄位最新的編輯,刪除保持刪除——然後再存一次。沒送達伺服器的變更在斷線或登出時不會被丟掉">
+        <defs><marker id="sy1" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <rect x="16" y="86" width="130" height="48" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/>
+          <text x="81" y="106" text-anchor="middle" font-size="9" font-weight="700" fill="#005bb0">裝置存檔</text>
+          <text x="81" y="122" text-anchor="middle" font-size="7.2" fill="#5d5b54">附:最後看到的 rev + 變更</text>
+          <polygon points="290,110 365,80 440,110 365,140" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="365" y="106" text-anchor="middle" font-size="8.2" font-weight="700" fill="#b34700">期間有別人</text>
+          <text x="365" y="119" text-anchor="middle" font-size="8.2" font-weight="700" fill="#b34700">寫入嗎?</text>
+          <rect x="560" y="40" width="144" height="46" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="632" y="60" text-anchor="middle" font-size="8.6" font-weight="700" fill="#137a29">接受 · rev+1</text>
+          <text x="632" y="75" text-anchor="middle" font-size="7.2" fill="#5d5b54">存檔成功</text>
+          <rect x="520" y="132" width="184" height="72" rx="10" fill="#ffe8d4" stroke="#e03131" stroke-width="1.5"/>
+          <text x="612" y="152" text-anchor="middle" font-size="8.6" font-weight="800" fill="#c23030">拒絕,回 409 + 目前文件</text>
+          <text x="612" y="169" text-anchor="middle" font-size="7.3" fill="#5d5b54">裝置做欄位級合併:</text>
+          <text x="612" y="182" text-anchor="middle" font-size="7.3" fill="#5d5b54">每欄位帶時間戳,保留最新</text>
+          <text x="612" y="195" text-anchor="middle" font-size="7.3" fill="#5d5b54">刪除保持刪除 → 再存一次</text>
+          <g stroke="#8a93ad" stroke-width="1.7" fill="none" marker-end="url(#sy1)">
+            <path d="M146,110 L288,110"/>
+            <path d="M440,100 L558,70"/>
+            <path d="M420,124 L518,150"/>
+          </g>
+          <text x="500" y="84" font-size="8" font-weight="700" fill="#137a29">否</text>
+          <text x="470" y="150" font-size="8" font-weight="700" fill="#c23030">是</text>
+          <path d="M612,204 C612,214 300,214 81,136" fill="none" stroke="#e03131" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#sy1)"/>
+          <text x="360" y="212" text-anchor="middle" font-size="7.4" fill="#787671">合併後重試 → 回到存檔。沒送達的變更不會在斷線/登出時被丟掉;離線時顯示橫幅</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 關鍵:衝突不是「後寫的蓋掉先寫的」,而是<strong>每個欄位各帶時間戳、逐欄位合併</strong>——兩台裝置同時編輯也能保住各自最新的那一筆,刪掉的保持刪掉。</div>
+    </div>
+    <p>這種「樂觀並發 + 欄位級 CRDT 式合併」是離線優先 App 的教科書做法:裝置先存自己的,撞到別人就把對方文件抓回來合併再存,而不是粗暴地整份覆蓋。</p>
+  </section>
+
+  <!-- 4 -->
+  <section id="plan">
+    <h2><span class="num">④</span> 規劃與訓練</h2>
+    <h3>規劃(Planning)</h3>
+    <ul>
+      <li><strong>5,600+ 動作</strong>(v1.4.0 起 5,632 種)附動畫示範,可搜尋、可用身體圖按肌群瀏覽、可依你擁有的器材過濾。</li>
+      <li>四套起手計畫(Push/Pull/Legs、Upper/Lower、Full Body、5×5),載入即是可編輯的 routine。</li>
+      <li>不想按星期?用 <strong>rotation</strong>(A、B、C、A…),下一場就是你還沒做的下一個。</li>
+      <li>超級組、熱身組、遞減組、rest-pause、計時動作(棒式/懸垂/負重行走)、按時間與速度的有氧、每動作的組間休息、計畫性 deload。自訂動作可放自己的照片/GIF/短片(上傳前在裝置端去除位置資訊)。</li>
+    </ul>
+    <h3>訓練(Training)</h3>
+    <ul>
+      <li>引導式訓練:今天的課自動開始、重量用上次的預填、組間休息計時、邊做邊偵測 PR。</li>
+      <li>可選 <strong>RIR / RPE</strong> 強度欄(顏色標記 + 白話說明)。</li>
+      <li><strong>槓片數學</strong>(槓鈴/EZ 槓/trap bar/史密斯機),按你擁有的槓片算;<strong>每間健身房各自記自己的槓片、啞鈴、槓、器材配重</strong>,走進哪間就切哪間。</li>
+      <li>自體重動作知道自己沒負重(可加負重腰帶);單邊動作分邊記;訓練時螢幕保持亮;器材被佔用時一鍵換上備用動作、保留該格的組數次數;一場的總量(volume)即時跑在進度條末端。</li>
+    </ul>
+  </section>
+
+  <!-- 5 -->
+  <section id="progress">
+    <h2><span class="num">⑤</span> 進度追蹤</h2>
+    <ul>
+      <li><strong>漸進規則</strong>(每 routine 或每動作):線性、Greyskull LP、經過可見次數區間的雙重漸進、三重漸進(次數→組數→負重)、加時間。每個目標都解釋「為什麼是這個數字」;<strong>沒完成的次數永遠不加重,停滯就觸發 deload</strong>。</li>
+      <li>每動作的<strong>估計 1RM</strong>(各有曲線)、結構平衡比例(Poliquin、Thibaudeau、ATG)、一整年的活動熱力圖。</li>
+      <li><strong>肌肉圖三種模式</strong>:量去了哪、還在恢復中、以及哪裡沒練到。</li>
+      <li>體重對目標線的圖(含每週速率、可選增/減/維持區間)、進度照片時間軸含前後對比滑桿、把舉重當體重百分比、以及你這輩子總共舉起的重量。</li>
+      <li>事後可編輯任何已存的訓練、補登紙上做的、或移到正確日期——紀錄會從更正後的歷史重新回讀。</li>
+    </ul>
+  </section>
+
+  <!-- 6 -->
+  <section id="modern">
+    <h2><span class="num">⑥</span> 像個現代 App:PWA / Passkey / 手機與手錶</h2>
+    <ul>
+      <li><strong>Passkey 登入</strong>(Face ID / Touch ID / 指紋),每個 profile 資料跨裝置同步;可改用密碼登入;新裝置用一次性碼或 QR 配對。<strong>Passkey 私鑰永遠不上伺服器</strong>,留在手機安全硬體或你的密碼管理器。</li>
+      <li><strong>PWA</strong>:裝到桌面/手機主畫面、離線可用。</li>
+      <li><strong>手機與手錶</strong>:iPhone/iPad/Android App(可純離線用、或連你的伺服器同步,用 Capacitor 同一套碼庫建),Apple Watch App(用數位錶冠勾選組、手腕上給 RIR/RPE、全螢幕休息倒數、每組心率),iPhone 小工具 + 鎖定畫面 Live Activity。Apple Health / Health Connect 雙向(訓練出去、體重與每組心率回來)。</li>
+      <li><strong>Modules</strong>:在設定裡把整塊功能開關掉(從「只訓練」到「全部」),關掉的部分完全消失但不刪資料。</li>
+      <li>匯入 FitNotes / Strong / Hevy(CSV 或 API key)與 Apple Health 體重;匯出成一份 JSON 或 CSV 試算表。26 種語言(含 RTL 的阿拉伯語/波斯語,以及繁體中文)。</li>
+    </ul>
+  </section>
+
+  <!-- 7 -->
+  <section id="ai">
+    <h2><span class="num">⑦</span> 可選的 AI 教練與 MCP(預設關閉)</h2>
+    <p>AI 在 openGym 裡是<strong>加分項,不是必需品</strong>——預設安裝完全不碰 AI。兩個可選件:</p>
+    <ul>
+      <li><strong>AI 教練</strong>:幫你起草一週 routine,之後根據你實際記錄的(停滯、強度評分、達成率、體重趨勢)<strong>提出一條條、附理由、可逐一接受的修改</strong>。跑在你的伺服器或手機上,用你自己的供應商金鑰(Anthropic / OpenAI / Gemini / 任何 OpenAI 相容端點,含 Ollama)。<strong>每個改動都要你批准</strong>,且 session 到 session 的重量仍由漸進引擎決定,不是 AI。</li>
+      <li><strong>MCP 伺服器</strong>:讓 Claude Desktop 這類助手回答你的訓練史問題、或把你口述的一場訓練記下來。本機跑,<strong>不在 Docker build 裡</strong>。</li>
+      <li><strong>整合</strong>:Apple Health、Health Connect(Garmin/Fitbit/Withings 經此接入),以及完成訓練/破紀錄/量體重時對 Home Assistant、n8n、ntfy 的簽章 webhook。</li>
+    </ul>
+    <div class="callout info"><strong>關於「AI 增強分支」:</strong>社群有個 fork <code>alexpcosta/opengym</code> 專門加 AI 教練(Claude Agent SDK 或內建 OpenAI Codex CLI,附 ChatGPT device-code 登入;改動快照化、可還原)。但要注意:<strong>原版 upstream 現在本身就內建了 AI 教練與 MCP</strong>(見上),所以該 fork 比較像是這條路線較早的版本/快照(其動作庫仍是較舊的 1,324 種)。要新功能,直接用原版 <code>DuarteSantos8/openGym</code> 即可。</div>
+  </section>
+
+  <!-- 8 -->
+  <section id="notes">
+    <h2><span class="num">⑧</span> 資料所有權 · 授權 · 重點 · 來源</h2>
+    <h3>你的資料長怎樣(全在 <code>./data</code>)</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>檔案</th><th>內容</th></tr></thead>
+      <tbody>
+        <tr><td><code>db.json</code></td><td>各 profile 與公開的 passkey 資料</td></tr>
+        <tr><td><code>db.json.bak</code></td><td>上一份正常的 <code>db.json</code> 備份(主檔讀不出時用)</td></tr>
+        <tr><td><code>state-&lt;user&gt;.json</code></td><td>每個使用者的計畫、訓練、體重、設定</td></tr>
+        <tr><td><code>audit.log</code></td><td>管理活動日誌(預設不含 IP)</td></tr>
+        <tr><td><code>secret</code></td><td>session cookie 簽章金鑰</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><strong>授權要讀清楚:</strong>openGym <strong>自己的程式</strong>是 <strong>AGPL-3.0</strong>(自託管/改/分享都可;若把改版當網路服務跑,須以同授權提供該版原始碼)。但<strong>動作的圖與動畫不在這授權內</strong>——那是 © Gym visual,僅授權用於 openGym(repo 內與自託管伺服器為 180px);非商業 fork 可原樣保留並附註,其他用途須自行向 gymvisual.com 取得授權。動作文字(<code>catalogue/</code>)是 openGym 的、歡迎貢獻。</div>
+    <h3>七個帶得走的重點</h3>
+    <ol>
+      <li><strong>資料是你的</strong>:存成 JSON 在 <code>./data</code>,備份一個資料夾就帶走全部訓練史。</li>
+      <li>無訂閱、無廣告、無遙測;<strong>預設安裝不碰 AI</strong>;一行 <code>docker compose up</code>。</li>
+      <li>架構極簡:React/Vite 前端 + <strong>裸 node:http(只三個依賴)</strong> + nginx 同源。</li>
+      <li>同步是<strong>欄位級合併</strong>(revision + 409 衝突 + 逐欄位時間戳),不是整份覆蓋。</li>
+      <li>功能完整:5,632 動作、漸進規則、plate math、per-gym、1RM、肌肉圖。</li>
+      <li>現代 App 體驗:<strong>PWA + Passkey + 離線 + 手機/Apple Watch</strong> + Modules。</li>
+      <li>AI 是可選的:<strong>AI 教練(自帶金鑰、每步批准)+ MCP 伺服器</strong>;專案本身用 Claude Code 開發。</li>
+    </ol>
+    <div class="related">
+      <a href="./find-corporate-ca-cert.html">
+        <div class="rel-title">🔐 找到公司憑證 / TLS</div>
+        <div class="rel-sub">自託管要上 HTTPS 的相關知識</div>
+      </a>
+      <a href="./ohmygame.html">
+        <div class="rel-title">🎮 OhMyGame</div>
+        <div class="rel-sub">另一個「本機優先 + 可選 AI + MCP」的開源 app</div>
+      </a>
+      <a href="./network-basics.html">
+        <div class="rel-title">🌐 REST 與 WebSocket 入門</div>
+        <div class="rel-sub">理解前後端/同步的基礎</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>整理自 GitHub 倉庫 <a href="https://github.com/DuarteSantos8/openGym" style="color:var(--link)">DuarteSantos8/openGym</a>(AGPL-3.0)的 README(含功能列表、架構說明、同步機制、資料檔清單、設定表、授權說明)與 AI 分支 <a href="https://github.com/alexpcosta/opengym" style="color:var(--link)">alexpcosta/opengym</a>、官網 <a href="https://opengym.ch" style="color:var(--link)">opengym.ch</a>。架構層次、同步流程、環境變數、資料檔均引自 README;動作數量以 v1.4.x 的 5,632 為準(README 文案另寫「5,600+」)。功能持續演進,以倉庫最新內容為準。本頁為中立技術整理。</div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
