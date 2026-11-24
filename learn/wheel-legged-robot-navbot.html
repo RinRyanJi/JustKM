@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>從零組一台桌面輪腿自平衡機器人(NavBot-EN01 · ESP32) · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🛞 從零組一台桌面「輪腿」自平衡機器人(NavBot-EN01)</h1>
+    <p class="sub">Frank Fu 的新手向實作記錄:完全沒有硬體經驗,也能用<strong>預製 3D 列印件 + 開源資源</strong>組出一台會自平衡的輪腿機器人。腦是 <strong>ESP32</strong>、腿是兩顆 STS3032 數位伺服、輪是無刷馬達。本頁把它整理成一份可讀的「組裝→校正→韌體→測試」指南,並補上「它到底為什麼站得住」的控制原理——順便和前一篇用強化學習走路的 Microduck 對照。</p>
+    <div>
+      <span class="badge blue">ESP32 · 自平衡 · 輪腿混合</span>
+      <span class="badge green">3D 列印件 · STS3032 伺服 · 無刷馬達</span>
+      <span class="badge orange">新手向 · 經典平衡控制 · Arduino</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#what">① 什麼是輪腿機器人 · 為何適合新手</a>
+      <a href="#balance">② 大腦與自平衡原理</a>
+      <a href="#bom">③ 零件清單與工具</a>
+      <a href="#assembly">④ 組裝流程(六步)</a>
+      <a href="#software">⑤ 校正 → 韌體 → 測試</a>
+      <a href="#debug">⑥ 除錯與效能</a>
+      <a href="#vs">⑦ 和 Microduck 的 RL 路線比</a>
+      <a href="#notes">⑧ 重點 · 關聯 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>一台桌面大小、會自己站直的「輪腿」機器人,用現成套件就能組起來。</strong>它把「兩輪自平衡車(倒立擺)」和「可升降的腿」結合:<strong>無刷馬達的兩顆輪子負責平衡與移動,STS3032 伺服構成的兩條腿負責姿態/高度</strong>。ESP32 讀 IMU、高速閉環修正,開機抬起約 <strong>2 秒內自平衡</strong>,手機連 WiFi 就能遙控。</p>
+    <div class="callout info"><strong>定位:</strong>這是 <strong>NavBot-EN01</strong> 套件(fuwei007/Navbot-EN01,navbot.com)的組裝教學,用<strong>預製零件</strong>(碳纖底板、尼龍腿件、預校正編碼器馬達),適合「想直接玩機器人、先不碰 CAD/從零設計」的開發者。本頁為繁中整理 + 控制原理補充;照片/影片見原文,規格以倉庫為準。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="what">
+    <h2><span class="num">①</span> 什麼是輪腿機器人 · 為何適合新手</h2>
+    <p>輪腿(wheel-legged)是混合體:<strong>輪子</strong>控制簡單、移動穩,好上手;<strong>腿</strong>帶你進入步態規劃與平衡演算法(更進階但有收穫)。現實應用如外送機器人、探勘、甚至火星車都用這種設計。相較全雙足,輪腿可以用 3D 列印件 + ESP32 + 數位伺服<strong>便宜地</strong>做出來。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 240" role="img" aria-label="輪腿機器人結構：中間碳纖底板上載 ESP32 主板與 IMU，底板下方加 CNC 配重;左右各一條由 STS3032 伺服驅動的尼龍腿,腿末端各接一顆無刷馬達帶動的 3D 列印輪;輪子負責平衡與移動,腿負責調整站姿高度">
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">輪負責平衡+移動 · 腿負責姿態/高度</text>
+          <!-- body -->
+          <rect x="285" y="54" width="150" height="56" rx="8" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.6"/>
+          <text x="360" y="76" text-anchor="middle" font-size="9.5" font-weight="700" fill="#3a2a99">ESP32 主板</text>
+          <text x="360" y="92" text-anchor="middle" font-size="8" fill="#5d5b54">+ IMU(量傾角)</text>
+          <rect x="310" y="112" width="100" height="16" rx="4" fill="#f0eeec" stroke="#a4a097"/>
+          <text x="360" y="124" text-anchor="middle" font-size="7.5" fill="#5d5b54">碳纖底板 + CNC 配重</text>
+          <!-- legs (servo) -->
+          <line x1="310" y1="128" x2="250" y2="178" stroke="#1aae39" stroke-width="5"/>
+          <line x1="410" y1="128" x2="470" y2="178" stroke="#1aae39" stroke-width="5"/>
+          <circle cx="310" cy="128" r="7" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <circle cx="410" cy="128" r="7" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="258" y="150" font-size="8" fill="#137a29">STS3032 伺服(髖)</text>
+          <text x="420" y="150" font-size="8" fill="#137a29">腿(尼龍件)</text>
+          <!-- wheels (BLDC) -->
+          <circle cx="245" cy="192" r="26" fill="#ffe8d4" stroke="#dd5b00" stroke-width="2"/>
+          <circle cx="245" cy="192" r="6" fill="#dd5b00"/>
+          <circle cx="475" cy="192" r="26" fill="#ffe8d4" stroke="#dd5b00" stroke-width="2"/>
+          <circle cx="475" cy="192" r="6" fill="#dd5b00"/>
+          <text x="245" y="232" text-anchor="middle" font-size="8" fill="#b34700">無刷馬達輪(平衡+驅動)</text>
+          <text x="475" y="232" text-anchor="middle" font-size="8" fill="#b34700">無刷馬達輪</text>
+          <!-- note panel -->
+          <rect x="520" y="50" width="186" height="150" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.2"/>
+          <text x="613" y="72" text-anchor="middle" font-size="10" font-weight="800" fill="#b34700">為何適合新手</text>
+          <text x="532" y="94" font-size="8.5" fill="#37352f">• 輪子:控制簡單、穩</text>
+          <text x="532" y="112" font-size="8.5" fill="#37352f">• 腿:進階到步態/平衡</text>
+          <text x="532" y="130" font-size="8.5" fill="#37352f">• 便宜:3D 列印+ESP32</text>
+          <text x="532" y="148" font-size="8.5" fill="#37352f">• 技能可遷移到</text>
+          <text x="540" y="164" font-size="8.5" fill="#37352f">外送/探勘/火星車</text>
+          <text x="532" y="186" font-size="8" fill="#5d5b54">• 預製件,免從零 CAD</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 結構示意(JustKM 重繪)。這台本質是「能升降的兩輪自平衡車」:平衡交給輪,腿改變站姿與離地高度。</div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section id="balance">
+    <h2><span class="num">②</span> 大腦與自平衡原理:ESP32 + IMU 回授</h2>
+    <p>腦是 <strong>ESP32</strong>:內建 WiFi/藍牙(可手機遙控、IoT),雙核心能<strong>同時</strong>做感測融合(IMU)與馬達控制,PWM 精準驅動伺服/馬達。它為什麼站得住?——因為它是個<strong>倒立擺</strong>:重心在輪軸之上,本質不穩,要靠「不斷量傾角、不斷把輪子開到重心下方」來動態維持直立(就像你用手掌頂著一根掃把)。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 210" role="img" aria-label="自平衡控制迴圈：IMU 量出車身傾角與角速度,ESP32 控制器算出修正量,驅動兩顆輪子朝傾倒方向加速把輪軸移到重心下方,車身被扶正,再回授;這是倒立擺的高速閉環">
+        <defs><marker id="ab" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">倒立擺高速閉環:量傾角 → 修正 → 把輪子開到重心下</text>
+          <rect x="24" y="52" width="150" height="54" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="99" y="74" text-anchor="middle" font-size="9.5" font-weight="700" fill="#005bb0">IMU 量測</text>
+          <text x="99" y="92" text-anchor="middle" font-size="8" fill="#5d5b54">傾角 pitch + 角速度</text>
+          <rect x="220" y="52" width="150" height="54" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.6"/>
+          <text x="295" y="74" text-anchor="middle" font-size="9.5" font-weight="700" fill="#3a2a99">ESP32 控制器</text>
+          <text x="295" y="92" text-anchor="middle" font-size="8" fill="#5d5b54">算修正(回授控制)</text>
+          <rect x="416" y="52" width="150" height="54" rx="10" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="491" y="74" text-anchor="middle" font-size="9.5" font-weight="700" fill="#b34700">輪馬達出力</text>
+          <text x="491" y="92" text-anchor="middle" font-size="8" fill="#5d5b54">朝傾倒方向加速</text>
+          <rect x="586" y="52" width="110" height="54" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="641" y="74" text-anchor="middle" font-size="9.5" font-weight="700" fill="#137a29">車身扶正</text>
+          <text x="641" y="92" text-anchor="middle" font-size="8" fill="#5d5b54">輪軸回重心下</text>
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#ab)">
+            <path d="M174,79 L218,79"/><path d="M370,79 L414,79"/><path d="M566,79 L584,79"/>
+          </g>
+          <path d="M641,106 C641,150 99,150 99,108" fill="none" stroke="#8a93ad" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#ab)"/>
+          <text x="360" y="150" text-anchor="middle" font-size="8" fill="#787671">每秒數百次閉環;腿(伺服)則改變站姿高度,平衡主要交給輪</text>
+          <rect x="60" y="170" width="600" height="30" rx="8" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.1"/>
+          <text x="360" y="190" text-anchor="middle" font-size="8.7" fill="#b34700">原文示意片段:if (imu.getPitch() &gt; 15) { adjustLegServos(); } —— 概念示意,真正平衡靠連續的輪力控制</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 自平衡控制迴圈(JustKM 重繪)。關鍵直覺:它不是「站著不動」,而是「一直微調輪子位置去追重心」,所以抬起放下約 2 秒內就穩住。</div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section id="bom">
+    <h2><span class="num">③</span> 零件清單與工具</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>類別</th><th>項目</th></tr></thead>
+      <tbody>
+        <tr><td>結構</td><td>預切碳纖底板、CNC 配重塊、尼龍(燒結)腿件、碳纖側板</td></tr>
+        <tr><td>致動</td><td>2× <strong>STS3032</strong> 數位伺服(附花鍵轉接)、<strong>TMCM-6210</strong> 無刷(BLDC)馬達(附預校正編碼器)</td></tr>
+        <tr><td>電子</td><td>ESP32 主板、編碼器板、磁鐵、7.4V LiPo 電池(XT30 接頭)</td></tr>
+        <tr><td>緊固</td><td>M3×8 / M2.5×10 / M3×6 螺絲、M4×8 無頭(grub)螺絲、銅柱(長/短)、軸承、套筒、螺帽</td></tr>
+        <tr><td>工具</td><td>M3 六角起子組、數位扭力扳手(0.2–2.5 N·m)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout tip"><strong>為何用扭力扳手:</strong>碳纖、尼龍件、小螺絲鎖過頭會裂或滑牙。0.2–2.5 N·m 這種小量程扭力扳手能把每顆螺絲鎖到「剛好」,是新手最容易忽略卻很值得的工具。</div>
+  </section>
+
+  <!-- 4 -->
+  <section id="assembly">
+    <h2><span class="num">④</span> 組裝流程(六步,附關鍵尺寸)</h2>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 150" role="img" aria-label="組裝六步流程：底板與配重、伺服安裝、主板安裝、輪轂安裝、編碼器板、腿與馬達連接">
+        <defs><marker id="ap" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif" font-size="8.5">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">底板 → 伺服 → 主板 → 輪轂 → 編碼器 → 腿</text>
+          <g>
+            <rect x="16" y="46" width="106" height="40" rx="7" fill="#dcecfa" stroke="#0075de"/><text x="69" y="63" text-anchor="middle" font-weight="700" fill="#005bb0">① 底板+配重</text><text x="69" y="78" text-anchor="middle" fill="#5d5b54">M3×8</text>
+            <rect x="138" y="46" width="106" height="40" rx="7" fill="#e6e0f5" stroke="#5645d4"/><text x="191" y="63" text-anchor="middle" font-weight="700" fill="#3a2a99">② 伺服</text><text x="191" y="78" text-anchor="middle" fill="#5d5b54">軸朝外 M2.5×10</text>
+            <rect x="260" y="46" width="106" height="40" rx="7" fill="#d9f3e1" stroke="#1aae39"/><text x="313" y="63" text-anchor="middle" font-weight="700" fill="#137a29">③ 主板</text><text x="313" y="78" text-anchor="middle" fill="#5d5b54">長/短銅柱 M3×6</text>
+            <rect x="382" y="46" width="106" height="40" rx="7" fill="#ffe8d4" stroke="#dd5b00"/><text x="435" y="63" text-anchor="middle" font-weight="700" fill="#b34700">④ 輪轂</text><text x="435" y="78" text-anchor="middle" fill="#5d5b54">M4×8 無頭·軸平面±0.2</text>
+            <rect x="504" y="46" width="100" height="40" rx="7" fill="#fde0ec" stroke="#ff64c8"/><text x="554" y="63" text-anchor="middle" font-weight="700" fill="#c02d80">⑤ 編碼器</text><text x="554" y="78" text-anchor="middle" fill="#5d5b54">磁鐵·擴孔</text>
+            <rect x="620" y="46" width="84" height="40" rx="7" fill="#f0eeec" stroke="#a4a097"/><text x="662" y="63" text-anchor="middle" font-weight="700" fill="#37352f">⑥ 腿+馬達</text><text x="662" y="78" text-anchor="middle" fill="#5d5b54">軸承·擋泥朝後</text>
+          </g>
+          <g stroke="#8a93ad" stroke-width="1.5" fill="none" marker-end="url(#ap)">
+            <path d="M122,66 L136,66"/><path d="M244,66 L258,66"/><path d="M366,66 L380,66"/><path d="M488,66 L502,66"/><path d="M604,66 L618,66"/>
+          </g>
+          <text x="20" y="118" font-size="8.3" fill="#5d5b54">關鍵:輪轂對馬達軸「軸平面對齊 ±0.2mm」免打滑;編碼器磁鐵與馬達的間隙會影響讀數(見 ⑥ 除錯);</text>
+          <text x="20" y="134" font-size="8.3" fill="#5d5b54">尼龍燒結腿件孔位常有微小誤差,需擴孔;腿的長擋泥板朝後以利越障。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 六步概覽(JustKM 重繪)。多數是鎖螺絲,但三個精度點要留意:輪軸平面對齊、編碼器磁鐵間隙、腿件擴孔。</div>
+    </div>
+    <ol>
+      <li><strong>底板與配重</strong>:碳纖底板 + CNC 配重塊,M3×8 螺絲。</li>
+      <li><strong>伺服安裝</strong>:短銅柱接伺服模組,STS3032 裝上 CNC 模組、<strong>輸出軸朝外</strong>,M2.5×10 固定。</li>
+      <li><strong>主板安裝</strong>:前用長銅柱、後用短銅柱裝 ESP32;螺帽嵌進 3D 列印腿連接件;碳纖側板 M3×6。</li>
+      <li><strong>輪轂安裝</strong>:3D 列印輪轂+胎裝到無刷馬達,M4×8 無頭螺絲鎖馬達軸;<strong>軸平面對齊 ±0.2mm 防打滑</strong>。</li>
+      <li><strong>編碼器板</strong>:磁鐵裝到白色連接柱、裝到馬達綠色位置(可上膠);尼龍燒結腿件<strong>擴孔</strong>後裝編碼器板。</li>
+      <li><strong>腿-馬達連接</strong>:金屬柱裝進腿件、套上軸承;螺帽入槽;伺服臂裝進腿件並接到指定位置;<strong>長擋泥板朝後</strong>;腿接到無刷馬達。</li>
+    </ol>
+  </section>
+
+  <!-- 5 -->
+  <section id="software">
+    <h2><span class="num">⑤</span> 校正 → 韌體 → 測試</h2>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 150" role="img" aria-label="軟體流程:伺服零位校正(用 FD 工具逐一校兩顆腿伺服、右腿設 ID 2)、燒錄韌體(安裝相依、用 No OTA Large APP 分區)、上電測試(7.4V LiPo、連 WiFi、瀏覽器 192.168.1.11、按 Robot Go、抬起 2 秒自平衡)">
+        <defs><marker id="as" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">伺服零位校正 → 燒韌體 → 上電自平衡</text>
+          <rect x="20" y="48" width="200" height="60" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="120" y="70" text-anchor="middle" font-size="9.5" font-weight="700" fill="#3a2a99">① 伺服零位校正</text>
+          <text x="120" y="88" text-anchor="middle" font-size="8" fill="#5d5b54">FD 工具逐一校兩顆腿伺服</text>
+          <text x="120" y="102" text-anchor="middle" font-size="8" fill="#5d5b54">右腿設 ID=2(避免衝突)</text>
+          <rect x="260" y="48" width="200" height="60" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="360" y="70" text-anchor="middle" font-size="9.5" font-weight="700" fill="#005bb0">② 燒錄韌體</text>
+          <text x="360" y="88" text-anchor="middle" font-size="8" fill="#5d5b54">裝相依、開 wl_pro_robot</text>
+          <text x="360" y="102" text-anchor="middle" font-size="8" fill="#5d5b54">用「No OTA (Large APP)」分區</text>
+          <rect x="500" y="48" width="200" height="60" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.6"/>
+          <text x="600" y="70" text-anchor="middle" font-size="9.5" font-weight="700" fill="#137a29">③ 上電測試</text>
+          <text x="600" y="88" text-anchor="middle" font-size="8" fill="#5d5b54">連 WiFi → 192.168.1.11</text>
+          <text x="600" y="102" text-anchor="middle" font-size="8" fill="#5d5b54">Robot Go → 抬起 2 秒自平衡</text>
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#as)">
+            <path d="M220,78 L258,78"/><path d="M460,78 L498,78"/>
+          </g>
+          <text x="20" y="134" font-size="8.3" fill="#5d5b54">工具:Arduino IDE 2.3.4 + esp32 v2.0.3;SteeringEngineDebug.ino 燒校正碼;FD.exe 校零位(先接電源再接電腦)</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 軟體三步(JustKM 重繪)。校正時「先開電源再接電腦」,並拔掉一顆伺服線避免 ID 衝突、逐顆校。</div>
+    </div>
+    <h3>上電序列</h3>
+    <ol>
+      <li>7.4V LiPo 插 XT30;撥開關 → 紅燈亮表示啟動,自測幾秒。</li>
+      <li>手機連 WiFi <code>navbot_en01-XXXXXX</code>(密碼 <code>12345678</code>)。</li>
+      <li>瀏覽器輸入 <code>192.168.1.11</code> 進控制介面 → 按 <strong>Robot Go</strong> 並手動抬起,<strong>約 2 秒內自平衡</strong>。</li>
+    </ol>
+  </section>
+
+  <!-- 6 -->
+  <section id="debug">
+    <h2><span class="num">⑥</span> 除錯與效能</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>問題</th><th>診斷</th><th>解法</th></tr></thead>
+      <tbody>
+        <tr><td>伺服抖動</td><td>鷹率(baud)不符</td><td>設 <code>#define SERVO_BAUD 115200</code></td></tr>
+        <tr><td>腿對不齊</td><td>花鍵定位錯</td><td>把腿重新坐回伺服花鍵</td></tr>
+        <tr><td>WiFi 斷線</td><td>RF 干擾</td><td>天線遠離馬達</td></tr>
+        <tr><td>馬達卡頓</td><td>編碼器未對準</td><td>把磁鐵間隙調到 <strong>0.8–1.2mm</strong></td></tr>
+      </tbody>
+    </table></div>
+    <h3>效能數據(原文實測)</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>動作</th><th>電流 (A)</th><th>延遲 (ms)</th></tr></thead>
+      <tbody>
+        <tr><td>待機 Idle</td><td>0.12</td><td>—</td></tr>
+        <tr><td>直線移動 1m/s</td><td>2.75</td><td>18.4</td></tr>
+        <tr><td>90° 原地轉</td><td>3.20</td><td>21.1</td></tr>
+        <tr><td>越障(5cm)</td><td>4.10</td><td>22.7</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout tip"><strong>看數據學到的:</strong>待機 0.12A、全力越障才 4.1A,控制迴圈延遲都在 ~18–23ms(對應約 40–55Hz 的回授),對自平衡剛好夠用——這也呼應「自平衡要夠快的閉環」這件事。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="vs">
+    <h2><span class="num">⑦</span> 和 Microduck 的 RL 路線比:兩種「讓它站著動」的哲學</h2>
+    <p>站內前一篇 <a href="./microduck.html" style="color:var(--link)">Microduck</a> 是用<strong>強化學習</strong>在模擬裡學會走路、再 sim2real 到真機;這台 NavBot 走的是<strong>經典回授控制</strong>(倒立擺 + 手調參數)。兩條路各有適用:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>面向</th><th>NavBot-EN01(經典平衡控制)</th><th>Microduck(強化學習)</th></tr></thead>
+      <tbody>
+        <tr><td>怎麼學會動</td><td>人寫/調回授控制律(倒立擺)</td><td>模擬裡 PPO 訓練策略 → ONNX</td></tr>
+        <tr><td>移動方式</td><td>兩輪自平衡 + 可升降腿</td><td>雙足步行 / 換策略滾動</td></tr>
+        <tr><td>門檻</td><td>低,新手套件、Arduino</td><td>高,要 RL/MuJoCo/sim2real</td></tr>
+        <tr><td>可解釋性</td><td>高(每個增益看得懂)</td><td>低(策略是黑箱網路)</td></tr>
+        <tr><td>適合</td><td>入門、教學、平地移動</td><td>複雜步態、崎嶇地形、擬真動作</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout info"><strong>一句話:</strong>輪子讓「平衡」這件難事變簡單(倒立擺是教科書題),所以新手能很快看到成果;真正的雙足走路因為自由度高、動態複雜,才需要 RL 這種資料驅動的方法。先玩輪腿建立直覺,再上 RL,是很合理的學習路徑。</div>
+  </section>
+
+  <!-- 8 -->
+  <section id="notes">
+    <h2><span class="num">⑧</span> 重點 · 關聯 · 來源</h2>
+    <h3>七個帶得走的重點</h3>
+    <ol>
+      <li>輪腿 = 輪(好平衡、好移動)+ 腿(進階步態/高度);新手友善、便宜。</li>
+      <li>本質是<strong>能升降的兩輪自平衡車(倒立擺)</strong>:平衡交給輪、姿態交給腿。</li>
+      <li>腦是 <strong>ESP32</strong>:WiFi/藍牙遙控、雙核做 IMU 融合 + 馬達控制、PWM。</li>
+      <li>自平衡 = 高速閉環:<strong>量傾角 → 修正 → 把輪子開到重心下</strong>,抬起約 2 秒穩住。</li>
+      <li>組裝三個精度點:輪軸平面對齊 ±0.2mm、編碼器磁鐵間隙 0.8–1.2mm、尼龍腿件擴孔。</li>
+      <li>軟體三步:伺服零位校正(FD 工具、右腿 ID=2)→ 韌體(No OTA 大分區)→ 上電 WiFi 控制。</li>
+      <li>和 Microduck 對照:這是<strong>經典回授控制</strong>(可解釋、低門檻),RL 則適合複雜雙足。</li>
+    </ol>
+    <div class="related">
+      <a href="./microduck.html">
+        <div class="rel-title">🦆 Microduck RL 雙足機器人</div>
+        <div class="rel-sub">用強化學習走路的另一條路</div>
+      </a>
+      <a href="./esp32-groq-voice-assistant.html">
+        <div class="rel-title">🔊 ESP32-S3 + Groq 語音助手</div>
+        <div class="rel-sub">另一個 ESP32 嵌入式專案</div>
+      </a>
+      <a href="./ring-xy-plotter-plarail.html">
+        <div class="rel-title">🖋️ 環形 XY 繪圖機(製作篇)</div>
+        <div class="rel-sub">另一個桌面機構製作案例</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>繁中整理自 Frank Fu 的部落格文章〈Building a Tabletop Wheel-Legged Robot from Scratch〉(<a href="https://frankfu.blog/embodied-ai-robot/building-a-tabletop-wheel-legged-robot-from-scratch/" style="color:var(--link)">frankfu.blog</a>,2025/05/01)。套件原始碼 <a href="https://github.com/fuwei007/Navbot-EN01" style="color:var(--link)">fuwei007/Navbot-EN01</a>,硬體購買 navbot.com。零件型號、尺寸、GRBL/Arduino 設定與效能數字均引自原文;本頁的結構/控制 SVG 為 JustKM 依原文描述重繪的示意圖(非原文照片),自平衡原理為教學補充。照步驟實作請以原文與倉庫為準。</div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
