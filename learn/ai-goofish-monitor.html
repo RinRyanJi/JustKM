@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Usagi ai-goofish-monitor:Playwright + AI 的闲鱼撿漏監控系統 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🐟 Usagi ai-goofish-monitor:Playwright + AI 的闲鱼撿漏監控系統</h1>
+    <p class="sub">社群衍生最多、架構最完整的一套闲鱼(Goofish/Xianyu,阿里二手平台)監控系統。用 <strong>Playwright</strong> 模擬網頁端抓新上架商品,接 <strong>OpenAI 相容 API</strong>(本地或雲端模型皆可)照你一句話需求逐品把關,過濾掉商家與不對版的,才發通知。後端 FastAPI + SQLite,前端 React/Vite,整套有 Web 管理介面,Docker 一鍵部署。MIT。</p>
+    <div>
+      <span class="badge blue">FastAPI · Playwright · React/Vite · SQLite · Docker</span>
+      <span class="badge green">自然語言建任務 · 多模態 AI 把關</span>
+      <span class="badge orange">多帳號登入態 · 代理輪換 · 多渠道通知</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#stack">① 技術棧與架構</a>
+      <a href="#flow">② 單任務工作流</a>
+      <a href="#ai">③ AI 把關:一句話變分析標準</a>
+      <a href="#login">④ 登入態與多帳號</a>
+      <a href="#antiban">⑤ 抗風控:代理輪換 + 失敗保護</a>
+      <a href="#data">⑥ 資料與持久化(SQLite)</a>
+      <a href="#deploy">⑦ 通知 · Web UI · 部署</a>
+      <a href="#notes">⑧ 風險 · 重點 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>一個「替你盯闲鱼」的自動化系統:機器搜貨,大模型把關,對版的才通知你。</strong>你用自然語言描述需求(例:「95 新以上的 Sony A7M4,預算 1.3 萬內,快門數低於 5000」),它先讓 AI 生成一套分析標準,再用 Playwright 持續/定時搜尋新上架商品,逐品交給<strong>多模態模型</strong>看圖看描述判斷對不對版,推薦的才推到你手機。整套跑在你自己機器上,資料進本地 SQLite。</p>
+    <div class="callout info"><strong>它在生態裡的位置:</strong>這是 <a href="./goofish-ai-monitors.html" style="color:var(--link)">闲鱼 AI 監控生態</a> 裡社群衍生版本最多、功能最完整的一套(連 Windows 一鍵版 <code>nobugpy/ai-goofish-monitor-win</code> 都是它的二次打包)。致謝裡提到參考了 <code>superboyyy/xianyu_spider</code> 與 LinuxDo 社群腳本。MIT,README 明言「僅供學習與技術研究」。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="stack">
+    <h2><span class="num">①</span> 技術棧與架構</h2>
+    <p>它不是一支爬蟲腳本,而是一個小型全棧應用:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 280" role="img" aria-label="Usagi 架構：瀏覽器打開 React/Vite 前端 Web UI（任務/帳號/Prompt/日誌/結果）;透過 /api /auth /ws 連到 FastAPI 主服務 src.app;主服務依使用者操作或 Cron 定時啟動 spider_v2 爬蟲進程,爬蟲用 Playwright 驅動內建 Chromium 抓闲鱼;每個商品交給 OpenAI 相容的多模態模型分析;所有任務、結果、價格歷史寫入 SQLite data/app.sqlite3,登入態存 state/ 目錄,Prompt 存 prompts/;命中後走 ntfy/企業微信/Bark/Telegram/Webhook 多渠道通知;整包由 Docker 部署,映像內建 Chromium">
+        <defs><marker id="a1" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <rect x="14" y="40" width="150" height="56" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/>
+          <text x="89" y="62" text-anchor="middle" font-size="9.5" font-weight="700" fill="#005bb0">Web UI(React/Vite)</text>
+          <text x="89" y="80" text-anchor="middle" font-size="7.3" fill="#5d5b54">任務/帳號/Prompt/日誌/結果</text>
+          <rect x="250" y="34" width="180" height="70" rx="11" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="340" y="57" text-anchor="middle" font-size="10" font-weight="800" fill="#3a2a99">FastAPI 主服務</text>
+          <text x="340" y="74" text-anchor="middle" font-size="7.6" fill="#37352f">src.app · /api /auth /ws</text>
+          <text x="340" y="90" text-anchor="middle" font-size="7.6" fill="#787671">依操作 / Cron 排程啟動任務</text>
+          <rect x="516" y="40" width="190" height="56" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="611" y="62" text-anchor="middle" font-size="9.5" font-weight="700" fill="#b34700">spider_v2(Playwright)</text>
+          <text x="611" y="80" text-anchor="middle" font-size="7.3" fill="#5d5b54">內建 Chromium 抓闲鱼</text>
+          <g stroke="#8a93ad" stroke-width="1.7" fill="none" marker-end="url(#a1)">
+            <path d="M164,66 L248,66"/><path d="M430,66 L514,66"/>
+          </g>
+          <text x="206" y="58" text-anchor="middle" font-size="7" fill="#787671">/api /ws</text>
+          <!-- AI -->
+          <rect x="516" y="128" width="190" height="46" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+          <text x="611" y="149" text-anchor="middle" font-size="9" font-weight="700" fill="#137a29">OpenAI 相容多模態模型</text>
+          <text x="611" y="164" text-anchor="middle" font-size="7.3" fill="#5d5b54">逐品看圖+描述判斷對不對版</text>
+          <path d="M611,96 L611,126" fill="none" stroke="#8a93ad" stroke-width="1.6" marker-end="url(#a1)"/>
+          <!-- storage -->
+          <rect x="250" y="150" width="180" height="92" rx="10" fill="#f0eeec" stroke="#a4a097" stroke-width="1.3"/>
+          <text x="340" y="170" text-anchor="middle" font-size="9" font-weight="700" fill="#37352f">持久化</text>
+          <text x="340" y="187" text-anchor="middle" font-size="7.4" fill="#5d5b54">SQLite data/app.sqlite3</text>
+          <text x="340" y="201" text-anchor="middle" font-size="7.4" fill="#5d5b54">(任務/結果/價格歷史)</text>
+          <text x="340" y="217" text-anchor="middle" font-size="7.4" fill="#5d5b54">state/ 登入態 · prompts/</text>
+          <text x="340" y="231" text-anchor="middle" font-size="7.4" fill="#5d5b54">logs/ · images/</text>
+          <path d="M340,104 L340,148" fill="none" stroke="#8a93ad" stroke-width="1.6" marker-end="url(#a1)"/>
+          <!-- notify -->
+          <rect x="14" y="150" width="200" height="56" rx="10" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.4"/>
+          <text x="114" y="172" text-anchor="middle" font-size="9" font-weight="700" fill="#b03a7a">多渠道通知</text>
+          <text x="114" y="189" text-anchor="middle" font-size="7.1" fill="#5d5b54">ntfy / 企業微信 / Bark</text>
+          <text x="114" y="201" text-anchor="middle" font-size="7.1" fill="#5d5b54">Telegram / Webhook / Gotify</text>
+          <path d="M250,110 C150,110 114,130 114,148" fill="none" stroke="#ff64c8" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#a1)"/>
+          <text x="360" y="268" text-anchor="middle" font-size="8" fill="#787671">整包 Docker 部署(映像內建 Chromium,無需宿主機裝瀏覽器)· 預設 Web UI :8000</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 主服務 <code>src.app</code>(FastAPI)按操作或 Cron 啟動一到多個 <code>spider_v2</code> 爬蟲進程;前端走 <code>/api /auth /ws</code>,資料落 SQLite。</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>層</th><th>用什麼</th></tr></thead>
+      <tbody>
+        <tr><td>後端</td><td>Python 3.10+、FastAPI(<code>uvicorn src.app:app</code>)</td></tr>
+        <tr><td>爬蟲</td><td>Playwright + Chromium(<code>spider_v2.py</code>,預設讀 SQLite 任務)</td></tr>
+        <tr><td>AI</td><td>任意 OpenAI 相容介面(<code>OPENAI_BASE_URL</code>),需<strong>支援圖片輸入</strong>的多模態模型</td></tr>
+        <tr><td>前端</td><td>Node 20 + React + Vite(<code>web-ui/</code>,build 到根目錄 <code>dist/</code> 由 FastAPI 提供)</td></tr>
+        <tr><td>資料</td><td>SQLite(<code>data/app.sqlite3</code>);登入態/Prompt/日誌/圖片走檔案系統</td></tr>
+        <tr><td>部署</td><td>Docker Compose(官方映像 <code>ghcr.io/usagi-org/ai-goofish:latest</code>,內建 Chromium)</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 2 -->
+  <section id="flow">
+    <h2><span class="num">②</span> 單任務工作流:從啟動到通知</h2>
+    <p>README 附了一張 mermaid 流程圖,這裡重畫成更清楚的樣子。一個監控任務的核心迴圈:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 300" role="img" aria-label="單任務工作流：啟動監控任務→選帳號/代理配置→搜尋商品→判斷是否發現新商品;發現新品則抓商品詳情與賣家資訊→下載商品圖片→呼叫 AI 分析→AI 是否推薦;推薦則發送通知,無論推薦與否都把記錄存入 SQLite,再回到搜尋;沒有新品則翻頁/等待再搜;搜尋過程若觸發風控或異常,則做帳號/代理輪換並重試後回到搜尋">
+        <defs><marker id="f2" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif" font-size="8">
+          <rect x="24" y="20" width="120" height="34" rx="8" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.4"/><text x="84" y="41" text-anchor="middle" font-weight="700" fill="#3a2a99">啟動監控任務</text>
+          <rect x="24" y="74" width="120" height="34" rx="8" fill="#dcecfa" stroke="#0075de" stroke-width="1.2"/><text x="84" y="95" text-anchor="middle" fill="#005bb0">選帳號 / 代理</text>
+          <rect x="24" y="128" width="120" height="34" rx="8" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/><text x="84" y="149" text-anchor="middle" font-weight="700" fill="#005bb0">搜尋商品</text>
+          <polygon points="84,186 150,212 84,238 18,212" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.3"/><text x="84" y="216" text-anchor="middle" fill="#b34700">發現新品?</text>
+          <!-- right column: found -->
+          <rect x="214" y="74" width="140" height="34" rx="8" fill="#f0eeec" stroke="#a4a097" stroke-width="1.2"/><text x="284" y="95" text-anchor="middle" fill="#37352f">抓詳情 + 賣家</text>
+          <rect x="214" y="122" width="140" height="34" rx="8" fill="#f0eeec" stroke="#a4a097" stroke-width="1.2"/><text x="284" y="143" text-anchor="middle" fill="#37352f">下載商品圖片</text>
+          <rect x="214" y="170" width="140" height="34" rx="8" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/><text x="284" y="191" text-anchor="middle" font-weight="700" fill="#137a29">呼叫 AI 分析</text>
+          <polygon points="284,222 352,248 284,274 216,248" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.3"/><text x="284" y="252" text-anchor="middle" fill="#b34700">AI 推薦?</text>
+          <rect x="430" y="170" width="130" height="34" rx="8" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.5"/><text x="495" y="191" text-anchor="middle" font-weight="700" fill="#b03a7a">發送通知</text>
+          <rect x="430" y="235" width="130" height="34" rx="8" fill="#f0eeec" stroke="#a4a097" stroke-width="1.3"/><text x="495" y="256" text-anchor="middle" fill="#37352f">存記錄到 SQLite</text>
+          <!-- risk -->
+          <polygon points="84,268 150,290 84,312 18,290" fill="#ffe8d4" stroke="#e03131" stroke-width="1.3" transform="translate(0,-14)"/><text x="84" y="282" text-anchor="middle" fill="#c23030">觸發風控?</text>
+          <rect x="580" y="74" width="122" height="44" rx="8" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.4"/><text x="641" y="92" text-anchor="middle" font-weight="700" fill="#b34700">帳號/代理輪換</text><text x="641" y="106" text-anchor="middle" fill="#5d5b54">並重試</text>
+          <g stroke="#8a93ad" stroke-width="1.5" fill="none" marker-end="url(#f2)">
+            <path d="M84,54 L84,72"/><path d="M84,108 L84,126"/><path d="M84,162 L84,184"/>
+            <path d="M150,212 L214,100 L214,91" /><text x="178" y="150" fill="#1aae39" font-weight="700">是</text>
+            <path d="M284,108 L284,120"/><path d="M284,156 L284,168"/><path d="M284,204 L284,220"/>
+            <path d="M352,248 L495,248 L495,206"/><text x="420" y="242" fill="#1aae39" font-weight="700">是</text>
+            <path d="M495,204 L495,233"/>
+            <path d="M284,274 L284,290 L430,290 L430,255 L558,255" stroke-dasharray="0"/><text x="300" y="286" fill="#c23030" font-weight="700">否</text>
+            <path d="M18,212 L-2,212" opacity="0"/>
+          </g>
+          <!-- no new: page/wait back to search -->
+          <path d="M18,212 C-20,212 -20,145 22,145" fill="none" stroke="#8a93ad" stroke-width="1.5" marker-end="url(#f2)"/><text x="-14" y="178" fill="#787671">否·翻頁/等待</text>
+          <!-- sqlite back to search -->
+          <path d="M495,269 L495,284 L160,284" fill="none" stroke="#8a93ad" stroke-width="1.3" stroke-dasharray="4 3"/>
+          <!-- risk rotate back -->
+          <path d="M150,276 L641,276 L641,120" fill="none" stroke="#e03131" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#f2)"/><text x="400" y="272" fill="#c23030">是</text>
+          <path d="M641,72 C641,40 150,40 144,138" fill="none" stroke="#8a93ad" stroke-width="1.2" stroke-dasharray="3 3" marker-end="url(#f2)"/>
+        </g>
+      </svg>
+      <div class="figcap">▲ 重畫自 README 的 mermaid。關鍵:<strong>不對版的也不丟</strong>——照樣存進 SQLite 並記下 AI 理由,結果頁能在「只看通過」和「看全部」間切換。</div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section id="ai">
+    <h2><span class="num">③</span> AI 把關:一句話需求 → 分析標準 → 逐品判斷</h2>
+    <p>這是整套系統的靈魂。建任務有兩種模式:</p>
+    <ul>
+      <li><strong>AI 判斷</strong>:你填「詳細需求」(自然語言),提交後跑一個<strong>後台 job</strong> 先生成一套分析標準,再建任務。因為要先問一次模型,所以不是秒成——UI 會彈獨立進度窗,避免表單卡住。API 上是 <code>POST /api/tasks/generate</code>(<code>decision_mode=ai</code>)回 <code>202</code> + <code>job</code>,再輪詢 <code>GET /api/tasks/generate-jobs/{job_id}</code>。</li>
+      <li><strong>關鍵詞判斷</strong>:只填關鍵詞規則,直接建任務,不經 AI 生成流程(<code>decision_mode=keyword</code> 直接回已建任務)。</li>
+    </ul>
+    <p>任務跑起來後,每個搜到的商品會連同你的需求一起餵給<strong>多模態模型</strong>(所以 <code>OPENAI_MODEL_NAME</code> 必須支援圖片輸入,例如 <code>qwen-vl-plus</code>、<code>doubao-seed</code> 類)。模型判斷對不對版、要不要推薦,並附上理由。Prompt 可在 Web UI 的系統設定裡編輯。</p>
+    <div class="callout tip"><strong>為什麼要多模態:</strong>二手商品的關鍵資訊常在<strong>圖片</strong>裡(成色、劃痕、型號貼紙、是否全新盒裝),光看標題文字會被商家話術騙過。看圖才能真正「把關成色」。</div>
+  </section>
+
+  <!-- 4 -->
+  <section id="login">
+    <h2><span class="num">④</span> 登入態與多帳號:為什麼一定要登入</h2>
+    <p>闲鱼<strong>未登入只看得到 6 小時前的舊貨</strong>,要盯「實時新發布」必須有登入態。Usagi 的做法不是在程式裡填帳密,而是<strong>把瀏覽器的登入態整包搬過來</strong>:</p>
+    <ol>
+      <li>裝官方的 <strong>Chrome 擴充</strong>(Xianyu Login State Extractor),在已登入的闲鱼頁面把登入態導出成一段 JSON。</li>
+      <li>到 Web UI「闲鱼帳號管理」貼上這段 JSON,存成 <code>state/acc_1.json</code> 之類的檔。</li>
+      <li>建任務時綁定某個帳號(也可不綁、交系統自動選)。</li>
+    </ol>
+    <div class="callout warn"><strong>帳號風險要清楚:</strong>用登入態做自動化抓取,等於拿你的闲鱼帳號在跑機器人。請求太頻繁可能被平台<strong>風控、限流甚至封號</strong>。README 明確要求遵守闲鱼用戶協議與 robots.txt、別高頻請求。<strong>建議用小號</strong>、放慢節奏。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="antiban">
+    <h2><span class="num">⑤</span> 抗風控:代理輪換 + 失敗保護</h2>
+    <p>既然是拿真帳號長時間跑,系統給了一整套「被盯上就換、連錯就退避」的機制(全在環境變數裡調):</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>類別</th><th>環境變數</th><th>作用</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="5">代理輪換</td><td><code>PROXY_ROTATION_ENABLED</code></td><td>是否啟用代理池輪換</td></tr>
+        <tr><td><code>PROXY_ROTATION_MODE</code></td><td>輪換策略</td></tr>
+        <tr><td><code>PROXY_POOL</code></td><td>代理池清單</td></tr>
+        <tr><td><code>PROXY_ROTATION_RETRY_LIMIT</code></td><td>單代理重試上限</td></tr>
+        <tr><td><code>PROXY_BLACKLIST_TTL</code></td><td>壞代理拉黑多久</td></tr>
+        <tr><td rowspan="3">失敗保護</td><td><code>TASK_FAILURE_THRESHOLD</code></td><td>連續失敗幾次就暫停</td></tr>
+        <tr><td><code>TASK_FAILURE_PAUSE_SECONDS</code></td><td>暫停多久再試</td></tr>
+        <tr><td><code>TASK_FAILURE_GUARD_PATH</code></td><td>失敗守衛狀態路徑</td></tr>
+        <tr><td>其他</td><td><code>PROXY_URL</code> / <code>RUN_HEADLESS</code></td><td>AI 請求單獨走代理;Docker 內固定無頭</td></tr>
+      </tbody>
+    </table></div>
+    <p>流程圖最後那條分支就是這個:一旦<strong>觸發風控或異常</strong>,就做帳號/代理輪換並重試,再回到搜尋。<code>RUN_HEADLESS</code> 在 Docker 要維持 <code>true</code>(容器內無桌面),本地也能切 Edge 核心(<code>LOGIN_IS_EDGE</code>,但 Docker 映像沒內建 Edge)。</p>
+  </section>
+
+  <!-- 6 -->
+  <section id="data">
+    <h2><span class="num">⑥</span> 資料與持久化:SQLite 為主,舊格式自動遷移</h2>
+    <p>早期版本用 <code>config.json</code> + <code>jsonl</code> + <code>price_history</code> 存;現在主存儲改成 <strong>SQLite</strong>(<code>data/app.sqlite3</code>,存任務、結果、價格歷史)。啟動時 FastAPI 會自動建庫建表,並<strong>首次嘗試從舊格式匯入一次</strong>歷史資料。可用 <code>APP_DATABASE_FILE</code> 自訂路徑。</p>
+    <p>幾個目錄仍走檔案系統(不在 SQLite 裡):</p>
+    <ul>
+      <li><code>state/</code> — 登入態 cookie 檔</li>
+      <li><code>prompts/</code> — 任務提示詞</li>
+      <li><code>logs/</code> — 執行日誌(按任務展示,方便排查登入態失效/風控/AI 調用問題)</li>
+      <li><code>images/</code> — 商品圖片會臨時落到 <code>images/task_images_&lt;任務名&gt;/</code>,任務結束預設清理</li>
+    </ul>
+    <p>Docker 預設把 <code>./data</code>、<code>state/</code>、<code>prompts/</code>、<code>logs/</code>、<code>images/</code> 都掛載出來持久化。<code>spider_v2.py</code> 預設讀 SQLite,只有顯式 <code>--config &lt;path&gt;</code> 才走舊 JSON 相容模式。</p>
+  </section>
+
+  <!-- 7 -->
+  <section id="deploy">
+    <h2><span class="num">⑦</span> 通知 · Web UI · 部署</h2>
+    <h3>多渠道通知</h3>
+    <p>命中推薦後可推到:<strong>ntfy.sh</strong>(<code>NTFY_TOPIC_URL</code>)、<strong>企業微信</strong>(<code>WX_BOT_URL</code>)、<strong>Bark</strong>、<strong>Telegram</strong>(<code>TELEGRAM_BOT_TOKEN/CHAT_ID</code>)、<strong>Gotify</strong>、<strong>Webhook</strong>。想收哪個配哪個。</p>
+    <h3>Web UI</h3>
+    <p>任務管理(AI/關鍵詞建任務、價格/新發布範圍、省市區三級區域篩選、帳號綁定、Cron 定時)、帳號管理、結果查看(從 SQLite 查,可匯出)、運行日誌、系統設定(編 Prompt、調代理輪換)。登入頁用 <code>POST /auth/status</code> 校驗,預設帳密 <code>admin/admin123</code>——<strong>生產務必改掉</strong>。</p>
+    <h3>部署(Docker 推薦)</h3>
+    <pre><code><span class="cm"># 一鍵容器化;映像已內建 Chromium,無需宿主機裝瀏覽器</span>
+git clone https://github.com/Usagi-org/ai-goofish-monitor &amp;&amp; cd ai-goofish-monitor
+cp .env.example .env   <span class="cm"># 填 OPENAI_API_KEY / OPENAI_BASE_URL / OPENAI_MODEL_NAME</span>
+docker compose up -d
+docker compose logs -f app
+<span class="cm"># 預設 Web UI → http://127.0.0.1:8000</span></code></pre>
+    <p>開發者本地走 <code>./start.sh</code>(先檢查 Playwright/瀏覽器前置,再裝依賴、build 前端、起後端),或手動 <code>uvicorn src.app:app</code> + <code>npm run dev</code>。最少必填三個 <code>OPENAI_*</code>。</p>
+  </section>
+
+  <!-- 8 -->
+  <section id="notes">
+    <h2><span class="num">⑧</span> 風險 · 重點 · 來源</h2>
+    <div class="callout warn"><strong>合法與風險界線(務必讀):</strong>自動化抓取與用真帳號長跑踩的是闲鱼 ToS / robots.txt 的灰色地帶,可能導致<strong>限流、風控、封號</strong>。代理池輪換、登入態搬移本質是在繞平台的反自動化。README 自己定位「<strong>僅供學習與技術研究,請勿用於非法用途</strong>」,MIT 按現狀提供、不負任何擔保。把它當個人撿漏輔助、放慢節奏、用小號;別拿來高頻刷、別做商用大規模抓取。</div>
+    <h3>七個帶得走的重點</h3>
+    <ol>
+      <li><strong>機器搜貨 + 大模型把關</strong>:自然語言需求 → AI 生成分析標準 → 逐品判斷。</li>
+      <li>多模態模型<strong>看圖把關成色</strong>,不只看標題文字。</li>
+      <li>全棧:<strong>FastAPI + Playwright + React/Vite + SQLite + Docker</strong>。</li>
+      <li>登入態靠 <strong>Chrome 擴充導 JSON</strong> → <code>state/</code>,多帳號、任務綁定。</li>
+      <li>抗風控:<strong>代理池輪換 + 失敗保護 + 自適應</strong>,觸發風控就輪換重試。</li>
+      <li>主存儲 <strong>SQLite</strong>,舊 jsonl/config 首次自動遷移;圖片臨時落地。</li>
+      <li>多渠道通知(ntfy/企業微信/Bark/Telegram/Webhook)+ 完整 Web UI;<strong>預設帳密要改</strong>。</li>
+    </ol>
+    <div class="related">
+      <a href="./goofish-ai-monitors.html">
+        <div class="rel-title">🐠 闲鱼 AI 監控生態全景</div>
+        <div class="rel-sub">六個專案比較:全棧/擴充/Agent Skill 三形態</div>
+      </a>
+      <a href="./agent-desktop.html">
+        <div class="rel-title">🪟 agent-desktop</div>
+        <div class="rel-sub">另一種「給代理操作網頁/桌面」的路線</div>
+      </a>
+      <a href="./wokwi-simulator.html">
+        <div class="rel-title">🔌 Wokwi 模擬器</div>
+        <div class="rel-sub">同樣用內建 Chromium/Playwright 的工具</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>整理自 GitHub 倉庫 <a href="https://github.com/Usagi-org/ai-goofish-monitor" style="color:var(--link)">Usagi-org/ai-goofish-monitor</a>(MIT)的 README(含架構說明、mermaid 工作流、配置表、API 說明、注意事項)。環境變數名、API 路徑、目錄結構均引自 README;功能以倉庫最新版為準。衍生 Windows 一鍵版為 <a href="https://github.com/nobugpy/ai-goofish-monitor-win" style="color:var(--link)">nobugpy/ai-goofish-monitor-win</a>。本頁為中立技術整理,不鼓勵任何違反平台條款的使用。</div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>闲鱼 AI 撿漏監控生態全景:六個開源專案怎麼選 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 560px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🐠 闲鱼 AI 撿漏監控生態全景:六個開源專案怎麼選</h1>
+    <p class="sub">闲鱼(Goofish/Xianyu,阿里的二手交易平台)撿漏最累的不是挑,是「盯」——新品秒被搶、半屏不對版、商家混在個人賣家裡。一整群開源專案在做同一件事:<strong>機器自動搜新上架 → 規則粗篩 → AI 照你一句話需求把關 → 命中才通知</strong>。這頁把六個代表專案拆成三種形態(全棧 Web / 瀏覽器擴充 / Agent Skill)對照,幫你選。</p>
+    <div>
+      <span class="badge blue">全棧 Web · 擴充 · Agent Skill 三形態</span>
+      <span class="badge green">共通管線:抓取→粗篩→AI 把關→通知</span>
+      <span class="badge orange">含反爬現實與 ToS 風險界線</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#pipeline">① 共通架構:四段管線</a>
+      <a href="#forms">② 三種形態</a>
+      <a href="#table">③ 六專案對照表</a>
+      <a href="#antidetect">④ 反爬現實:都在繞風控</a>
+      <a href="#login">⑤ 登入態怎麼來</a>
+      <a href="#choose">⑥ 怎麼選(選型指南)</a>
+      <a href="#notes">⑦ 風險界線 · 重點 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>同一個需求、三種做法。</strong>這群工具解的都是「替你盯闲鱼新上架、用 LLM 過濾垃圾與商家、對版才通知」。差別只在<strong>你願意架多重</strong>:要功能全開就上<strong>全棧 Web 服務</strong>(Usagi / tristanwqy / overspread);只想瀏覽器裝個外掛、連後端都省就用<strong>Chrome 擴充</strong>(lubei0612);已經在用 AI agent、想把監控接進工作流就用<strong>Agent Skill</strong>(voltwake)。</p>
+    <div class="callout info"><strong>最推薦的單一入口:</strong><a href="./ai-goofish-monitor.html" style="color:var(--link)">Usagi-org/ai-goofish-monitor</a> —— 社群衍生最多、架構最完整(FastAPI + Playwright + React + SQLite + Docker),站內另有它的<strong>單卷深潛</strong>。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="pipeline">
+    <h2><span class="num">①</span> 共通架構:四段管線</h2>
+    <p>不管哪一個,骨架都是這四段。真正把它們和「土炮爬蟲」拉開差距的是第三段 <strong>AI 把關</strong>——用自然語言條件讓模型逐品判斷對不對版。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 210" role="img" aria-label="四段共通管線：① 抓取——定時/即時打開闲鱼搜尋,用 Playwright/Puppeteer 或瀏覽器擴充讀新上架商品;② 規則粗篩——關鍵詞、價格區間、必含/排除詞、地區、成色、個人賣家 vs 商家;③ AI 把關——把商品（含圖片）連同你一句話需求交給 OpenAI 相容模型逐品判斷對不對版並給理由;④ 通知——命中的推到 Telegram/Discord/郵件/ntfy/企業微信/釘釘。去重用 SQLite 記已見商品">
+        <defs><marker id="p1" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <rect x="12" y="60" width="150" height="72" rx="11" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="87" y="84" text-anchor="middle" font-size="10" font-weight="800" fill="#005bb0">① 抓取</text>
+          <text x="87" y="102" text-anchor="middle" font-size="7.4" fill="#5d5b54">定時/即時開闲鱼搜尋</text>
+          <text x="87" y="115" text-anchor="middle" font-size="7.4" fill="#5d5b54">Playwright / 擴充讀新品</text>
+          <rect x="190" y="60" width="150" height="72" rx="11" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="265" y="84" text-anchor="middle" font-size="10" font-weight="800" fill="#b34700">② 規則粗篩</text>
+          <text x="265" y="102" text-anchor="middle" font-size="7.4" fill="#5d5b54">關鍵詞/價格/地區/成色</text>
+          <text x="265" y="115" text-anchor="middle" font-size="7.4" fill="#5d5b54">個人賣家 vs 商家</text>
+          <rect x="368" y="54" width="170" height="84" rx="11" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.9"/>
+          <text x="453" y="78" text-anchor="middle" font-size="10" font-weight="800" fill="#137a29">③ AI 把關</text>
+          <text x="453" y="96" text-anchor="middle" font-size="7.4" fill="#5d5b54">商品(含圖) + 一句話需求</text>
+          <text x="453" y="109" text-anchor="middle" font-size="7.4" fill="#5d5b54">OpenAI 相容模型逐品判斷</text>
+          <text x="453" y="123" text-anchor="middle" font-size="7.4" fill="#787671">對不對版 + 理由</text>
+          <rect x="566" y="60" width="142" height="72" rx="11" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.5"/>
+          <text x="637" y="84" text-anchor="middle" font-size="10" font-weight="800" fill="#b03a7a">④ 通知</text>
+          <text x="637" y="102" text-anchor="middle" font-size="7.2" fill="#5d5b54">TG/Discord/郵件</text>
+          <text x="637" y="115" text-anchor="middle" font-size="7.2" fill="#5d5b54">ntfy/企業微信/釘釘</text>
+          <g stroke="#8a93ad" stroke-width="1.8" fill="none" marker-end="url(#p1)">
+            <path d="M162,96 L188,96"/><path d="M340,96 L366,96"/><path d="M538,96 L564,96"/>
+          </g>
+          <text x="360" y="26" text-anchor="middle" font-size="12" font-weight="800" fill="#1a1a1a">抓取 → 規則粗篩 → AI 把關 → 通知</text>
+          <text x="360" y="44" text-anchor="middle" font-size="8" fill="#787671">SQLite 記「已見商品」做去重,不重複推送</text>
+          <text x="360" y="170" text-anchor="middle" font-size="8" fill="#5d5b54">差異只在:架多重(全棧/擴充/Skill)、登入態怎麼拿、通知推到哪、有沒有自動搶拍</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 第 ③ 段是靈魂:讓模型看圖 + 讀描述,照你的「95 新以上、國行、不超過預算、排除全新與商家」逐品把關。</div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section id="forms">
+    <h2><span class="num">②</span> 三種形態:你願意架多重?</h2>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="三種形態對照：全棧 Web 服務（Usagi/tristanwqy/overspread）——自架後端+前端+資料庫,功能最全,要部署;瀏覽器擴充（lubei0612）——純 Chrome MV3 外掛,免後端,直接在你瀏覽器裡跑,可自動搶拍;Agent Skill（voltwake）——輕量腳本掛進 AI agent 工作流,無需 API Key,推到 Telegram/Discord。越往右越輕、功能越少、越容易上手">
+        <g font-family="sans-serif">
+          <rect x="14" y="40" width="222" height="130" rx="13" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.6"/>
+          <text x="125" y="64" text-anchor="middle" font-size="11" font-weight="800" fill="#3a2a99">全棧 Web 服務</text>
+          <text x="125" y="84" text-anchor="middle" font-size="8" fill="#37352f">Usagi / tristanwqy / overspread</text>
+          <text x="125" y="104" text-anchor="middle" font-size="7.6" fill="#5d5b54">後端+前端+SQLite+Docker</text>
+          <text x="125" y="120" text-anchor="middle" font-size="7.6" fill="#5d5b54">多任務/多帳號/代理池</text>
+          <text x="125" y="136" text-anchor="middle" font-size="7.6" fill="#137a29">✓ 功能最全</text>
+          <text x="125" y="152" text-anchor="middle" font-size="7.6" fill="#b34700">✗ 要部署、較重</text>
+          <rect x="250" y="40" width="210" height="130" rx="13" fill="#dcecfa" stroke="#0075de" stroke-width="1.6"/>
+          <text x="355" y="64" text-anchor="middle" font-size="11" font-weight="800" fill="#005bb0">瀏覽器擴充</text>
+          <text x="355" y="84" text-anchor="middle" font-size="8" fill="#37352f">lubei0612(Chrome MV3)</text>
+          <text x="355" y="104" text-anchor="middle" font-size="7.6" fill="#5d5b54">免後端、裝了就用</text>
+          <text x="355" y="120" text-anchor="middle" font-size="7.6" fill="#5d5b54">三層演算法分個人/商家</text>
+          <text x="355" y="136" text-anchor="middle" font-size="7.6" fill="#137a29">✓ 最省事</text>
+          <text x="355" y="152" text-anchor="middle" font-size="7.6" fill="#b34700">✗ 含自動搶拍,風險高</text>
+          <rect x="474" y="40" width="232" height="130" rx="13" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.6"/>
+          <text x="590" y="64" text-anchor="middle" font-size="11" font-weight="800" fill="#137a29">Agent Skill</text>
+          <text x="590" y="84" text-anchor="middle" font-size="8" fill="#37352f">voltwake(OpenClaw Skill)</text>
+          <text x="590" y="104" text-anchor="middle" font-size="7.6" fill="#5d5b54">輕量腳本掛進 AI 工作流</text>
+          <text x="590" y="120" text-anchor="middle" font-size="7.6" fill="#5d5b54">推 Telegram/Discord · 去重</text>
+          <text x="590" y="136" text-anchor="middle" font-size="7.6" fill="#137a29">✓ 零成本、免 API Key</text>
+          <text x="590" y="152" text-anchor="middle" font-size="7.6" fill="#b34700">✗ 無 AI 深度把關</text>
+          <text x="360" y="192" text-anchor="middle" font-size="8" fill="#787671">← 功能全、較重　　　　　　　越往右越輕、越好上手　　　　　　　輕量、功能少 →</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 三者不是互斥:全棧最像「產品」,擴充最省事,Agent Skill 最適合已經在跑 AI 代理的人。</div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section id="table">
+    <h2><span class="num">③</span> 六專案對照表</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>專案</th><th>形態 / 技術棧</th><th>AI 把關</th><th>登入態</th><th>通知</th><th>亮點 / 風險</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Usagi-org/<br>ai-goofish-monitor</strong></td>
+          <td>全棧 Web<br>FastAPI+Playwright+React/Vite+SQLite+Docker</td>
+          <td>✓ 自然語言→AI 生成分析標準→多模態逐品</td>
+          <td>Chrome 擴充導 JSON → <code>state/</code>,多帳號</td>
+          <td>ntfy/企業微信/Bark/Telegram/Webhook/Gotify</td>
+          <td>社群衍生最多、最完整;代理池輪換+失敗保護</td>
+        </tr>
+        <tr>
+          <td><strong>tristanwqy/<br>GooFish-AIMonitor</strong></td>
+          <td>全棧 Web + 桌面打包<br>FastAPI+Playwright+React/Vite+SQLite+Docker</td>
+          <td>✓ 一句話需求,規則粗篩再 AI 二次把關</td>
+          <td>網頁內<strong>掃碼登入</strong>;敏感資訊只存本地</td>
+          <td>郵件(按事件分:新推薦/降價/售出/登入失效);無 SMTP 退回本地 CSV</td>
+          <td>Mac/Win <strong>安裝包雙擊即用</strong>、五套配色;收藏降價提醒最亮眼;全本地不外傳</td>
+        </tr>
+        <tr>
+          <td><strong>overspread/<br>xianyu-Auto</strong></td>
+          <td>全棧 Web<br>FastAPI+Playwright+SQLite+原生前端</td>
+          <td>✓ LLM 商品推薦分析</td>
+          <td><strong>Cookie 池</strong>輪換,多帳號</td>
+          <td>郵件(完整 SMTP)</td>
+          <td>模組拆得細(rate_limiter/proxy_manager/cookie_manager);<strong>代理池 + 自適應延遲</strong></td>
+        </tr>
+        <tr>
+          <td><strong>lubei0612/<br>xianyu-monitor-extension</strong></td>
+          <td>瀏覽器擴充<br>Chrome MV3 + Service Worker</td>
+          <td>三層演算法分個人/商家(非 LLM,60+ 商家關鍵詞)</td>
+          <td>直接用你瀏覽器已登入的網頁版</td>
+          <td>釘釘 + 瀏覽器通知</td>
+          <td>免後端最省事;30 秒–5 分輪詢;<strong>含自動搶拍/下單(鎖單 30 分)→ 風險最高</strong></td>
+        </tr>
+        <tr>
+          <td><strong>voltwake/<br>xianyu-monitor</strong></td>
+          <td>Agent Skill(OpenClaw)<br>Node + puppeteer-core + better-sqlite3</td>
+          <td>✗ 無 AI;關鍵詞/價格/必含/排除/地區過濾</td>
+          <td>macOS 掃碼登入,Cookie 存本機約 7 天</td>
+          <td>Telegram / Discord</td>
+          <td><strong>零成本、免 API Key</strong>;SQLite 去重;繞風控靠 AppleScript+CDP(見 ④)</td>
+        </tr>
+        <tr>
+          <td><strong>nobugpy/<br>ai-goofish-monitor-win</strong></td>
+          <td>Usagi 的 Windows 打包版<br>PyInstaller 打成 exe</td>
+          <td>✓ 同 Usagi</td>
+          <td><code>login.exe</code> 掃碼生 <code>xianyu_state.json</code></td>
+          <td>同 Usagi</td>
+          <td>小白<strong>免環境一鍵</strong>;加了經緯度+地區筛選</td>
+        </tr>
+      </tbody>
+    </table></div>
+    <p style="font-size:0.78rem;color:var(--stone)">※ 各專案功能隨版本演進,以其 GitHub 最新 README 為準。</p>
+  </section>
+
+  <!-- 4 -->
+  <section id="antidetect">
+    <h2><span class="num">④</span> 反爬現實:大家其實都在繞闲鱼風控</h2>
+    <p>有件事這些 README 講得很白:<strong>闲鱼有嚴格的反自動化偵測(baxia 風控)</strong>,直接用程式開頁面會被擋成「非法訪問」。所以這群工具的技術重點,很大一塊其實是「<strong>怎麼讓機器看起來像真人</strong>」。voltwake 的 README 把這點拆得最清楚:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>操作</th><th>結果</th><th>為什麼</th></tr></thead>
+      <tbody>
+        <tr><td><code>page.goto(搜尋URL)</code></td><td>❌ 被 baxia 攔</td><td>直接導航會觸發風控</td></tr>
+        <tr><td>AppleScript 在網址列輸入 URL</td><td>✅ 正常</td><td>模擬真人在瀏覽器打字</td></tr>
+        <tr><td><code>page.click()</code> + <code>keyboard.type()</code> 搜尋</td><td>✅ 正常</td><td>產生 <code>isTrusted=true</code> 事件,與真人點擊無異</td></tr>
+        <tr><td>headless Chrome</td><td>❌「非法訪問」</td><td>無頭瀏覽器被直接偵測</td></tr>
+        <tr><td>非 headless Chrome</td><td>✅ 正常</td><td>有真實視窗才過</td></tr>
+      </tbody>
+    </table></div>
+    <p>讀取資料也走<strong>被動讀 DOM</strong>(從渲染後頁面抓 <code>a[class*="feeds-item-wrap"]</code> 這類卡片),而不是打內部 API。全棧版則多半靠「真實登入態 + 代理池/Cookie 池輪換 + 自適應延遲 + 失敗退避」來撐長時間運行。</p>
+    <div class="callout warn"><strong>這代表什麼:</strong>這整類工具本質上是在和平台的反自動化機制「貓捉老鼠」。風控規則會變,今天能用的手法明天可能失效;跑太兇就會踩到限流/封號。這也是為什麼每個專案都提醒「<strong>放慢節奏、用小號</strong>」。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="login">
+    <h2><span class="num">⑤</span> 登入態怎麼來:三種取法</h2>
+    <p>因為闲鱼<strong>未登入只看得到約 6 小時前的舊貨</strong>,要盯實時新品就必須有登入態。三種做法:</p>
+    <ul>
+      <li><strong>Chrome 擴充導出 JSON</strong>(Usagi):在已登入頁面用專用擴充把登入態導成 JSON,貼進 Web UI → 存成 <code>state/acc_1.json</code>。多帳號好管理。</li>
+      <li><strong>掃碼登入生 state 檔</strong>(tristanwqy / nobugpy):跑一個登入程式彈出瀏覽器,手機 App 掃碼,自動生成 <code>xianyu_state.json</code>。小白友善。</li>
+      <li><strong>直接複用瀏覽器登入 / CDP Cookie</strong>(lubei 擴充 / voltwake):擴充直接用你網頁版已登入狀態;voltwake 啟一個獨立 Chrome 實例,Cookie 存本機約 7 天。</li>
+    </ul>
+    <div class="callout warn"><strong>共通風險:</strong>不論哪種,都是拿你的<strong>真實帳號登入態</strong>餵給機器人。這是帳號被風控/封鎖的主要來源,務必用小號、別高頻。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="choose">
+    <h2><span class="num">⑥</span> 怎麼選:按你的情況對號入座</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>你的情況</th><th>選它</th><th>理由</th></tr></thead>
+      <tbody>
+        <tr><td>要功能最全、長期跑、願意架 Docker</td><td><strong>Usagi-org/ai-goofish-monitor</strong></td><td>最完整、社群最活、衍生最多;多帳號+代理池+多渠道通知</td></tr>
+        <tr><td>要漂亮好用、桌面雙擊即開、重視收藏降價提醒</td><td><strong>tristanwqy/GooFish-AIMonitor</strong></td><td>Mac/Win 安裝包、五套配色、按事件分的郵件、全本地</td></tr>
+        <tr><td>Windows 小白、怕配環境</td><td><strong>nobugpy/ai-goofish-monitor-win</strong></td><td>Usagi 的 exe 一鍵版,掃碼即用</td></tr>
+        <tr><td>重視代理池/Cookie 池、要細緻控頻</td><td><strong>overspread/xianyu-Auto</strong></td><td>模組化、自適應延遲、Cookie 池輪換</td></tr>
+        <tr><td>連後端都不想架、只要瀏覽器外掛</td><td><strong>lubei0612/xianyu-monitor-extension</strong></td><td>Chrome MV3 裝了就用;但自動搶拍風險要自負</td></tr>
+        <tr><td>已在用 AI agent、想接進工作流、零成本</td><td><strong>voltwake/xianyu-monitor</strong></td><td>OpenClaw Skill,免 API Key,推 TG/Discord</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout tip"><strong>想深入哪一個?</strong>最推薦、也是生態中心的 Usagi,站內有<strong>單卷深潛</strong>:拆它的架構、工作流、AI 把關、抗風控與資料層 → <a href="./ai-goofish-monitor.html" style="color:var(--link)">Usagi ai-goofish-monitor 深潛</a>。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="notes">
+    <h2><span class="num">⑦</span> 風險界線 · 重點 · 來源</h2>
+    <div class="callout warn"><strong>合法與風險界線(務必讀):</strong>這類工具<strong>目的本身合法</strong>(幫你盯二手平台、過濾廣告),但手段踩的是闲鱼 ToS / robots.txt 的灰色地帶:自動化抓取、登入態搬移、代理/Cookie 池輪換,本質是繞平台反自動化;<strong>自動搶拍/自動下單</strong>(lubei)更可能牽涉交易糾紛與平台處罰。各專案 README 幾乎都寫明「<strong>僅供學習與技術研究、遵守用戶協議與 robots.txt、勿高頻、勿用於非法用途</strong>」,且 MIT 按現狀提供、不負擔保。把它當<strong>個人撿漏輔助</strong>:用小號、放慢節奏、別商用大規模抓取、別拿去做自動搶單牟利。</div>
+    <h3>六個帶得走的重點</h3>
+    <ol>
+      <li>整類工具解同一件事:<strong>自動搜新品 → 規則粗篩 → AI 把關 → 通知</strong>。</li>
+      <li>靈魂是 <strong>AI 看圖 + 讀描述</strong>,照一句話需求逐品判斷對不對版。</li>
+      <li>三種形態:<strong>全棧 Web / 瀏覽器擴充 / Agent Skill</strong>,越右越輕。</li>
+      <li>要盯實時新品<strong>必須有登入態</strong>(未登入只見 ~6 小時前舊貨)。</li>
+      <li>技術重點一半在<strong>繞風控</strong>:非 headless、真人式輸入事件、被動讀 DOM、代理/Cookie 池。</li>
+      <li>最完整、最值得起手的是 <strong>Usagi</strong>;要省事選桌面版 tristanwqy 或擴充 lubei。</li>
+    </ol>
+    <div class="related">
+      <a href="./ai-goofish-monitor.html">
+        <div class="rel-title">🐟 Usagi ai-goofish-monitor 深潛</div>
+        <div class="rel-sub">生態中心專案的單卷拆解</div>
+      </a>
+      <a href="./agent-desktop.html">
+        <div class="rel-title">🪟 agent-desktop</div>
+        <div class="rel-sub">另一種「給代理操作網頁/桌面」的路線</div>
+      </a>
+      <a href="./crucible-ai-3d-engine.html">
+        <div class="rel-title">🔥 Crucible AI 3D 引擎</div>
+        <div class="rel-sub">同樣是「AI 代理 + 工具」的 MCP 生態</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>整理自各專案 GitHub README —— <a href="https://github.com/Usagi-org/ai-goofish-monitor" style="color:var(--link)">Usagi-org/ai-goofish-monitor</a>、<a href="https://github.com/tristanwqy/GooFish-AIMonitor" style="color:var(--link)">tristanwqy/GooFish-AIMonitor</a>、<a href="https://github.com/overspread/xianyu-Auto" style="color:var(--link)">overspread/xianyu-Auto</a>、<a href="https://github.com/lubei0612/xianyu-monitor-extension" style="color:var(--link)">lubei0612/xianyu-monitor-extension</a>、<a href="https://github.com/voltwake/xianyu-monitor" style="color:var(--link)">voltwake/xianyu-monitor</a>、<a href="https://github.com/nobugpy/ai-goofish-monitor-win" style="color:var(--link)">nobugpy/ai-goofish-monitor-win</a>。技術棧、登入方式、反爬手法均引自各自 README;功能隨版本變動,以最新內容為準。本頁為中立技術整理,不鼓勵任何違反平台條款的使用。</div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
