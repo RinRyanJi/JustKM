@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>NavBot-EN01 的電子與韌體:SimpleFOC + 串級 PID 自平衡怎麼寫 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>⚙️ NavBot-EN01 的電子與韌體:SimpleFOC + 串級 PID 自平衡怎麼寫</h1>
+    <p class="sub">前一篇「組裝篇」把輪腿機器人拼起來;這篇讀它的<strong>倉庫原始碼</strong>,看那顆「大腦」到底怎麼讓它站住。重點兩塊:電子系統用了哪些關鍵晶片(ESP32、無刷驅動 L6234、磁編碼 AS5600、IMU MPU6050),以及韌體怎麼用 <strong>SimpleFOC</strong> 控無刷馬達、再疊一整套<strong>串級 PID</strong> 做倒立擺自平衡。附真實的 PID 增益與接腳。</p>
+    <div>
+      <span class="badge blue">ESP32 · SimpleFOC · Arduino</span>
+      <span class="badge green">串級 PID · 倒立擺 · AS5600/MPU6050</span>
+      <span class="badge orange">雙核 · WebSocket+JSON · SPIFFS 表情</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#electronics">① 電子系統:關鍵晶片</a>
+      <a href="#foc">② FOC:把無刷馬達變成可控扭力</a>
+      <a href="#balance">③ 平衡大腦:串級 PID(真實增益)</a>
+      <a href="#zeropoint">④ 自動零點與濾波</a>
+      <a href="#dualcore">⑤ 雙核 + 通訊</a>
+      <a href="#emoji">⑥ 表情:GIF → bin → SPIFFS</a>
+      <a href="#build">⑦ 建置與校正流程</a>
+      <a href="#notes">⑧ 重點 · 關聯 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>這個倉庫是 NavBot-EN01 的完整工程檔:機構 STP、4 塊 PCB、韌體、工具全在裡面。</strong>韌體的核心是兩層:(1) 用 <strong>SimpleFOC</strong> 把兩顆無刷輪馬達變成「可以精準下扭力」的致動器;(2) 在上面疊一套<strong>串級 PID 控制器</strong>(車身角、角速度、速度、位置、偏航、側傾,外加一個自動零點估計與一個帶積分的綜合項),構成倒立擺自平衡。感測是 <strong>MPU6050</strong>(IMU)+ 兩顆 <strong>AS5600</strong> 磁編碼器(讀輪角),UI 用 <strong>WebSocket + JSON</strong> 的網頁。</p>
+    <div class="callout info"><strong>和組裝篇的關係:</strong>這頁是 <a href="./wheel-legged-robot-navbot.html" style="color:var(--link)">輪腿機器人組裝篇</a> 的「讀原始碼」另一半——組裝篇講怎麼拼、這篇講那顆大腦的電子與控制怎麼運作。倉庫 fork 自 <code>MuShibo/Micro-Wheeled_leg-Robot</code>。數字(增益、接腳)引自倉庫原始碼,換版本會變。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="electronics">
+    <h2><span class="num">①</span> 電子系統:關鍵晶片與它們怎麼接</h2>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 280" role="img" aria-label="電子系統方塊圖：ESP32 主控;兩條 I2C 匯流排,第一條接一顆 AS5600 磁編碼器,第二條接另一顆 AS5600 與 MPU6050 IMU(共用);兩顆 L6234 三相驅動各推一顆無刷輪馬達,用 3PWM 由 ESP32 腳位控制;UART 經伺服除錯板(分時多工把兩條串列併一線)接兩顆 STS3032 匯流排伺服;WiFi 供網頁 UI;電池供電">
+        <defs><marker id="ae" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">ESP32 一顆腦,帶起感測、無刷、伺服、WiFi</text>
+          <rect x="285" y="48" width="150" height="54" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="360" y="70" text-anchor="middle" font-size="10.5" font-weight="800" fill="#3a2a99">ESP32 主控</text>
+          <text x="360" y="88" text-anchor="middle" font-size="8" fill="#5d5b54">雙核 · WiFi · PWM · 2×I2C</text>
+          <!-- I2C left -->
+          <rect x="16" y="130" width="150" height="48" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.3"/>
+          <text x="91" y="150" text-anchor="middle" font-size="9" font-weight="700" fill="#005bb0">AS5600 #1</text>
+          <text x="91" y="166" text-anchor="middle" font-size="7.5" fill="#5d5b54">左輪磁編碼 (I2C bus0)</text>
+          <!-- I2C right shared -->
+          <rect x="180" y="130" width="170" height="48" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.3"/>
+          <text x="265" y="150" text-anchor="middle" font-size="9" font-weight="700" fill="#005bb0">AS5600 #2 + MPU6050</text>
+          <text x="265" y="166" text-anchor="middle" font-size="7.5" fill="#5d5b54">右輪編碼+IMU 共用 (I2C bus1)</text>
+          <!-- BLDC -->
+          <rect x="364" y="130" width="160" height="48" rx="9" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.3"/>
+          <text x="444" y="150" text-anchor="middle" font-size="9" font-weight="700" fill="#b34700">2× L6234 三相驅動</text>
+          <text x="444" y="166" text-anchor="middle" font-size="7.5" fill="#5d5b54">3PWM → 2 無刷輪馬達(7 極對)</text>
+          <!-- Servo -->
+          <rect x="538" y="130" width="168" height="48" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.3"/>
+          <text x="622" y="150" text-anchor="middle" font-size="9" font-weight="700" fill="#137a29">伺服除錯板(TDM)</text>
+          <text x="622" y="166" text-anchor="middle" font-size="7.5" fill="#5d5b54">UART → 2× STS3032(ID 1/2)</text>
+          <!-- power/wifi -->
+          <rect x="230" y="212" width="130" height="40" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.2"/>
+          <text x="295" y="231" text-anchor="middle" font-size="8.5" font-weight="700" fill="#b34700">7.4V LiPo</text>
+          <text x="295" y="245" text-anchor="middle" font-size="7.5" fill="#5d5b54">電源</text>
+          <rect x="378" y="212" width="130" height="40" rx="9" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.2"/>
+          <text x="443" y="231" text-anchor="middle" font-size="8.5" font-weight="700" fill="#3a2a99">WiFi(2.4GHz)</text>
+          <text x="443" y="245" text-anchor="middle" font-size="7.5" fill="#5d5b54">AP / STA · 網頁 UI</text>
+          <g stroke="#8a93ad" stroke-width="1.5" fill="none" marker-end="url(#ae)">
+            <path d="M330,102 L120,128"/><path d="M345,102 L280,128"/><path d="M380,102 L430,128"/><path d="M410,102 L600,128"/>
+            <path d="M330,102 L310,210"/><path d="M400,102 L435,210"/>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ 電子方塊圖(JustKM 重繪自 README 描述)。注意 <strong>右輪編碼器和 IMU 共用同一條 I2C</strong>;另有 4 塊 PCB(EasyEDA 原始檔),含主控、伺服除錯板等。</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>角色</th><th>晶片 / 模組</th><th>介面</th></tr></thead>
+      <tbody>
+        <tr><td>主控</td><td>ESP32</td><td>雙核、WiFi、PWM、2×I2C、UART</td></tr>
+        <tr><td>無刷驅動</td><td>L6234PD013TR(×2)</td><td>三相、由 ESP32 3PWM 控</td></tr>
+        <tr><td>輪角編碼</td><td>AS5600 磁編碼器(×2)</td><td>I2C</td></tr>
+        <tr><td>姿態 IMU</td><td>MPU6050 模組</td><td>I2C(與右輪編碼共用)</td></tr>
+        <tr><td>腿伺服</td><td>STS3032 匯流排伺服(×2)</td><td>UART(除錯板用<strong>分時多工</strong>把兩條串列併一線)</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 2 -->
+  <section id="foc">
+    <h2><span class="num">②</span> FOC:把無刷馬達變成「可精準下扭力」的致動器</h2>
+    <p>自平衡要的不只是「轉」,而是「我要多少扭力、現在就要」。無刷馬達要做到這點得用 <strong>FOC(磁場導向控制)</strong>——即時知道轉子角度,把電流控在最有效的方向。倉庫用開源的 <strong>SimpleFOC</strong> 函式庫:</p>
+    <pre><code><span class="cm">// 兩顆輪馬達:7 極對,各配一顆三相驅動(3PWM)</span>
+BLDCMotor motor1 = BLDCMotor(7);
+BLDCMotor motor2 = BLDCMotor(7);
+BLDCDriver3PWM driver1 = BLDCDriver3PWM(32, 33, 25, 22);
+BLDCDriver3PWM driver2 = BLDCDriver3PWM(26, 27, 14, 12);
+
+<span class="cm">// 兩顆 AS5600 在兩條 I2C 上,給 FOC 當轉子角度回授</span>
+MagneticSensorI2C sensor1 = MagneticSensorI2C(AS5600_I2C);
+MagneticSensorI2C sensor2 = MagneticSensorI2C(AS5600_I2C);</code></pre>
+    <p>有了 FOC,上層的平衡控制器只要輸出「要多少力矩」,SimpleFOC 就把它變成正確的三相電流——這讓③的 PID 可以乾淨地只管「平衡」這件事。</p>
+  </section>
+
+  <!-- 3 -->
+  <section id="balance">
+    <h2><span class="num">③</span> 平衡大腦:一疊串級 PID(含真實增益)</h2>
+    <p>這才是「它為什麼站得住」的本體。原始碼宣告了<strong>一整組 PID 控制器</strong>,從變數名與增益可以看出它是個<strong>串級(cascade)+ 狀態回授</strong>的倒立擺控制器:內層管角度/角速度(快、保持直立),外層管速度/位置(讓它不漂走),再加偏航(轉向)與側傾,最後用一個帶積分的綜合項收斂。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 300" role="img" aria-label="串級 PID 控制器：MPU6050 給車身角與角速度進內層角度/角速度 PID(快速保持直立);AS5600 給輪位置與速度進外層距離/速度 PID(不漂走);搖桿給偏航進偏航 PID;再加側傾 PID 與自動零點估計;全部匯進帶積分的綜合項 lqr_u,輸出力矩經 SimpleFOC 到兩輪">
+        <defs><marker id="ac" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">內層保持直立 · 外層不漂走 · 綜合項收斂</text>
+          <!-- sensors -->
+          <rect x="16" y="46" width="120" height="40" rx="8" fill="#dcecfa" stroke="#0075de" stroke-width="1.2"/>
+          <text x="76" y="63" text-anchor="middle" font-size="8.5" font-weight="700" fill="#005bb0">MPU6050</text>
+          <text x="76" y="78" text-anchor="middle" font-size="7.5" fill="#5d5b54">車身角+角速度</text>
+          <rect x="16" y="150" width="120" height="40" rx="8" fill="#dcecfa" stroke="#0075de" stroke-width="1.2"/>
+          <text x="76" y="167" text-anchor="middle" font-size="8.5" font-weight="700" fill="#005bb0">AS5600×2</text>
+          <text x="76" y="182" text-anchor="middle" font-size="7.5" fill="#5d5b54">輪位置+速度</text>
+          <rect x="16" y="214" width="120" height="36" rx="8" fill="#f0eeec" stroke="#a4a097" stroke-width="1.2"/>
+          <text x="76" y="236" text-anchor="middle" font-size="8.5" fill="#37352f">搖桿(網頁)</text>
+          <!-- PID blocks -->
+          <rect x="172" y="44" width="170" height="44" rx="8" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.4"/>
+          <text x="257" y="62" text-anchor="middle" font-size="8.7" font-weight="700" fill="#3a2a99">內層:angle + gyro</text>
+          <text x="257" y="78" text-anchor="middle" font-size="7.3" fill="#5d5b54">P=1 / P=0.06 · 保持直立(快)</text>
+          <rect x="172" y="100" width="170" height="44" rx="8" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+          <text x="257" y="118" text-anchor="middle" font-size="8.7" font-weight="700" fill="#137a29">外層:distance + speed</text>
+          <text x="257" y="134" text-anchor="middle" font-size="7.3" fill="#5d5b54">P=0.5 / P=0.7 · 不漂走(慢)</text>
+          <rect x="172" y="156" width="170" height="40" rx="8" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.3"/>
+          <text x="257" y="173" text-anchor="middle" font-size="8.7" font-weight="700" fill="#c02d80">偏航:yaw angle+gyro</text>
+          <text x="257" y="188" text-anchor="middle" font-size="7.3" fill="#5d5b54">轉向</text>
+          <rect x="172" y="206" width="170" height="40" rx="8" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.3"/>
+          <text x="257" y="223" text-anchor="middle" font-size="8.7" font-weight="700" fill="#b34700">側傾 roll · 自動零點</text>
+          <text x="257" y="238" text-anchor="middle" font-size="7.3" fill="#5d5b54">腿高差 / CoM 微調</text>
+          <!-- combine -->
+          <rect x="396" y="110" width="150" height="70" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="471" y="138" text-anchor="middle" font-size="9.5" font-weight="800" fill="#3a2a99">綜合項 lqr_u</text>
+          <text x="471" y="156" text-anchor="middle" font-size="7.8" fill="#5d5b54">P=1, I=15</text>
+          <text x="471" y="170" text-anchor="middle" font-size="7.5" fill="#5d5b54">積分消穩態誤差</text>
+          <!-- FOC + wheels -->
+          <rect x="580" y="110" width="124" height="70" rx="10" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.6"/>
+          <text x="642" y="138" text-anchor="middle" font-size="9" font-weight="700" fill="#b34700">SimpleFOC</text>
+          <text x="642" y="156" text-anchor="middle" font-size="7.8" fill="#5d5b54">力矩 → 三相電流</text>
+          <text x="642" y="170" text-anchor="middle" font-size="7.5" fill="#5d5b54">→ 2 輪</text>
+          <g stroke="#8a93ad" stroke-width="1.4" fill="none" marker-end="url(#ac)">
+            <path d="M136,66 L170,66"/><path d="M136,170 L170,122"/><path d="M136,232 L170,176"/>
+            <path d="M342,66 L420,112"/><path d="M342,122 L394,132"/><path d="M342,176 L420,150"/><path d="M342,226 L420,168"/>
+            <path d="M546,145 L578,145"/>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ 串級 PID(JustKM 重繪自原始碼宣告)。內層(角/角速度)跑得最快讓它不倒,外層(位置/速度)慢慢把它拉回原地,綜合項 <code>lqr_u</code> 的積分負責吃掉穩態偏差。</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>控制器</th><th>增益(原始碼)</th><th>管什麼</th></tr></thead>
+      <tbody>
+        <tr><td><code>pid_angle</code></td><td>P=1(limit 8)</td><td>車身傾角(保持直立)</td></tr>
+        <tr><td><code>pid_gyro</code></td><td>P=0.06</td><td>角速度阻尼</td></tr>
+        <tr><td><code>pid_distance</code> / <code>pid_speed</code></td><td>P=0.5 / P=0.7</td><td>位置 / 速度(不漂走)</td></tr>
+        <tr><td><code>pid_yaw_angle</code> / <code>pid_yaw_gyro</code></td><td>P=1.0 / P=0.04</td><td>偏航(轉向)</td></tr>
+        <tr><td><code>pid_lqr_u</code></td><td>P=1, <strong>I=15</strong></td><td>綜合輸出(積分消穩態)</td></tr>
+        <tr><td><code>pid_roll_angle</code></td><td>P=8(limit 450)</td><td>側傾(腿高差校正)</td></tr>
+        <tr><td><code>pid_zeropoint</code></td><td>P=0.002(limit 4)</td><td>自動零點(見 ④)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout info"><strong>可調:</strong>原始碼用了 SimpleFOC 的 <code>Commander</code>,可以從序列埠即時改這些 PID 增益——這就是自平衡車最耗時的「調參」入口。</div>
+  </section>
+
+  <!-- 4 -->
+  <section id="zeropoint">
+    <h2><span class="num">④</span> 自動零點與濾波:為什麼需要一個「零點估計」</h2>
+    <p>倒立擺有個現實難題:<strong>真正的平衡角不等於你以為的 0°</strong>。重心因為裝配誤差、電池位置、腿姿而偏,machine 的「站直角度」會有個未知偏置。若把目標角寫死 0°,它會一直往一邊慢慢跑。</p>
+    <p>解法是 <code>pid_zeropoint</code>(P=0.002,很小、很慢)+ 低通濾波 <code>lpf_zeropoint</code>(Tf=0.1):<strong>用「輪子長期的移動趨勢」反推真正的平衡零點,緩慢修正目標角</strong>。輪子一直往前漂 → 代表零點估偏了 → 把目標角微調,直到輪子不再長期漂移。這等於讓機器人<strong>自己找到它的平衡點</strong>,不必人工校。另有 <code>lpf_joyy</code>(Tf=0.2,平滑搖桿)、<code>lpf_roll</code>(Tf=0.3)。</p>
+    <div class="callout tip"><strong>直覺:</strong>零點估計是「慢變量追蹤」——它不參與高速的保持直立,只在背景慢慢校正「直立到底是幾度」。這是自平衡車能長時間不漂走、免手調零點的關鍵小招。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="dualcore">
+    <h2><span class="num">⑤</span> 雙核 + 通訊:一核跑控制,一核跑網頁</h2>
+    <p>ESP32 是雙核,原始碼有獨立的 <code>cpu0_task</code>——把<strong>即時控制(FOC + PID 迴圈)</strong>和<strong>通訊/UI</strong>分到不同核心,互不卡頓。通訊這塊:</p>
+    <ul>
+      <li><strong>網頁 UI 走 WebSocket + JSON</strong>:網頁本身存在 flash,手機瀏覽器連上就是遙控器,用 <code>ArduinoJson</code> 收送狀態與指令;另有 <code>WebServer</code>、<code>ble</code>(藍牙)路徑。</li>
+      <li><strong>WiFi 兩模式</strong>:AP(機器人當熱點,預設 <code>navbot_en01-</code>…、<code>192.168.1.11</code>)或 STA(連既有 WiFi);僅 2.4GHz。</li>
+      <li><strong>參數存 EEPROM</strong>:<code>eeprom_util</code> 把校正/設定寫進去,重開機還在。</li>
+    </ul>
+    <div class="callout info"><strong>為什麼要分核:</strong>自平衡的 FOC+PID 迴圈必須穩定高速、不能被 WiFi/網頁的忙碌拖慢;把它釘在一個核心上跑,是嵌入式即時控制的常見且正確做法。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="emoji">
+    <h2><span class="num">⑥</span> 表情:GIF → bin → SPIFFS(順便學 ESP32 檔案系統)</h2>
+    <p>它臉上會演表情。做法是把 GIF 轉成機器人能播的格式、存進 ESP32 的檔案系統:</p>
+    <ol>
+      <li>用 <code>Tools/Gif_to_Bin</code> 裡的 <code>gif_to_bin.py</code>:<code>python gif_to_bin.py yourFile.gif</code> → 產生 <code>yourFile.bin</code>。</li>
+      <li>bin 檔上傳到 ESP32 的 <strong>SPIFFS</strong> 分區(所以建置時要改分區方案,留空間給表情檔)。</li>
+      <li>上傳工具用 <code>arduino-esp32fs-plugin</code>——但 <strong>Arduino IDE 2 不支援外掛</strong>,作者改用 <strong>IDE 1</strong> 上傳;上傳時的分區方案要和燒錄時一致。</li>
+    </ol>
+    <div class="callout warn"><strong>一個真實的坑:</strong>「IDE2 不支援檔案系統上傳外掛」是很多人卡住的地方。要嘛裝 IDE1 專門上傳 SPIFFS,要嘛用新的上傳方式;分區方案前後不一致也會讓表情檔讀不到。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="build">
+    <h2><span class="num">⑦</span> 建置與校正流程</h2>
+    <ul>
+      <li><strong>環境</strong>:Arduino IDE 2;開發板管理員裝 <strong>esp32 v2.0.3</strong>;選 <strong>ESP32 Dev Module</strong>。</li>
+      <li><strong>函式庫</strong>:用 <code>Src/libraries</code> 內的 ZIP 逐一加入(<code>ArduinoJson</code>、WebSocket 等);另從函式庫管理員裝 <code>Queue</code>。</li>
+      <li><strong>分區</strong>:改分區方案(SPIFFS 存表情檔)。</li>
+      <li><strong>編譯</strong>:第一次可能很久——作者最長 <strong>24 分鐘</strong>。</li>
+      <li><strong>伺服校正</strong>:左腿伺服 ID=1、右腿 ID=2;<strong>全蹲到機械極限的校正值 = 2048</strong>;用 FEETECH(FD)除錯軟體設定。</li>
+      <li><strong>上電</strong>:電池 XH2.54 → 紅燈(通電)→ 輪子 FOC 初始化(輪/腿會動)→ 藍燈(電量足)→ 按 EN 重啟 → 連 WiFi → <code>192.168.1.11</code> → 扶穩、輪子輕觸地 → 按「Robot go!」站起來。</li>
+    </ul>
+  </section>
+
+  <!-- 8 -->
+  <section id="notes">
+    <h2><span class="num">⑧</span> 重點 · 關聯 · 來源</h2>
+    <h3>七個帶得走的重點</h3>
+    <ol>
+      <li>倉庫=完整工程檔(機構 STP、4 PCB、韌體、工具);fork 自 MuShibo 的 Micro-Wheeled_leg-Robot。</li>
+      <li>關鍵晶片:ESP32 + L6234(無刷驅動)+ AS5600(磁編碼)+ MPU6050(IMU)+ STS3032(腿伺服)。</li>
+      <li><strong>SimpleFOC</strong> 把無刷輪變成「可精準下扭力」,平衡層才能乾淨地只管平衡。</li>
+      <li>平衡是<strong>串級 PID</strong>:內層角/角速度(快)+ 外層位置/速度(慢)+ 偏航 + 側傾 + 綜合項 <code>lqr_u</code>(帶積分)。</li>
+      <li><strong>自動零點</strong>(<code>pid_zeropoint</code>+LPF)讓它自己找平衡角、不漂走、免手調零點。</li>
+      <li><strong>雙核</strong>:一核跑 FOC+PID 即時控制、一核跑 WebSocket+JSON 網頁 UI;參數存 EEPROM。</li>
+      <li>表情 GIF→bin→SPIFFS;IDE2 不支援上傳外掛要用 IDE1;首編最久 24 分鐘。</li>
+    </ol>
+    <div class="related">
+      <a href="./wheel-legged-robot-navbot.html">
+        <div class="rel-title">🛞 輪腿機器人組裝篇</div>
+        <div class="rel-sub">這台機器人的組裝另一半</div>
+      </a>
+      <a href="./microduck.html">
+        <div class="rel-title">🦆 Microduck RL 機器人</div>
+        <div class="rel-sub">用 RL 取代手調控制的對照</div>
+      </a>
+      <a href="./ring-xy-plotter-software.html">
+        <div class="rel-title">🧮 環形繪圖機的軟體</div>
+        <div class="rel-sub">另一個硬體+控制的讀碼案例</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>分析自 GitHub 倉庫 <a href="https://github.com/fuwei007/Navbot-EN01" style="color:var(--link)">fuwei007/Navbot-EN01</a> 的 README 與韌體原始碼(<code>Src/wl_pro_robot/wl_pro_robot.ino</code> 等)。晶片型號、PID 增益、接腳、校正值(squat=2048)均引自倉庫;控制器的「串級/狀態回授」詮釋依據變數名與增益,實際控制律以原始碼迴圈為準。本頁 SVG 為依原始碼描述重繪的示意圖。倉庫 fork 自 <a href="https://github.com/MuShibo/Micro-Wheeled_leg-Robot" style="color:var(--link)">MuShibo/Micro-Wheeled_leg-Robot</a>。</div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
