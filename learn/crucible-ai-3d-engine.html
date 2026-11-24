@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Crucible:給設計師與 AI 代理用的輕量化 3D 引擎(含 MCP 伺服器) · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🔥 Crucible:給設計師與 AI 代理共用的輕量化 3D 引擎(含 MCP 伺服器)</h1>
+    <p class="sub">codepawl/crucible 是一個給網頁用的即時 3D 引擎,主打「設計師與 AI 代理一起塑形同一份場景」。它內建 MCP 伺服器:Claude Code、Cursor、Codex、Gemini CLI 等代理可以用<strong>純 JSON 場景資料 + 工具呼叫</strong>來建模、打光、匯入 GLB、調鏡頭,再拿回<strong>多視角 PNG 預覽</strong>自我檢視與修正。雙渲染管線(WebGL2 即時光柵 + 路徑追蹤),核心打包極輕(約 58 KB gzip)。</p>
+    <div>
+      <span class="badge blue">MCP · @codepawlhq/crucible · MIT</span>
+      <span class="badge green">WebGL2 光柵 + 路徑追蹤 · ~58KB gzip</span>
+      <span class="badge orange">場景即 JSON · 多視角自檢 · PNG/MP4 匯出</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#ainative">① AI 原生:agent↔MCP↔渲染器閉環</a>
+      <a href="#scene">② 場景就是資料</a>
+      <a href="#renderers">③ 雙渲染管線:Glaze vs Cook</a>
+      <a href="#tiers">④ 品質分層與效能</a>
+      <a href="#light">⑤ 輕量化與網頁預算</a>
+      <a href="#addons">⑥ 豐富的擴充套件</a>
+      <a href="#safety">⑦ 安全與上手</a>
+      <a href="#notes">⑧ 重點 · 關聯 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>一個「設計師和 AI 代理能在同一份場景配方上協作」的網頁 3D 引擎。</strong>場景是純資料:每個 part 就是「幾何 + 一個 4×4 矩陣 + 材質」。AI 代理透過內建的 <code>crucible-mcp</code> 伺服器把這份 JSON 建起來、打光、匯入 GLB、設鏡頭,引擎回傳 PNG 預覽讓代理<strong>自己看、自己改</strong>;設計師則在同一份配方上掌握構圖、造型、光影、材質。渲染有兩套:<strong>Glaze</strong>(WebGL2 即時光柵,預覽用)與 <strong>Cook</strong>(路徑追蹤,出成品)。核心很輕(約 58 KB gzip),能塞進嚴格位元組/記憶體預算的網頁。</p>
+    <div class="callout info"><strong>定位:</strong>它把「AI 代理看不懂視覺、做不了 3D」這道牆,用「場景變純資料 + 多視角 PNG 回授」打穿——和站內 <a href="./agent-desktop.html" style="color:var(--link)">agent-desktop</a>(讀無障礙樹操作桌面)、<a href="./rea-reverse-engineer-anything.html" style="color:var(--link)">REA</a>(逆向)是同一個精神:<strong>給代理一個結構化、可檢視、可迭代的介面</strong>。MIT、npm <code>@codepawlhq/crucible</code>(舊名 67js)、Node 20.19+、ESM。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="ainative">
+    <h2><span class="num">①</span> AI 原生:agent ↔ MCP ↔ 渲染器的閉環</h2>
+    <p>一般 3D 引擎對 AI 代理很不友善:要寫一堆 API、擺相機、還「看不到」結果。Crucible 的做法是把這條路變成一個<strong>閉環</strong>:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 280" role="img" aria-label="AI 原生閉環：代理（Claude Code/Cursor/Codex/Gemini）透過 crucible-mcp 連到一個常駐的瀏覽器渲染器;代理寫 JSON 場景、設光與霧、匯入 GLB、加動作;引擎渲染後回傳多視角 PNG,代理用最多四視角的 review grid 自我檢視並修正,形成迴圈;設計師在同一份場景配方上掌握構圖光影材質;輸出輕量網頁嵌入與 PNG/MP4">
+        <defs><marker id="ai" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">寫 JSON → 渲染 → 回傳 PNG → 自我檢視修正(迴圈)</text>
+          <rect x="16" y="52" width="150" height="60" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="91" y="76" text-anchor="middle" font-size="10" font-weight="700" fill="#005bb0">AI 代理</text>
+          <text x="91" y="94" text-anchor="middle" font-size="7.5" fill="#5d5b54">Claude Code / Cursor /</text>
+          <text x="91" y="106" text-anchor="middle" font-size="7.5" fill="#5d5b54">Codex / Gemini CLI</text>
+          <rect x="270" y="46" width="180" height="72" rx="11" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="360" y="68" text-anchor="middle" font-size="10" font-weight="800" fill="#3a2a99">crucible-mcp</text>
+          <text x="360" y="86" text-anchor="middle" font-size="7.8" fill="#37352f">常駐瀏覽器渲染器(Chrome)</text>
+          <text x="360" y="102" text-anchor="middle" font-size="7.8" fill="#37352f">工具:場景/光/GLB/鏡頭/渲染</text>
+          <rect x="554" y="52" width="150" height="60" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.6"/>
+          <text x="629" y="76" text-anchor="middle" font-size="10" font-weight="700" fill="#137a29">渲染器</text>
+          <text x="629" y="94" text-anchor="middle" font-size="7.5" fill="#5d5b54">Glaze / Cook</text>
+          <text x="629" y="106" text-anchor="middle" font-size="7.5" fill="#5d5b54">出 PNG</text>
+          <g stroke="#8a93ad" stroke-width="1.7" fill="none" marker-end="url(#ai)">
+            <path d="M166,74 L268,74"/><path d="M450,74 L552,74"/>
+          </g>
+          <text x="217" y="66" text-anchor="middle" font-size="7.5" fill="#787671">寫 JSON 場景</text>
+          <!-- feedback loop PNG back -->
+          <path d="M629,112 C629,160 91,160 91,114" fill="none" stroke="#1aae39" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#ai)"/>
+          <text x="360" y="155" text-anchor="middle" font-size="8.5" fill="#137a29">回傳多視角 PNG(最多四格 review grid)→ 代理自我檢視、修正</text>
+          <!-- designer -->
+          <rect x="190" y="186" width="340" height="40" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.3"/>
+          <text x="360" y="204" text-anchor="middle" font-size="9" font-weight="700" fill="#b34700">設計師:在同一份場景配方上掌握構圖/光影/材質</text>
+          <text x="360" y="219" text-anchor="middle" font-size="7.8" fill="#5d5b54">代理扛技術設定(幾何/修飾器/檢查/匯出),人扛創意</text>
+          <!-- output -->
+          <rect x="190" y="240" width="340" height="30" rx="8" fill="#f0eeec" stroke="#a4a097" stroke-width="1.2"/>
+          <text x="360" y="259" text-anchor="middle" font-size="8.7" fill="#37352f">輸出:輕量網頁嵌入 · PNG 靜圖 · MP4 影片</text>
+          <line x1="360" y1="226" x2="360" y2="238" stroke="#8a93ad" stroke-width="1.4" marker-end="url(#ai)"/>
+        </g>
+      </svg>
+      <div class="figcap">▲ 關鍵是「代理能看到自己做的結果」:引擎回傳 PNG,代理像人一樣看圖找問題、改 JSON 再渲染——這把「盲寫 3D」變成「可迭代的視覺任務」。</div>
+    </div>
+    <p>分工很清楚:<strong>代理扛技術重活</strong>(幾何、修飾器、打光、檢查、匯出),<strong>設計師保留創意控制</strong>(取景、造型、光影、材質),兩邊操作的是同一份場景配方。</p>
+  </section>
+
+  <!-- 2 -->
+  <section id="scene">
+    <h2><span class="num">②</span> 場景就是資料:幾何 + 矩陣 + 材質</h2>
+    <p>為什麼代理和設計師能共用?因為場景<strong>不是程式,是純資料</strong>。每個 part 只有三樣東西:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 210" role="img" aria-label="場景即資料：一個 part 由幾何（box/sphere 等）、一個 column-major 4x4 矩陣（縮放後平移）、材質（color/metallic/roughness/emission）組成;一組 parts 就是一個場景,可交給 Glaze 即時光柵或 Cook 路徑追蹤渲染">
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">一個 part = 幾何 + 4×4 矩陣 + 材質</text>
+          <rect x="16" y="46" width="200" height="120" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.3"/>
+          <text x="116" y="68" text-anchor="middle" font-size="9.5" font-weight="700" fill="#005bb0">幾何 geometry</text>
+          <text x="116" y="88" text-anchor="middle" font-size="8" fill="#5d5b54">box() / sphere() …</text>
+          <text x="116" y="108" text-anchor="middle" font-size="8" fill="#5d5b54">或匯入的 GLB 網格</text>
+          <text x="116" y="132" text-anchor="middle" font-size="7.5" fill="#787671">形狀本身</text>
+          <rect x="260" y="46" width="200" height="120" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.3"/>
+          <text x="360" y="68" text-anchor="middle" font-size="9.5" font-weight="700" fill="#3a2a99">矩陣 matrix(4×4)</text>
+          <text x="360" y="88" text-anchor="middle" font-size="8" fill="#5d5b54">column-major</text>
+          <text x="360" y="108" text-anchor="middle" font-size="8" fill="#5d5b54">先縮放、再平移</text>
+          <text x="360" y="132" text-anchor="middle" font-size="7.5" fill="#787671">放在哪、多大、朝向</text>
+          <rect x="504" y="46" width="200" height="120" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.3"/>
+          <text x="604" y="68" text-anchor="middle" font-size="9.5" font-weight="700" fill="#137a29">材質 material</text>
+          <text x="604" y="88" text-anchor="middle" font-size="8" fill="#5d5b54">color / metallic</text>
+          <text x="604" y="108" text-anchor="middle" font-size="8" fill="#5d5b54">roughness / emission</text>
+          <text x="604" y="132" text-anchor="middle" font-size="7.5" fill="#787671">PBR 物理材質</text>
+          <text x="360" y="192" text-anchor="middle" font-size="9" fill="#37352f">一組 parts = 一個場景 → 餵給 Glaze(即時)或 Cook(路徑追蹤)</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 因為「場景是資料」,代理能可靠地生成/修改它(JSON 好寫、好檢查),設計師也能直接編輯同一份——這是整個協作模式的地基。</div>
+    </div>
+    <pre><code><span class="cm">// 一個 part:名稱 + 幾何 + 4×4 矩陣 + PBR 材質</span>
+{
+  name: 'Ball',
+  geometry: sphere(48, 24),
+  matrix: /* 先縮放、再平移的 column-major 4×4 */,
+  material: { color: [0.8, 0.3, 0.2], metallic: 0, roughness: 0.35, emission: 0 }
+}
+<span class="cm">// 直接程式用:new CrucibleRenderer(canvas, parts, {...}).render({ eye, target })</span></code></pre>
+  </section>
+
+  <!-- 3 -->
+  <section id="renderers">
+    <h2><span class="num">③</span> 雙渲染管線:Glaze 即時 vs Cook 路徑追蹤</h2>
+    <p>同一份場景,兩種渲染目的:<strong>快速預覽</strong>與<strong>最終畫質</strong>。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="雙管線：同一份場景可交給 Glaze 即時光柵渲染器（WebGL2，約 1 毫秒一幀，做互動與預覽）或 Cook 路徑追蹤器（CPU/WebGL2/Vulkan/WebGPU，一次一張、出最終高畫質靜圖）;另有實驗性即時路徑追蹤器與光照烘焙">
+        <defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="12.5" font-weight="800" fill="#1a1a1a">同一份場景 → 兩種渲染</text>
+          <rect x="285" y="46" width="150" height="40" rx="9" fill="#f0eeec" stroke="#a4a097" stroke-width="1.3"/>
+          <text x="360" y="70" text-anchor="middle" font-size="9.5" font-weight="700" fill="#37352f">場景(parts JSON)</text>
+          <rect x="60" y="130" width="280" height="54" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.6"/>
+          <text x="200" y="151" text-anchor="middle" font-size="10" font-weight="800" fill="#005bb0">Glaze(即時光柵)</text>
+          <text x="200" y="169" text-anchor="middle" font-size="8" fill="#5d5b54">WebGL2 · ~1ms/幀 · 互動與預覽</text>
+          <rect x="380" y="130" width="280" height="54" rx="10" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.6"/>
+          <text x="520" y="151" text-anchor="middle" font-size="10" font-weight="800" fill="#b34700">Cook(路徑追蹤)</text>
+          <text x="520" y="169" text-anchor="middle" font-size="8" fill="#5d5b54">CPU/WebGL2/Vulkan/WebGPU · 一次一張 · 最終畫質</text>
+          <g stroke="#8a93ad" stroke-width="1.7" fill="none" marker-end="url(#ar)">
+            <path d="M330,86 L210,128"/><path d="M400,86 L510,128"/>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ 另有「實驗性即時路徑追蹤器」(WebGPU,帶輻射快取 + 時域降噪,MCP 不開放)與「光照烘焙」。MCP 的 render job 只吃 Cook 的 cpu/gpu/native 後端。</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>渲染器</th><th>是什麼</th><th>跑在</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Glaze</strong>(<code>CrucibleRenderer</code>)</td><td>即時光柵器</td><td>WebGL2</td></tr>
+        <tr><td><strong>Cook</strong></td><td>路徑追蹤器,一次一張</td><td>CPU(預設)/ WebGL2 / Vulkan ray queries(選用 <code>@codepawlhq/cook</code>)/ WebGPU</td></tr>
+        <tr><td>即時路徑追蹤器</td><td>實驗性,輻射快取+時域降噪</td><td>WebGPU(WebGL2 後備),MCP 不開放</td></tr>
+        <tr><td>光照烘焙</td><td>烘焙 lightmap</td><td>CPU / WebGL2 / WebGPU</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 4 -->
+  <section id="tiers">
+    <h2><span class="num">④</span> 品質分層與效能(對 Blender 基準)</h2>
+    <p>一個 <code>quality</code> 設定把渲染分四層;官方用 6 個場景、960×540、對 Blender Cycles 4096 樣本當參考算 <strong>FLIP</strong> 誤差(越低越好):</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>層</th><th>用途</th><th>怎麼跑</th><th>Crucible 實測</th><th>對照 Blender</th></tr></thead>
+      <tbody>
+        <tr><td>draft</td><td>編輯時快速看</td><td>Glaze,0.5 render scale,1 樣本</td><td>每幀約 0.5–1.0 ms(含讀像素)</td><td>EEVEE 1 樣本:56–59 ms/次</td></tr>
+        <tr><td>realtime</td><td>互動使用</td><td>Glaze 預設</td><td>每幀約 <strong>0.77–0.98 ms</strong></td><td>EEVEE 64 樣本:288–363 ms/次</td></tr>
+        <tr><td>realtime-high</td><td>更好的互動幀(規劃中)</td><td>Glaze on WebGPU + GI 快取 + 升頻</td><td>尚未可測</td><td>—</td></tr>
+        <tr><td>final</td><td>完成的靜圖</td><td>Cook native 256 樣本(Vulkan)</td><td>256 樣本約 0.71–1.32 s(含設定)</td><td>Cycles OptiX:3.43–8.46 s</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout tip"><strong>怎麼讀這些數字:</strong>Glaze 即時層在這些場景上 <strong>&lt;約 1ms 一幀</strong>(960×540,含讀像素);Cook 出 256 樣本的成品比 Blender Cycles 快數倍。但這是「單一顯卡、理想場景」的量測,EEVEE 的時間含完整背景渲染與場景同步、不是幀率比較——當量級參考,別當保證。</div>
+  </section>
+
+  <!-- 5 -->
+  <section id="light">
+    <h2><span class="num">⑤</span> 輕量化與網頁預算:約 58 KB gzip</h2>
+    <p>它是為「網頁嵌入」設計的,所以<strong>體積與執行期預算被當第一等公民</strong>:核心打包約 <strong>58 KB gzip</strong>(據專案說明,比 Three.js 精簡超過一半);匯出的場景在網頁上保持輕量、守住嚴格的位元組與記憶體預算。</p>
+    <ul>
+      <li><strong>每個 addon 是獨立 import</strong>:一個頁面只載它用到的功能(地形、草、角色…各自分開),不會把整包拖進來。</li>
+      <li><strong>記憶體預算</strong>:渲染器可設 <code>memoryBudgetMiB</code>;串流 addon 有位元組預算 + LRU 淘汰 + LOD。</li>
+      <li>影片匯出<strong>一次串一幀</strong>,整部片不會塞在記憶體裡。</li>
+    </ul>
+  </section>
+
+  <!-- 6 -->
+  <section id="addons">
+    <h2><span class="num">⑥</span> 豐富的擴充套件(用到才載)</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>領域</th><th>內容</th></tr></thead>
+      <tbody>
+        <tr><td>打光</td><td>HDRI 影像式照明(<code>.hdr</code>)</td></tr>
+        <tr><td>地形 / 植被</td><td>分塊地形 + 掃描地層;樹、草、地面雜物(帶風與 LOD)</td></tr>
+        <tr><td>角色</td><td>glTF 匯入、動作重定向(retarget)、帶 IK 的姿態層</td></tr>
+        <tr><td>流體 / 載具</td><td>烘焙液體播放(折射+水花);路徑上的輪式載具</td></tr>
+        <tr><td>物理</td><td>Rapier 接觸與關節錄成時間軸;即時物理(Rapier/Jolt)含射線/形狀查詢</td></tr>
+        <tr><td>即時遊戲</td><td>遊戲迴圈、輸入、串流、netcode、空間音訊、動畫圖、玩家/相機控制器、JSON 遊戲規則、靜態網頁匯出</td></tr>
+        <tr><td>建模</td><td>網格編輯、建模、雕刻筆刷</td></tr>
+        <tr><td>離線光 / 後處理</td><td>路徑追蹤靜圖、烘焙 lightmap;自訂全螢幕 GLSL pass</td></tr>
+        <tr><td>媒體匯出</td><td>透過無頭 Chrome 輸出 PNG / MP4(GPU 或 CPU,有品質 preset)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout info">還有一個基於 Crucible 的 Claude Code 技能 <a href="https://github.com/codepawl/viz3d" style="color:var(--link)">viz3d</a>:把「地點、系統、事件」變成 3D app 與影片,並用 Crucible 渲染。</div>
+  </section>
+
+  <!-- 7 -->
+  <section id="safety">
+    <h2><span class="num">⑦</span> 安全與上手</h2>
+    <p><strong>MCP 的安全邊界很明確:伺服器不接受任意程式碼、不接受遠端素材 URL。</strong>這對「讓代理驅動一個會跑 Chrome 的渲染器」很關鍵——代理只能用定義好的工具操作場景資料,不能塞 code 或拉外部網址。</p>
+    <pre><code><span class="cm"># 讓代理自己裝(貼給 Claude Code / Codex / Cursor / Gemini)</span>
+<span class="cm"># 它會裝套件、讀 llms.txt、連上 MCP 伺服器</span>
+npx crucible-mcp --backend gpu --memory 192   <span class="cm"># gpu=硬體 WebGL2;無顯卡用 --backend cpu</span>
+
+<span class="cm"># Claude Code 外掛(一併裝 MCP + 兩個技能)</span>
+/plugin marketplace add codepawl/crucible
+/plugin install crucible@crucible
+
+<span class="cm"># 手動</span>
+npm install crucible@npm:@codepawlhq/crucible</code></pre>
+    <ul>
+      <li>MCP 需本機裝 <strong>Chrome</strong>(常駐渲染器);Node 20.19+、ESM;WebGL2/WebGPU 視後端而定。</li>
+      <li>兩個技能教代理操作:<code>build-crucible-scene</code>(場景與材質)、<code>render-crucible-media</code>(圖片/影片匯出);純文字指南是 <code>llms.txt</code>。</li>
+      <li>1.0 前每週約一個 minor 版,API 可能變(看 CHANGELOG)。</li>
+    </ul>
+  </section>
+
+  <!-- 8 -->
+  <section id="notes">
+    <h2><span class="num">⑧</span> 重點 · 關聯 · 來源</h2>
+    <h3>七個帶得走的重點</h3>
+    <ol>
+      <li>設計師 + AI 代理<strong>共用同一份場景配方</strong>的網頁 3D 引擎(舊名 67js)。</li>
+      <li>場景<strong>就是資料</strong>:part = 幾何 + 4×4 矩陣 + 材質 → 代理好生成、設計師好編輯。</li>
+      <li>AI 原生閉環:代理寫 JSON → 渲染 → <strong>回傳多視角 PNG</strong> → 自我檢視修正。</li>
+      <li>雙管線:<strong>Glaze</strong>(WebGL2 即時,~1ms/幀)+ <strong>Cook</strong>(路徑追蹤,出成品)。</li>
+      <li>四個品質層(draft/realtime/realtime-high/final),對 Blender 以 FLIP 量測。</li>
+      <li><strong>約 58 KB gzip</strong>、addon 用到才載、記憶體預算 + LRU——為網頁嵌入而生。</li>
+      <li>MCP <strong>不收任意程式碼、不收遠端 URL</strong>;<code>npx crucible-mcp</code> 需本機 Chrome。</li>
+    </ol>
+    <div class="related">
+      <a href="./agent-desktop.html">
+        <div class="rel-title">🪟 agent-desktop</div>
+        <div class="rel-sub">給代理結構化介面操作桌面(同精神)</div>
+      </a>
+      <a href="./rea-reverse-engineer-anything.html">
+        <div class="rel-title">🔬 REA 逆向工程 MCP</div>
+        <div class="rel-sub">另一個「給代理可檢視介面」的 MCP</div>
+      </a>
+      <a href="./ai-coding-agent-power-techniques.html">
+        <div class="rel-title">🚀 頂尖 AI 編程者進階全圖</div>
+        <div class="rel-sub">MCP / 代理工作流的脈絡</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>整理自 GitHub 倉庫 <a href="https://github.com/codepawl/crucible" style="color:var(--link)">codepawl/crucible</a>(MIT)的 README、官方文件站 <a href="https://crucible.codepawl.com" style="color:var(--link)">crucible.codepawl.com</a> 與使用者提供之摘要。渲染器、品質層、效能數字(~1ms/幀、256 樣本時間、FLIP)引自倉庫 README 的基準表;「約 58 KB gzip、比 Three.js 精簡超過一半」引自專案說明,實際以官方為準。1.0 前 API 會變,細節請以倉庫最新內容為準。本頁為中立技術整理。</div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
