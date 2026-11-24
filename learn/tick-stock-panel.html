@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>TSP(Tick Stock Panel):自託管、本地優先的 A 股量化研究工作台 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden; box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #7c65a8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #60a5fa 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px; color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>📊 TSP:自託管、本地優先的 A 股量化研究工作台</h1>
+    <p class="sub">Tick Stock Panel 不走同花順、通達信那種看盤軟體路線,而是一個<strong>本地優先(local-first)、零運維、核心能力全開放成接口</strong>的 A 股量化研究工作台:用 Polars 向量化對全市場選股、用自研引擎做約束回測、寫自訂因子、盤中監控、盤後接 AI 做復盤。資料與策略都在你機器上,外部腳本與 MCP 可按權限呼叫它的數據與研究任務。工作台 MIT(自研 Tivelo 組件另採 PolyForm 非商業授權)。</p>
+    <div><span class="badge green">自託管 · 零運維 · 本地優先 · 工作台 MIT</span>
+      <span class="badge blue">Polars 向量化選股 · Tivelo 回測引擎</span>
+      <span class="badge orange">盤中監控 + 盤後 AI 復盤 · MCP/開放接口</span></div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#scope">① 定位:研究工作台,不是荐股</a>
+      <a href="#engine">② 選股與回測引擎</a>
+      <a href="#tivelo">③ 自研 Tivelo 引擎</a>
+      <a href="#monitor">④ 盤中監控 + 盤後 AI 復盤</a>
+      <a href="#ext">⑤ 模組化與插件</a>
+      <a href="#mcp">⑥ MCP 與開放接口</a>
+      <a href="#start">⑦ 快速開始</a>
+      <a href="#notes">⑧ 授權 · 風險 · 重點 · 來源</a>
+    </div>
+  </nav>
+
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>一個「自己架、自己掌握數據」的 A 股量化研究台。</strong>它把量化研究的四件事——<strong>選股、回測、因子、監控</strong>——收進一個自託管工作台:用 Polars 的 Rust 列式內核對全市場高速算指標、篩條件;用自研的 Tivelo 回測引擎按 A 股 T+1、漲跌停、手續費等真實約束模擬成交;盤中監控訊號彈窗/語音/推播,盤後接 AI 自動出 Markdown 復盤報告。行情、策略、配置都存在你本機的 <code>data/</code>,外部腳本與 MCP 客戶端可拿<strong>帶權限分級的 Token</strong> 來呼叫。</p>
+    <div class="callout info"><strong>它在這份筆記裡的位置:</strong>和 <a href="./opengym.html" style="color:var(--link)">openGym</a> 一樣是「本地優先 + 可選 AI + 開放 MCP」的自託管 app,只是領域換成 A 股量化研究。官網 <a href="https://tsp.shy313.com/" style="color:var(--link)">tsp.shy313.com</a>,GitHub <code>shy3130/tick-stock-panel</code>。技術棧:Python 3.11+ / Node 20+ / React 18 / Polars 1.44。</div>
+  </section>
+
+  <section id="scope">
+    <h2><span class="num">①</span> 定位:研究工作台,不是荐股/看盤</h2>
+    <p>README 把範圍講得很清楚,這點很重要:<strong>TSP 面向本地量化學習與研究,走獨立研究工作台路線,不對標同花順/通達信等看盤軟體,產品範圍不含「AI 荐股」與「漲停預測」。</strong>裡頭的 AI 助手只用來<strong>取數、分析與策略研究</strong>,不是叫你買哪支。</p>
+    <div class="callout tip"><strong>為什麼強調這個:</strong>量化工具最容易被誤解成「幫我預測明天漲什麼」。TSP 刻意把自己定位成「研究環境」——給你高速算指標、嚴謹回測、可檢驗因子的地方,結論與風險由你自己負責(見 ⑧ 的免責聲明)。</div>
+  </section>
+
+  <section id="engine">
+    <h2><span class="num">②</span> 選股與回測引擎:快,且算得嚴謹</h2>
+    <ul>
+      <li><strong>Polars 向量化選股</strong>:行情整理、指標與因子計算、回測面板準備都走 <strong>Polars 1.44 的 Rust 列式內核</strong>;支援 Numba 的環境裡,部分回測矩陣的滾動/遞推算子用 JIT 加速。對全市場 A 股做高速指標計算與條件篩選。</li>
+      <li><strong>約束回測</strong>:支援歷史區間回測、參數篩選、滾動樣本外(walk-forward)驗證,可檢視淨值曲線、回撤、夏普與逐筆成交記錄,並調整撮合費用、滑點與風控。</li>
+      <li><strong>因子平台</strong>:自訂因子公式、因子檢驗、因子挖掘,用自訂信號與策略篩股票池。</li>
+    </ul>
+    <div class="callout info"><strong>一個實測數字:</strong>同機、同策略的 <strong>15 組參數網格 A/B 基準</strong>裡,「逐組獨立準備」vs「共享行情面板 + 矩陣編碼」總耗時分別是 <strong>19.47 秒 vs 6.19 秒</strong>——共享後省約 <strong>68%</strong>,而逐筆成交與統計結果一致。這說明它在「參數掃描」這種重複計算場景上做了面板共享優化。(數字引自 README,單機量測、當量級參考)</div>
+  </section>
+
+  <section id="tivelo">
+    <h2><span class="num">③</span> 自研 Tivelo 引擎:資料版本化 + 真實撮合</h2>
+    <p>回測可不可信,取決於「資料乾不乾淨」和「撮合像不像真的」。TSP 把這兩件事拆成兩顆自研引擎,都能用 Python 庫或命令列獨立使用:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>引擎</th><th>負責</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Tivelo Data</strong></td><td>採集、校驗、發布<strong>資料版本</strong>;可把日 K 與復權因子固定成<strong>快照</strong>,供策略復跑與歸檔研究(確保「同一份資料」重現)</td></tr>
+        <tr><td><strong>Tivelo Backtest</strong></td><td>為日線/分鐘策略與組合回測提供<strong>撮合與記賬</strong>,按 A 股 <strong>T+1、漲跌停、交易費用</strong>等約束模擬成交</td></tr>
+      </tbody>
+    </table></div>
+    <p>工作台普通回測支援前復權/後復權;啟用並授權 Tivelo Pro 後,A 股日線策略還能直接選<strong>動態復權</strong>。歸檔研究會先檢查「資料快照 + 策略歸檔」是否匹配再提交任務——這套「資料版本 + 快照回測」是嚴肅量化研究避免「未來函數/資料漂移」的關鍵。</p>
+  </section>
+
+  <section id="monitor">
+    <h2><span class="num">④</span> 盤中監控 + 盤後 AI 復盤</h2>
+    <ul>
+      <li><strong>監控中心(Monitor)</strong>:支援<strong>策略訊號、個股訊號、價格、市場異動</strong>四大類規則,盤中觸發即時彈窗、語音播報,並可推送到<strong>飛書或企業微信</strong>。通過驗證的策略可綁到<strong>模擬盤</strong>,追蹤訂單、持倉與成交。</li>
+      <li><strong>AI 復盤與分析</strong>:可接<strong>兼容 OpenAI 格式</strong>的模型服務,或本機的 <strong>Codex CLI</strong>,自動做個股/財務分析與定時盤後市場復盤,<strong>輸出 Markdown 報告</strong>。</li>
+      <li><strong>工作台 AI 助手</strong>:<code>⌘K</code> / <code>Ctrl+K</code> 打開,在面板內查本地行情、起草策略、跑回測;寫入由確認設定控管。</li>
+    </ul>
+  </section>
+
+  <section id="ext">
+    <h2><span class="num">⑤</span> 高度模組化與插件</h2>
+    <p>TSP 的「核心能力全開放成接口」體現在插件化:<strong>日 K、分鐘 K、實時行情、除權因子可分別指定不同資料源</strong>(內建支援 TickFlow、免費接口或自訂 HTTP 資料源插件)。能擴充的東西很全:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>要擴充什麼</th><th>怎麼接</th></tr></thead>
+      <tbody>
+        <tr><td>行情來源</td><td>宣告 HTTP YAML,或裝含 <code>plugin.yaml</code> 的 Provider ZIP</td></tr>
+        <tr><td>擴充資料</td><td>導入單表配置,接自有欄位、回補與更新規則</td></tr>
+        <tr><td>策略/信號/因子</td><td>導入源碼、定義 JSON 或帶依賴的資源 ZIP</td></tr>
+        <tr><td>圖表/資訊條</td><td>導入 <code>tick-chart-indicators</code> JSON,用公式與擴充欄位定義日 K/分時/資訊條</td></tr>
+        <tr><td>頁面與選單</td><td><strong>Page Pack SDK</strong>:開發自有頁面(復用行情接口與公共個股詳情),或導入 <code>.js/.mjs/.tsx</code></td></tr>
+        <tr><td>後端插件/倉位規則</td><td>導入帶 <code>extension.yaml</code> 的後端 ZIP 後重啟;可寫自訂倉位策略</td></tr>
+      </tbody>
+    </table></div>
+    <p>源碼擴充可註冊路由與導航,在個股詳情、自選頁等「已開放的插槽」加元件;後端可註冊獨立接口、啟動鉤子與通知格式化器。配置備份能遷移策略、偏好與擴充表配置。</p>
+  </section>
+
+  <section id="mcp">
+    <h2><span class="num">⑥</span> MCP 與開放接口:帶權限分級的 Token</h2>
+    <p>這是它「開放成接口」最直接的體現:<strong>腳本與外部 AI 可通過 Open API 或 MCP,按 Token 權限(Scope)讀行情、查策略、提交回測</strong>。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 230" role="img" aria-label="TSP 架構：瀏覽器與桌面端透過面板接口(登入會話)訪問工作台;外部腳本與 MCP 客戶端透過 Token 網關、按 Scope 權限呼叫開放接口。工作台核心服務共用本地 data 工作區,管理數據源、策略與研究任務;數據源、擴充表、策略信號、頁面與後端模組各按契約接入。工作台按任務呼叫自研的 Tivelo Data(資料版本/快照)或 Tivelo Backtest(撮合記賬)。">
+        <defs><marker id="tsp1" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <rect x="16" y="24" width="190" height="44" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/>
+          <text x="111" y="44" text-anchor="middle" font-size="9" font-weight="700" fill="#005bb0">瀏覽器 / 桌面端</text>
+          <text x="111" y="59" text-anchor="middle" font-size="7.2" fill="#5d5b54">面板接口(登入會話)</text>
+          <rect x="16" y="86" width="190" height="52" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/>
+          <text x="111" y="106" text-anchor="middle" font-size="9" font-weight="700" fill="#b34700">腳本 / MCP 客戶端</text>
+          <text x="111" y="122" text-anchor="middle" font-size="7.2" fill="#5d5b54">Token 網關 · 按 Scope 權限</text>
+          <rect x="258" y="40" width="200" height="92" rx="12" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="358" y="63" text-anchor="middle" font-size="10" font-weight="800" fill="#3a2a99">TSP 工作台</text>
+          <text x="358" y="81" text-anchor="middle" font-size="7.4" fill="#37352f">共用本地 data/ 工作區</text>
+          <text x="358" y="95" text-anchor="middle" font-size="7.4" fill="#37352f">數據源/策略/研究任務</text>
+          <text x="358" y="111" text-anchor="middle" font-size="7.2" fill="#787671">擴充按契約接入(插槽/註冊)</text>
+          <rect x="510" y="30" width="194" height="46" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+          <text x="607" y="50" text-anchor="middle" font-size="8.6" font-weight="700" fill="#137a29">Tivelo Data</text>
+          <text x="607" y="65" text-anchor="middle" font-size="7.2" fill="#5d5b54">資料版本 / 快照</text>
+          <rect x="510" y="96" width="194" height="46" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+          <text x="607" y="116" text-anchor="middle" font-size="8.6" font-weight="700" fill="#137a29">Tivelo Backtest</text>
+          <text x="607" y="131" text-anchor="middle" font-size="7.2" fill="#5d5b54">撮合 / 記賬(T+1/漲跌停)</text>
+          <g stroke="#8a93ad" stroke-width="1.6" fill="none" marker-end="url(#tsp1)">
+            <path d="M206,46 L256,60"/><path d="M206,112 L256,100"/>
+            <path d="M458,70 L508,56"/><path d="M458,102 L508,116"/>
+          </g>
+          <text x="358" y="170" text-anchor="middle" font-size="8" fill="#787671">工作台按任務呼叫 Tivelo 引擎;兩引擎也可用 Python 庫 / CLI 獨立使用</text>
+          <rect x="258" y="186" width="200" height="30" rx="8" fill="#f0eeec" stroke="#a4a097" stroke-width="1.2"/>
+          <text x="358" y="205" text-anchor="middle" font-size="8" fill="#37352f">本地 data/:行情 · 策略 · 用戶配置</text>
+          <path d="M358,132 L358,184" fill="none" stroke="#8a93ad" stroke-width="1.5" marker-end="url(#tsp1)"/>
+        </g>
+      </svg>
+      <div class="figcap">▲ 兩條入口:登入會話(給人用的面板)與 Token 網關(給腳本/MCP 用,按 Scope 限權)。核心共用本地 <code>data/</code>,重活丟給 Tivelo 兩引擎。</div>
+    </div>
+  </section>
+
+  <section id="start">
+    <h2><span class="num">⑦</span> 快速開始</h2>
+    <pre><code><span class="cm"># Docker:行情/策略/配置存在當前目錄的 data/</span>
+docker run -d --name tsp -p 3018:3018 \
+  -e DATA_DIR=/app/data -v "${PWD}/data:/app/data" \
+  ghcr.io/shy3130/tick-stock-panel:latest
+<span class="cm"># 開 http://localhost:3018</span></code></pre>
+    <p>也能用<strong>桌面版安裝包</strong>(Releases)、<strong>Docker Compose</strong>(<code>docker compose up --build</code>),或<strong>源碼</strong>(Python 3.11+ / Node 20+ / uv / pnpm,跑 <code>./dev.sh</code>)。第一次:設定資料源 → 同步日 K/指標 → 建或導入策略(先篩選再區間回測)→ 通過驗證的規則用於監控或模擬盤;外部客戶端在「設置 → 開放接口」領對應權限的 Token。</p>
+  </section>
+
+  <section id="notes">
+    <h2><span class="num">⑧</span> 授權 · 風險 · 重點 · 來源</h2>
+    <div class="callout warn"><strong>授權分兩層:</strong>TSP <strong>工作台</strong>採 <strong>MIT</strong>;但<strong>自研的 Tivelo 組件按各自制品授權</strong>——採 <strong>PolyForm 非商業授權</strong>的 Tivelo 自有實現,商用須另獲書面授權(已授予的 MIT 權利繼續有效)。分發時須保留版權與授權文本,貢獻走 DCO。<br><br><strong>投資風險:</strong>本項目僅供學習與量化研究,<strong>回測結果不代表未來收益、不構成投資建議</strong>;用數據前請讀供應商條款。</div>
+    <h3>七個帶得走的重點</h3>
+    <ol>
+      <li><strong>本地優先、自託管、零運維</strong>的 A 股量化<strong>研究</strong>台——不荐股、不預測漲停。</li>
+      <li><strong>Polars 向量化</strong>全市場選股;參數掃描靠共享面板省約 68%。</li>
+      <li>自研 <strong>Tivelo Data(資料版本/快照)+ Tivelo Backtest(T+1/漲跌停/費用撮合)</strong>。</li>
+      <li>回測嚴謹:walk-forward、快照回測、動態復權,避免未來函數/資料漂移。</li>
+      <li>盤中 <strong>Monitor</strong>(四類規則→彈窗/語音/飛書企業微信)+ 盤後 <strong>AI 復盤出 Markdown</strong>。</li>
+      <li>高度模組化:行情源/因子/頁面(Page Pack SDK)/後端插件都可擴充。</li>
+      <li><strong>MCP + 開放接口</strong>,帶 Scope 權限 Token 給腳本/外部 Agent 呼叫。</li>
+    </ol>
+    <div class="related">
+      <a href="./opengym.html">
+        <div class="rel-title">🏋️ openGym</div>
+        <div class="rel-sub">同為「本地優先 + 可選 AI + MCP」的自託管 app</div>
+      </a>
+      <a href="./ohmygame.html">
+        <div class="rel-title">🎮 OhMyGame</div>
+        <div class="rel-sub">另一個可接 Codex CLI / MCP 的工作室</div>
+      </a>
+      <a href="./ai-goofish-monitor.html">
+        <div class="rel-title">🐟 Usagi 闲鱼監控</div>
+        <div class="rel-sub">同樣「規則 + AI + 監控推播」的模式</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>整理自 GitHub 倉庫 <a href="https://github.com/shy3130/tick-stock-panel" style="color:var(--link)">shy3130/tick-stock-panel</a> 的 README(含定位聲明、核心功能、架構圖說明、性能基準、擴充與開放接口、授權)與官網 <a href="https://tsp.shy313.com/" style="color:var(--link)">tsp.shy313.com</a>。技術棧、引擎職責、基準數字(19.47s→6.19s)、授權分層均引自 README,版本 0.4.1;功能持續演進,以倉庫最新內容為準。本頁為中立技術整理,非投資建議。</div>
+  </section>
+
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

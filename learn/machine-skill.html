@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Machine Skill:一句話生成「真實物理求解器」驅動的 3D 機械模擬 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden; box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #dd5b00 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px; color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>⚙️ Machine Skill:一句話,AI 幫你建出跑真物理的 3D 機械</h1>
+    <p class="sub">給 Claude Code(也相容 Codex、Cursor 等支援 Agent Skills 的工具)的開源技能包。用<strong>一句話描述任何機械</strong>(渦輪扇發動機、火箭引擎、機械錶機芯、離心泵…),AI 會拆出 15~40 個具名零件(數千個實體件),賦予寫實 PBR 材質與攝影棚光影,<strong>由真實物理求解器驅動每個運動與每個數字</strong>,輸出成一個<strong>單一、無外部依賴的 .html</strong>;還能一鍵錄成 28 秒展示影片。MIT。</p>
+    <div><span class="badge orange">Claude Code / Agent Skills · MIT · three.js 0.170</span>
+      <span class="badge green">單一自包含 HTML · 無 build step</span>
+      <span class="badge blue">真物理求解器 · 四輪自審 · 一鍵錄影</span></div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#html">① 一句話 → 單一 HTML</a>
+      <a href="#solver">② 不是動畫,是物理求解器</a>
+      <a href="#build">③ 真實零件 · 材質 · 攝影棚</a>
+      <a href="#modes">④ 互動模式與「弄壞它」</a>
+      <a href="#film">⑤ 四輪自審 + 一鍵錄影</a>
+      <a href="#use">⑥ 怎麼用與安裝</a>
+      <a href="#limits">⑦ 限制(誠實的小模型)</a>
+      <a href="#notes">⑧ 重點 · 關聯 · 來源</a>
+    </div>
+  </nav>
+
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>「描述一台機械,AI 幫你建出跑著真物理的那台。」</strong>你在 Claude Code 裡打 <code>/machine a turbofan jet engine</code>,它會去查這台機械的真實尺寸與讓它運作的物理,建出一台 2.9m 的鈦合金風扇、10 級壓縮機、22 噴嘴的環形燃燒室……你拖油門,<strong>約 340 kN 推力是從布雷頓循環求解器算出來的,不是查表</strong>;你把它剖開,斷面是實心金屬;你丟一片扇葉,求解器告訴你機匣要扛的不平衡負載。然後一行指令把它變成一支可以 po 的影片。</p>
+    <div class="callout info"><strong>它在這份筆記裡的位置:</strong>和 <a href="./crucible-ai-3d-engine.html" style="color:var(--link)">Crucible</a>、<a href="./ohmygame.html" style="color:var(--link)">OhMyGame</a> 同屬「AI 代理 + 3D/模擬創作」一線,但 Machine Skill 是最純的 <strong>Agent Skill</strong> 形態(一個 <code>SKILL.md</code> 資料夾),且最強調<strong>物理正確</strong>。由 Airsup 製作(<a href="https://airsup.ai/lab/skill" style="color:var(--link)">airsup.ai/lab</a>),GitHub <code>AirsupHQ/machine-skill</code>,MIT。</div>
+  </section>
+
+  <section id="html">
+    <h2><span class="num">①</span> 一句話 → 單一自包含 HTML</h2>
+    <p>輸出就是一個 <code>.html</code>,<strong>沒有外部依賴、沒有 build step</strong>:每頁內嵌一份執行環境 <code>lab-kit.js</code>(一個 ES module,從釘死版本的 CDN 載 three.js 0.170),雙擊就用瀏覽器開。</p>
+    <pre><code><span class="cm"># 在 Claude Code 裡</span>
+/machine a mechanical watch movement, the escapement ticking
+<span class="cm"># → 得到 watch.html:開啟、拖曳、剖切、爆炸、弄壞它</span></code></pre>
+    <p>AI 從一個 <code>kit/template.html</code> 起手,填四個區塊(幾何、材質、求解器、效果),把 <code>lab-kit.js</code> inline 進去。因為是單檔,分享、嵌入、歸檔都只是一個檔案的事。</p>
+  </section>
+
+  <section id="solver">
+    <h2><span class="num">②</span> 不是動畫,是「真實物理求解器」驅動</h2>
+    <p>這是它和「AI 生 3D 動畫」最根本的差別:<strong>畫面上每個數字、每個運動,都是一個小求解器算出來的</strong>,不是預先編好的動畫曲線。技能包帶一份 <code>references/solvers.md</code>,收了各類機械的真實物理方程式與常數。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 190" role="img" aria-label="求解器驅動迴圈：畫面上的滑桿讓你即時調整轉速/油門/流量 → 餵給該機械專屬的物理求解器(例如布雷頓循環、火箭燃燒室與噴管、曲柄連桿與 BMEP、泵浦特性曲線)→ 求解器算出推力/溫度/壓力/扭矩等真實數值 → 這些數值同時連動零件運動與螢幕上的讀數,並驅動熱發光等效果;「How it is computed」會把方程式攤出來。">
+        <defs><marker id="mk1" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <rect x="16" y="66" width="140" height="58" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/>
+          <text x="86" y="88" text-anchor="middle" font-size="9" font-weight="700" fill="#005bb0">滑桿輸入</text>
+          <text x="86" y="104" text-anchor="middle" font-size="7.3" fill="#5d5b54">轉速 / 油門 / 流量</text>
+          <rect x="196" y="56" width="180" height="78" rx="11" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="286" y="80" text-anchor="middle" font-size="9.5" font-weight="800" fill="#3a2a99">物理求解器</text>
+          <text x="286" y="97" text-anchor="middle" font-size="7.2" fill="#37352f">布雷頓循環 / 火箭噴管</text>
+          <text x="286" y="110" text-anchor="middle" font-size="7.2" fill="#37352f">曲柄連桿+BMEP / 泵浦曲線</text>
+          <text x="286" y="124" text-anchor="middle" font-size="7" fill="#787671">references/solvers.md</text>
+          <rect x="416" y="46" width="150" height="46" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/>
+          <text x="491" y="66" text-anchor="middle" font-size="8.6" font-weight="700" fill="#137a29">真實數值</text>
+          <text x="491" y="81" text-anchor="middle" font-size="7.2" fill="#5d5b54">推力/溫度/壓力/扭矩</text>
+          <rect x="416" y="100" width="150" height="46" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/>
+          <text x="491" y="120" text-anchor="middle" font-size="8.6" font-weight="700" fill="#b34700">連動運動 + 效果</text>
+          <text x="491" y="135" text-anchor="middle" font-size="7.2" fill="#5d5b54">零件轉動 · 熱發光</text>
+          <rect x="606" y="66" width="100" height="58" rx="10" fill="#f0eeec" stroke="#a4a097" stroke-width="1.3"/>
+          <text x="656" y="88" text-anchor="middle" font-size="8.4" font-weight="700" fill="#37352f">攤開方程式</text>
+          <text x="656" y="104" text-anchor="middle" font-size="7" fill="#5d5b54">"How it's computed"</text>
+          <g stroke="#8a93ad" stroke-width="1.7" fill="none" marker-end="url(#mk1)">
+            <path d="M156,95 L194,95"/>
+            <path d="M376,80 L414,70"/><path d="M376,110 L414,120"/>
+            <path d="M566,95 L604,95"/>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ 每台機械配一個小求解器(氣渦輪、火箭、活塞、手錶、轉子、泵、工具機、多孔流、電機…)。拖滑桿 → 求解 → 數字與運動一起變,還能按「How it is computed」看方程式。</div>
+    </div>
+    <p>例子:火箭引擎(Raptor 式全流量)在 330 bar、海平面解出 <strong>2,462 kN、Isp 321s、噴口 Mach 4.06</strong>;剖開切斷再生冷卻,銅喉就熔化。離心泵則跑泵浦曲線 + 親和律、BEP、NPSH 可用 vs 需求。</p>
+  </section>
+
+  <section id="build">
+    <h2><span class="num">③</span> 真實零件 · 材質 · 攝影棚</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>面向</th><th>做到什麼</th></tr></thead>
+      <tbody>
+        <tr><td>真實機械</td><td>以公尺為單位的真實比例,15~40 個具名零件、數千個實體件(葉片/齒/螺栓),車削實體、彎扭翼型、漸開線齒輪、走線管路;有比例尺顯示真實大小</td></tr>
+        <tr><td>真實材質</td><td>物理基 PBR:鋼、鈦、Inconel、銅、黃銅、鋁、漆、聚合物、玻璃、藍寶石,帶量測反射率、微表面(車紋/拉絲/鑄面)、清漆,以及由求解器溫度算出的<strong>熱發光</strong></td></tr>
+        <tr><td>攝影棚</td><td>柔光箱環境 + 黑旗、軟 key 陰影、接觸陰影、AO、bloom、無縫背景或夜景——動起來前先像一張產品攝影</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout tip"><strong>剖面(cutaway)怎麼做的:</strong>每個零件都是被兩個平面裁切的封閉實體;當平面切開實體,相機看到的是背面——材質的 shader 用視線對兩平面投射認出它們,把背面畫成<strong>斷面</strong>(寫入深度緩衝正確遮擋、新切削的同材質顏色 + 淡陰影線)。沒有補蓋幾何、任意切位,所以切面能即時掃動。</div>
+  </section>
+
+  <section id="modes">
+    <h2><span class="num">④</span> 互動模式與「弄壞它」</h2>
+    <p>每台機械都附一組模式:<strong>爆炸圖(explode)、剖面(cutaway,實心斷面)、X 光(x-ray)、慢動作、即時標籤、暫停</strong>,以及最有意思的 <strong>computed "break it"</strong>——用求解器算出來的故障。</p>
+    <ul>
+      <li><strong>渦輪扇</strong>:丟一片扇葉 → 求解器算機匣要扛的不平衡負載。</li>
+      <li><strong>火箭</strong>:切斷再生冷卻 → 銅喉過熱熔化。</li>
+      <li><strong>離心泵</strong>:降低塔液位 → 汽蝕(cavitation)。</li>
+      <li><strong>壓縮機</strong>:防喘振閥卡住 + 下游跳機 → 喘振(surge)。</li>
+    </ul>
+    <p>這些不是播放一段「壞掉動畫」,而是把故障條件餵進同一個求解器,讓它算出後果——所以你調的參數會真的改變故障的樣子。</p>
+  </section>
+
+  <section id="film">
+    <h2><span class="num">⑤</span> 四輪自我審查 + 一鍵錄影</h2>
+    <p>生成不是一次就交。<code>SKILL.md</code> 的工作流裡有<strong>四輪 critic(自我審查)</strong>:用 <code>scripts/shot.mjs</code> 自動截圖、印出 FPS/零件數/三角形數,讓 Agent 檢查零件遮擋、比例、幾何問題再修。通過後,一行錄成影片:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 170" role="img" aria-label="生成到成片流程：Agent 研究真實機械 → 建幾何/材質/求解器/效果 → 四輪自我審查(shot.mjs 截圖、檢查遮擋、FPS、比例,發現問題就修)→ 通過後用 record.mjs(搭 Node + Playwright + ffmpeg)以確定性時鐘(?film=1)逐幀錄製,編排運鏡、組裝、剖切、故障演示並加配樂字幕 → 輸出 28 秒 mp4;pinkscan 掃描成片,若混進 headless GPU 的洋紅壞幀就非零退出。">
+        <defs><marker id="mk2" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif" font-size="8">
+          <rect x="14" y="60" width="120" height="48" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.3"/><text x="74" y="80" text-anchor="middle" font-weight="700" fill="#005bb0">研究 + 建構</text><text x="74" y="95" text-anchor="middle" font-size="7" fill="#5d5b54">幾何/材質/求解器</text>
+          <rect x="166" y="54" width="150" height="60" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.6"/><text x="241" y="76" text-anchor="middle" font-weight="800" fill="#3a2a99">四輪自我審查</text><text x="241" y="92" text-anchor="middle" font-size="7" fill="#37352f">shot.mjs 截圖</text><text x="241" y="104" text-anchor="middle" font-size="7" fill="#787671">檢查遮擋/FPS/比例→修</text>
+          <rect x="348" y="54" width="160" height="60" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.6"/><text x="428" y="76" text-anchor="middle" font-weight="800" fill="#137a29">record.mjs 錄製</text><text x="428" y="92" text-anchor="middle" font-size="7" fill="#5d5b54">?film=1 確定性時鐘·逐幀</text><text x="428" y="104" text-anchor="middle" font-size="7" fill="#787671">Node+Playwright+ffmpeg</text>
+          <rect x="540" y="60" width="166" height="48" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/><text x="623" y="80" text-anchor="middle" font-weight="700" fill="#b34700">28 秒 .mp4</text><text x="623" y="95" text-anchor="middle" font-size="7" fill="#5d5b54">配樂字幕·pinkscan 掃壞幀</text>
+          <g stroke="#8a93ad" stroke-width="1.6" fill="none" marker-end="url(#mk2)">
+            <path d="M134,84 L164,84"/><path d="M316,84 L346,84"/><path d="M508,84 L538,84"/>
+          </g>
+          <path d="M241,114 C241,138 230,120 210,110" fill="none" stroke="#5645d4" stroke-width="1.2" stroke-dasharray="3 3" marker-end="url(#mk2)"/>
+          <text x="150" y="140" font-size="7" fill="#787671">修到過</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ <code>?film=1</code> 給一個確定性時鐘:時間只在 recorder 步進時前進,所以每幀都完整渲染、每次錄製都一模一樣。<code>pinkscan.mjs</code> 防「停住的 headless GPU 回傳整片洋紅」的壞幀,混進去就非零退出。</div>
+    </div>
+    <pre><code>node scripts/record.mjs examples/turbofan.html out/turbofan.mp4 --music freepd:Classical/Easy_Lemon
+node scripts/record.mjs examples/turbofan.html out/feed.mp4 --w 1080 --h 1350   <span class="cm"># 直式</span></code></pre>
+  </section>
+
+  <section id="use">
+    <h2><span class="num">⑥</span> 怎麼用與安裝</h2>
+    <pre><code><span class="cm"># 安裝(skills CLI,全域)</span>
+npx skills add AirsupHQ/machine-skill -g -a claude-code    <span class="cm"># → ~/.claude/skills/machine</span>
+<span class="cm"># 或 git clone 到 ~/.claude/skills/machine</span></code></pre>
+    <pre><code>/machine a hydroelectric Francis turbine
+/machine a Swiss lever escapement, slowed down so I can see the impulse
+/machine a steam locomotive's valve gear, and give me a 30 second video for X</code></pre>
+    <p>三個拿到好結果的習慣:<strong>點名真實的東西</strong>(「像 787 上的那種渦輪扇」勝過「一個噴射引擎」)、<strong>說清楚什麼該動、什麼該壞</strong>(「轉到氣門浮動」告訴求解器要算什麼)、<strong>說它要去哪</strong>(嵌網頁、X 的影片、投影片的靜圖)。需求:Claude Code(或任何 Agent Skills host)、支援 WebGL2 的瀏覽器;錄影需 Node 18+、Playwright、ffmpeg。其他 host(Claude.ai、Codex、Cursor)指向 <code>SKILL.md</code> 即可。</p>
+  </section>
+
+  <section id="limits">
+    <h2><span class="num">⑦</span> 限制:一個誠實的小模型</h2>
+    <ul>
+      <li><strong>它建的是「機械」</strong>:機構、引擎、儀器、裝置。人、地景、地圖做出來較弱。</li>
+      <li><strong>物理是誠實的小模型,不是 CFD/FEA</strong>:每頁都寫明它算了什麼、簡化了什麼;數字對照公開資料,但<strong>未經認證</strong>。</li>
+      <li><strong>是真實零件,不是 CAD 匯出</strong>:幾何是程序化 three.js,比例與零件數準確,但不到製造公差。</li>
+      <li><strong>重的頁要像樣的 GPU</strong>:約 60 萬三角形 + 陰影/AO/bloom 在近期筆電上約 60fps。</li>
+    </ul>
+    <div class="callout tip"><strong>為什麼這些限制反而是優點:</strong>它不假裝自己是工程級模擬,而是把「教學/展示級的物理直覺」做到位又好看。對理解一台機械怎麼運作、做簡報、做內容,這個「誠實的小模型」剛剛好。</div>
+  </section>
+
+  <section id="notes">
+    <h2><span class="num">⑧</span> 重點 · 關聯 · 來源</h2>
+    <h3>七個帶得走的重點</h3>
+    <ol>
+      <li>一句話 <code>/machine ...</code> → AI 建出<strong>單一自包含 HTML</strong> 的 3D 機械模擬(three.js,無 build)。</li>
+      <li><strong>真物理求解器</strong>驅動:推力/溫度/壓力/扭矩是算出來的,不是查表或編動畫。</li>
+      <li>15~40 具名零件 + 數千實體件 + <strong>PBR 材質 + 攝影棚光影 + 熱發光</strong>。</li>
+      <li>模式:爆炸/剖面(實心斷面 shader)/X 光/慢動作/標籤,以及<strong>算出來的「弄壞它」</strong>。</li>
+      <li><strong>四輪自我審查</strong>(shot.mjs 截圖檢查)+ <code>record.mjs</code> 一鍵錄 28s 影片(確定性時鐘)。</li>
+      <li>標準 <strong>Agent Skill</strong>(一個 <code>SKILL.md</code> 資料夾);<code>npx skills add</code> 即裝。</li>
+      <li>誠實標限制:<strong>小模型非 CFD/FEA、程序化非 CAD</strong>;MIT。姊妹作 Factory skill。</li>
+    </ol>
+    <div class="related">
+      <a href="./crucible-ai-3d-engine.html">
+        <div class="rel-title">🔥 Crucible AI 3D 引擎</div>
+        <div class="rel-sub">同線:AI 原生 3D + 自我檢視</div>
+      </a>
+      <a href="./ohmygame.html">
+        <div class="rel-title">🎮 OhMyGame</div>
+        <div class="rel-sub">AI 做遊戲的工作室(同為自我試玩/審查)</div>
+      </a>
+      <a href="./video-shotcraft.html">
+        <div class="rel-title">🎬 video-shotcraft</div>
+        <div class="rel-sub">另一個「程式化精準渲染」的 Agent Skill</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>整理自 GitHub 倉庫 <a href="https://github.com/AirsupHQ/machine-skill" style="color:var(--link)">AirsupHQ/machine-skill</a>(MIT)的 README 與展示站 <a href="https://airsup.ai/lab/skill" style="color:var(--link)">airsup.ai/lab/skill</a>。工作流(研究/幾何/材質/求解器/四輪審查/錄影)、求解器清單、材質與剖面機制、互動模式、限制均引自 README 與 <code>SKILL.md</code>/<code>references/solvers.md</code> 的說明;物理數字(340kN、2462kN/Isp 321s 等)為該模型求解器所算、對照公開資料但未經認證。本頁為中立技術整理。</div>
+  </section>
+
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
