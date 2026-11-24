@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>OhMyGame:用 AI 做遊戲的開源工作室(自帶 Agent + 當 MCP 伺服器) · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #ff64c8 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🎮 OhMyGame:用 AI 做遊戲的開源工作室</h1>
+    <p class="sub">WhiteTowerAI 開源的 AI 遊戲工作室(桌面 app)。你描述一款遊戲,內建 Agent 就幫你起草設計文件、生美術、寫程式、在即時預覽裡跑起來、<strong>還親自「試玩」檢查能不能玩、壞了自動試修</strong>,最後發佈成一條誰都能開的連結。設計文件、程式碼、AI 生成的 2D 圖/影片/3D/動畫/音效配樂<strong>全在同一塊畫布</strong>,不用在五個 app 間切換。Apache-2.0,Beta。</p>
+    <div>
+      <span class="badge orange">WhiteTowerAI · Apache-2.0 · Beta · Electron</span>
+      <span class="badge green">Agent 起草→寫碼→試玩→自動修</span>
+      <span class="badge blue">BYOK 40+ 供應商 · 自帶 Agent · 當 MCP 伺服器</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#canvas">① 一塊畫布,不用切五個 app</a>
+      <a href="#loop">② 核心迴圈:會自己試玩的 Agent</a>
+      <a href="#arch">③ 本機優先的架構</a>
+      <a href="#agents">④ Agent 的三種姿態</a>
+      <a href="#byok">⑤ BYOK 與媒體生成</a>
+      <a href="#plugins">⑥ 外掛生態:教 Agent 用引擎</a>
+      <a href="#publish">⑦ 發佈即一條連結 + 多人</a>
+      <a href="#notes">⑧ 隱私 · 上手 · 重點 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>一個「描述一款遊戲,Agent 幫你做出來還幫你玩過一遍」的開源桌面工作室。</strong>它把做遊戲會用到的所有東西——設計文件(GDD)、程式碼、AI 生成的圖/影片/3D/動畫/語音/音效/配樂——收在同一塊畫布;內建的 Agent 走完整條流水線(設計→美術→寫碼→即時預覽→<strong>親自試玩</strong>→自動修 bug→發佈)。最特別的是它對 Agent 的三種開放姿態:自帶 Agent、把你裝好的 Claude Code/Codex/OpenCode 當引擎、以及<strong>反過來當 MCP 伺服器</strong>讓外部 Agent 呼叫它的畫布與素材生成能力。</p>
+    <div class="callout info"><strong>它屬於哪一類:</strong>和站內 <a href="./crucible-ai-3d-engine.html" style="color:var(--link)">Crucible(AI 原生 3D 引擎 + MCP)</a> 是近親——都在把「AI 代理」接進創作流程,且都走 MCP。差別:Crucible 是渲染引擎/庫,OhMyGame 是<strong>完整的桌面工作室 + 多引擎編排</strong>。官網 <a href="https://ohmygame.ai" style="color:var(--link)">ohmygame.ai</a>,支援 macOS(Apple silicon)與 Windows x64,Intel Mac/Linux 在 roadmap。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="canvas">
+    <h2><span class="num">①</span> 一塊畫布,不用在五個 app 間切換</h2>
+    <p>平常做一款小遊戲:設計文件在 Notion、程式在 VS Code、圖在 Midjourney/Photoshop、音效在另一個工具、3D 在 Blender……來回切換、檔案四散。OhMyGame 的第一個主張就是<strong>把這些收進同一塊畫布(canvas)</strong>,緊挨著程式碼:</p>
+    <ul>
+      <li><strong>設計文件(GDD)</strong>:Agent 起草、可編輯,和資產放一起。</li>
+      <li><strong>資產畫布(Asset Canvas)</strong>:用 AI 生成並整理 2D 圖、影片、3D 模型、動畫、語音、音效、配樂,生成後即可用進遊戲。</li>
+      <li><strong>程式碼 + 即時預覽</strong>:左邊和 Agent 對話,右邊就是它做出來正在跑的遊戲。</li>
+      <li><strong>素材庫(Library)</strong>:生成過的資產集中管理、可跨專案複用。</li>
+    </ul>
+    <div class="callout tip"><strong>為什麼「同一塊畫布」重要:</strong>遊戲開發天然是多媒體 + 程式交織的。把 GDD、美術、音訊、程式放在同一個 Agent 看得到、也動得了的空間裡,Agent 才能真的「邊設計邊實作」,而不是只幫你寫一段孤立的程式。</div>
+  </section>
+
+  <!-- 2 -->
+  <section id="loop">
+    <h2><span class="num">②</span> 核心迴圈:一個會「自己試玩」的 Agent</h2>
+    <p>多數 AI 編碼工具幫你寫完程式就結束了;OhMyGame 的 Agent 多走兩步——<strong>把遊戲跑起來、親自玩、發現壞了就試著修</strong>。這是它和一般 coding agent 最大的差別:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 230" role="img" aria-label="OhMyGame 的 Agent 核心迴圈：你用一句話描述遊戲 → Agent 起草設計文件 GDD → 生成美術/音訊素材(進 Asset Canvas)→ 寫程式碼 → 在即時預覽中運行 → 親自試玩(playtest driver 驅動、game recorder 錄影)→ 判斷能不能玩/有沒有 bug;壞了則回去自動試修再跑,好了則發佈成一條連結。人只需描述與拍板,技術重活由 Agent 扛">
+        <defs><marker id="l1" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif" font-size="8.2">
+          <rect x="20" y="30" width="110" height="40" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/><text x="75" y="48" text-anchor="middle" font-weight="700" fill="#005bb0">一句話描述</text><text x="75" y="62" text-anchor="middle" font-size="7" fill="#5d5b54">你想做的遊戲</text>
+          <rect x="160" y="30" width="110" height="40" rx="9" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.4"/><text x="215" y="48" text-anchor="middle" font-weight="700" fill="#3a2a99">起草 GDD</text><text x="215" y="62" text-anchor="middle" font-size="7" fill="#5d5b54">設計文件</text>
+          <rect x="300" y="30" width="120" height="40" rx="9" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.4"/><text x="360" y="48" text-anchor="middle" font-weight="700" fill="#b03a7a">生成美術/音訊</text><text x="360" y="62" text-anchor="middle" font-size="7" fill="#5d5b54">→ Asset Canvas</text>
+          <rect x="450" y="30" width="110" height="40" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/><text x="505" y="48" text-anchor="middle" font-weight="700" fill="#b34700">寫程式碼</text>
+          <rect x="590" y="30" width="110" height="40" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/><text x="645" y="48" text-anchor="middle" font-weight="700" fill="#137a29">即時預覽運行</text>
+          <rect x="470" y="120" width="160" height="52" rx="10" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.8"/><text x="550" y="140" text-anchor="middle" font-weight="800" fill="#137a29">Agent 親自試玩</text><text x="550" y="156" text-anchor="middle" font-size="7" fill="#5d5b54">playtest driver + 錄影</text>
+          <polygon points="300,146 370,120 440,146 370,172" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/><text x="370" y="143" text-anchor="middle" fill="#b34700">能玩/有 bug?</text>
+          <rect x="120" y="120" width="150" height="52" rx="10" fill="#ffe8d4" stroke="#e03131" stroke-width="1.4"/><text x="195" y="140" text-anchor="middle" font-weight="700" fill="#c23030">自動試修</text><text x="195" y="156" text-anchor="middle" font-size="7" fill="#5d5b54">改碼 → 重跑</text>
+          <rect x="20" y="30" width="0" height="0"/>
+          <rect x="300" y="194" width="140" height="30" rx="8" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/><text x="370" y="213" text-anchor="middle" font-weight="800" fill="#3a2a99">發佈成一條連結</text>
+          <g stroke="#8a93ad" stroke-width="1.5" fill="none" marker-end="url(#l1)">
+            <path d="M130,50 L158,50"/><path d="M270,50 L298,50"/><path d="M420,50 L448,50"/><path d="M560,50 L588,50"/>
+            <path d="M645,70 L645,146 L632,146"/>
+            <path d="M470,146 L442,146"/>
+            <path d="M300,146 L272,146"/><text x="286" y="140" fill="#c23030" font-weight="700" font-size="7.5">壞</text>
+            <path d="M195,120 C195,90 215,78 215,72"/>
+            <path d="M370,172 L370,192"/><text x="384" y="186" fill="#1aae39" font-weight="700" font-size="7.5">好</text>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ 關鍵在「親自試玩」:由 playtest driver 驅動遊戲、game recorder 錄下畫面,Agent 看結果判斷能不能玩、壞了就回頭改——把「寫完就交」變成「玩過才算」。</div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section id="arch">
+    <h2><span class="num">③</span> 本機優先的架構:幾乎一切都跑在你機器上</h2>
+    <p>OhMyGame 是 Electron 桌面 app,但內部拆得很乾淨:<strong>React 渲染層(UI)↔ 本機 daemon(大腦)↔ OhMyGame Cloud(只負責發佈)</strong>。除了「發佈」,其餘全在本機跑。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 240" role="img" aria-label="三層架構：最上層是桌面 app / Web 渲染層,左邊對話、右邊即時預覽/觀看;它透過本機 127.0.0.1 的 HTTP + SSE 連到本機 daemon（Fastify）;daemon 擁有 Pi agent、試玩、Asset Canvas、外掛、MCP、專案 workspaces、預覽 dev server;只有發佈這一步會把靜態建置送到 OhMyGame Cloud（不可變部署 + Community）。Electron 只管桌面生命週期與原生遊戲視窗;API key 與專案留本機">
+        <defs><marker id="a3" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <rect x="90" y="18" width="540" height="46" rx="11" fill="#dcecfa" stroke="#0075de" stroke-width="1.6"/>
+          <text x="360" y="38" text-anchor="middle" font-size="10" font-weight="800" fill="#005bb0">桌面 app / React 渲染層</text>
+          <text x="360" y="54" text-anchor="middle" font-size="7.6" fill="#5d5b54">左:和 Agent 對話　|　右:即時預覽 / 觀看遊戲(Electron 管桌面生命週期與原生遊戲視窗)</text>
+          <text x="360" y="82" text-anchor="middle" font-size="7.8" fill="#787671">↕ 本機 HTTP + SSE(127.0.0.1)</text>
+          <rect x="70" y="92" width="580" height="72" rx="12" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.9"/>
+          <text x="360" y="112" text-anchor="middle" font-size="10.5" font-weight="800" fill="#3a2a99">本機 daemon(Fastify)—— 大腦</text>
+          <text x="360" y="130" text-anchor="middle" font-size="8" fill="#37352f">Pi agent · 試玩 playtest · Asset Canvas · 外掛 · MCP</text>
+          <text x="360" y="146" text-anchor="middle" font-size="8" fill="#37352f">專案 workspaces · 預覽 dev server</text>
+          <text x="360" y="159" text-anchor="middle" font-size="7.3" fill="#787671">API key、專案、提示詞都留在本機;prompt 直接送你選的供應商</text>
+          <text x="360" y="184" text-anchor="middle" font-size="7.8" fill="#787671">↓ 只有「發佈」送出去(靜態建置)</text>
+          <rect x="190" y="194" width="340" height="40" rx="11" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.5"/>
+          <text x="360" y="213" text-anchor="middle" font-size="9.5" font-weight="700" fill="#137a29">OhMyGame Cloud</text>
+          <text x="360" y="227" text-anchor="middle" font-size="7.4" fill="#5d5b54">不可變部署 · Community · 多人/存檔/排行</text>
+          <g stroke="#8a93ad" stroke-width="1.6" fill="none" marker-end="url(#a3)">
+            <path d="M360,64 L360,90"/><path d="M360,164 L360,192"/>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ daemon 是真正的大腦(擁有 agent、試玩、畫布、外掛、MCP、預覽伺服器);Electron 只管桌面與遊戲視窗;Cloud 只在發佈時登場。技術底:Bun 1.4.2+、Node 22.19+。</div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section id="agents">
+    <h2><span class="num">④</span> Agent 的三種姿態:自帶 / 當引擎 / 當 MCP 伺服器</h2>
+    <p>這是 OhMyGame 最有意思的設計:它對「誰來當那個 Agent」保持三種開放。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 220" role="img" aria-label="Agent 三種姿態：姿態一,自帶 Agent(Pi)——OhMyGame 內建的 Pi agent,用你在 Providers 連的模型供應商,預設就能用;姿態二,把外部 CLI 當引擎——OhMyGame 啟動你已安裝的 Claude Code / Codex / OpenCode,用它們自己的登入與模型跑 agent loop,但對話、檢查點、畫布、媒體、遊戲與外掛工具、核准都還是 OhMyGame 的;姿態三,OhMyGame 當 MCP 伺服器——外部 agent（Claude Code/Codex/dsh 等任何 MCP client）透過 ohmygame-studio 這個 MCP 伺服器,呼叫 OhMyGame 的媒體生成、Asset Canvas 與試玩視窗,由外部 agent 寫碼、OhMyGame 提供只有它有的能力">
+        <defs><marker id="g4" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <rect x="12" y="34" width="224" height="160" rx="13" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.6"/>
+          <text x="124" y="56" text-anchor="middle" font-size="10" font-weight="800" fill="#3a2a99">① 自帶 Agent(Pi)</text>
+          <text x="124" y="78" text-anchor="middle" font-size="7.8" fill="#37352f">OhMyGame 內建的 Pi agent</text>
+          <text x="124" y="94" text-anchor="middle" font-size="7.8" fill="#5d5b54">用 Providers 連的模型</text>
+          <text x="124" y="110" text-anchor="middle" font-size="7.8" fill="#5d5b54">預設啟用、開箱即跑</text>
+          <text x="124" y="134" text-anchor="middle" font-size="7.4" fill="#787671">最省事,新手起手式</text>
+          <rect x="248" y="34" width="224" height="160" rx="13" fill="#dcecfa" stroke="#0075de" stroke-width="1.6"/>
+          <text x="360" y="56" text-anchor="middle" font-size="10" font-weight="800" fill="#005bb0">② 把外部 CLI 當引擎</text>
+          <text x="360" y="78" text-anchor="middle" font-size="7.8" fill="#37352f">Claude Code / Codex / OpenCode</text>
+          <text x="360" y="94" text-anchor="middle" font-size="7.6" fill="#5d5b54">CLI 跑 agent loop</text>
+          <text x="360" y="110" text-anchor="middle" font-size="7.6" fill="#5d5b54">用它自己的登入與模型</text>
+          <text x="360" y="130" text-anchor="middle" font-size="7.4" fill="#787671">對話/檢查點/畫布/媒體/</text>
+          <text x="360" y="143" text-anchor="middle" font-size="7.4" fill="#787671">遊戲外掛工具/核准 仍屬 OhMyGame</text>
+          <text x="360" y="166" text-anchor="middle" font-size="7.4" fill="#137a29">你已付費的模型,拿來驅動它</text>
+          <rect x="484" y="34" width="224" height="160" rx="13" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.6"/>
+          <text x="596" y="56" text-anchor="middle" font-size="10" font-weight="800" fill="#137a29">③ 當 MCP 伺服器</text>
+          <text x="596" y="78" text-anchor="middle" font-size="7.6" fill="#37352f">ohmygame-studio(MCP)</text>
+          <text x="596" y="94" text-anchor="middle" font-size="7.6" fill="#5d5b54">外部 agent(任何 MCP client)</text>
+          <text x="596" y="110" text-anchor="middle" font-size="7.6" fill="#5d5b54">呼叫:媒體生成 / Asset</text>
+          <text x="596" y="123" text-anchor="middle" font-size="7.6" fill="#5d5b54">Canvas / 試玩視窗</text>
+          <text x="596" y="146" text-anchor="middle" font-size="7.4" fill="#787671">外部 agent 寫碼,</text>
+          <text x="596" y="159" text-anchor="middle" font-size="7.4" fill="#787671">OhMyGame 給「只有它有的能力」</text>
+          <text x="360" y="212" text-anchor="middle" font-size="7.8" fill="#787671">②③ 方向相反:② OhMyGame 啟動 CLI 並給它工具;③ 外部 agent 透過 MCP 反過來用 OhMyGame</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ ③ 的巧思:已經在 coding agent 裡工作、也付了模型錢的人,缺的正是 OhMyGame 獨有的媒體供應商、Asset Canvas 與試玩視窗——就把這些當 MCP 工具開放出去。</div>
+    </div>
+    <p>姿態 ② 與 ③ 方向相反:② 是「OhMyGame 啟動一個 CLI、把 OhMyGame 的工具交給它跑一場對話」;③ 是「外部 agent 透過 <code>ohmygame-studio</code> 這個版本化的 MCP 伺服器,反過來呼叫 OhMyGame」。③ 的工具是一份<strong>固定、策展過的公開清單</strong>,另有一份 Skill 教用法。</p>
+  </section>
+
+  <!-- 5 -->
+  <section id="byok">
+    <h2><span class="num">⑤</span> BYOK 與媒體生成:自帶金鑰、不按次收費</h2>
+    <p>OhMyGame <strong>出貨時不含模型</strong>:首次啟動時連一個供應商或你已在用的 coding agent。然後:</p>
+    <ul>
+      <li><strong>自帶金鑰(BYOK)、40+ 供應商</strong>:填自己的 API Key,<strong>不按次收費(no per-run credits)</strong>。專案與金鑰留本機,prompt 直接送你選的供應商。</li>
+      <li><strong>媒體生成全包</strong>:圖片、影片、3D 模型、動畫,以及音訊(語音 TTS、音效、配樂)。音訊供應商看得到 ElevenLabs、Volcengine/Doubao(火山引擎/豆包)等;3D 有專門的 provider 流程;圖片/sprite 還有 pixel-art 修正工具。</li>
+      <li>只有「<strong>發佈</strong>」需要帳號;其餘不必登入。</li>
+    </ul>
+    <div class="callout tip"><strong>BYOK 的意義:</strong>很多 AI 創作工具用「點數/積分」綁住你,生成越多越貴。OhMyGame 走「你自己的 key、原價直連供應商」——對重度生成(一款遊戲要幾百張圖/音效)省很多,也更透明。</div>
+  </section>
+
+  <!-- 6 -->
+  <section id="plugins">
+    <h2><span class="num">⑥</span> 外掛生態:教 Agent 用上專業引擎</h2>
+    <p>Web 遊戲在瀏覽器裡跑很直接,但 Godot/Unity/Unreal/Blender 這些<strong>專業引擎與工具</strong>怎麼接?答案是外掛(plugin)。OhMyGame 的外掛不只是 UI 面板——<strong>它能教 Agent 新技能、給 Agent 新工具、替 app 加面板與專案類型</strong>。</p>
+    <p>預裝外掛涵蓋:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>類別</th><th>預裝外掛</th></tr></thead>
+      <tbody>
+        <tr><td>遊戲引擎</td><td><strong>Godot</strong>、<strong>Unity</strong>、<strong>Unreal Engine</strong></td></tr>
+        <tr><td>美術 / 資產</td><td><strong>Blender</strong>(3D)、<strong>Aseprite</strong>(像素圖)、<strong>Tiled</strong>(地圖)</td></tr>
+        <tr><td>Web / 內建</td><td>Phaser、Three.js、React Three Fiber(網頁遊戲最佳起點)</td></tr>
+        <tr><td>平台發佈</td><td><strong>微信(WeChat)</strong>、<strong>抖音(Douyin)小遊戲</strong></td></tr>
+      </tbody>
+    </table></div>
+    <p>外掛系統底層很完整:<code>plugin-mcp-host</code>(外掛可帶 MCP 伺服器)、<code>tool-hooks</code> / <code>plugin-hooks</code>(攔截/擴充工具呼叫)、<code>plugin-sessions</code>(持久連線)、Plugin Builder 與 CLI(<code>packages/plugin-cli</code>、<code>create-ohmygame-plugin</code>、<code>plugin-examples</code>)讓你自己寫外掛。你也能自製外掛掛上自己的引擎或工作流。</p>
+  </section>
+
+  <!-- 7 -->
+  <section id="publish">
+    <h2><span class="num">⑦</span> 發佈即一條連結 + 多人同樂</h2>
+    <p>做完按發佈,就得到一條<strong>誰都能在瀏覽器打開玩</strong>的連結,還會出現在官方 <a href="https://ohmygame.ai/community/" style="color:var(--link)">Community</a>。發佈的是<strong>靜態建置</strong>,部署在 Cloud 上且不可變(immutable)。</p>
+    <ul>
+      <li><strong>多人連線</strong>:Web 遊戲可做成多人(桌遊、卡牌到即時競技場),和朋友線上玩,<strong>你不用自己架伺服器</strong>——房間(rooms)由平台管。</li>
+      <li><strong>玩家系統隨附</strong>:玩家登入、存檔、排行榜一併附上(雲端存檔走 postgres,game-sdk 提供 cloud/account 協定)。</li>
+      <li>可做的類型:<strong>Web 遊戲</strong>(Phaser/Three.js/R3F,最佳起點)、<strong>互動故事</strong>(視覺小說/互動電影/劇情遊戲,用 playable nodes 圖)、<strong>一般遊戲</strong>(任何引擎/技術棧)。</li>
+    </ul>
+  </section>
+
+  <!-- 8 -->
+  <section id="notes">
+    <h2><span class="num">⑧</span> 隱私 · 上手 · 重點 · 來源</h2>
+    <h3>隱私與上手</h3>
+    <ul>
+      <li><strong>隱私</strong>:專案與 API key 留在你機器上,prompt 直接送你選的供應商,只有發佈才需要帳號。從原始碼建置<strong>不送任何遙測</strong>;release 版送使用資料與當機報告,可在「設定 → 關於」關掉。</li>
+      <li><strong>下載</strong>:macOS(Apple silicon)與 Windows x64;Windows 版尚未簽章,首次安裝 SmartScreen 可能會警告。</li>
+      <li><strong>從原始碼</strong>:需 Bun 1.4.2+ 與 Node 22.19+,<code>bun install --frozen-lockfile</code> → <code>bun run dev</code>(web + daemon)或 <code>bun run dev:desktop</code>(Electron)。從 <code>dev</code> 分支開 PR,<code>main</code> 放發行。</li>
+    </ul>
+    <h3>七個帶得走的重點</h3>
+    <ol>
+      <li>描述一款遊戲,Agent 幫你<strong>設計→美術→寫碼→親自試玩→自動修→發佈</strong>。</li>
+      <li>GDD、程式、圖/影/3D/動畫/音訊<strong>全在同一塊畫布</strong>。</li>
+      <li>最特別的是 Agent <strong>會把遊戲跑起來自己玩</strong>(playtest + 錄影)再判斷。</li>
+      <li>本機優先架構:渲染層 ↔ 本地 daemon ↔ Cloud(只發佈)。</li>
+      <li>Agent 三姿態:<strong>自帶 Pi / 把 Claude Code·Codex·OpenCode 當引擎 / 當 MCP 伺服器</strong>。</li>
+      <li>BYOK、40+ 供應商、<strong>不按次收費</strong>;媒體(圖/影/3D/語音/音效/配樂)全包。</li>
+      <li>外掛教 Agent 用 <strong>Godot/Unity/Unreal/Blender/Aseprite/Tiled 與微信抖音小遊戲</strong>;發佈即一條連結、附多人/存檔/排行。</li>
+    </ol>
+    <div class="related">
+      <a href="./crucible-ai-3d-engine.html">
+        <div class="rel-title">🔥 Crucible AI 3D 引擎</div>
+        <div class="rel-sub">近親:AI 原生 3D 引擎 + MCP</div>
+      </a>
+      <a href="./ai-coding-agent-power-techniques.html">
+        <div class="rel-title">🚀 頂尖 AI 編程者進階全圖</div>
+        <div class="rel-sub">Claude Code/Codex 作為引擎的脈絡</div>
+      </a>
+      <a href="./oh-my-pi.html">
+        <div class="rel-title">🥧 oh-my-pi(omp)</div>
+        <div class="rel-sub">同系的 Pi 編碼 harness</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>整理自 GitHub 倉庫 <a href="https://github.com/WhiteTowerAI/ohmygame" style="color:var(--link)">WhiteTowerAI/ohmygame</a>(Apache-2.0)的 README 與 <code>docs/</code> 技術文件(runtime、external-agents、coding-agents、plugins、docs/README 的「Where to change things」架構表)與官網 <a href="https://ohmygame.ai" style="color:var(--link)">ohmygame.ai</a>。架構層次、daemon 職責、Agent 三姿態、外掛清單均引自這些文件;產品處於 Beta,功能以倉庫最新內容為準。本頁為中立技術整理。</div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
