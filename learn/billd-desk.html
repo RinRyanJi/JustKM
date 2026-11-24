@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>BilldDesk:WebRTC 的開源跨平台遠端桌面(開源版 vs Pro 要先分清) · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden; box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #60a5fa 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px; color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🖥️ BilldDesk:WebRTC 的開源跨平台遠端桌面</h1>
+    <p class="sub">galaxy-s10 做的跨平台遠端桌面控制(和 CrossDesk 同賽道,對標 ToDesk/向日葵/RustDesk)。底層用 <strong>WebRTC</strong> 做 P2P 端對端音視訊 + 控制指令,搭自研的信令與 Coturn 中繼;桌面端 Electron + Vue3 + TS,行動端 Flutter。<strong>但有個一定要先搞清楚的分野:開源版(BilldDesk,MIT,真開源但一人維護、未發穩定版)</strong> 與 <strong>Pro(完全重寫、更穩更強,但原始碼閉源、需付費訂閱)</strong> 是兩個東西——很多亮眼功能其實在 Pro。</p>
+    <div><span class="badge blue">WebRTC P2P · Vue3/Electron/Flutter · 全平台</span>
+      <span class="badge green">開源版 MIT · 可私有化部署 · 自建 Coturn</span>
+      <span class="badge orange">⚠️ 開源版未發穩定版 · 多數亮點在閉源 Pro</span></div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#split">① 開源版 vs Pro:先分清</a>
+      <a href="#stack">② 技術架構:WebRTC + 現代前端</a>
+      <a href="#topology">③ 連線模型與自建生態</a>
+      <a href="#matrix">④ 全平台與「誰控誰」矩陣</a>
+      <a href="#features">⑤ 遠端控制功能全景</a>
+      <a href="#codec">⑥ 硬體編解碼與效能</a>
+      <a href="#selfhost">⑦ 私有化部署與生態</a>
+      <a href="#notes">⑧ 對照 CrossDesk · 重點 · 來源</a>
+    </div>
+  </nav>
+
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>一個「用 WebRTC 做的、能自建的跨平台遠端桌面」,但它其實是一對雙胞胎。</strong>連線走 WebRTC P2P(端對端傳音視訊與控制指令),網路允許時直連、降延遲與伺服器頻寬;信令與中繼(Coturn)自研、可自建,所以能私有化部署。桌面端 Electron+Vue3,行動端 Flutter,連瀏覽器都能當主控端。<strong>但使用前請先認清:真正 MIT 開源的是「BilldDesk 開源版」(一人開發、至今未發穩定版、每次 commit 可能破壞性更新),而你看到的那串華麗功能(屏幕牆、隱私屏、虛擬屏、硬體編解碼矩陣、2K120)大多屬於「BilldDesk Pro」——Pro 免費用,但原始碼閉源、要付費訂閱。</strong></p>
+    <div class="callout warn"><strong>為什麼開場就講這個:</strong>坊間介紹常把「MIT 開源」和「完整功能清單」寫在一起,容易讓人以為「clone 下來就有屏幕牆、2K120、隱私屏」。實際上<strong>開源版與 Pro 是兩套程式</strong>(Pro 是完全重寫、閉源)。這頁會把哪些是開源版、哪些是 Pro 標清楚——這也是它和 <a href="./crossdesk.html" style="color:var(--link)">CrossDesk</a> 最值得對照的地方。GitHub <code>galaxy-s10/billd-desk</code>,網頁版 <a href="https://desk.hsslive.cn" style="color:var(--link)">desk.hsslive.cn</a>。</div>
+  </section>
+
+  <section id="split">
+    <h2><span class="num">①</span> 開源版 vs Pro:一定要先分清楚</h2>
+    <p>作者在 README 講得很坦白(摘要):BilldDesk 是 2024/2/28 起、<strong>一人開發</strong>的專案;<strong>它確實是開源(MIT),但從未發布穩定版</strong>,master 被當 dev 用,每次提交都可能不相容舊版——所以很多人反映「跑不起來」。後來作者<strong>完全重寫成 BilldDeskPro</strong>,修掉開源版在現有架構下「幾乎不可修復」的權限與控制問題,更穩更快,<strong>但 Pro 原始碼不開源、需付費訂閱</strong>(Pro 對一般使用者免費使用)。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="開源版與 Pro 的分野：BilldDesk 開源版——MIT、原始碼完全開放可商用、可私有化部署,但一人維護、至今未發穩定版、master 當 dev、每次 commit 可能破壞性更新,作者不建議用於生產;功能較基礎,電腦端互控多為重構中。BilldDesk Pro——完全重寫、修掉開源版的權限與控制問題、更穩更強更新更勤,對一般使用者免費用,但原始碼閉源、開發者要付費訂閱源碼;屏幕牆、隱私屏、虛擬屏、硬體編解碼矩陣、2K120 等亮點多在 Pro。">
+        <g font-family="sans-serif">
+          <rect x="16" y="34" width="330" height="150" rx="13" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.7"/>
+          <text x="181" y="58" text-anchor="middle" font-size="11" font-weight="800" fill="#137a29">BilldDesk 開源版</text>
+          <text x="181" y="78" text-anchor="middle" font-size="8" fill="#37352f">✓ MIT,原始碼完全開放、可商用</text>
+          <text x="181" y="94" text-anchor="middle" font-size="8" fill="#37352f">✓ 可私有化部署(自建信令/Coturn)</text>
+          <text x="181" y="110" text-anchor="middle" font-size="8" fill="#37352f">✓ WebRTC + Vue3/Electron/Flutter</text>
+          <text x="181" y="130" text-anchor="middle" font-size="8" fill="#b34700">✗ 一人維護、至今未發穩定版</text>
+          <text x="181" y="146" text-anchor="middle" font-size="8" fill="#b34700">✗ master=dev、每次 commit 可能破壞</text>
+          <text x="181" y="162" text-anchor="middle" font-size="8" fill="#b34700">✗ 作者不建議用於生產;功能較基礎</text>
+          <rect x="374" y="34" width="330" height="150" rx="13" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.7"/>
+          <text x="539" y="58" text-anchor="middle" font-size="11" font-weight="800" fill="#3a2a99">BilldDesk Pro</text>
+          <text x="539" y="78" text-anchor="middle" font-size="8" fill="#37352f">✓ 完全重寫,修掉權限/控制問題</text>
+          <text x="539" y="94" text-anchor="middle" font-size="8" fill="#37352f">✓ 更穩、更強、更新更勤</text>
+          <text x="539" y="110" text-anchor="middle" font-size="8" fill="#37352f">✓ 一般使用者免費「用」</text>
+          <text x="539" y="130" text-anchor="middle" font-size="8" fill="#b03a7a">✗ 原始碼閉源,開發者需付費訂閱</text>
+          <text x="539" y="150" text-anchor="middle" font-size="8" fill="#787671">屏幕牆/隱私屏/虛擬屏/硬體編解碼</text>
+          <text x="539" y="164" text-anchor="middle" font-size="8" fill="#787671">矩陣/2K120 等亮點多在此</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 一句話記法:<strong>要「讀原始碼/自己改/自建」→ 開源版(但要接受它不穩定、WIP)</strong>;<strong>要「開箱即用、功能最全」→ 裝 Pro 客戶端(免費用,但不給你源碼)</strong>。</div>
+    </div>
+  </section>
+
+  <section id="stack">
+    <h2><span class="num">②</span> 技術架構:WebRTC + 一整套現代前端棧</h2>
+    <p>和 CrossDesk「自研 C++ 傳輸庫(MiniRTC)」不同,BilldDesk 走的是<strong>瀏覽器原生的 WebRTC + WebCodecs</strong> 路線,所以天生對「網頁端」友善。各端技術棧(開源版 README):</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>層</th><th>技術</th></tr></thead>
+      <tbody>
+        <tr><td>前端 / 網頁</td><td><strong>Vue3</strong> + TypeScript、<strong>WebRTC</strong>、<strong>WebCodecs</strong>、Web Worker、Web Audio、Canvas</td></tr>
+        <tr><td>桌面客戶端</td><td><strong>Electron</strong> + WebRTC</td></tr>
+        <tr><td>行動端</td><td><strong>Flutter</strong>(Dart);原生能力觸及 Win32 / Cocoa / Android AccessibilityService</td></tr>
+        <tr><td>後端 / 信令</td><td>Node.js + <strong>Koa2</strong> + TypeScript、Sequelize、MySQL、Redis、<strong>Socket.io</strong>(信令)</td></tr>
+        <tr><td>中繼 / 串流</td><td><strong>Coturn</strong>(STUN/TURN)、SRS、FFmpeg</td></tr>
+      </tbody>
+    </table></div>
+    <p>語言面很雜(JS/TS、Dart、Kotlin、C++、Swift),因為要在各平台觸及原生的螢幕擷取與鍵鼠注入能力。核心傳輸則交給 WebRTC——這讓「用瀏覽器當主控端」幾乎是免費得到的能力。</p>
+  </section>
+
+  <section id="topology">
+    <h2><span class="num">③</span> 連線模型與自建生態</h2>
+    <p>連線邏輯和一般 WebRTC 遠端桌面一致:兩端先經<strong>信令(Socket.io)</strong>交換連線資訊,然後試 <strong>P2P 直連</strong>(ICE 穿透),打不通就走 <strong>Coturn 中繼</strong>。這些伺服器都開源、可自建,所以能把整條連線關在自己內網裡。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 220" role="img" aria-label="連線與生態拓撲：主控端(瀏覽器/Electron/Flutter)與被控端兩個 peer,先各自連到自建的信令伺服器(Node.js+Koa2+Socket.io)交換連線資訊;接著走 WebRTC P2P 直連(傳音視訊與控制指令),打洞失敗則經自建 Coturn(STUN/TURN)中繼。生態由四個 repo 組成:billd-desk(網頁/客戶端)、billd-desk-flutter(行動端)、billd-desk-server(信令服務端)、billd-desk-admin(後台管理)。">
+        <defs><marker id="bd1" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <rect x="18" y="86" width="128" height="52" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="82" y="106" text-anchor="middle" font-size="8.6" font-weight="700" fill="#005bb0">主控端</text>
+          <text x="82" y="122" text-anchor="middle" font-size="7" fill="#5d5b54">瀏覽器/Electron/Flutter</text>
+          <rect x="574" y="86" width="128" height="52" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="638" y="106" text-anchor="middle" font-size="8.6" font-weight="700" fill="#005bb0">被控端</text>
+          <text x="638" y="122" text-anchor="middle" font-size="7" fill="#5d5b54">Win/mac/Android</text>
+          <rect x="280" y="16" width="160" height="48" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.6"/>
+          <text x="360" y="36" text-anchor="middle" font-size="8.6" font-weight="800" fill="#3a2a99">自建信令(Socket.io)</text>
+          <text x="360" y="52" text-anchor="middle" font-size="7" fill="#5d5b54">Node.js + Koa2 · 交換連線資訊</text>
+          <rect x="280" y="156" width="160" height="48" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.6"/>
+          <text x="360" y="176" text-anchor="middle" font-size="8.6" font-weight="800" fill="#b34700">自建 Coturn(STUN/TURN)</text>
+          <text x="360" y="192" text-anchor="middle" font-size="7" fill="#5d5b54">打洞失敗時中繼</text>
+          <g stroke="#5645d4" stroke-width="1.4" fill="none" marker-end="url(#bd1)" stroke-dasharray="4 3">
+            <path d="M120,90 C190,48 250,42 278,42"/>
+            <path d="M600,90 C530,48 470,42 442,42"/>
+          </g>
+          <path d="M146,108 L572,108" stroke="#1aae39" stroke-width="2.2" fill="none" marker-end="url(#bd1)"/>
+          <text x="360" y="100" text-anchor="middle" font-size="9" font-weight="800" fill="#137a29">① WebRTC P2P 直連(音視訊 + 控制指令)</text>
+          <g stroke="#dd5b00" stroke-width="1.5" fill="none" marker-end="url(#bd1)" stroke-dasharray="5 3">
+            <path d="M120,130 C200,172 250,180 278,182"/>
+            <path d="M600,130 C520,172 470,180 442,182"/>
+          </g>
+          <text x="360" y="146" text-anchor="middle" font-size="8" fill="#b34700">② 打洞失敗 → Coturn 中繼</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 生態由四個 repo 組成:<code>billd-desk</code>(網頁/客戶端)、<code>billd-desk-flutter</code>(行動端)、<code>billd-desk-server</code>(信令服務端)、<code>billd-desk-admin</code>(後台)。全部開源、可自建。</div>
+    </div>
+  </section>
+
+  <section id="matrix">
+    <h2><span class="num">④</span> 全平台與「誰控誰」矩陣</h2>
+    <p>支援 Windows(10/11、Server 2019/2022)、macOS 15、Android 8–16、以及 <strong>Web 瀏覽器</strong>(Chrome/Edge/Firefox/Safari/Via);iOS 與 Linux 標在 roadmap。最大的賣點之一是<strong>瀏覽器就能當主控端</strong>——不用裝任何東西就能遠端控制。</p>
+    <p>「誰能控誰」在 Pro 已經相當完整(web/電腦/安卓三種主控端 × 電腦/安卓/web 被控,web 被控為僅觀看);但在<strong>開源版</strong>裡,README 誠實標明<strong>電腦端↔電腦端、電腦端↔安卓等多條路徑仍「重構中/後續支持」</strong>,目前以「web 控電腦/安卓/web」為主可用。這又是一個開源版 vs Pro 的落差點。</p>
+  </section>
+
+  <section id="features">
+    <h2><span class="num">⑤</span> 遠端控制功能全景(多數為 Pro)</h2>
+    <p>功能清單很長,這裡整理並標出<strong>哪些主要在 Pro</strong>:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>類別</th><th>功能</th></tr></thead>
+      <tbody>
+        <tr><td>基礎控制</td><td>多屏操作、碼率/幀率/畫質調整、按鍵映射、剪貼簿同步、解析度同步、文字互動、連接鑑權、自訂設備碼/連接密碼</td></tr>
+        <tr><td>檔案 / 快捷鍵</td><td>雙向檔案傳輸(主控↔被控)、系統快捷鍵(Ctrl+Alt+Del、鎖定、重啟、關機、注銷、任務管理器…)</td></tr>
+        <tr><td>隱私 / 無人值守</td><td>本機被控結束後鎖屏、僅允許同帳號遠程、開機自啟(無人值守)、進程保活、系統托盤、<strong>遠程開機 WOL</strong></td></tr>
+        <tr><td>Pro 亮點(多為付費功能)</td><td><strong>隱私屏</strong>(可自訂圖片/文字)、<strong>虛擬屏</strong>、<strong>屏幕牆</strong>(單控/群控)、<strong>批量群控</strong>、遠程時錄屏、驅動級鍵鼠(避免遊戲風控)、滑鼠模式(主控/被控/智能)、虛擬聲卡、後台管理</td></tr>
+        <tr><td>網路 / 幀率</td><td>預設 / 低延遲網路模式;智能降幀(依畫面變化省頻寬)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout info"><strong>讀法:</strong>前兩三列的基礎能力開源版多半有;「Pro 亮點」那列(屏幕牆、隱私屏、虛擬屏、驅動級鍵鼠…)README 標在 BilldDesk Pro,且其中隱私屏/虛擬屏/屏幕牆/高碼率幀率屬<strong>付費功能</strong>(Pro 包月 6 元/包年 4.2 元/月)。</div>
+  </section>
+
+  <section id="codec">
+    <h2><span class="num">⑥</span> 硬體編解碼與效能(Pro 實測)</h2>
+    <p>Pro 的效能數字相當猛(README 實測,被控端為對應顯卡):</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>畫質 / 幀率</th><th>被控端顯卡</th></tr></thead>
+      <tbody>
+        <tr><td>2K + 120 Fps</td><td>Windows 11,NVIDIA RTX 5070</td></tr>
+        <tr><td>2K + 60 Fps</td><td>Windows 10,NVIDIA RTX 3060 Laptop</td></tr>
+        <tr><td>1080P + 60 Fps</td><td>Windows 10,RTX 2070 Laptop / GTX 1060 6G</td></tr>
+      </tbody>
+    </table></div>
+    <ul>
+      <li><strong>硬體加速</strong>:可開關編碼/解碼硬體加速與零拷貝;NVIDIA(需十代以上、驅動 570.0+)、AMD、Intel 集顯都支援 H264/H265/AV1;Apple VideoToolbox 支援 H264。</li>
+      <li><strong>編解碼協定</strong>:H264/H265、AV1、VP8/VP9。</li>
+    </ul>
+    <p>相比之下,開源版因為走 WebRTC/WebCodecs,編解碼能力受瀏覽器/平台能力約束;上述「2K120 + 完整硬體矩陣」是 Pro 的本事。</p>
+  </section>
+
+  <section id="selfhost">
+    <h2><span class="num">⑦</span> 私有化部署與生態</h2>
+    <p>開源版 README 明寫「<strong>billd-desk 完全開源(可商用),歡迎部署</strong>」——這是它真正的價值:把前端、客戶端、Flutter、信令服務端、Coturn 全部在自己機器上跑起來,連線隱私與頻寬自己掌握,適合企業內網或個人高隱私場景。技術棧對前端工程師友善(Vue3/Koa2/Socket.io),二次開發門檻相對低。</p>
+    <div class="callout warn"><strong>現實提醒:</strong>開源版<strong>未發穩定版、master 當 dev、破壞性更新頻繁</strong>,作者自己都說不建議生產用;「Docker 一鍵部署」在清單上還是未勾的待辦。所以自建開源版要有「它是個活躍但不穩定的 WIP」的心理準備(跑不起來可試切到其他 commit)。要「開箱穩定」就用 Pro 客戶端(但那不給源碼)。下載:<a href="https://desk.hsslive.cn/#/download" style="color:var(--link)">desk.hsslive.cn/#/download</a>。</div>
+  </section>
+
+  <section id="notes">
+    <h2><span class="num">⑧</span> 對照 CrossDesk · 重點 · 來源</h2>
+    <h3>和 CrossDesk 快速對照</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th></th><th>BilldDesk(開源版)</th><th>CrossDesk</th></tr></thead>
+      <tbody>
+        <tr><td>傳輸核心</td><td>瀏覽器原生 WebRTC + WebCodecs</td><td>自研 C++ 庫 MiniRTC</td></tr>
+        <tr><td>技術棧</td><td>Vue3 / Electron / Flutter / Koa2 / Socket.io</td><td>C++ / xmake(桌面),Web Client 另案</td></tr>
+        <tr><td>授權</td><td>MIT(開源版);Pro 閉源付費</td><td>LGPL-3.0</td></tr>
+        <tr><td>自建</td><td>信令(Socket.io)+ Coturn,四 repo 生態</td><td>信令 + Coturn,Docker 一鍵</td></tr>
+        <tr><td>注意</td><td>開源版未發穩定版、亮點多在 Pro</td><td>MCP/Desktop Wall 在 repo 查無(待查證)</td></tr>
+      </tbody>
+    </table></div>
+    <h3>七個帶得走的重點</h3>
+    <ol>
+      <li><strong>開源版(MIT)≠ Pro(閉源付費)</strong>——這是用 BilldDesk 的第一件事。</li>
+      <li>傳輸走<strong>瀏覽器原生 WebRTC + WebCodecs</strong>,所以「網頁當主控端」很自然。</li>
+      <li>技術棧現代:<strong>Vue3 + Electron + Flutter + Koa2 + Socket.io + Coturn</strong>。</li>
+      <li>連線:信令交換 → <strong>P2P 直連,打不通走 Coturn 中繼</strong>,皆可自建。</li>
+      <li>全平台(Win/mac/Android/Web;iOS/Linux roadmap),瀏覽器免安裝控制。</li>
+      <li>華麗功能(<strong>屏幕牆/隱私屏/虛擬屏/硬體編解碼矩陣/2K120</strong>)多在 Pro,部分付費。</li>
+      <li>開源版<strong>未發穩定版、破壞性更新</strong>,作者不建議生產用;要源碼選它、要開箱選 Pro 客戶端。</li>
+    </ol>
+    <div class="related">
+      <a href="./crossdesk.html">
+        <div class="rel-title">🖥️ CrossDesk</div>
+        <div class="rel-sub">同賽道:自研 MiniRTC 的開源遠端桌面</div>
+      </a>
+      <a href="./rdpbeacon.html">
+        <div class="rel-title">🖱️ RDPBeacon</div>
+        <div class="rel-sub">遠端桌面主題(防閒置)</div>
+      </a>
+      <a href="./network-basics.html">
+        <div class="rel-title">🌐 REST 與 WebSocket 入門</div>
+        <div class="rel-sub">理解信令/WebRTC 的基礎</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>整理自 GitHub 倉庫 <a href="https://github.com/galaxy-s10/billd-desk" style="color:var(--link)">galaxy-s10/billd-desk</a>(開源版 MIT)、<a href="https://github.com/galaxy-s10/billd-desk-server" style="color:var(--link)">billd-desk-server</a>、<a href="https://github.com/galaxy-s10/billd-desk-flutter" style="color:var(--link)">billd-desk-flutter</a> 的 README,以及官網 <a href="https://desk.hsslive.cn" style="color:var(--link)">desk.hsslive.cn</a>。技術棧、功能清單、效能實測、跨平台支援、開源版 vs Pro 的分野均引自這些 README;<strong>功能歸屬(開源版/Pro、免費/付費)依 README 當前標示,Pro 原始碼閉源、本頁無法逐一核對其實作</strong>。產品仍在快速演進且開源版未發穩定版,以倉庫最新內容為準。本頁為中立技術整理。</div>
+  </section>
+
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
