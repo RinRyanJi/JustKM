@@ -617,6 +617,12 @@
       <div class="mt">9 節 + 2 SVG · 讀原始碼 · Rust CLI · X11/Wayland/Windows</div>
       <div class="ds">名字像惡意軟體,其實是無害的防閒置工具:對 Omnissa Horizon(VDI)送 1px 滑鼠微動避免閒置斷線。拆解 trait 解耦的三平台後端、一個 beacon 週期(存焦點→注入→還原)、各平台系統 API(XTest/uinput/SendInput)、jitter 排程,以及它誠實標明「擋不了硬性 session 上限、會重置本機鎖屏」。</div>
     </a>
+    <a class="card" href="./pdf-inspector.html">
+      <div class="ic">📄</div>
+      <div class="nm">pdf-inspector:先分類再抽取,54% 的 PDF 不用 OCR<span class="status ok">已建立</span></div>
+      <div class="mt">9 節 + 3 SVG · Firecrawl · Rust · MIT · crates/PyPI/npm/WASM</div>
+      <div class="ds">Firecrawl 的 Rust PDF→Markdown 庫,核心洞察是「多數 PDF 本來就有文字、不必 OCR」:先用極便宜的方式判斷 PDF 類型(看 content stream 的 Tj/TJ/Do,~10–50ms),text-based 的本機 200ms 內抽出乾淨 Markdown,只有缺文字的頁才走選擇性 OCR。拆解秒級分類與掃描策略、座標感知抽取(多欄/旋轉/CID 字型)、從座標反推 Markdown 結構、雙模式表格偵測、PP-OCRv6 選擇性 OCR 與「預設純淨」輕量化、一套 Rust 跑 Rust/Python/Node/瀏覽器 WASM 的架構,附效能基準(整體 0.875、跑 200 份 0.47s)。</div>
+    </a>
   </div>
 
   <!-- 群組 7：其他（巢狀子頁索引） -->

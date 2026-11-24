@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>pdf-inspector:先分類再抽取,54% 的 PDF 根本不用 OCR · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden;
+      box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #dd5b00 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #7b3ff2 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px;
+      color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>📄 pdf-inspector:先分類再抽取,54% 的 PDF 根本不用 OCR</h1>
+    <p class="sub">Firecrawl 做的 Rust 庫:把 PDF 轉成乾淨 Markdown,但先問一個便宜的問題——「這份 PDF 是<strong>本來就有文字</strong>,還是<strong>掃描檔</strong>?」。本來有文字的(約佔 54%)就在本機 <strong>200ms 內</strong>直接抽出來,跳過又慢又貴的 OCR;真的是掃描檔,才把<strong>需要的那幾頁</strong>送去 OCR。一套 Rust 核心,同時出 Rust / Python / Node / 瀏覽器 WASM 綁定。MIT。</p>
+    <div>
+      <span class="badge orange">Rust · MIT · crates.io / PyPI / npm / WASM</span>
+      <span class="badge green">分類 ~10–50ms · 抽取 &lt;200ms · 無需 OCR</span>
+      <span class="badge blue">座標感知 · 多欄 · 表格 · 乾淨 Markdown</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#insight">① 核心洞察:多數 PDF 不必 OCR</a>
+      <a href="#classify">② 秒級分類怎麼做</a>
+      <a href="#extract">③ 文字抽取:座標/多欄/旋轉</a>
+      <a href="#markdown">④ 從座標還原 Markdown 結構</a>
+      <a href="#tables">⑤ 表格:雙模式偵測</a>
+      <a href="#ocr">⑥ 選擇性 OCR 與輕量化</a>
+      <a href="#arch">⑦ 一套 Rust 四處跑 + 架構</a>
+      <a href="#notes">⑧ 效能基準 · 重點 · 來源</a>
+    </div>
+  </nav>
+
+  <!-- 0 -->
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>一個「不急著 OCR」的 PDF → Markdown 庫。</strong>多數人處理 PDF 的習慣是「全部丟去 OCR」,又慢又花錢。pdf-inspector 反過來:先用極便宜的方式判斷 PDF 類型(TextBased / Scanned / ImageBased / Mixed),<strong>本來就含文字的直接在本機抽取</strong>——還帶座標、多欄閱讀順序、表格、乾淨 Markdown——完全不碰 OCR;只有真的缺文字的頁,才走選擇性 OCR。核心是 Rust,同一份解析器以原生、CLI、Python、Node、瀏覽器 WASM 五種形式交付。</p>
+    <div class="callout info"><strong>它屬於哪一類:</strong>這是「餵給 LLM/RAG 前的乾淨文字」那條線的基礎建設,和站內 <a href="./slm-document-segmentation.html" style="color:var(--link)">文件切塊(slm-document-segmentation)</a> 是上下游:先把 PDF 變成結構化 Markdown,再切塊進向量庫。由 <a href="https://firecrawl.dev" style="color:var(--link)">Firecrawl</a> 打造,用來在本機處理 text-based PDF,替那 ~54% 不需要 OCR 的檔省下 OCR 服務的錢與延遲。</div>
+  </section>
+
+  <!-- 1 -->
+  <section id="insight">
+    <h2><span class="num">①</span> 核心洞察:先分類,就能跳過大部分 OCR</h2>
+    <p>OCR(光學字元辨識)是給<strong>掃描檔/圖片</strong>用的——把像素認成字,慢(每份 2–10 秒)又要雲端服務。但很多 PDF(報告、論文、發票、合約)本來就是用文字排版產生的,裡面<strong>就存著真正的字元與座標</strong>,根本不用「認」,直接讀出來即可。pdf-inspector 的整個設計就建立在這個分流上:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 230" role="img" aria-label="智慧 PDF 分流：PDF 進來,pdf-inspector 先分類約 20ms,判斷是否 TextBased 且高信心;是則在本機抽取約 150ms 完成,輸出乾淨 Markdown,不碰 OCR;否則把缺文字的頁送 OCR 服務,耗時 2 到 10 秒。約 54% 的 PDF 走左邊快路,省下 OCR 的成本與延遲">
+        <defs><marker id="i1" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <rect x="285" y="20" width="150" height="38" rx="9" fill="#f0eeec" stroke="#a4a097" stroke-width="1.3"/>
+          <text x="360" y="44" text-anchor="middle" font-size="10" font-weight="700" fill="#37352f">PDF bytes 進來</text>
+          <rect x="270" y="80" width="180" height="46" rx="10" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.8"/>
+          <text x="360" y="101" text-anchor="middle" font-size="10" font-weight="800" fill="#3a2a99">分類(~20ms)</text>
+          <text x="360" y="117" text-anchor="middle" font-size="7.6" fill="#37352f">TextBased 且高信心?</text>
+          <path d="M360,58 L360,78" fill="none" stroke="#8a93ad" stroke-width="1.6" marker-end="url(#i1)"/>
+          <!-- YES left -->
+          <rect x="60" y="160" width="250" height="56" rx="11" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.7"/>
+          <text x="185" y="182" text-anchor="middle" font-size="10" font-weight="800" fill="#137a29">本機抽取(~150ms)→ 乾淨 Markdown</text>
+          <text x="185" y="200" text-anchor="middle" font-size="7.8" fill="#5d5b54">不碰 OCR · 帶座標/多欄/表格</text>
+          <path d="M300,126 L200,158" fill="none" stroke="#1aae39" stroke-width="1.8" marker-end="url(#i1)"/>
+          <text x="232" y="146" font-size="9" font-weight="800" fill="#1aae39">YES ·『~54%』</text>
+          <!-- NO right -->
+          <rect x="410" y="160" width="250" height="56" rx="11" fill="#ffe8d4" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="535" y="182" text-anchor="middle" font-size="10" font-weight="800" fill="#b34700">送 OCR 服務(2–10s)</text>
+          <text x="535" y="200" text-anchor="middle" font-size="7.8" fill="#5d5b54">只送缺文字的那幾頁</text>
+          <path d="M420,126 L520,158" fill="none" stroke="#dd5b00" stroke-width="1.6" marker-end="url(#i1)"/>
+          <text x="470" y="146" font-size="9" font-weight="800" fill="#b34700">NO</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 便宜的分類(~20ms)擋在最前面,把大多數 PDF 導向快路。省的是錢(OCR 服務計費)與延遲(秒級 → 毫秒級)。</div>
+    </div>
+    <p>而且分類不是「整份要或不要 OCR」的二分,而是回傳 <code>pages_needing_ocr</code>——<strong>精確到哪幾頁</strong>缺文字。一份 300 頁、只有 3 頁是掃描插頁的文件,就只有那 3 頁走 OCR,其餘本機秒抽。</p>
+  </section>
+
+  <!-- 2 -->
+  <section id="classify">
+    <h2><span class="num">②</span> 秒級分類怎麼做:只看 content stream 的幾個運算子</h2>
+    <p>分類快(~10–50ms,連 300+ 頁也在毫秒級)的祕訣是:<strong>不完整載入整份 PDF</strong>,只做最少的工:</p>
+    <ol>
+      <li>解析 <strong>xref 表</strong>與<strong>頁面樹</strong>(不載入全部物件)。</li>
+      <li>依 <code>ScanStrategy</code> 選要看哪幾頁(預設取樣 8 頁:首、尾、中間)。</li>
+      <li>在這些頁的 <strong>content stream</strong> 裡找文字運算子 <code>Tj</code> / <code>TJ</code> 與影像運算子 <code>Do</code>。</li>
+      <li>依「有沒有文字運算子」在取樣頁上的分布,判定四種類型之一,並給 0.0–1.0 信心分數。</li>
+    </ol>
+    <div class="callout tip"><strong>為什麼這樣就夠:</strong>PDF 的文字是用 <code>Tj</code>/<code>TJ</code> 這些運算子畫上去的,圖片是用 <code>Do</code>。頁面裡<strong>有沒有文字運算子</strong>,基本就決定了它是「可直接抽字」還是「只是一張圖(要 OCR)」——不必真的把內容渲染出來看。</div>
+    <h3>四種掃描策略</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>策略</th><th>行為</th><th>適合</th></tr></thead>
+      <tbody>
+        <tr><td><code>EarlyExit</code></td><td>掃每一頁,遇到第一個非文字頁就停</td><td>把 TextBased 導向快抽的流水線</td></tr>
+        <tr><td><code>Full</code></td><td>掃每一頁,不提早結束</td><td>要準確區分 Mixed vs Scanned</td></tr>
+        <tr><td><code>Sample(n)</code>(預設 <code>Sample(8)</code>)</td><td>均勻取樣 n 頁(首/尾/中)</td><td>超大 PDF,速度比精準重要</td></tr>
+        <tr><td><code>Pages(vec)</code></td><td>只掃指定的 1-indexed 頁碼</td><td>呼叫方已知要查哪幾頁</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 3 -->
+  <section id="extract">
+    <h2><span class="num">③</span> 文字抽取:不是倒出字串,是帶座標的版面</h2>
+    <p>確定要本機抽取後,它做的遠不只「把字拉出來」。每個文字片段都是一個 <strong>TextItem</strong>,帶著:字型資訊、X/Y 座標、一個<strong>軸對齊外框</strong>。有了座標,才能還原人類眼中的版面:</p>
+    <ul>
+      <li><strong>多欄閱讀順序</strong>:自動偵測報紙式多欄排版,按正確順序(而不是把左右欄的字橫著讀串在一起)輸出;支援 RTL(由右至左)文字。</li>
+      <li><strong>旋轉文字</strong>:頁邊的直排戳記、圖表座標軸標題這種被旋轉的文字,會<strong>保留真正的軸對齊外框</strong>並回報 <code>rotation</code> 角度,而不是被壓成「寬度為零」而消失。</li>
+      <li><strong>CID 字型</strong>:對 Type0 / Identity-H 這類字型做 <strong>ToUnicode CMap</strong> 解碼,支援 UTF-16BE / UTF-8 / Latin-1 編碼——這是中日韓等文字能正確還原的關鍵。</li>
+      <li><strong>編碼問題偵測</strong>:自動標記壞掉的字型編碼,讓呼叫方知道「這頁抽出來是亂碼,改走 OCR」。</li>
+    </ul>
+    <p>CLI 的 <code>--items-json</code> 會把這些結構原封不動吐出來:軸對齊外框、rotation、字型、paint(填色/描邊色、render mode)、底線資訊,座標相對於可見頁框。</p>
+  </section>
+
+  <!-- 4 -->
+  <section id="markdown">
+    <h2><span class="num">④</span> 從座標還原 Markdown 結構</h2>
+    <p>PDF 本身<strong>沒有「標題」「清單」「程式碼」這些語意</strong>,只有「某個字,某個字型大小,畫在某個座標」。pdf-inspector 的 Markdown 轉換器靠一堆啟發式規則,把這些視覺線索<strong>反推回結構</strong>:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>元素</th><th>怎麼認出來</th></tr></thead>
+      <tbody>
+        <tr><td>標題 H1–H4</td><td>字型大小相對於內文的層級,帶 0.5pt 聚類</td></tr>
+        <tr><td>粗體 / 斜體</td><td>字型名稱樣式(Bold / Italic / Oblique)</td></tr>
+        <tr><td>項目清單</td><td><code>•</code> <code>-</code> <code>*</code> <code>○</code> <code>●</code> <code>◦</code> 前綴</td></tr>
+        <tr><td>數字 / 字母清單</td><td><code>1.</code> <code>1)</code> <code>(1)</code> / <code>a.</code> <code>a)</code> <code>(a)</code> 樣式</td></tr>
+        <tr><td>程式碼區塊</td><td>等寬字型(Courier/Consolas/Monaco/Menlo/Fira Code/JetBrains Mono)+ 關鍵字偵測</td></tr>
+        <tr><td>圖表標題</td><td>「Figure」「Table」「Source:」前綴偵測</td></tr>
+        <tr><td>上/下標</td><td>字型大小 + 相對基線的 Y 偏移</td></tr>
+        <tr><td>URL</td><td>轉成 Markdown 連結</td></tr>
+        <tr><td>斷字還原</td><td>把跨行被連字號切開的單字接回</td></tr>
+        <tr><td>頁碼</td><td>從輸出過濾掉</td></tr>
+        <tr><td>首字放大(drop cap)</td><td>大寫起首字母併回後續文字</td></tr>
+        <tr><td>點引導線(dot leader)</td><td>目錄那種長串點點收合成「 ... 」</td></tr>
+      </tbody>
+    </table></div>
+    <p>CLI 另有 <code>--compact</code>(收合長點引導線等源頭 padding,省 token,對餵 LLM 友善)、<code>--raw</code>(只要 markdown 不要 header)、<code>--pages</code>(插入 <code>&lt;!-- Page N --&gt;</code> 分頁標記)、<code>--select-pages 1,3,5-10</code>。</p>
+  </section>
+
+  <!-- 5 -->
+  <section id="tables">
+    <h2><span class="num">⑤</span> 表格:兩種模式一起上</h2>
+    <p>表格是 PDF→Markdown 最難的部分,也是這庫的強項(基準裡表格分數明顯領先)。它用<strong>雙模式</strong>:</p>
+    <ul>
+      <li><strong>Rectangle-based</strong>:直接讀 PDF 的繪圖運算子(畫線/畫框),用 union-find 把框線湊成格線 → 欄列指派 → 儲存格。有畫格線的表就靠這招。</li>
+      <li><strong>Heuristic</strong>:很多表<strong>沒有格線</strong>,只靠文字的對齊。這模式從文字的 X 對齊關係推斷欄位邊界。</li>
+    </ul>
+    <p>還特別處理:<strong>財務表</strong>(把被合併的數值 token 切開)、<strong>註腳</strong>、以及<strong>跨頁的續表</strong>。整條表格管線是:<code>detect_rects</code>(框線)+ <code>detect_heuristic</code>(對齊)→ <code>grid</code>(欄列→儲存格)→ <code>format</code>(儲存格→Markdown 表)。</p>
+  </section>
+
+  <!-- 6 -->
+  <section id="ocr">
+    <h2><span class="num">⑥</span> 選擇性 OCR 與「預設純淨」的輕量化</h2>
+    <p>要用到 OCR 時,它也不是「整份硬 OCR」,而是<strong>只渲染被路由到的那幾頁</strong>,在本機跑 <strong>PP-OCRv6 Small</strong> 模型,並保留<strong>每頁來源(provenance)</strong>與「建議改走雲端文件管線」的 fallback 建議。OCR 的 JSON 封包有版本號,回報路由頁、每頁來源與信心、警告。</p>
+    <div class="callout info"><strong>關鍵的工程取捨——預設保持純淨:</strong>預設的 Rust 與瀏覽器建置是<strong>純抽取</strong>,完全不含 OCR。原生 Python / Node 套件雖內建 OCR 整合,但 <strong>PDFium、ONNX Runtime、模型檔都留在外部</strong>,只有真的有頁被路由到 OCR 時才會碰它們。這讓「只想抽文字」的多數使用者保持極輕,不被一堆笨重的 OCR 依賴拖累。</div>
+    <p>各語言怎麼開 OCR:Rust/CLI 在<strong>編譯期</strong> opt-in(<code>cargo install pdf-inspector --features ocr</code>,執行時用 <code>PDFIUM_LIB_PATH</code> / <code>ORT_DYLIB_PATH</code> 指向外部庫,<code>--ocr auto</code>);Python/Node 直接呼叫 <code>process_pdf_with_ocr</code>,乾淨文字 PDF 不會載入外部 OCR runtime。</p>
+  </section>
+
+  <!-- 7 -->
+  <section id="arch">
+    <h2><span class="num">⑦</span> 一套 Rust 四處跑 + 單次載入架構</h2>
+    <p>核心是 Rust,透過綁定讓同一份解析器跑在四種環境——<strong>包括瀏覽器</strong>(WASM,內嵌 CMap,無需伺服器往返,可在 Web Worker 裡跑):</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>目標</th><th>套件</th><th>安裝</th></tr></thead>
+      <tbody>
+        <tr><td>Rust</td><td><code>pdf-inspector</code>(crates.io)</td><td><code>cargo add pdf-inspector</code></td></tr>
+        <tr><td>Python</td><td><code>pdf-inspector</code>(PyPI,PyO3)</td><td><code>pip install pdf-inspector</code></td></tr>
+        <tr><td>Node.js / Bun</td><td><code>@firecrawl/pdf-inspector</code>(napi-rs)</td><td><code>npm install @firecrawl/pdf-inspector</code></td></tr>
+        <tr><td>瀏覽器 WASM</td><td><code>@firecrawl/pdf-inspector-wasm</code>(wasm-bindgen)</td><td><code>npm install @firecrawl/pdf-inspector-wasm</code></td></tr>
+        <tr><td>CLI</td><td><code>pdf2md</code> / <code>detect-pdf</code></td><td><code>cargo install pdf-inspector</code></td></tr>
+      </tbody>
+    </table></div>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 270" role="img" aria-label="架構：PDF bytes 透過 load_document 只載入一次,由 detector 與 extractor 共用,避免重複解析。detector 產出 PdfType(TextBased/Scanned/ImageBased/Mixed)。extractor 分成 fonts(字寬/編碼)、content_stream(走 PDF 運算子→TextItems+PdfRects)、xobjects(Form XObject 文字、影像佔位)、links(超連結、AcroForm)、layout(欄偵測→行分組→閱讀順序);layout 再分出 tables（detect_rects/detect_heuristic/grid/format）與 markdown（analysis/preprocess/convert/classify/postprocess）兩條管線">
+        <defs><marker id="r1" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <rect x="300" y="14" width="120" height="32" rx="8" fill="#f0eeec" stroke="#a4a097" stroke-width="1.3"/>
+          <text x="360" y="35" text-anchor="middle" font-size="9.5" font-weight="700" fill="#37352f">PDF bytes</text>
+          <rect x="268" y="60" width="184" height="34" rx="8" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="360" y="81" text-anchor="middle" font-size="8.6" font-weight="700" fill="#3a2a99">load_document(只載一次,共用)</text>
+          <path d="M360,46 L360,58" stroke="#8a93ad" stroke-width="1.5" fill="none" marker-end="url(#r1)"/>
+          <!-- detector -->
+          <rect x="60" y="120" width="190" height="46" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="155" y="140" text-anchor="middle" font-size="9.5" font-weight="800" fill="#005bb0">detector</text>
+          <text x="155" y="156" text-anchor="middle" font-size="7.2" fill="#5d5b54">PdfType:Text/Scan/Image/Mixed</text>
+          <!-- extractor -->
+          <rect x="300" y="120" width="360" height="130" rx="10" fill="#fff" stroke="#dd5b00" stroke-width="1.6"/>
+          <text x="316" y="138" font-size="9.5" font-weight="800" fill="#b34700">extractor</text>
+          <g font-size="7.2" fill="#5d5b54">
+            <rect x="314" y="146" width="150" height="18" rx="4" fill="#fef7d6" stroke="#dd5b00" stroke-width="0.8"/><text x="320" y="159" fill="#37352f">fonts → 字寬/編碼</text>
+            <rect x="314" y="168" width="150" height="18" rx="4" fill="#fef7d6" stroke="#dd5b00" stroke-width="0.8"/><text x="320" y="181" fill="#37352f">content_stream → TextItems</text>
+            <rect x="314" y="190" width="150" height="18" rx="4" fill="#fef7d6" stroke="#dd5b00" stroke-width="0.8"/><text x="320" y="203" fill="#37352f">xobjects / links</text>
+            <rect x="314" y="212" width="150" height="26" rx="4" fill="#d9f3e1" stroke="#1aae39" stroke-width="1"/><text x="320" y="223" fill="#137a29" font-weight="700">layout</text><text x="320" y="233" fill="#5d5b54">欄偵測→行分組→閱讀順序</text>
+          </g>
+          <!-- tables + markdown -->
+          <rect x="484" y="150" width="168" height="40" rx="7" fill="#dcecfa" stroke="#0075de" stroke-width="1.2"/>
+          <text x="568" y="166" text-anchor="middle" font-size="8.4" font-weight="700" fill="#005bb0">tables</text>
+          <text x="568" y="180" text-anchor="middle" font-size="6.8" fill="#5d5b54">rects / heuristic / grid / format</text>
+          <rect x="484" y="198" width="168" height="40" rx="7" fill="#fde0ec" stroke="#ff64c8" stroke-width="1.2"/>
+          <text x="568" y="214" text-anchor="middle" font-size="8.4" font-weight="700" fill="#b03a7a">markdown</text>
+          <text x="568" y="228" text-anchor="middle" font-size="6.6" fill="#5d5b54">analysis/preprocess/convert/…</text>
+          <g stroke="#8a93ad" stroke-width="1.5" fill="none" marker-end="url(#r1)">
+            <path d="M330,94 L155,118"/><path d="M390,94 L420,118"/>
+            <path d="M464,225 L482,172"/><path d="M464,228 L482,216"/>
+          </g>
+          <text x="360" y="264" text-anchor="middle" font-size="7.6" fill="#787671">detector 與 extractor 共用同一次載入的文件,沒有重複 I/O</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 原始碼結構:<code>src/</code>(detector.rs、extractor/、tables/、markdown/、tounicode.rs、glyph_names.rs、bin/)+ <code>napi/</code>(Node)+ <code>wasm/</code>(瀏覽器)。</div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section id="notes">
+    <h2><span class="num">⑧</span> 效能基準 · 重點 · 來源</h2>
+    <h3>基準(opendataloader-bench,200 份 PDF,僅本機引擎、關閉 OCR)</h3>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 220" role="img" aria-label="基準長條圖：整體分數(0-1,越高越好)pdf-inspector 0.875、liteparse 0.873、opendataloader 0.831、pymupdf4llm 0.735、markitdown 0.589;速度(跑完 200 份,越低越快)pdf-inspector 0.470 秒、liteparse 0.750 秒、opendataloader 2.569 秒、pymupdf4llm 17.117 秒、markitdown 16.165 秒。pdf-inspector 在整體、閱讀順序、表格三項最高,且跑最快">
+        <g font-family="sans-serif">
+          <text x="20" y="20" font-size="11" font-weight="800" fill="#1a1a1a">整體分數(0–1,越高越好)</text>
+          <g font-size="8">
+            <text x="118" y="42" text-anchor="end" fill="#3a2a99" font-weight="700">pdf-inspector</text>
+            <rect x="124" y="34" width="298" height="13" rx="3" fill="#5645d4"/><text x="430" y="44" font-size="7.6" font-weight="700" fill="#3a2a99">0.875</text>
+            <text x="118" y="62" text-anchor="end" fill="#5d5b54">liteparse</text>
+            <rect x="124" y="54" width="297" height="13" rx="3" fill="#a9a0e8"/><text x="429" y="64" font-size="7.6" fill="#787671">0.873</text>
+            <text x="118" y="82" text-anchor="end" fill="#5d5b54">opendataloader</text>
+            <rect x="124" y="74" width="283" height="13" rx="3" fill="#c8c2ef"/><text x="415" y="84" font-size="7.6" fill="#787671">0.831</text>
+            <text x="118" y="102" text-anchor="end" fill="#5d5b54">pymupdf4llm</text>
+            <rect x="124" y="94" width="250" height="13" rx="3" fill="#d8d4f2"/><text x="382" y="104" font-size="7.6" fill="#787671">0.735</text>
+            <text x="118" y="122" text-anchor="end" fill="#5d5b54">markitdown</text>
+            <rect x="124" y="114" width="200" height="13" rx="3" fill="#e6e3f7"/><text x="332" y="124" font-size="7.6" fill="#787671">0.589</text>
+          </g>
+          <text x="20" y="152" font-size="11" font-weight="800" fill="#1a1a1a">速度(跑完 200 份,秒,越低越快)</text>
+          <g font-size="8">
+            <text x="118" y="172" text-anchor="end" fill="#137a29" font-weight="700">pdf-inspector</text>
+            <rect x="124" y="164" width="9" height="12" rx="2" fill="#1aae39"/><text x="140" y="174" font-size="7.6" font-weight="700" fill="#137a29">0.47s</text>
+            <text x="118" y="188" text-anchor="end" fill="#5d5b54">liteparse</text>
+            <rect x="124" y="180" width="14" height="12" rx="2" fill="#5bc46f"/><text x="145" y="190" font-size="7.6" fill="#787671">0.75s</text>
+            <text x="300" y="174" font-size="7.6" fill="#b34700">pymupdf4llm 17.1s · markitdown 16.2s · opendataloader 2.6s(皆遠慢)</text>
+          </g>
+          <text x="20" y="210" font-size="7.4" fill="#787671">2026-07-31 · Apple M4 Pro · pdf-inspector 0.2.6。整體/閱讀順序/表格三項最高,且跑最快(表格 TEDS 0.814 明顯領先)。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 最佳定位:原生文字 PDF、重視速度+閱讀順序+表格結構——報告、論文、財報、發票、法律文件要乾淨結構化 Markdown 又不想加 OCR 延遲。數字引自 README 基準表。</div>
+    </div>
+    <h3>七個帶得走的重點</h3>
+    <ol>
+      <li><strong>先分類再抽取</strong>:~54% 的 PDF 本來有文字,不必 OCR。</li>
+      <li>分類只看 content stream 的 <code>Tj/TJ/Do</code>,~10–50ms,連 300+ 頁都毫秒級。</li>
+      <li>路由精確到頁(<code>pages_needing_ocr</code>),不是整份要或不要。</li>
+      <li>抽取是<strong>座標感知</strong>:多欄閱讀順序、旋轉文字保角度、CID 字型 ToUnicode。</li>
+      <li>Markdown 靠啟發式<strong>反推結構</strong>(字型大小→標題、對齊→表格…)。</li>
+      <li>表格<strong>雙模式</strong>(框線 + 對齊),含財務表/續表。</li>
+      <li>一套 Rust → Rust/Python/Node/<strong>瀏覽器 WASM</strong>;預設純抽取,OCR 依賴全外部。</li>
+    </ol>
+    <div class="related">
+      <a href="./slm-document-segmentation.html">
+        <div class="rel-title">📑 文件切塊(slm-document-segmentation)</div>
+        <div class="rel-sub">下游:乾淨 Markdown → 切塊進 RAG</div>
+      </a>
+      <a href="./rdpbeacon.html">
+        <div class="rel-title">🖱️ RDPBeacon</div>
+        <div class="rel-sub">另一個「讀原始碼」的 Rust CLI</div>
+      </a>
+      <a href="./wokwi-simulator.html">
+        <div class="rel-title">🔌 Wokwi 模擬器</div>
+        <div class="rel-sub">同樣把 Rust 核心編到 WASM 在瀏覽器跑</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>整理自 GitHub 倉庫 <a href="https://github.com/firecrawl/pdf-inspector" style="color:var(--link)">firecrawl/pdf-inspector</a>(MIT)的 README,含功能列表、分類原理、掃描策略表、Markdown 偵測表、架構圖與基準表。基準數字(整體 0.875、表格 TEDS 0.814、速度 0.470s)引自 README 的 opendataloader-bench 結果(2026-07-31,Apple M4 Pro,v0.2.6),為單機量測,當量級參考。功能以倉庫最新版為準。本頁為中立技術整理。</div>
+  </section>
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
