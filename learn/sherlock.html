@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Sherlock:用一個使用者名稱跨 400+ 網站反查帳號(OSINT) · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden; box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #5645d4 6px, transparent 7px), radial-gradient(circle, #dd5b00 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #e03131 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px; color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🔎 Sherlock:用一個使用者名稱跨 400+ 網站反查帳號</h1>
+    <p class="sub">開源情報(OSINT)與資安調查裡最知名的命令列工具之一:給它一個<strong>使用者名稱(username)</strong>,它自動到 <strong>400+ 個社群與開發者網站</strong>(GitHub、Reddit、X、Instagram、Steam、論壇…)去查這個帳號是否存在,把命中的清單吐給你。Python、MIT,一行 <code>pipx install sherlock-project</code> 就能跑。</p>
+    <div><span class="badge blue">OSINT · Python · MIT · 400+ 網站</span>
+      <span class="badge green">pipx / uv / docker / dnf 一鍵裝</span>
+      <span class="badge orange">CSV/JSON/XLSX 匯出 · 可走 Proxy/Tor</span></div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#how">① 怎麼運作:扇出查存在性</a>
+      <a href="#usage">② 用法與變體</a>
+      <a href="#export">③ 匯出與匿名查詢</a>
+      <a href="#install">④ 安裝</a>
+      <a href="#ethics">⑤ 定位 · 倫理與界線</a>
+      <a href="#notes">⑥ 重點 · 關聯 · 來源</a>
+    </div>
+  </nav>
+
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>一個「一名在手、全網反查」的 username 查找器。</strong>它的前提很單純:同一個人常在很多平台用同一個使用者名稱。Sherlock 拿你給的 username,<strong>平行地</strong>去 400+ 個網站各自的「個人頁 URL」探一探,判斷帳號存不存在,把「找到的」整理成清單(可存檔)。它是 OSINT、紅隊偵察、調查記者、找回自己散落帳號的常用起手工具。作者 Siddharth Dushantha,MIT。</p>
+    <div class="callout info"><strong>它在這份筆記裡的位置:</strong>和站內 <a href="./rea-reverse-engineer-anything.html" style="color:var(--link)">REA(逆向工程)</a>、<a href="./crossdesk.html" style="color:var(--link)">CrossDesk</a> 同屬「資安/調查工具」一類;Sherlock 是其中最經典的 OSINT 入門工具。版本 0.16.0。</div>
+  </section>
+
+  <section id="how">
+    <h2><span class="num">①</span> 怎麼運作:對每個網站「扇出」查存在性</h2>
+    <p>核心機制不神祕:Sherlock 內建一份<strong>各網站的帳號 URL 樣板與「存在判定規則」</strong>(存在 <code>data.json</code> 裡)。給一個 username,它就把 username 套進每個網站的樣板、發請求,再依回應(HTTP 狀態、頁面內容、是否導向錯誤頁等)判斷「這個帳號在這個站存不存在」。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="Sherlock 扇出流程：輸入一個 username → Sherlock 讀內建的各網站 URL 樣板與存在判定規則(data.json)→ 平行向 400+ 網站各自的個人頁發請求 → 依回應判定存在或不存在 → 命中的整理成清單,可存成 user.txt / CSV / JSON / XLSX。可透過 proxy 或 Tor 匿名發送。">
+        <defs><marker id="sh" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <rect x="12" y="78" width="120" height="44" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/>
+          <text x="72" y="98" text-anchor="middle" font-size="9" font-weight="700" fill="#005bb0">username</text>
+          <text x="72" y="113" text-anchor="middle" font-size="7.2" fill="#5d5b54">user123</text>
+          <rect x="166" y="66" width="150" height="68" rx="11" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.7"/>
+          <text x="241" y="88" text-anchor="middle" font-size="9" font-weight="800" fill="#3a2a99">套 URL 樣板 + 判定</text>
+          <text x="241" y="104" text-anchor="middle" font-size="7.3" fill="#37352f">data.json(各站規則)</text>
+          <text x="241" y="118" text-anchor="middle" font-size="7.3" fill="#787671">可走 proxy / Tor</text>
+          <g font-family="sans-serif" font-size="7.4">
+            <rect x="360" y="24" width="150" height="26" rx="6" fill="#d9f3e1" stroke="#1aae39" stroke-width="1"/><text x="372" y="41" fill="#137a29">GitHub ✓ 找到</text>
+            <rect x="360" y="58" width="150" height="26" rx="6" fill="#d9f3e1" stroke="#1aae39" stroke-width="1"/><text x="372" y="75" fill="#137a29">Reddit ✓ 找到</text>
+            <rect x="360" y="92" width="150" height="26" rx="6" fill="#f0eeec" stroke="#a4a097" stroke-width="1"/><text x="372" y="109" fill="#787671">Instagram ✗ 無</text>
+            <rect x="360" y="126" width="150" height="26" rx="6" fill="#d9f3e1" stroke="#1aae39" stroke-width="1"/><text x="372" y="143" fill="#137a29">Steam ✓ 找到</text>
+            <text x="435" y="170" text-anchor="middle" fill="#787671">…共 400+ 站平行查</text>
+          </g>
+          <rect x="560" y="66" width="146" height="68" rx="11" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.5"/>
+          <text x="633" y="88" text-anchor="middle" font-size="9" font-weight="700" fill="#b34700">命中清單</text>
+          <text x="633" y="104" text-anchor="middle" font-size="7.2" fill="#5d5b54">user123.txt</text>
+          <text x="633" y="117" text-anchor="middle" font-size="7.2" fill="#5d5b54">CSV / JSON / XLSX</text>
+          <g stroke="#8a93ad" stroke-width="1.6" fill="none" marker-end="url(#sh)">
+            <path d="M132,100 L164,100"/>
+            <path d="M316,100 L358,100"/>
+            <path d="M510,100 L558,100"/>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ 因為是「套樣板 + 判存在」,所以快、也因此會有<strong>偽陽性/偽陰性</strong>(網站改版、反爬、限流都會影響判定)——命中不等於「一定是同一個人」,見 ⑤。</div>
+    </div>
+  </section>
+
+  <section id="usage">
+    <h2><span class="num">②</span> 用法與變體</h2>
+    <pre><code>sherlock user123                 <span class="cm"># 查一個</span>
+sherlock user1 user2 user3       <span class="cm"># 查多個(各自存成 user1.txt…)</span>
+sherlock "user{?}name"           <span class="cm"># {?} 試相近變體(把 ? 換成 _ - .)</span>
+sherlock --site GitHub --site Reddit user123   <span class="cm"># 只查指定站</span>
+sherlock --print-found user123   <span class="cm"># 只印找到的;--print-all 連沒找到也印</span>
+sherlock --browse user123        <span class="cm"># 在預設瀏覽器開啟所有命中結果</span></code></pre>
+    <p>其他常用旗標:<code>--timeout</code>(預設 60 秒)、<code>--local/-l</code>(強制用本地 <code>data.json</code>)、<code>--json</code>(從本地或線上 JSON 載入站點清單,也接受 upstream PR 編號)、<code>--nsfw</code>(納入 NSFW 站)、<code>--no-color</code>。</p>
+  </section>
+
+  <section id="export">
+    <h2><span class="num">③</span> 匯出與匿名查詢</h2>
+    <ul>
+      <li><strong>匯出</strong>:<code>--csv</code>、<code>--xlsx</code>(Excel)、<code>--txt</code>;單一 username 用 <code>-o FILE</code>,多個用 <code>-fo FOLDER</code> 指定輸出資料夾。</li>
+      <li><strong>匿名</strong>:<code>--proxy socks5://127.0.0.1:1080</code> 走代理(搭 Tor 的 SOCKS 埠即可透過 Tor 查);<code>--dump-response</code> 把 HTTP 回應印出來方便除錯誤判。</li>
+      <li><strong>除錯誤判</strong>:<code>--verbose</code> 看指標;<code>--ignore-exclusions</code> 忽略 upstream 的排除規則(會多出偽陽性)。</li>
+    </ul>
+  </section>
+
+  <section id="install">
+    <h2><span class="num">④</span> 安裝</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>方式</th><th>指令 / 說明</th></tr></thead>
+      <tbody>
+        <tr><td>pipx(推薦)</td><td><code>pipx install sherlock-project</code>(也可用 <code>uv</code> 或 <code>pip</code> 代替)</td></tr>
+        <tr><td>Docker</td><td><code>docker run -it --rm sherlock/sherlock</code></td></tr>
+        <tr><td>dnf(Fedora)</td><td><code>dnf install sherlock-project</code></td></tr>
+        <tr><td>社群維護</td><td>Debian(≥13)、Ubuntu(≥22.10)、Homebrew、Kali、BlackArch(非官方維護)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn">README 提醒:<strong>ParrotOS 與 Ubuntu 24.04 的第三方套件目前疑似壞掉</strong>,這些系統請改用 <code>uv</code>/<code>pipx</code>/<code>pip</code> 或 Docker。</div>
+  </section>
+
+  <section id="ethics">
+    <h2><span class="num">⑤</span> 定位 · 倫理與界線</h2>
+    <p>Sherlock 是<strong>合法且主流</strong>的工具:常見於授權的滲透測試偵察、CTF、資安研究、調查報導,以及「盤點自己散落在各平台的帳號、好清理數位足跡」。但它本質上是把一個人的網路身分<strong>跨平台串起來</strong>,所以用途的邊界要清楚:</p>
+    <div class="callout warn"><strong>兩條界線:</strong>(1) <strong>別拿來騷擾、起底(doxxing)或跟蹤</strong>特定個人——在很多地區這可能違法,也違反平台條款。只在你有正當理由(查自己、授權的調查、公開研究)時使用。(2) <strong>命中 ≠ 同一個人</strong>:username 可能撞名、可能是別人註冊、網站改版/反爬會造成偽陽性與偽陰性。把結果當「待查線索」,不是「結論」;重要判斷要人工覆核(<code>--dump-response</code> 幫你看證據)。</div>
+    <p>這和站內 <a href="./rea-reverse-engineer-anything.html" style="color:var(--link)">REA</a> 那頁談逆向的合法界線是同一個精神:工具中立,責任在使用者。</p>
+  </section>
+
+  <section id="notes">
+    <h2><span class="num">⑥</span> 重點 · 關聯 · 來源</h2>
+    <h3>六個帶得走的重點</h3>
+    <ol>
+      <li>給一個 <strong>username</strong>,跨 <strong>400+ 網站</strong>平行查帳號是否存在。</li>
+      <li>機制:內建各站 <strong>URL 樣板 + 存在判定</strong>(<code>data.json</code>),套名發請求判回應。</li>
+      <li>用法簡單:<code>sherlock user1 user2</code>;<code>{?}</code> 試變體;<code>--site</code> 限站。</li>
+      <li>匯出 <strong>CSV/JSON/XLSX/TXT</strong>;<code>--proxy</code> 搭 Tor 匿名查。</li>
+      <li>一鍵裝:<strong>pipx / uv / docker / dnf</strong>(注意 ParrotOS、Ubuntu 24.04 第三方包壞掉)。</li>
+      <li><strong>命中不等於同一個人</strong>;別用於起底/騷擾——工具中立,責任在人。MIT。</li>
+    </ol>
+    <div class="related">
+      <a href="./rea-reverse-engineer-anything.html">
+        <div class="rel-title">🔬 REA 逆向工程 MCP</div>
+        <div class="rel-sub">同屬資安/調查工具,含合法界線討論</div>
+      </a>
+      <a href="./crossdesk.html">
+        <div class="rel-title">🖥️ CrossDesk</div>
+        <div class="rel-sub">另一個開源工具(遠端桌面)</div>
+      </a>
+      <a href="./lightpanda.html">
+        <div class="rel-title">🐼 Lightpanda</div>
+        <div class="rel-sub">抓網頁的輕量瀏覽器(可搭 OSINT 流程)</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>整理自 GitHub 倉庫 <a href="https://github.com/sherlock-project/sherlock" style="color:var(--link)">sherlock-project/sherlock</a>(MIT,v0.16.0)的 README 與官網 <a href="https://sherlockproject.xyz/" style="color:var(--link)">sherlockproject.xyz</a>。網站數(400+)、旗標、安裝方式均引自 README/官網;實際命中率與站點清單隨版本與目標網站變動。本頁為中立技術整理,倫理與界線一節為本站補充提醒,不鼓勵任何未授權或侵犯隱私的使用。</div>
+  </section>
+
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

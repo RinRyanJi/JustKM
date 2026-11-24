@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>video-shotcraft:讓 Agent 變成程式化精準渲染的產品宣傳片工作室 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden; box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #7c3aed 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #60a5fa 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px; color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🎬 video-shotcraft:Agent 版的「程式化」產品宣傳片工作室</h1>
+    <p class="sub">給 Claude Code / Codex 的開源 Agent Skill。跟它說「幫我產品做支宣傳片」,它會擷取你產品的<strong>真實頁面截圖</strong>,從一庫調過的鏡頭配方裡選鏡、分鏡,用 <strong>Remotion(React 影片框架)逐幀寫程式碼繪製</strong>,卡到節拍、加音效,逐幀自檢,交你一支可繼續編輯的 MP4。<strong>它不是用擴散模型「猜」畫面</strong>——每一幀都由程式從你自己的截圖與文案畫出,所以銳利、品牌精準、每個鏡頭可單獨改。Apache-2.0。</p>
+    <div><span class="badge blue">Claude Code / Codex Skill · Apache-2.0</span>
+      <span class="badge green">Remotion 逐幀渲染 · 非擴散模型</span>
+      <span class="badge orange">124 配方卡/150 鏡頭 · 剪映草稿匯出</span></div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#why">① 不是猜畫面,是程式化渲染</a>
+      <a href="#cards">② 鏡頭配方卡庫與 2.5D</a>
+      <a href="#inkpress">③ Ink Press 成片模板</a>
+      <a href="#workbench">④ Motion Workbench 時間軸</a>
+      <a href="#capcut">⑤ 剪映(CapCut)草稿匯出</a>
+      <a href="#use">⑥ 怎麼用與安裝</a>
+      <a href="#talkcraft">⑦ 姊妹作與依賴限制</a>
+      <a href="#notes">⑧ 重點 · 關聯 · 來源</a>
+    </div>
+  </nav>
+
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>「把 Agent 變成一座會寫程式的宣傳片工作室。」</strong>多數 AI 生影片是讓擴散模型去猜每一幀,結果字糊、品牌色跑掉、改不動。video-shotcraft 反過來:Agent 擷取你產品的<strong>真實頁面截圖</strong>,挑鏡頭、分鏡,用 <strong>Remotion</strong> 把每個鏡頭寫成一個 React 元件逐幀渲染,卡節拍、配音效、逐幀 QA,交給你一支<strong>銳利、品牌精準、每個鏡頭都能單獨改</strong>的 MP4——而且還能匯出成剪映工程讓你手動微調。</p>
+    <div class="callout info"><strong>它在這份筆記裡的位置:</strong>和 <a href="./machine-skill.html" style="color:var(--link)">Machine Skill</a> 是同一種精神的 Agent Skill——<strong>程式化精準</strong>而非「讓模型猜」:machine-skill 用物理求解器,shotcraft 用 Remotion 逐幀繪製。GitHub <code>Vincentwei1021/video-shotcraft</code>,<a href="https://vincentwei1021.github.io/video-shotcraft/" style="color:var(--link)">鏡頭庫 Gallery</a>,Apache-2.0(渲染依賴 Remotion,個人與小團隊免費)。</div>
+  </section>
+
+  <section id="why">
+    <h2><span class="num">①</span> 不是用擴散模型猜畫面,是程式化精準渲染</h2>
+    <p>核心主張就一句:<strong>It is not a video generator.</strong> 每一幀都由程式從你的截圖與文案畫出來,所以結果銳利、on-brand、完全可編輯。整條流水線是全自動的:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 180" role="img" aria-label="全自動成片流水線：你的產品 → Agent 擷取真實頁面截圖 → 用鏡頭配方卡分鏡/storyboard → 用 Remotion(React)逐幀動畫 → 卡節拍 beat sync + 音效設計 → 渲染並逐幀 QA(ffmpeg/ffprobe 檢查)→ 交付 MP4(1920×1080/30fps/h264)+ Motion Workbench 時間軸 + 剪映草稿。全程由程式繪製,非擴散模型生成。">
+        <defs><marker id="sc1" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif" font-size="7.6">
+          <rect x="10" y="66" width="96" height="46" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.3"/><text x="58" y="85" text-anchor="middle" font-weight="700" fill="#005bb0">擷取真實</text><text x="58" y="98" text-anchor="middle" fill="#5d5b54">頁面截圖</text>
+          <rect x="122" y="66" width="96" height="46" rx="9" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.3"/><text x="170" y="85" text-anchor="middle" font-weight="700" fill="#3a2a99">配方卡分鏡</text><text x="170" y="98" text-anchor="middle" fill="#5d5b54">storyboard</text>
+          <rect x="234" y="66" width="96" height="46" rx="9" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.6"/><text x="282" y="85" text-anchor="middle" font-weight="800" fill="#3a2a99">Remotion</text><text x="282" y="98" text-anchor="middle" fill="#5d5b54">React 逐幀</text>
+          <rect x="346" y="66" width="100" height="46" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.3"/><text x="396" y="85" text-anchor="middle" font-weight="700" fill="#b34700">卡節拍+音效</text><text x="396" y="98" text-anchor="middle" fill="#5d5b54">beat sync·SFX/BGM</text>
+          <rect x="462" y="66" width="100" height="46" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.3"/><text x="512" y="85" text-anchor="middle" font-weight="700" fill="#137a29">逐幀 QA</text><text x="512" y="98" text-anchor="middle" fill="#5d5b54">ffmpeg 檢查</text>
+          <rect x="578" y="54" width="132" height="70" rx="10" fill="#f0eeec" stroke="#a4a097" stroke-width="1.4"/><text x="644" y="74" text-anchor="middle" font-weight="800" fill="#37352f">交付</text><text x="644" y="89" text-anchor="middle" fill="#5d5b54">MP4 1080p/30fps</text><text x="644" y="101" text-anchor="middle" fill="#5d5b54">+ Workbench</text><text x="644" y="113" text-anchor="middle" fill="#5d5b54">+ 剪映草稿</text>
+          <g stroke="#8a93ad" stroke-width="1.5" fill="none" marker-end="url(#sc1)">
+            <path d="M106,89 L120,89"/><path d="M218,89 L232,89"/><path d="M330,89 L344,89"/><path d="M446,89 L460,89"/><path d="M562,89 L576,89"/>
+          </g>
+          <text x="360" y="150" text-anchor="middle" font-size="8" fill="#787671">每個鏡頭都是一個 React 元件,你或 Agent 都能單獨改;預覽與算出來的成片逐幀一致</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 成片是 MP4 1920×1080 / 30fps / h264,附完整 Remotion 原始碼(每個鏡頭一個 React 元件)、2.5D 頁面運鏡/字幕/閃切/數字滾動等可複用元件、Freesound 音效搜尋下載工具與 5 條 BGM。</div>
+    </div>
+  </section>
+
+  <section id="cards">
+    <h2><span class="num">②</span> 鏡頭配方卡庫與 2.5D 運鏡</h2>
+    <p>它的「設計語言」沉澱成一個庫:<strong>124 張鏡頭配方卡(Shot Recipe Cards)、150 種鏡頭,分 10 類</strong>(參考了 Notion、Figma、Raycast、Linear、Perplexity 等大廠宣傳片的動效)。每張卡有它的 Remotion 實作(<code>references/shots/&lt;category&gt;/&lt;card&gt;.md</code>)。</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>類別</th><th>數量</th><th>類別</th><th>數量</th></tr></thead>
+      <tbody>
+        <tr><td>開場與品牌</td><td>11</td><td>運鏡 Camera</td><td>13</td></tr>
+        <tr><td>轉場 Transitions</td><td>19</td><td>文字 Typography</td><td>25</td></tr>
+        <tr><td>UI 進場</td><td>22</td><td>互動 Interaction</td><td>13</td></tr>
+        <tr><td>數據 Data</td><td>9</td><td>光效與強調</td><td>23</td></tr>
+        <tr><td>節奏 Rhythm</td><td>8</td><td>片尾 Outro</td><td>7</td></tr>
+      </tbody>
+    </table></div>
+    <p>例如 2.5D 頁面推拉、視窗飛入、列表捲動、數字滾動、閃切轉場、產品特寫、爆炸圖(頁面在 3D 裡傾斜拆開)、字幕隧道、聚光燈掃過……都是模組化的 TSX 範例,可以在 Gallery 直接複製鏡頭名點給 Agent 用。</p>
+  </section>
+
+  <section id="inkpress">
+    <h2><span class="num">③</span> Ink Press:現成的全自動成片模板</h2>
+    <p>最快的路徑是內建的成片模板 <strong>Ink Press</strong>:把你的<strong>產品截圖、文案與 Logo</strong> 丟給 Agent,幾分鐘內就產出一支帶<strong>節奏卡點(beat sync)</strong>與電影級音效(SFX/BGM)的 MP4。模板經過驗證,是「我就想要支能用的片、別讓我選鏡」時的首選。</p>
+    <div class="callout tip"><strong>兩種用法光譜:</strong>一端是「用 Ink Press 模板,全自動」;另一端是「我自己點名鏡頭」——到 Gallery 複製卡名(如 <code>deck-deal-flyin</code>、<code>spotlight-hero-card</code>),叫 Agent 用這幾張卡來呈現某個功能。你要多少控制權都行。</div>
+  </section>
+
+  <section id="workbench">
+    <h2><span class="num">④</span> Motion Workbench:瀏覽器裡的「剪映式」時間軸</h2>
+    <p>成片交付後,技能會在瀏覽器開一個 <strong>CapCut 風格的時間軸編輯器</strong>(<code>node workbench/scripts/open.mjs &lt;project&gt;</code>)。影片按<strong>鏡頭、轉場、字幕、音效</strong>分軌,和當初編排的一模一樣。你可以:選任一鏡頭改文案/字號/顏色、移動/裁切/變速、把庫裡 150 個鏡頭任一個拖進來,再用 Remotion 匯出。<strong>預覽與算出來的成片逐幀一致</strong>——所以所見即所得,不會「預覽好看、匯出走樣」。</p>
+  </section>
+
+  <section id="capcut">
+    <h2><span class="num">⑤</span> 剪映(CapCut)草稿匯出</h2>
+    <p>如果你習慣在剪映裡手動微調,它能把成片匯出成<strong>可編輯的剪映工程草稿</strong>:<strong>每個鏡頭分段獨立、原生可編輯的字幕軌、分開的 BGM 與 SFX 音軌</strong>。README 說在 macOS 的剪映 Pro 11.2 上驗證過。這很關鍵——AI 給你一個起點,但最後一哩的手感調整還是回到你熟悉的剪輯軟體裡做。</p>
+  </section>
+
+  <section id="use">
+    <h2><span class="num">⑥</span> 怎麼用與安裝</h2>
+    <pre><code><span class="cm"># 最簡單:把連結丟給你的 Agent</span>
+Install this skill for me: https://github.com/Vincentwei1021/video-shotcraft
+<span class="cm"># 或 skills CLI</span>
+npx skills add Vincentwei1021/video-shotcraft
+<span class="cm"># 或手動 git clone 後 ln -s 到 ~/.claude/skills/ 或 ~/.codex/skills/</span></code></pre>
+    <p>用的時候不需要指令,直接描述:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>你說</th><th>會發生什麼</th></tr></thead>
+      <tbody>
+        <tr><td>「用 video-shotcraft 幫我產品做支宣傳片」</td><td>Agent 介紹 Ink Press 模板並問要不要用,然後擷取你的頁面、建片</td></tr>
+        <tr><td>「用 Ink Press 模板幫這個 repo 做支發表片」</td><td>最快路徑:你的截圖/文案/Logo 丟進驗證過的模板</td></tr>
+        <tr><td>「用 deck-deal-flyin 和 row-embed 這兩張卡來呈現這功能」</td><td>你自己點名鏡頭(從 Gallery 複製卡名)</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="talkcraft">
+    <h2><span class="num">⑦</span> 姊妹作與依賴限制</h2>
+    <ul>
+      <li><strong>姊妹作 <a href="https://github.com/Vincentwei1021/video-talkcraft" style="color:var(--link)">video-talkcraft</a></strong>(旁白解說影片版):輸入腳本與配音,<strong>把每個動態節拍鎖定到人聲上</strong>(78 個旁白鏡頭預覽)。shotcraft 偏「卡點宣傳片」,talkcraft 偏「有人聲解說的講解片」。</li>
+      <li><strong>依賴</strong>:Node.js + npm(Remotion 渲染、模板、workbench)、ffmpeg/ffprobe(逐幀檢查與 QA)、uv(只用於 BGM 節拍分析的一次性 Python 腳本)。Remotion 首次渲染會自己下載無頭 Chrome。</li>
+      <li><strong>已知坑</strong>(README 列出):低核心機器上 <code>--concurrency</code> 最高 2;近期 Chrome 砍了舊 headless 模式;中國大陸可能連不上 <code>remotion.media</code> 的 CDN(影響自動抓 headless-shell)。主要在 macOS 測過,Linux 照註記可用。</li>
+    </ul>
+  </section>
+
+  <section id="notes">
+    <h2><span class="num">⑧</span> 重點 · 關聯 · 來源</h2>
+    <h3>七個帶得走的重點</h3>
+    <ol>
+      <li><strong>不是 AI 生影片</strong>:Agent 擷取你的真實截圖,用 <strong>Remotion 逐幀寫程式</strong>繪製,銳利、品牌精準、可編輯。</li>
+      <li><strong>124 配方卡 / 150 鏡頭 / 10 類</strong>(含 2.5D 運鏡),可全自動選也可點名。</li>
+      <li><strong>Ink Press</strong> 模板:丟截圖+文案+Logo,幾分鐘出帶節拍卡點與音效的 MP4。</li>
+      <li>成片規格 <strong>1920×1080 / 30fps / h264</strong>,附完整 Remotion 原始碼(每鏡頭一個 React 元件)。</li>
+      <li><strong>Motion Workbench</strong>:瀏覽器剪映式時間軸,預覽與成片逐幀一致。</li>
+      <li>一鍵匯出<strong>剪映(CapCut)草稿</strong>:鏡頭分段 + 原生字幕軌 + 獨立 BGM/SFX 軌。</li>
+      <li>Claude Code/Codex 的 Agent Skill,<strong>Apache-2.0</strong>;姊妹作 talkcraft 做旁白鎖聲版。</li>
+    </ol>
+    <div class="related">
+      <a href="./machine-skill.html">
+        <div class="rel-title">⚙️ Machine Skill</div>
+        <div class="rel-sub">同精神:程式化精準(物理求解器)而非猜</div>
+      </a>
+      <a href="./ohmygame.html">
+        <div class="rel-title">🎮 OhMyGame</div>
+        <div class="rel-sub">另一個會自動產出媒體/影片的 AI 工作室</div>
+      </a>
+      <a href="./crucible-ai-3d-engine.html">
+        <div class="rel-title">🔥 Crucible</div>
+        <div class="rel-sub">AI 原生渲染 + PNG/MP4 匯出</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>整理自 GitHub 倉庫 <a href="https://github.com/Vincentwei1021/video-shotcraft" style="color:var(--link)">Vincentwei1021/video-shotcraft</a>(Apache-2.0)的 README、<a href="https://vincentwei1021.github.io/video-shotcraft/" style="color:var(--link)">鏡頭 Gallery</a> 與姊妹作 <a href="https://github.com/Vincentwei1021/video-talkcraft" style="color:var(--link)">video-talkcraft</a> 的 README。鏡頭數(124 卡/150 鏡/10 類)、成片規格、Motion Workbench 與剪映匯出、依賴與已知坑均引自 README;功能持續演進,以倉庫最新內容為準。本頁為中立技術整理。</div>
+  </section>
+
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>

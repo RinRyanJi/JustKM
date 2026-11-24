@@ -248,6 +248,30 @@
       <div class="mt">9 節 + 2 SVG · Usagi-org · FastAPI+Playwright+SQLite · MIT</div>
       <div class="ds">生態中心、社群衍生最多的那套的單卷拆解。機器搜貨 + 多模態大模型「看圖把關成色」:自然語言需求→AI 生成分析標準(後台 job)→逐品判斷。拆解全棧架構(FastAPI/Playwright/React/SQLite/Docker)、重畫 README 的單任務工作流、Chrome 擴充導登入態 JSON、代理池輪換+失敗保護的抗風控、SQLite 持久化與多渠道通知,並標明 ToS/封號風險與「僅供學習研究」界線。</div>
     </a>
+    <a class="card" href="./lightpanda.html">
+      <div class="ic">🐼</div>
+      <div class="nm">Lightpanda:為 AI Agent 從零寫的無頭瀏覽器<span class="status ok">已建立</span></div>
+      <div class="mt">9 節 + 2 SVG · Zig · AGPL-3.0 · CDP/MCP · ~16× 省/~9× 快</div>
+      <div class="ds">不是 Chromium 套殼,而是用 Zig 從零寫、不渲染畫面的無頭瀏覽器:只做 HTML 解析 + JS(V8)+ DOM,官方基準比無頭 Chrome 省約 16× 記憶體、快約 9×。拆解從零寫的取捨、CDP/BiDi 相容(Puppeteer 腳本改個端點就接)、fetch 一行把網頁變 Markdown/結構化 JSON、Agent 模式產出確定性 token-free 的 PandaScript,以及內建 MCP 伺服器當 AI 工作流的瀏覽後端。</div>
+    </a>
+    <a class="card" href="./machine-skill.html">
+      <div class="ic">⚙️</div>
+      <div class="nm">Machine Skill:一句話生成跑真物理的 3D 機械<span class="status ok">已建立</span></div>
+      <div class="mt">9 節 + 2 SVG · AirsupHQ · Claude Code Skill · MIT · three.js</div>
+      <div class="ds">給 Claude Code 的開源技能:一句話描述任何機械,AI 拆出 15~40 具名零件、賦予 PBR 材質與攝影棚光影,輸出單一自包含 HTML。關鍵是「不是動畫,是真實物理求解器驅動」——推力/溫度/壓力/扭矩都是算出來的(布雷頓循環/火箭噴管/泵浦曲線…),拖滑桿即時連動,還能爆炸/剖面/X光/「算出來的弄壞它」。附四輪自我審查與 record.mjs 一鍵錄 28s 影片。</div>
+    </a>
+    <a class="card" href="./video-shotcraft.html">
+      <div class="ic">🎬</div>
+      <div class="nm">video-shotcraft:程式化精準的產品宣傳片工作室<span class="status ok">已建立</span></div>
+      <div class="mt">9 節 + 2 SVG · Vincentwei1021 · Claude Code/Codex Skill · Apache-2.0</div>
+      <div class="ds">給 Agent 的宣傳片 Skill,不用擴散模型猜畫面:Agent 擷取你產品的真實截圖,用 Remotion(React)逐幀寫程式繪製,銳利、品牌精準、每鏡頭可單獨改。拆解程式化流水線、124 配方卡/150 鏡頭/10 類與 2.5D 運鏡、Ink Press 全自動成片模板、瀏覽器剪映式 Motion Workbench、一鍵匯出剪映(CapCut)草稿(鏡頭分段+字幕軌+獨立 BGM/SFX),以及旁白版姊妹作 talkcraft。</div>
+    </a>
+    <a class="card" href="./tick-stock-panel.html">
+      <div class="ic">📊</div>
+      <div class="nm">TSP:自託管、本地優先的 A 股量化研究工作台<span class="status ok">已建立</span></div>
+      <div class="mt">9 節 + 2 SVG · shy3130 · 工作台 MIT · Polars · MCP/開放接口</div>
+      <div class="ds">本地優先、零運維的 A 股量化研究台(明言不荐股/不預測漲停):Polars 向量化全市場選股、自研 Tivelo 引擎做資料版本快照 + T+1/漲跌停/費用撮合回測、自訂因子、盤中 Monitor 四類規則推播、盤後接 OpenAI 相容或本機 Codex CLI 自動出 Markdown 復盤。拆解架構(面板接口 + 帶 Scope 權限 Token 的開放接口/MCP)、模組化插件與授權分層(工作台 MIT、Tivelo PolyForm 非商業)。</div>
+    </a>
     <a class="card" href="./oh-my-pi.html">
       <div class="ic">🥧</div>
       <div class="nm">拆解 oh-my-pi（omp）<span class="status ok">已建立</span></div>
@@ -640,6 +664,12 @@
       <div class="nm">CrossDesk:自建得起的開源遠端桌面<span class="status ok">已建立</span></div>
       <div class="mt">9 節 + 2 SVG · kunkundi · LGPL-3.0 · 自研 MiniRTC · 可自建</div>
       <div class="ds">輕量跨平台開源遠端桌面(RustDesk/ToDesk 的開源替代):對端 ID+可選密碼連線,還有免安裝 Web 客戶端(iOS Safari 控 Win11)。真正核心是自研傳輸庫 MiniRTC。拆解 MiniRTC 傳輸堆疊(WSS 信令→ICE/STUN/TURN→P2P 直連或中繼、SRTP 加密)、各平台硬體編解碼(NVENC/VideoToolbox/MediaCodec、H.264/H.265/AV1)、可自建的信令+Coturn 中繼拓撲(Docker)、全平台與編譯授權(xmake、LGPL)。用戶所述的 MCP/AI 自主操控與 Desktop Wall 在 repo README 查不到,已明確標為待查證。</div>
+    </a>
+    <a class="card" href="./sherlock.html">
+      <div class="ic">🔎</div>
+      <div class="nm">Sherlock:用使用者名稱跨 400+ 網站反查帳號<span class="status ok">已建立</span></div>
+      <div class="mt">7 節 + 1 SVG · OSINT · Python · MIT · 含倫理界線</div>
+      <div class="ds">OSINT/資安調查最知名的 username 查找 CLI:給一個使用者名稱,平行到 400+ 個社群與開發者網站反查帳號是否存在。拆解運作機制(內建各站 URL 樣板 + 存在判定 data.json,扇出發請求判回應)、用法與 {?} 變體、CSV/JSON/XLSX 匯出與 Proxy/Tor 匿名查、pipx/uv/docker 安裝,並如實討論「命中不等於同一個人」的偽陽性與別用於起底/騷擾的倫理界線。</div>
     </a>
   </div>
 

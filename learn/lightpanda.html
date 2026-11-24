@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Lightpanda:為 AI Agent 從零寫的無頭瀏覽器(Zig) · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden; box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #a3e635 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #60a5fa 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px; color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🐼 Lightpanda:為 AI Agent 從零寫的無頭瀏覽器</h1>
+    <p class="sub">不是 Chromium 套殼、不是 WebKit 補丁——而是用 <strong>Zig 從零寫</strong>的一顆全新無頭瀏覽器。它不畫畫面(無 GUI),專注高效解析 HTML、跑 JavaScript(整合 V8)、操作 DOM。官方基準:跑 100 個真實網頁,記憶體 <strong>123MB vs Chrome 2GB(約 16× 省)</strong>、耗時 <strong>5s vs 46s(約 9× 快)</strong>。完全相容 CDP,現有 Puppeteer/Playwright 腳本直接接。AGPL-3.0。</p>
+    <div><span class="badge green">Zig 從零寫 · 無 GUI · AGPL-3.0</span>
+      <span class="badge blue">~16× 省記憶體 · ~9× 快 vs 無頭 Chrome</span>
+      <span class="badge orange">CDP/BiDi 相容 · 原生 MCP · Agent 模式</span></div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#scratch">① 不是套殼:從零寫</a>
+      <a href="#cdp">② CDP 相容:腳本直接接</a>
+      <a href="#fetch">③ fetch:一行變 HTML/Markdown</a>
+      <a href="#agent">④ Agent 模式 + PandaScript</a>
+      <a href="#mcp">⑤ 原生 MCP</a>
+      <a href="#install">⑥ 安裝與部署</a>
+      <a href="#fit">⑦ 適用 · 限制 · 授權</a>
+      <a href="#notes">⑧ 重點 · 關聯 · 來源</a>
+    </div>
+  </nav>
+
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>一顆「為機器而生」的瀏覽器。</strong>Puppeteer / Playwright 背後都是啟一整顆肥大的 Chromium,畫面、GPU、外掛全都載;但 AI Agent 抓資料根本不需要看畫面。Lightpanda 把這件事重做:用 Zig 從零寫一顆<strong>不渲染畫面</strong>的瀏覽器,只留 Agent 真正要的——解析 HTML、跑 JS(V8)、操作 DOM。結果是啟動毫秒級、單實例數十 MB,能在一台機器上同時併發數十個實例餵給 Agent。</p>
+    <div class="callout info"><strong>它在這份筆記裡的位置:</strong>它是「給 Agent 的網頁後端」那條線的基礎件——和站內 <a href="./goofish-ai-monitors.html" style="color:var(--link)">闲鱼監控生態</a>(靠 Playwright+Chromium 抓頁)、<a href="./pdf-inspector.html" style="color:var(--link)">pdf-inspector</a>(把文件變乾淨文字餵 LLM)互補。官網 <a href="https://lightpanda.io" style="color:var(--link)">lightpanda.io</a>,GitHub <code>lightpanda-io/browser</code>。</div>
+  </section>
+
+  <section id="scratch">
+    <h2><span class="num">①</span> 不是 Chromium 套殼:從零用 Zig 寫</h2>
+    <p>關鍵差別在「<strong>它不是 fork</strong>」。RustDesk 式的無頭方案大多還是驅動一顆真 Chromium;Lightpanda 是一顆<strong>全新瀏覽器</strong>,刻意不做畫面渲染(無 GUI)、不載 GPU/合成器那一整套,只保留自動化需要的核心能力。省下來的就是記憶體與啟動時間:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 200" role="img" aria-label="基準長條圖：在 AWS EC2 m5.large 上請求 933 個真實網頁。記憶體(100 頁峰值,越低越好)Lightpanda 123MB、無頭 Chrome 2GB(約 16 倍差);執行時間(100 頁,越低越快)Lightpanda 5 秒、無頭 Chrome 46 秒(約 9 倍差)。">
+        <g font-family="sans-serif">
+          <text x="20" y="22" font-size="11" font-weight="800" fill="#1a1a1a">記憶體峰值(100 頁,越低越好)</text>
+          <text x="150" y="46" text-anchor="end" font-size="8.5" fill="#137a29" font-weight="700">Lightpanda</text>
+          <rect x="156" y="37" width="32" height="14" rx="3" fill="#1aae39"/><text x="196" y="48" font-size="8" font-weight="700" fill="#137a29">123MB</text>
+          <text x="150" y="70" text-anchor="end" font-size="8.5" fill="#5d5b54">無頭 Chrome</text>
+          <rect x="156" y="61" width="520" height="14" rx="3" fill="#e6a9a9"/><text x="684" y="72" text-anchor="end" font-size="8" fill="#fff" font-weight="700">2GB</text>
+          <text x="460" y="48" font-size="8" fill="#787671">≈ 16× 省</text>
+          <text x="20" y="104" font-size="11" font-weight="800" fill="#1a1a1a">執行時間(100 頁,越低越快)</text>
+          <text x="150" y="128" text-anchor="end" font-size="8.5" fill="#137a29" font-weight="700">Lightpanda</text>
+          <rect x="156" y="119" width="52" height="14" rx="3" fill="#1aae39"/><text x="216" y="130" font-size="8" font-weight="700" fill="#137a29">5s</text>
+          <text x="150" y="152" text-anchor="end" font-size="8.5" fill="#5d5b54">無頭 Chrome</text>
+          <rect x="156" y="143" width="478" height="14" rx="3" fill="#e6a9a9"/><text x="626" y="154" text-anchor="end" font-size="8" fill="#fff" font-weight="700">46s</text>
+          <text x="460" y="130" font-size="8" fill="#787671">≈ 9× 快</text>
+          <text x="20" y="184" font-size="7.6" fill="#787671">AWS EC2 m5.large 上請求 933 個真實網頁;表為 100 頁的峰值/耗時。數字引自官方 benchmark。</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 官方自報:README 標題寫「比 Chromium 輕 16×、快 9×」(對無頭 Chrome 的 100 頁基準)。數量級參考,實際依工作負載而定。</div>
+    </div>
+    <p>它內建 V8 跑 JavaScript,所以不是只會抓靜態 HTML——動態渲染的頁面(JS 產生的 DOM)也處理得了。這正是現代爬蟲/Agent 需要「真瀏覽器」而非純 HTTP client 的原因。</p>
+  </section>
+
+  <section id="cdp">
+    <h2><span class="num">②</span> CDP 相容:現有腳本幾乎不用改就接上</h2>
+    <p>最實用的一點:Lightpanda <strong>說 CDP(Chrome DevTools Protocol)</strong>。你把它當成一個 CDP server 跑起來,Puppeteer / Playwright / chromedp 腳本把連線端點指過去,業務邏輯一行不用改:</p>
+    <pre><code><span class="cm"># 起一個 CDP server(:9222)</span>
+./lightpanda serve --host 127.0.0.1 --port 9222
+<span class="cm"># 也能聽 Unix socket(owner-only 0600):--unix-socket /run/user/1000/lightpanda.sock</span>
+<span class="cm"># 要 WebDriver BiDi:--protocol webdriver(可與 --protocol cdp 併開)</span></code></pre>
+    <pre><code><span class="cm">// Puppeteer:只改 browserWSEndpoint,其餘照舊</span>
+const browser = await puppeteer.connect({
+  browserWSEndpoint: <span class="st">"ws://127.0.0.1:9222"</span>,
+});
+const page = await (await browser.createBrowserContext()).newPage();
+await page.goto(<span class="st">"https://.../amiibo/"</span>, { waitUntil: <span class="st">"networkidle0"</span> });</code></pre>
+    <p>意思是:你用熟悉的工具原型,底層把 Chromium 換成 Lightpanda,就直接吃到 16×/9× 的資源優勢——這是它最低摩擦的賣點。</p>
+  </section>
+
+  <section id="fetch">
+    <h2><span class="num">③</span> fetch:一行把網頁變 HTML / Markdown / 結構化資料</h2>
+    <p>不想寫腳本、只想抓一頁?<code>fetch</code> 子命令直接 dump:</p>
+    <pre><code>./lightpanda fetch --obey-robots --dump html   https://example.com/   <span class="cm"># 原始 HTML</span>
+./lightpanda fetch --dump markdown   https://example.com/            <span class="cm"># 直接轉 Markdown(餵 LLM 友善)</span>
+./lightpanda fetch --dump png  > page.png                            <span class="cm"># 文字版 PNG</span>
+./lightpanda fetch --dump pdf  > page.pdf
+./lightpanda fetch --dump structured_data  https://example.com/      <span class="cm"># JSON-LD/OpenGraph/Twitter card/meta → JSON</span></code></pre>
+    <p>還有 <code>--wait-until</code> / <code>--wait-ms</code> / <code>--wait-selector</code> / <code>--wait-script</code> 控制 dump 前的等待;<code>--obey-robots</code> 遵守 robots.txt。<code>--dump markdown</code> 與 <code>structured_data</code> 幾乎就是為「把網頁整理成 LLM 吃得下的格式」而設計。</p>
+  </section>
+
+  <section id="agent">
+    <h2><span class="num">④</span> Agent 模式 + PandaScript:用自然語言開車,產出可重播的腳本</h2>
+    <p><code>lightpanda agent</code> 讓你<strong>用白話(或 slash 指令)驅動瀏覽器</strong>:導航、點擊、填表、抽結構化資料。因為 agent 跟瀏覽器跑在<strong>同一個行程</strong>裡,每個工具呼叫都是直接操作,保住速度與記憶體優勢。最妙的是輸出:</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 180" role="img" aria-label="Agent 模式流程：你用自然語言描述任務 → LLM 驅動的 agent 在瀏覽器裡實際操作(導航/點擊/填表/抽資料)→ /save 匯出一段 PandaScript(普通 JavaScript + 少量原生瀏覽器原語)→ 用 lightpanda run 重播;腳本是確定性的、執行時不需要模型(token-free),所以用 LLM 原型、把輸出丟上生產不再付模型費。也支援 --no-llm 直接進 REPL。">
+        <defs><marker id="lp1" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <rect x="14" y="56" width="140" height="52" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/>
+          <text x="84" y="78" text-anchor="middle" font-size="9" font-weight="700" fill="#005bb0">自然語言描述任務</text>
+          <text x="84" y="94" text-anchor="middle" font-size="7.2" fill="#5d5b54">--task "..." / REPL</text>
+          <rect x="190" y="50" width="160" height="64" rx="11" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.7"/>
+          <text x="270" y="72" text-anchor="middle" font-size="9.5" font-weight="800" fill="#3a2a99">LLM 驅動的 agent</text>
+          <text x="270" y="89" text-anchor="middle" font-size="7.3" fill="#37352f">在瀏覽器裡實際操作</text>
+          <text x="270" y="102" text-anchor="middle" font-size="7.3" fill="#787671">同行程 → 保住速度</text>
+          <rect x="386" y="50" width="150" height="64" rx="11" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.6"/>
+          <text x="461" y="72" text-anchor="middle" font-size="9.5" font-weight="800" fill="#137a29">/save → PandaScript</text>
+          <text x="461" y="89" text-anchor="middle" font-size="7.3" fill="#5d5b54">純 JS + 原生瀏覽器原語</text>
+          <text x="461" y="102" text-anchor="middle" font-size="7.3" fill="#787671">確定性、token-free</text>
+          <rect x="572" y="56" width="132" height="52" rx="10" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/>
+          <text x="638" y="78" text-anchor="middle" font-size="9" font-weight="700" fill="#b34700">lightpanda run</text>
+          <text x="638" y="94" text-anchor="middle" font-size="7.2" fill="#5d5b54">重播,無需模型</text>
+          <g stroke="#8a93ad" stroke-width="1.7" fill="none" marker-end="url(#lp1)">
+            <path d="M154,82 L188,82"/><path d="M350,82 L384,82"/><path d="M536,82 L570,82"/>
+          </g>
+          <text x="360" y="150" text-anchor="middle" font-size="8" fill="#787671">用 LLM 原型 → 把確定性腳本丟上生產,執行期不再付模型費;也能 --no-llm 直接進基本 REPL</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ PandaScript = 一段 vanilla JavaScript 加少量內建的原生瀏覽器原語。用 LLM 探索出流程、<code>/save</code> 存下來,之後 <code>lightpanda run session.js</code> 穩定重播——把「貴且不確定的 LLM 操作」沉澱成「便宜且確定的腳本」。</div>
+    </div>
+    <p>Agent 模式支援 Anthropic / OpenAI / Gemini / Vertex / Mistral / Hugging Face、Vercel AI Gateway、OpenRouter、任何 OpenAI 相容端點(<code>OPENAI_BASE_URL</code>)、本地模型(Ollama / llama.cpp / LLMD),以及用 ChatGPT 訂閱登入的 OpenAI Codex。</p>
+  </section>
+
+  <section id="mcp">
+    <h2><span class="num">⑤</span> 原生 MCP:直接當 AI 工作流的瀏覽後端</h2>
+    <p>Lightpanda 內建 <strong>MCP 伺服器</strong>(JSON-RPC 2.0 over stdio),把「瀏覽器能力」當工具開給 Claude Code / OpenCode 等 MCP client:</p>
+    <pre><code>{
+  <span class="kw">"mcpServers"</span>: {
+    <span class="kw">"lightpanda"</span>: { <span class="kw">"command"</span>: <span class="st">"/path/to/lightpanda"</span>, <span class="kw">"args"</span>: [<span class="st">"mcp"</span>] }
+  }
+}
+<span class="cm"># 只開你要的工具,少佔 client context:--tools goto,tree,click</span>
+<span class="cm"># lightpanda mcp --list-tools 列出所有工具名</span>
+<span class="cm"># 多 agent 共用一個行程:走 HTTP 傳輸 → lightpanda mcp --port 9223(每連線獨立 session)</span></code></pre>
+    <p><code>--tools</code> 白名單是個貼心設計:MCP 工具定義會吃掉 client 的 context,只暴露用得到的幾個(<code>goto,tree,click</code>…)能省很多。</p>
+  </section>
+
+  <section id="install">
+    <h2><span class="num">⑥</span> 安裝與部署</h2>
+    <ul>
+      <li><strong>套件管理器</strong>:Homebrew(<code>brew install lightpanda-io/browser/lightpanda</code>)、Arch AUR(<code>yay -S lightpanda-nightly-bin</code>)、Nix(<code>nix run github:lightpanda-io/browser</code>)。</li>
+      <li><strong>直接下載</strong> nightly 二進位:Linux / macOS 的 x86_64 與 aarch64。</li>
+      <li><strong>Docker</strong>:官方映像,一行把 CDP server 開在 :9222 → <code>docker run -d -p 127.0.0.1:9222:9222 lightpanda/browser:latest</code>。</li>
+      <li><strong>Windows</strong>:沒有原生二進位,裝進 WSL2 用(WSL 會自動轉發 <code>localhost:9222</code>)。</li>
+    </ul>
+    <div class="callout warn"><strong>glibc 注意:</strong>Linux release 二進位連結 glibc(x86_64 需 2.35、arm64 需 2.38),<strong>musl 系(Alpine)會失敗</strong>(缺 glibc 動態連結器);arm64 上連 <code>debian:bookworm</code> 都太舊,要用 <code>ubuntu:24.04</code> / <code>debian:trixie-slim</code> 或自行編譯。Android/Termux(Bionic libc)也不行。</div>
+  </section>
+
+  <section id="fit">
+    <h2><span class="num">⑦</span> 適用 · 限制 · 授權</h2>
+    <ul>
+      <li><strong>最適合</strong>:大規模、高併發的 Agent 網頁抓取/自動化——在本地伺服器或容器裡同時開數十個實例,靠低記憶體與毫秒啟動把成本壓下來。</li>
+      <li><strong>不是什麼</strong>:它不渲染畫面,不是給人看的瀏覽器;也還是一顆<strong>新的、仍在發展中</strong>的瀏覽器引擎,網頁相容性不可能等同成熟的 Chromium——複雜網站上可能遇到還沒實作的 API。拿它跑你實際的目標站先驗證。</li>
+      <li><strong>授權</strong>:AGPL-3.0(把改版當網路服務提供時,須以同授權公開該版原始碼)。</li>
+    </ul>
+  </section>
+
+  <section id="notes">
+    <h2><span class="num">⑧</span> 重點 · 關聯 · 來源</h2>
+    <h3>七個帶得走的重點</h3>
+    <ol>
+      <li>為 Agent 而生的無頭瀏覽器,<strong>Zig 從零寫、不是 Chromium fork</strong>。</li>
+      <li>不渲染畫面,只做 HTML 解析 + JS(V8)+ DOM → <strong>~16× 省記憶體、~9× 快</strong>。</li>
+      <li><strong>CDP 相容</strong>:Puppeteer/Playwright/chromedp 腳本改個端點就接上;也支援 WebDriver BiDi。</li>
+      <li><code>fetch --dump</code> 一行把網頁變 HTML/<strong>Markdown</strong>/PNG/PDF/<strong>結構化 JSON</strong>。</li>
+      <li>Agent 模式產出 <strong>PandaScript</strong>:用 LLM 原型 → 存成確定性、token-free 腳本重播。</li>
+      <li>內建 <strong>MCP 伺服器</strong>(stdio/HTTP,<code>--tools</code> 白名單),直接當 AI 工作流的瀏覽後端。</li>
+      <li>裝法多(brew/nix/docker/WSL);注意 glibc 版本;AGPL-3.0。</li>
+    </ol>
+    <div class="related">
+      <a href="./goofish-ai-monitors.html">
+        <div class="rel-title">🐠 闲鱼 AI 監控生態</div>
+        <div class="rel-sub">靠 Playwright+Chromium 抓頁的對照</div>
+      </a>
+      <a href="./pdf-inspector.html">
+        <div class="rel-title">📄 pdf-inspector</div>
+        <div class="rel-sub">另一個「餵乾淨資料給 LLM」的基礎件</div>
+      </a>
+      <a href="./agent-desktop.html">
+        <div class="rel-title">🪟 agent-desktop</div>
+        <div class="rel-sub">給 Agent 操作介面的另一條路線</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>整理自 GitHub 倉庫 <a href="https://github.com/lightpanda-io/browser" style="color:var(--link)">lightpanda-io/browser</a>(AGPL-3.0)的 README 與官網 <a href="https://lightpanda.io" style="color:var(--link)">lightpanda.io</a>。基準(123MB/2GB、5s/46s、16×/9×)引自 README 的 benchmark(AWS EC2 m5.large、933 個真實網頁),為官方自報、數量級參考。功能(CDP/BiDi、fetch、agent、PandaScript、MCP)均引自 README;產品仍在快速發展,以倉庫最新內容為準。本頁為中立技術整理。</div>
+  </section>
+
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
