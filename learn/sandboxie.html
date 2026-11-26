@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Sandboxie Plus/Classic:Windows 沙箱隔離,跑程式不留痕 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden; box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #60a5fa 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #dd5b00 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px; color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>📦 Sandboxie:Windows 的沙箱隔離,跑程式不改到系統</h1>
+    <p class="sub">老牌的 Windows 沙箱隔離軟體:在一個受控的虛擬環境裡跑或裝程式,<strong>不會永久改動你的本機/對應磁碟與登錄檔</strong>——測試不信任的程式、隔離上網、分析惡意軟體都很適合。可建幾乎無限個沙箱,各自獨立、彼此隔離、也和主機隔離。2020 年 Sophos 開源後由 David Xanatos 接手社群分支,分 <strong>Plus(現代 Qt UI)</strong> 與 <strong>Classic(舊 MFC UI)</strong> 兩版,核心相同、安全性一致。Windows 7+(64 位)。</p>
+    <div><span class="badge blue">Windows 沙箱隔離 · 寫入重導 / copy-on-write</span>
+      <span class="badge green">社群 fork(David Xanatos)· Plus + Classic</span>
+      <span class="badge orange">每盒防火牆 WFP · 安全強化盒 · 加密盒 · 快照</span></div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#cow">① 核心機制:寫入重導</a>
+      <a href="#use">② 它能拿來幹嘛</a>
+      <a href="#editions">③ Plus vs Classic</a>
+      <a href="#features">④ Plus 功能全景</a>
+      <a href="#arch">⑤ 架構:驅動+服務+注入</a>
+      <a href="#adv">⑥ 進階隔離能力</a>
+      <a href="#history">⑦ 專案史 · 授權 · 工具生態</a>
+      <a href="#notes">⑧ 重點 · 關聯 · 來源</a>
+    </div>
+  </nav>
+
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>一個「把程式關進盒子裡跑、關掉盒子就當沒發生過」的 Windows 沙箱。</strong>你在 Sandboxie 的沙箱裡安裝或執行任何程式,它<strong>讀得到你真實的系統,但所有寫入都被攔下來、導進沙箱自己的空間</strong>——不會永久改到你的硬碟檔案與 Windows 登錄檔。要測一個來路不明的安裝檔、開一個可疑網站、分析惡意程式、或讓同一個程式開很多份互不干擾,丟進沙箱就對了;刪掉沙箱,裡面的改動一併消失。</p>
+    <div class="callout info"><strong>它在這份筆記裡的位置:</strong>和站內 <a href="./rea-reverse-engineer-anything.html" style="color:var(--link)">REA(逆向)</a>、<a href="./sherlock.html" style="color:var(--link)">Sherlock(OSINT)</a> 同屬資安工具一類;Sandboxie 是「隔離/防護」這一側的經典。注意:這是 Sophos 於 2020 年開源後的<strong>社群分支(sandboxie-plus,David Xanatos 維護)</strong>,不是舊開發團隊的官方延續。GitHub <code>sandboxie-plus/Sandboxie</code>。</div>
+  </section>
+
+  <section id="cow">
+    <h2><span class="num">①</span> 核心機制:讀穿透、寫重導(copy-on-write)</h2>
+    <p>Sandboxie 的靈魂就一句話——<strong>讀的時候看得到真實系統,寫的時候全被導到沙箱裡</strong>。程式以為自己在正常改檔案、改登錄檔,實際上那些變更只落在沙箱的私有空間,主機原封不動。</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 230" role="img" aria-label="寫入重導模型：沙箱裡的程式發出讀取時,先看沙箱有沒有該檔案/登錄鍵,沒有就穿透去讀主機的真實檔案系統與登錄檔(唯讀,看得到);程式發出寫入/修改/刪除時,不動主機,而是 copy-on-write——把要改的東西複製進沙箱再改,或直接寫進沙箱的私有資料夾與私有登錄配置單元。於是程式運作正常,但主機的硬碟與登錄檔完全沒被永久改動;刪除沙箱,裡面累積的所有變更一次消失。">
+        <defs><marker id="cw1" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <rect x="280" y="16" width="160" height="40" rx="10" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="360" y="34" text-anchor="middle" font-size="9.5" font-weight="800" fill="#005bb0">沙箱裡的程式</text>
+          <text x="360" y="49" text-anchor="middle" font-size="7.3" fill="#5d5b54">以為自己在正常讀寫系統</text>
+          <!-- read path -->
+          <rect x="40" y="110" width="280" height="96" rx="12" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.6"/>
+          <text x="180" y="132" text-anchor="middle" font-size="9.5" font-weight="800" fill="#137a29">讀取 → 穿透(唯讀)</text>
+          <text x="180" y="150" text-anchor="middle" font-size="7.6" fill="#5d5b54">沙箱沒有?就去讀主機真實</text>
+          <text x="180" y="164" text-anchor="middle" font-size="7.6" fill="#5d5b54">檔案系統 + 登錄檔(看得到)</text>
+          <text x="180" y="184" text-anchor="middle" font-size="7.3" fill="#787671">主機內容不被改動</text>
+          <!-- write path -->
+          <rect x="400" y="110" width="280" height="96" rx="12" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.8"/>
+          <text x="540" y="132" text-anchor="middle" font-size="9.5" font-weight="800" fill="#b34700">寫入/改/刪 → 重導</text>
+          <text x="540" y="150" text-anchor="middle" font-size="7.6" fill="#5d5b54">copy-on-write:複製進沙箱再改</text>
+          <text x="540" y="164" text-anchor="middle" font-size="7.6" fill="#5d5b54">落到沙箱私有資料夾 + 私有登錄</text>
+          <text x="540" y="184" text-anchor="middle" font-size="7.3" fill="#b34700">主機硬碟/登錄檔零改動</text>
+          <g stroke="#8a93ad" stroke-width="1.7" fill="none" marker-end="url(#cw1)">
+            <path d="M330,56 L200,108"/><path d="M390,56 L520,108"/>
+          </g>
+          <text x="245" y="88" font-size="8" fill="#137a29" font-weight="700">read</text>
+          <text x="455" y="88" font-size="8" fill="#b34700" font-weight="700">write</text>
+          <text x="360" y="224" text-anchor="middle" font-size="8" fill="#787671">刪掉整個沙箱 = 裡面累積的所有變更一次消失(= 用完即丟的乾淨環境)</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 這就是為什麼「在沙箱裡裝軟體/中毒/亂改」都不會污染你的系統:寫入從不碰主機。你可以同時開很多個沙箱,彼此之間一樣互相隔離。</div>
+    </div>
+  </section>
+
+  <section id="use">
+    <h2><span class="num">②</span> 它能拿來幹嘛</h2>
+    <ul>
+      <li><strong>測試不信任的程式</strong>:來路不明的安裝檔、綠色軟體、破解檔,丟沙箱跑,看它到底想幹嘛,不怕弄髒系統。</li>
+      <li><strong>隔離上網 / 無痕</strong>:在沙箱裡開瀏覽器,下載的東西、cookie、快取都關在盒子裡,關掉即清。</li>
+      <li><strong>惡意程式分析</strong>:安全研究者在受控環境觀察樣本行為(搭配下方工具生態看它改了哪些檔/登錄)。</li>
+      <li><strong>程式多開、互不干擾</strong>:同一個程式在不同沙箱各開一份(例如多帳號),或讓它們彼此隔離。</li>
+      <li><strong>保護主機</strong>:沙箱不只保護主機不被改,還能<strong>反向保護沙箱不被主機窺探</strong>(見 ⑥,連截圖都能擋)。</li>
+    </ul>
+  </section>
+
+  <section id="editions">
+    <h2><span class="num">③</span> Plus vs Classic:核心相同,差在 UI 與新功能</h2>
+    <p>兩版<strong>共用同一套核心元件,所以安全性與相容性完全一樣</strong>;差別只在使用者介面與新功能的可用性:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th></th><th>Sandboxie Plus</th><th>Sandboxie Classic</th></tr></thead>
+      <tbody>
+        <tr><td>UI</td><td>現代 <strong>Qt</strong> 介面</td><td>舊的 <strong>MFC</strong> 介面(Sandboxie Control)</td></tr>
+        <tr><td>新功能</td><td>✅ 支援開源後新增的全部功能</td><td>⚠️ 介面上沒有;部分可手動改 <code>Sandboxie.ini</code> 或用腳本替代</td></tr>
+        <tr><td>開發狀態</td><td>主力開發</td><td>UI 已不再開發</td></tr>
+        <tr><td>適合</td><td>想用最新安全選項的人(推薦)</td><td>習慣舊介面、需求單純的人</td></tr>
+      </tbody>
+    </table></div>
+    <p>README 明講:想探索最新安全選項的使用者<strong>不建議用 Classic</strong>。Plus 也保留了一個「Vintage View」模式,能重現 Classic 的外觀給懷舊的人。</p>
+  </section>
+
+  <section id="features">
+    <h2><span class="num">④</span> Plus 功能全景</h2>
+    <p>開源後 Plus 加了非常多功能,分組看:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>面向</th><th>功能</th></tr></thead>
+      <tbody>
+        <tr><td>快照 / 維運</td><td><strong>Snapshot Manager</strong>(對沙箱拍快照、需要時還原)、Maintenance menu(安裝/卸載/啟停 Sandboxie 驅動與服務)、Portable 可攜模式、import/export 沙箱到 7z</td></tr>
+        <tr><td>隔離強化</td><td><strong>安全強化盒</strong>(限制可用的 syscall 與端點)、<strong>Privacy 模式盒</strong>(保護使用者資料不被非法存取)、阻擋存取印表機 spooler / 剪貼簿等 Windows 元件、全新的 token 建立機制讓沙箱更獨立</td></tr>
+        <tr><td>網路</td><td><strong>每個沙箱一道防火牆</strong>(走 Windows Filtering Platform / WFP)、強制程式走指定 <strong>SOCKS5 代理</strong>、<strong>DNS 控制</strong>(封鎖或重導)</td></tr>
+        <tr><td>資源限制</td><td>限制單一程序 / 全部程序的記憶體用量、限制每個盒的沙箱程序總數</td></tr>
+        <tr><td>資料保護</td><td><strong>加密沙箱</strong>(AES 的可靠資料儲存)、防止沙箱程式用常規方式產生唯一識別碼</td></tr>
+        <tr><td>自動化 / 觸發</td><td><strong>Trigger 系統</strong>(盒在初始化/啟動/終止/檔案還原等階段自動執行動作)、全域熱鍵一鍵暫停或終止所有盒內程序、讓某程序不沙箱化但其子程序沙箱化</td></tr>
+        <tr><td>易用性</td><td>內建 INI 編輯器(帶視覺提示/tooltip)、瀏覽器相容精靈、疑難排解精靈、Add-on 管理器、整合進 Windows 開始選單、Ctrl+F 搜尋沙箱與設定、自訂 UAC 對話框、自訂顏色/圖示/字型</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="arch">
+    <h2><span class="num">⑤</span> 架構:核心驅動 + 服務 + 注入 DLL</h2>
+    <p>Sandboxie 能攔截「讀穿透、寫重導」,靠的是一套橫跨核心態與使用者態的機制(README 的維運選單與工具生態印證了這些元件):</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 220" role="img" aria-label="Sandboxie 架構:核心態有 Sandboxie 驅動(SbieDrv),掛在檔案系統與登錄等路徑上做存取攔截與重導,也負責安全強化盒的 syscall 限制與每盒 WFP 防火牆;使用者態有 Sandboxie 服務(SbieSvc)管理沙箱生命週期與用全新機制建立受限的 access token;每個沙箱程序被注入 SbieDll.dll,在使用者態攔截 Win32/原生 API 並與驅動協作,把寫入導向該沙箱的私有檔案空間與私有登錄;UI(Plus 的 Qt 或 Classic 的 MFC)只是前端。">
+        <defs><marker id="ar2" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <rect x="250" y="14" width="220" height="38" rx="9" fill="#f0eeec" stroke="#a4a097" stroke-width="1.3"/>
+          <text x="360" y="32" text-anchor="middle" font-size="8.8" font-weight="700" fill="#37352f">UI 前端</text>
+          <text x="360" y="46" text-anchor="middle" font-size="7.2" fill="#5d5b54">Plus(Qt)/ Classic(MFC)</text>
+          <rect x="40" y="74" width="300" height="60" rx="11" fill="#dcecfa" stroke="#0075de" stroke-width="1.5"/>
+          <text x="190" y="95" text-anchor="middle" font-size="9" font-weight="800" fill="#005bb0">使用者態:每個沙箱程序注入 SbieDll.dll</text>
+          <text x="190" y="112" text-anchor="middle" font-size="7.4" fill="#5d5b54">攔截 Win32/原生 API,寫入導向</text>
+          <text x="190" y="125" text-anchor="middle" font-size="7.4" fill="#5d5b54">該盒私有檔案空間 + 私有登錄</text>
+          <rect x="380" y="74" width="300" height="60" rx="11" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.5"/>
+          <text x="530" y="95" text-anchor="middle" font-size="9" font-weight="800" fill="#3a2a99">使用者態:Sandboxie 服務(SbieSvc)</text>
+          <text x="530" y="112" text-anchor="middle" font-size="7.4" fill="#5d5b54">管沙箱生命週期</text>
+          <text x="530" y="125" text-anchor="middle" font-size="7.4" fill="#5d5b54">用全新機制建立受限 access token</text>
+          <rect x="120" y="156" width="480" height="52" rx="11" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.8"/>
+          <text x="360" y="177" text-anchor="middle" font-size="9.5" font-weight="800" fill="#b34700">核心態:Sandboxie 驅動(SbieDrv)</text>
+          <text x="360" y="194" text-anchor="middle" font-size="7.4" fill="#5d5b54">檔案/登錄存取攔截與重導 · 安全強化盒的 syscall 限制 · 每盒 WFP 防火牆</text>
+          <g stroke="#8a93ad" stroke-width="1.6" fill="none" marker-end="url(#ar2)">
+            <path d="M190,134 L250,154" /><path d="M530,134 L470,154"/>
+            <path d="M360,52 L360,72"/>
+          </g>
+        </g>
+      </svg>
+      <div class="figcap">▲ 維運選單能「安裝/卸載/啟停 Sandboxie 驅動與服務」正印證了這組件;注入的 <code>SbieDll.dll</code> 也是為何有 <a href="https://github.com/VeroFess/SbieHide" style="color:var(--link)">SbieHide</a> 這種「隱藏它存在」的工具。(架構為 Sandboxie 一般運作方式的說明。)</div>
+    </div>
+  </section>
+
+  <section id="adv">
+    <h2><span class="num">⑥</span> 進階隔離能力(開源後的重點)</h2>
+    <ul>
+      <li><strong>安全強化盒(Security enhanced)</strong>:進一步限制盒內可用的 syscall 與端點,縮小攻擊面——比「只是重導寫入」更硬的隔離。</li>
+      <li><strong>每盒網路防火牆(WFP)</strong>:每個沙箱有自己的防火牆規則,配合強制 SOCKS5 代理與 DNS 封鎖/重導,能精準掐住盒內程式的對外連線。</li>
+      <li><strong>Privacy 模式 / 防主機窺探</strong>:不只保護主機不被盒內程式改,還<strong>反向保護盒</strong>——防止主機端(或其他程式)讀取盒內資料,甚至<strong>防止對沙箱視窗截圖</strong>。</li>
+      <li><strong>加密沙箱</strong>:以 AES 加密盒內資料儲存,靜態資料更安全。</li>
+      <li><strong>資源與身分</strong>:限制記憶體與程序數、用全新 token 機制讓盒更獨立於系統、防止盒內程式以常規方式產生唯一識別碼(抗指紋追蹤)。</li>
+    </ul>
+  </section>
+
+  <section id="history">
+    <h2><span class="num">⑦</span> 專案史 · 授權 · 工具生態</h2>
+    <h3>一條有故事的時間線</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>期間</th><th>維護者</th></tr></thead>
+      <tbody>
+        <tr><td>2004 – 2013</td><td>Ronen Tzur(原作者)</td></tr>
+        <tr><td>2013 – 2017</td><td>Invincea Inc.</td></tr>
+        <tr><td>2017 – 2020</td><td>Sophos Group plc</td></tr>
+        <tr><td>2020/4/8</td><td>Sophos <strong>開源</strong> Sandboxie 原始碼</td></tr>
+        <tr><td>2020/4/9 起</td><td><strong>David Xanatos</strong> 社群分支(即本專案 sandboxie-plus)</td></tr>
+      </tbody>
+    </table></div>
+    <p><strong>授權雙軌</strong>:Plus 採自訂授權(<code>LICENSE.Plus</code>),Classic 採 GPL(<code>LICENSE.Classic</code>)。README 也特別聲明:這是開源後的<strong>社群分支,不是舊團隊的官方延續</strong>。</p>
+    <h3>工具生態</h3>
+    <ul>
+      <li><strong>LogApiDll</strong>:在 trace log 列出盒內程式呼叫了哪些 Windows API。</li>
+      <li><strong>SandboxToys2</strong>:監控沙箱裡的檔案與登錄變更(分析利器)。</li>
+      <li><strong>Sbiextra</strong>:加額外的使用者態限制;<strong>SbieHide</strong>:嘗試對盒內程式隱藏 <code>SbieDll.dll</code>;<strong>WrapLocale</strong>:更彈性的地區偽裝。</li>
+    </ul>
+  </section>
+
+  <section id="notes">
+    <h2><span class="num">⑧</span> 重點 · 關聯 · 來源</h2>
+    <h3>七個帶得走的重點</h3>
+    <ol>
+      <li>Windows 沙箱:在盒裡跑/裝程式,<strong>讀穿透、寫重導,主機硬碟與登錄檔零改動</strong>。</li>
+      <li>刪掉沙箱 = 乾淨環境;可開幾乎無限個盒,彼此與主機都隔離。</li>
+      <li>用途:<strong>測不信任程式、隔離上網、惡意程式分析、程式多開</strong>。</li>
+      <li><strong>Plus(Qt)與 Classic(MFC)核心相同、安全性一致</strong>,差在 UI 與新功能;新功能選 Plus。</li>
+      <li>架構:<strong>核心驅動(SbieDrv)+ 服務(SbieSvc)+ 注入 SbieDll.dll</strong> + 受限 token。</li>
+      <li>進階:<strong>安全強化盒(限 syscall)、每盒 WFP 防火牆、SOCKS5/DNS、加密盒、防截圖</strong>。</li>
+      <li>身世:Ronen Tzur→Invincea→Sophos→2020 開源→<strong>David Xanatos 社群 fork</strong>;Plus 自訂授權 / Classic GPL。</li>
+    </ol>
+    <div class="related">
+      <a href="./rea-reverse-engineer-anything.html">
+        <div class="rel-title">🔬 REA 逆向工程 MCP</div>
+        <div class="rel-sub">同屬資安工具;分析樣本的好搭檔</div>
+      </a>
+      <a href="./sherlock.html">
+        <div class="rel-title">🔎 Sherlock</div>
+        <div class="rel-sub">另一個資安/調查經典工具</div>
+      </a>
+      <a href="./find-corporate-ca-cert.html">
+        <div class="rel-title">🔐 企業 CA / TLS 憑證</div>
+        <div class="rel-sub">Windows 系統/安全主題相鄰</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>整理自 GitHub 倉庫 <a href="https://github.com/sandboxie-plus/Sandboxie" style="color:var(--link)">sandboxie-plus/Sandboxie</a> 的 README(含簡介、Plus/Classic 差異、功能清單、專案史時間線、授權、工具生態)與 <a href="https://sandboxie-plus.github.io/sandboxie-docs" style="color:var(--link)">官方文件</a>。功能、版本差異、時間線、授權雙軌均引自 README;<strong>⑤ 的架構(驅動/服務/SbieDll/token)為 Sandboxie 一般運作方式的說明</strong>(README 以維運選單、工具生態與「全新 token 機制」印證這些元件),細節以官方文件與原始碼為準。系統需求 Windows 7+(64 位)。本頁為中立技術整理。</div>
+  </section>
+
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
