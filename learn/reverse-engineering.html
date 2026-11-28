@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>逆向工程入門:概念、靜態 vs 動態、工具地景與合法界線 · JustKM</title>
+  <style>
+    :root {
+      --canvas: #ffffff; --page: #fafaf9; --surface: #f6f5f4;
+      --ink: #1a1a1a; --charcoal: #37352f; --slate: #5d5b54; --steel: #787671; --stone: #a4a097; --muted: #bbb8b1;
+      --hairline: #e5e3df; --hairline-soft: #ede9e4; --hairline-strong: #c8c4be;
+      --primary: #5645d4; --primary-deep: #3a2a99; --on-primary: #ffffff;
+      --navy: #0a1530; --navy-mid: #1a2a52;
+      --link: #0075de;
+      --orange: #dd5b00; --pink: #ff64c8; --purple: #7b3ff2; --teal: #2a9d99; --green: #1aae39; --error: #e03131;
+      --tint-peach: #ffe8d4; --tint-rose: #fde0ec; --tint-mint: #d9f3e1; --tint-lavender: #e6e0f5; --tint-sky: #dcecfa; --tint-yellow: #fef7d6; --tint-gray: #f0eeec;
+      --code-bg: #f6f5f4;
+      --font-scale: 1;
+    }
+    html { font-size: calc(16px * var(--font-scale)); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Inter", -apple-system, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+      background: var(--page); color: var(--charcoal); line-height: 1.75; min-height: 100vh; padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 980px; margin: 0 auto; }
+    .font-adjuster { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--canvas); border: 1px solid var(--hairline);
+      border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,16,16,0.08); }
+    .font-adjuster button { background: #fff; border: 1px solid var(--hairline); color: var(--charcoal); width: 32px; height: 32px;
+      border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .font-adjuster button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .font-adjuster .fa-label { font-size: 0.6875rem; color: var(--stone); margin: 0 4px; letter-spacing: 0.5px; }
+    .font-adjuster .fa-value { font-size: 0.6875rem; color: var(--primary); font-weight: 700; min-width: 36px; text-align: center; font-family: 'SF Mono', monospace; }
+    .back-home { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 0.875rem;
+      padding: 6px 14px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--canvas); }
+    .back-home:hover { border-color: var(--primary); }
+    .hero { background: var(--navy); border-radius: 18px; padding: 40px 36px; margin-bottom: 26px; position: relative; overflow: hidden; box-shadow: 0 12px 30px rgba(10,21,48,0.16); }
+    .hero::after { content: ''; position: absolute; top: 22px; right: 30px; width: 130px; height: 60px;
+      background-image: radial-gradient(circle, #5645d4 6px, transparent 7px), radial-gradient(circle, #2a9d99 6px, transparent 7px), radial-gradient(circle, #dd5b00 6px, transparent 7px), radial-gradient(circle, #f5d75e 6px, transparent 7px);
+      background-position: 0 0, 34px 18px, 68px 2px, 100px 22px; background-repeat: no-repeat; opacity: .9; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+    .hero .sub { color: #b9c2d6; font-size: 0.9375rem; margin-bottom: 16px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.7rem; color: #e7ebf3; margin-right: 6px; margin-bottom: 6px; }
+    .badge.blue { color: #bcd8ff; border-color: rgba(120,180,255,.4); }
+    .badge.green { color: #b6f0c4; border-color: rgba(60,200,120,.4); }
+    .badge.orange { color: #ffcf9e; border-color: rgba(255,160,80,.4); }
+    .toc { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 22px; margin-bottom: 26px; box-shadow: 0 1px 3px rgba(16,16,16,0.04); }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 4px; }
+    .toc a { color: var(--slate); text-decoration: none; font-size: 0.8125rem; padding: 5px 10px; border-radius: 7px; transition: all 0.15s; }
+    .toc a:hover { color: var(--primary); background: var(--tint-lavender); }
+    section { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 16px; padding: 28px 32px; margin-bottom: 22px; scroll-margin-top: 20px; box-shadow: 0 1px 3px rgba(16,16,16,0.03); }
+    section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px; color: var(--ink); }
+    section h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 7px; color: #fff; font-size: 0.8125rem; font-weight: 800; background: var(--primary); border-radius: 8px; }
+    section h3 { font-size: 1.0625rem; font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+    section h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate); margin-top: 18px; margin-bottom: 6px; }
+    section p { margin-bottom: 10px; color: var(--charcoal); font-size: 0.9rem; }
+    section ul, section ol { padding-left: 22px; margin-bottom: 14px; color: var(--charcoal); font-size: 0.9rem; }
+    section li { margin-bottom: 6px; }
+    section strong { color: var(--ink); }
+    section code { font-family: 'SF Mono', Menlo, monospace; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 0.82rem; }
+    th { text-align: left; background: var(--surface); color: var(--ink); padding: 9px 12px; border: 1px solid var(--hairline); font-weight: 700; overflow-wrap: anywhere; }
+    td { padding: 9px 12px; border: 1px solid var(--hairline); color: var(--slate); vertical-align: top; overflow-wrap: anywhere; }
+    tr:hover td { background: #fbfbfa; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 12px 0 18px; }
+    .table-wrap table { margin: 0; }
+    pre { background: #0d1526; border: 1px solid #22304e; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 10px 0 14px; font-size: 0.76rem; line-height: 1.62; color: #d7deee; font-family: 'SF Mono', Menlo, monospace; }
+    pre .cm { color: #7f8db0; }
+    pre .kw { color: #ffcf9e; }
+    pre .st { color: #b6f0c4; }
+    p code, li code, td code { background: var(--code-bg); border: 1px solid var(--hairline); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: var(--orange); }
+    .fig { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fig svg { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .figcap { font-size: 0.72rem; color: var(--stone); margin-top: 8px; text-align: center; }
+    .fig .scroll-hint { display: none; font-size: 0.68rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+    .callout { border-left: 3px solid var(--primary); background: var(--tint-lavender); padding: 13px 16px; border-radius: 0 10px 10px 0; margin: 12px 0 16px; font-size: 0.86rem; color: var(--charcoal); }
+    .callout.tip { border-left-color: var(--green); background: var(--tint-mint); }
+    .callout.warn { border-left-color: var(--orange); background: var(--tint-yellow); }
+    .callout.info { border-left-color: var(--primary); background: var(--tint-lavender); }
+    .callout strong { color: var(--ink); }
+    .footer { text-align: center; color: var(--stone); font-size: 0.75rem; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+    .footer a { color: var(--primary); text-decoration: none; }
+    .related { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related a { color: var(--primary); text-decoration: none; font-size: 0.875rem; padding: 11px 15px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); transition: all 0.15s; display: block; }
+    .related a:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(86,69,212,0.10); }
+    .related .rel-title { color: var(--ink); font-weight: 700; }
+    .related .rel-sub { color: var(--stone); font-size: 0.75rem; margin-top: 2px; }
+    @media (max-width: 640px) {
+      body { padding: 22px 12px 60px; }
+      .container { max-width: 100%; }
+      section { padding: 20px 15px; }
+      .hero { padding: 26px 18px; }
+      .hero h1 { font-size: 1.18rem; }
+      .hero .sub { font-size: 0.84rem; }
+      section h2 { font-size: 1.12rem; }
+      .related { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+      .hero::after { display: none; }
+      .font-adjuster { top: 8px; right: 8px; padding: 4px 6px; }
+      .font-adjuster button { width: 28px; height: 28px; font-size: 12px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 7px 9px; }
+      .fig { padding: 10px 8px; }
+      .fig svg { min-width: 560px; }
+      .fig .scroll-hint { display: block; }
+      .table-wrap table { min-width: 540px; }
+      .table-wrap::before { content: "\2190 \5DE6\53F3\6ED1\52D5\770B\5B8C\6574\8868\683C \2192"; display: block; font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    }
+    @media (max-width: 380px) { .toc-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="font-adjuster" role="group" aria-label="字級調整">
+  <button id="fa-dec" title="字級變小 (-)" aria-label="字級變小">A−</button>
+  <span class="fa-label">字級</span>
+  <span class="fa-value" id="fa-value">100%</span>
+  <button id="fa-inc" title="字級變大 (+)" aria-label="字級變大">A+</button>
+  <button id="fa-reset" title="重設 (100%)" aria-label="重設字級" style="font-size:11px;">⟲</button>
+</div>
+
+<div class="container">
+
+  <a class="back-home" href="./index.html">← 回到 AI 學習總目錄</a>
+
+  <div class="hero">
+    <h1>🧩 逆向工程入門:從成品反推它怎麼運作</h1>
+    <p class="sub">逆向工程(Reverse Engineering)就是在<strong>沒有原始碼</strong>的情況下,從一個成品(執行檔、韌體、協定、App)反推它內部怎麼運作。這頁是概念入門 + 工具地景:講清楚它是什麼、能正當拿來做什麼、<strong>靜態 vs 動態分析</strong>的核心二分、典型工作流、主流工具怎麼分類,以及最重要的——<strong>合法與倫理界線</strong>。站內的 <a href='./rea-reverse-engineer-anything.html'>REA</a> 是把這整套接給 AI 代理的工具頁,這頁補上它的上游概念。</p>
+    <div><span class="badge blue">概念入門 · 靜態 vs 動態 · 工作流</span>
+      <span class="badge green">工具地景:Ghidra/IDA/Binary Ninja/radare2/Frida</span>
+      <span class="badge orange">教育/防禦視角 · 含合法界線</span></div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">📑 目錄</div>
+    <div class="toc-grid">
+      <a href="#tldr">⓪ 一句話總結</a>
+      <a href="#why">① 為什麼要逆向(正當用途)</a>
+      <a href="#static-dynamic">② 靜態 vs 動態分析</a>
+      <a href="#workflow">③ 典型工作流</a>
+      <a href="#tools">④ 工具地景</a>
+      <a href="#targets">⑤ 常見目標與難點</a>
+      <a href="#glossary">⑥ 關鍵概念小詞典</a>
+      <a href="#legal">⑦ 合法與倫理界線</a>
+      <a href="#notes">⑧ 怎麼上手 · 重點 · 來源</a>
+    </div>
+  </nav>
+
+  <section id="tldr">
+    <h2><span class="num">⓪</span> 一句話總結</h2>
+    <p><strong>逆向工程 = 沒有原始碼,也要搞懂它怎麼運作。</strong>你手上只有成品——一個 <code>.exe</code>、一顆韌體、一段看不懂的網路封包、一個混淆過的 JS——逆向就是把它拆開、觀察、反推出它的結構、邏輯與資料格式。它的兩大支柱是<strong>靜態分析</strong>(不執行,直接讀它的程式碼與結構)與<strong>動態分析</strong>(讓它跑,觀察執行中的行為);真實工作通常兩者交替來回。</p>
+    <div class="callout info"><strong>先講清楚立場:</strong>逆向本身是中性技術,廣泛用於資安防禦、互通、鑑識與學習。這頁走<strong>教育與防禦視角</strong>,只做概念與工具分類,<strong>不提供破解、盜版或規避保護的操作步驟</strong>。合法界線在 ⑦。站內 <a href="./rea-reverse-engineer-anything.html" style="color:var(--link)">REA</a> 是把這套工具接給 AI 代理的具體實作。</div>
+  </section>
+
+  <section id="why">
+    <h2><span class="num">①</span> 為什麼要逆向(正當用途)</h2>
+    <p>逆向不是「駭客專屬」,它是很多正經工作的日常:</p>
+    <ul>
+      <li><strong>資安分析</strong>:分析惡意程式行為、寫偵測規則、做事件鑑識(DFIR)。</li>
+      <li><strong>漏洞研究</strong>:找出軟體的安全漏洞並<strong>負責任揭露</strong>給廠商修補。</li>
+      <li><strong>互通性(interoperability)</strong>:讓你的程式能和一個沒有文件的封閉格式/協定對接。</li>
+      <li><strong>相容與維護</strong>:原廠倒了、原始碼遺失的老軟體,逆向以修 bug 或讓它在新系統跑。</li>
+      <li><strong>驗證與稽核</strong>:確認一個二進位真的只做它宣稱的事(供應鏈安全)。</li>
+      <li><strong>學習</strong>:CTF、crackme 練習,理解編譯器、作業系統與硬體怎麼運作。</li>
+    </ul>
+    <div class="callout tip"><strong>為什麼它難、也迷人:</strong>編譯會<strong>丟掉資訊</strong>——變數名、型別、註解、高階結構在編譯成機器碼後大多消失。逆向就是在這些資訊被抹掉之後,靠模式、經驗與工具把「人看得懂的意義」重新還原出來。</div>
+  </section>
+
+  <section id="static-dynamic">
+    <h2><span class="num">②</span> 靜態 vs 動態分析:兩隻眼睛</h2>
+    <p>這是逆向最核心的二分,幾乎所有工具都落在其中一邊(或兩邊):</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 220" role="img" aria-label="靜態 vs 動態分析對照:靜態分析不執行目標,直接讀它的位元組與結構——反組譯成組語、反編譯成近似 C、看字串/匯入表/控制流圖;看得到全貌、安全(不會真的跑惡意碼),但面對加殼/混淆會卡、看不到執行期才算出的值。動態分析讓目標實際執行,用除錯器下斷點、單步、看暫存器與記憶體,用插樁(如 Frida)掛鉤函式、看封包;能看到真實行為與解密後的資料,但一次只看到一條執行路徑,且要在受控沙箱裡跑以免中招。實務上兩者交替來回。">
+        <defs><marker id="sd1" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif">
+          <rect x="16" y="24" width="330" height="168" rx="13" fill="#dcecfa" stroke="#0075de" stroke-width="1.7"/>
+          <text x="181" y="48" text-anchor="middle" font-size="11" font-weight="800" fill="#005bb0">靜態分析(不執行)</text>
+          <text x="181" y="70" text-anchor="middle" font-size="8" fill="#37352f">直接讀位元組與結構:</text>
+          <text x="181" y="86" text-anchor="middle" font-size="8" fill="#5d5b54">反組譯→組語、反編譯→近似 C</text>
+          <text x="181" y="100" text-anchor="middle" font-size="8" fill="#5d5b54">字串 / 匯入表 / 控制流圖(CFG)</text>
+          <text x="181" y="122" text-anchor="middle" font-size="8" fill="#137a29">✓ 看得到全貌 · 安全(不真的跑)</text>
+          <text x="181" y="142" text-anchor="middle" font-size="8" fill="#b34700">✗ 加殼/混淆會卡</text>
+          <text x="181" y="158" text-anchor="middle" font-size="8" fill="#b34700">✗ 看不到執行期才算出的值</text>
+          <text x="181" y="178" text-anchor="middle" font-size="7.6" fill="#787671">Ghidra / IDA / Binary Ninja / radare2</text>
+          <rect x="374" y="24" width="330" height="168" rx="13" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.7"/>
+          <text x="539" y="48" text-anchor="middle" font-size="11" font-weight="800" fill="#b34700">動態分析(讓它跑)</text>
+          <text x="539" y="70" text-anchor="middle" font-size="8" fill="#37352f">觀察執行中的行為:</text>
+          <text x="539" y="86" text-anchor="middle" font-size="8" fill="#5d5b54">除錯器下斷點 / 單步 / 看暫存器記憶體</text>
+          <text x="539" y="100" text-anchor="middle" font-size="8" fill="#5d5b54">插樁掛鉤函式(Frida)· 看封包</text>
+          <text x="539" y="122" text-anchor="middle" font-size="8" fill="#137a29">✓ 看到真實行為 · 解密後的資料</text>
+          <text x="539" y="142" text-anchor="middle" font-size="8" fill="#b34700">✗ 一次只看到一條執行路徑</text>
+          <text x="539" y="158" text-anchor="middle" font-size="8" fill="#b34700">✗ 要在受控沙箱跑以免中招</text>
+          <text x="539" y="178" text-anchor="middle" font-size="7.6" fill="#787671">x64dbg / GDB / WinDbg / Frida</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 兩者互補:靜態給你地圖(全貌與邏輯),動態給你實況(真實數值與解密結果)。遇到加殼/混淆常是「先動態跑到脫殼後,再回頭靜態讀」。動態分析惡意樣本務必在隔離環境(見 <a href="./sandboxie.html" style="color:var(--link)">Sandboxie</a>/VM)。</div>
+    </div>
+  </section>
+
+  <section id="workflow">
+    <h2><span class="num">③</span> 典型工作流:從一坨未知到看得懂</h2>
+    <p>拿到一個未知目標,大致會這樣推進(來回迭代,不是一條直線):</p>
+    <div class="fig">
+      <div class="scroll-hint">← 左右滑動看完整圖 →</div>
+      <svg viewBox="0 0 720 170" role="img" aria-label="逆向工作流:① triage 偵察——用 file/strings/PE 工具看它是什麼(格式、架構、有沒有加殼、可見字串、匯入了哪些 API);② 靜態分析——丟進反組譯/反編譯器讀邏輯、畫控制流、定位關鍵函式;③ 動態分析——在沙箱裡執行,用除錯器與插樁觀察真實行為、看解密後資料;④ 符號化與重建——把看懂的函式命名、標型別、加註解,逐步還原結構;⑤ 驗證——用自己的理解重現行為或寫出 PoC/相容實作來證明理解正確。每一步都可能回頭補前一步。">
+        <defs><marker id="wf1" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8a93ad"/></marker></defs>
+        <g font-family="sans-serif" font-size="8">
+          <rect x="10" y="54" width="118" height="54" rx="9" fill="#e6e0f5" stroke="#5645d4" stroke-width="1.4"/><text x="69" y="74" text-anchor="middle" font-weight="800" fill="#3a2a99">① triage 偵察</text><text x="69" y="89" text-anchor="middle" font-size="7" fill="#5d5b54">file/strings/PE</text><text x="69" y="100" text-anchor="middle" font-size="7" fill="#787671">格式/架構/加殼?</text>
+          <rect x="140" y="54" width="118" height="54" rx="9" fill="#dcecfa" stroke="#0075de" stroke-width="1.4"/><text x="199" y="74" text-anchor="middle" font-weight="800" fill="#005bb0">② 靜態</text><text x="199" y="89" text-anchor="middle" font-size="7" fill="#5d5b54">反組譯/反編譯</text><text x="199" y="100" text-anchor="middle" font-size="7" fill="#787671">讀邏輯·畫 CFG</text>
+          <rect x="270" y="54" width="118" height="54" rx="9" fill="#fef7d6" stroke="#dd5b00" stroke-width="1.4"/><text x="329" y="74" text-anchor="middle" font-weight="800" fill="#b34700">③ 動態</text><text x="329" y="89" text-anchor="middle" font-size="7" fill="#5d5b54">沙箱跑·除錯·插樁</text><text x="329" y="100" text-anchor="middle" font-size="7" fill="#787671">真實行為/解密</text>
+          <rect x="400" y="54" width="130" height="54" rx="9" fill="#d9f3e1" stroke="#1aae39" stroke-width="1.4"/><text x="465" y="74" text-anchor="middle" font-weight="800" fill="#137a29">④ 符號化/重建</text><text x="465" y="89" text-anchor="middle" font-size="7" fill="#5d5b54">命名/標型別/註解</text><text x="465" y="100" text-anchor="middle" font-size="7" fill="#787671">逐步還原結構</text>
+          <rect x="542" y="54" width="118" height="54" rx="9" fill="#f0eeec" stroke="#a4a097" stroke-width="1.4"/><text x="601" y="74" text-anchor="middle" font-weight="800" fill="#37352f">⑤ 驗證</text><text x="601" y="89" text-anchor="middle" font-size="7" fill="#5d5b54">重現/PoC/相容實作</text><text x="601" y="100" text-anchor="middle" font-size="7" fill="#787671">證明理解正確</text>
+          <g stroke="#8a93ad" stroke-width="1.6" fill="none" marker-end="url(#wf1)">
+            <path d="M128,81 L138,81"/><path d="M258,81 L268,81"/><path d="M388,81 L398,81"/><path d="M530,81 L540,81"/>
+          </g>
+          <path d="M601,108 C601,138 200,138 199,110" fill="none" stroke="#8a93ad" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#wf1)"/>
+          <text x="400" y="134" text-anchor="middle" font-size="7.4" fill="#787671">每步都可能回頭補前一步(迭代)</text>
+          <text x="360" y="26" text-anchor="middle" font-size="12" font-weight="800" fill="#1a1a1a">triage → 靜態 → 動態 → 符號化/重建 → 驗證</text>
+        </g>
+      </svg>
+      <div class="figcap">▲ 關鍵心法:逆向是<strong>持續命名與標註</strong>的過程——每搞懂一個函式就給它一個有意義的名字,工具會把這個名字散播到所有呼叫處,下一塊就更好讀。看懂的範圍像滾雪球一樣擴大。</div>
+    </div>
+  </section>
+
+  <section id="tools">
+    <h2><span class="num">④</span> 工具地景</h2>
+    <p>按「做什麼」分類(名稱是常見代表,非窮舉):</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>類別</th><th>做什麼</th><th>常見工具</th></tr></thead>
+      <tbody>
+        <tr><td>反組譯 / 反編譯器</td><td>把機器碼變組語、再盡量還原成近似 C(靜態核心)</td><td><strong>Ghidra</strong>(NSA 開源、免費)、<strong>IDA Pro</strong>(商業、業界標竿)、<strong>Binary Ninja</strong>、<strong>radare2 / Cutter</strong>(開源)</td></tr>
+        <tr><td>除錯器</td><td>讓程式跑、下斷點、單步、看暫存器與記憶體(動態核心)</td><td><strong>x64dbg</strong>(Windows 開源)、<strong>GDB</strong>、<strong>WinDbg</strong>、<strong>LLDB</strong></td></tr>
+        <tr><td>動態插樁 / 掛鉤</td><td>在執行期攔截/改函式呼叫、注入腳本觀察</td><td><strong>Frida</strong>、Pin、DynamoRIO、QEMU(模擬執行)</td></tr>
+        <tr><td>網路 / 協定</td><td>看懂程式對外的通訊與封包格式</td><td><strong>Wireshark</strong>、<strong>mitmproxy</strong>、Burp Suite</td></tr>
+        <tr><td>偵察 / 格式</td><td>快速判斷「這是什麼、有沒有加殼」</td><td><code>file</code>、<code>strings</code>、PE-bear / Detect It Easy(DIE)、CyberChef</td></tr>
+        <tr><td>託管 / 位元組碼</td><td>.NET、Java、Android 這類非原生目標</td><td>.NET:<strong>dnSpy / ILSpy</strong>;Java:JD-GUI;Android:<strong>jadx / apktool</strong></td></tr>
+        <tr><td>網頁 / JS</td><td>看懂前端打包、混淆後的 JS</td><td>瀏覽器 DevTools、source maps、去混淆器</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout tip"><strong>起手建議:</strong>免費又強的 <strong>Ghidra</strong> + <strong>x64dbg</strong> 幾乎能涵蓋原生二進位的入門全部需求;Frida 則是動態分析(含手機 App)的瑞士刀。站內 <a href="./rea-reverse-engineer-anything.html" style="color:var(--link)">REA</a> 把其中好幾類(Ghidra/IDA/Hopper…)包成 MCP 給 AI 代理驅動。</div>
+  </section>
+
+  <section id="targets">
+    <h2><span class="num">⑤</span> 常見目標與難點</h2>
+    <h3>目標(先認出檔案格式)</h3>
+    <ul>
+      <li><strong>原生執行檔</strong>:Windows 的 <strong>PE</strong>(.exe/.dll)、Linux 的 <strong>ELF</strong>、macOS 的 <strong>Mach-O</strong>——先看它的標頭、區段、匯入/匯出表。</li>
+      <li><strong>韌體 / 嵌入式</strong>:常是裸 binary 或特定格式,要先搞清楚架構(ARM/MIPS/RISC-V)與載入位址。</li>
+      <li><strong>託管 / 腳本</strong>:.NET(IL)、Java(bytecode)、Android(dex)、混淆 JS——這類「資訊丟得少」,通常比原生好還原。</li>
+      <li><strong>協定 / 格式</strong>:沒有文件的網路協定或檔案格式,靠抓封包/對照樣本推欄位。</li>
+    </ul>
+    <h3>難點(為什麼會卡)</h3>
+    <ul>
+      <li><strong>符號缺失</strong>:release build 把函式/變數名都拿掉了,只剩位址——逆向大半時間在「給東西取名」。</li>
+      <li><strong>加殼(packing)</strong>:程式被壓縮/加密,執行時才在記憶體還原真身——通常要動態跑到脫殼後再 dump。</li>
+      <li><strong>混淆(obfuscation)</strong>:控制流被打亂、字串被加密、插入垃圾碼,刻意讓人看不懂。</li>
+      <li><strong>反調試 / 反虛擬機(anti-debug / anti-VM)</strong>:程式偵測到被除錯或在 VM 裡就改變行為或拒跑。</li>
+    </ul>
+  </section>
+
+  <section id="glossary">
+    <h2><span class="num">⑥</span> 關鍵概念小詞典</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>詞</th><th>意思</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Disassembly(反組譯)</strong></td><td>機器碼 → 組合語言(一對一,人還是要讀組語)</td></tr>
+        <tr><td><strong>Decompilation(反編譯)</strong></td><td>再往上還原成近似高階語言(如 C),好讀很多但是「近似、不保證等價」</td></tr>
+        <tr><td><strong>Symbol(符號)</strong></td><td>函式/變數的名字;有符號(debug 版)好懂,release 版通常被剝除</td></tr>
+        <tr><td><strong>Control-Flow Graph(CFG)</strong></td><td>把程式的分支/迴圈畫成流程圖,看邏輯結構的利器</td></tr>
+        <tr><td><strong>Calling convention(呼叫慣例)</strong></td><td>參數怎麼傳、誰清堆疊(cdecl/stdcall/fastcall…),還原函式簽章要靠它</td></tr>
+        <tr><td><strong>Hooking(掛鉤)</strong></td><td>攔截一個函式呼叫,在它前後插入自己的邏輯(動態分析常用)</td></tr>
+        <tr><td><strong>Patching(打補丁)</strong></td><td>直接改二進位的位元組來改變行為(正當用途如修 bug/相容)</td></tr>
+        <tr><td><strong>Packer / Unpacking</strong></td><td>加殼器把程式壓縮加密;脫殼 = 拿到還原後的真身</td></tr>
+        <tr><td><strong>Instrumentation(插樁)</strong></td><td>在程式執行中插入觀測/測量點(如 Frida 注入 JS)</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="legal">
+    <h2><span class="num">⑦</span> 合法與倫理界線(務必讀)</h2>
+    <p>逆向的技術中性,但<strong>用途有明確的法律與倫理紅線</strong>,且各國法規不同。以下是通則,不是法律意見:</p>
+    <div class="callout warn"><strong>綠燈(通常正當):</strong>分析你自己擁有/有權分析的東西;惡意程式研究與防禦;為了<strong>互通性</strong>的逆向(許多地區有有限例外);安全漏洞研究並走<strong>負責任揭露</strong>;CTF / crackme 等教學用途。<br><br><strong>紅燈(別碰):</strong>規避著作權保護措施(DRM)、製作或散布破解/盜版(多國如美國 DMCA 反規避條款、各地著作權法有刑責)、違反你同意過的授權條款或服務條款(EULA/ToS 常禁止逆向)、竊取商業機密、未授權存取他人系統。</div>
+    <ul>
+      <li><strong>先看授權與條款</strong>:很多軟體的 EULA 明文禁止逆向;你按過同意就受其約束(是否可執行因地而異)。</li>
+      <li><strong>漏洞要負責任揭露</strong>:找到洞先私下通報廠商、給合理修補期,而不是公開 PoC 或拿去利用。</li>
+      <li><strong>惡意樣本只在隔離環境跑</strong>:專用 VM / 沙箱 / 斷網,別在日常機器上動態分析。</li>
+      <li><strong>有疑慮就停下來諮詢</strong>:商業、跨境或牽涉他人系統的逆向,先確認法律基礎。</li>
+    </ul>
+    <p>這和站內 <a href="./rea-reverse-engineer-anything.html" style="color:var(--link)">REA</a>、<a href="./sherlock.html" style="color:var(--link)">Sherlock</a> 兩頁的立場一致:<strong>工具中立,責任在使用者</strong>。</p>
+  </section>
+
+  <section id="notes">
+    <h2><span class="num">⑧</span> 怎麼上手 · 重點 · 來源</h2>
+    <h3>想入門的話</h3>
+    <ol>
+      <li>裝免費的 <strong>Ghidra</strong>(靜態)+ <strong>x64dbg</strong>(動態),先在<strong>自己寫的小程式</strong>上練——你知道答案,最好學。</li>
+      <li>玩 <strong>crackmes / CTF 的 reversing 題</strong>:合法、循序漸進、社群題解多。</li>
+      <li>學一點組合語言(x86-64 / ARM)與目標格式(PE/ELF)的基礎,逆向會從「天書」變「吃力但讀得懂」。</li>
+      <li>動態分析任何不信任的東西,一律在隔離環境(VM / <a href="./sandboxie.html" style="color:var(--link)">Sandboxie</a> / 斷網)。</li>
+    </ol>
+    <h3>七個帶得走的重點</h3>
+    <ol>
+      <li>逆向 = <strong>沒原始碼也要搞懂成品怎麼運作</strong>;編譯丟掉的資訊要靠人+工具還原。</li>
+      <li>兩大支柱:<strong>靜態(不執行、讀結構)</strong> vs <strong>動態(執行、觀察行為)</strong>,互補交替。</li>
+      <li>工作流:<strong>triage → 靜態 → 動態 → 符號化/重建 → 驗證</strong>,迭代滾雪球。</li>
+      <li>工具地景:反編譯器(<strong>Ghidra/IDA/Binary Ninja/radare2</strong>)、除錯器(<strong>x64dbg/GDB</strong>)、插樁(<strong>Frida</strong>)、封包(Wireshark)。</li>
+      <li>先認格式(<strong>PE/ELF/Mach-O</strong>、.NET/Java/dex);難點是<strong>符號缺失/加殼/混淆/反調試</strong>。</li>
+      <li><strong>合法界線是關鍵</strong>:綠燈(分析自己的/防禦/互通/負責任揭露/教學),紅燈(破解盜版/規避 DRM/違反條款/未授權存取)。</li>
+      <li>起手:Ghidra + x64dbg + crackmes,動態分析一律隔離環境。</li>
+    </ol>
+    <div class="related">
+      <a href="./rea-reverse-engineer-anything.html">
+        <div class="rel-title">🔬 REA 逆向工程 MCP</div>
+        <div class="rel-sub">把這整套接給 AI 代理的工具頁(下游實作)</div>
+      </a>
+      <a href="./sandboxie.html">
+        <div class="rel-title">📦 Sandboxie</div>
+        <div class="rel-sub">動態分析不信任樣本的隔離環境</div>
+      </a>
+      <a href="./sherlock.html">
+        <div class="rel-title">🔎 Sherlock</div>
+        <div class="rel-sub">另一個資安/調查工具(同立場)</div>
+      </a>
+      <a href="./index.html">
+        <div class="rel-title">📚 AI 學習總目錄</div>
+        <div class="rel-sub">learn 區所有單元</div>
+      </a>
+    </div>
+    <div class="callout info" style="margin-top:14px;">
+      <strong>來源:</strong>本頁為逆向工程概念與工具地景的<strong>原創整理</strong>(非單一來源),綜合逆向工程領域公認的通識:靜態/動態分析的二分、常見工作流、各類工具的定位與公開文件(Ghidra、IDA、Binary Ninja、radare2、x64dbg、GDB、Frida、Wireshark 等皆為其官方專案),以及常識性的法律通則。工具分類為代表性列舉、非窮舉且持續演變;<strong>法律部分為通則說明、非法律意見,實際以你所在司法管轄區的法規與你同意的授權條款為準</strong>。本頁走教育與防禦視角,不提供破解、盜版或規避保護的操作方法。</div>
+  </section>
+
+
+  <div class="footer">
+    <p>JustKM · AI 學習總目錄 · <a href="./index.html">← 回到 learn</a></p>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const KEY = 'justkm-font-scale';
+    const STEP = 0.1, MIN = 0.7, MAX = 1.6, DEFAULT = 1.0;
+    const root = document.documentElement;
+    const valEl = document.getElementById('fa-value');
+    function apply(scale) {
+      scale = Math.max(MIN, Math.min(MAX, scale));
+      scale = Math.round(scale * 100) / 100;
+      root.style.setProperty('--font-scale', scale);
+      valEl.textContent = Math.round(scale * 100) + '%';
+      try { localStorage.setItem(KEY, scale); } catch(e) {}
+    }
+    let saved = DEFAULT;
+    try { const v = localStorage.getItem(KEY); if (v) saved = parseFloat(v) || DEFAULT; } catch(e) {}
+    apply(saved);
+    document.getElementById('fa-dec').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); });
+    document.getElementById('fa-inc').addEventListener('click', () => { const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); });
+    document.getElementById('fa-reset').addEventListener('click', () => apply(DEFAULT));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur + STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '-') { e.preventDefault(); const cur = parseFloat(getComputedStyle(root).getPropertyValue('--font-scale')) || DEFAULT; apply(cur - STEP); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); apply(DEFAULT); }
+    });
+  })();
+</script>
+
+</body>
+</html>
